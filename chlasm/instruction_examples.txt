@@ -1,0 +1,591 @@
+This file contains a sample of all the CHL statements along with their translation
+in assembler language. This will be used to implement the compiler.
+
+TODO: add missing statements
+
+### Structure of this document ###
+Each statement is introduced by its chapter number and syntax taken from the
+"Lionhead Challenge Language Documentation" released for Creature Isle; in some cases the syntax
+has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
+On the subsequent line there is a real statement extracted from the same script files.
+The subsequent lines are the equivalent assembler code decompiled using this tool and
+located with hard research work. Note that the current CHL has been patched by LH, while the scripts
+available to us are at the original version, so not all statements have an exact match with the
+decompiled code.
+Statements are ordered by chapter number.
+Some statements does not have chapter number/syntax because they explains very basic things that
+have no documentation; these statements are placed first.
+Some complex statements may have additional info to help understand their implementation.
+
+___________________________________________
+
+- Increment
+
+BaywatchMurder++
+
+	PUSHF [BaywatchMurder]
+	PUSHF 1.0
+	ADDF
+	POPF BaywatchMurder
+___________________________________________
+
+- 2D coordinates
+
+[1865.61,2641.24]
+
+	PUSHF 1865.61
+	CASTC
+	PUSHF 2641.24
+	CASTC
+	PUSHC 0
+	SWAPI			//convert [x,z] to [x,0,z]
+___________________________________________
+
+- Assignment expression
+
+Amount = 250/(BaywatchSwimmingCounter)
+
+	PUSHF 250.0
+	PUSHF [BaywatchSwimmingCounter]
+	DIV
+	POPF Amount
+___________________________________________
+
+2.5.1 run script identifier
+
+run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
+
+	PUSHF [Highlight]
+	PUSHF [VillagerHutPos]
+	PUSHI 2
+	CASTF
+	PUSHI 2696
+	CASTF
+	CALL ChallengeHighlightNotifyWithEndVariable
+___________________________________________
+
+3.1.1 move object position to position [radius expression]
+
+move MyCreature position to [NewCreature] radius 15
+
+	PUSHF [MyCreature]
+	PUSHF [NewCreature]
+	SYS GET_POSITION	//(1, 3)
+	PUSHF 15.0			//radius
+	SYS MOVE_GAME_THING	//(5, 0)
+___________________________________________
+
+3.1.4 set object focus to position
+
+set Boy focus to [LookAt]
+
+	PUSHF [Boy]
+	PUSHF [LookAt]
+	SYS GET_POSITION	//(1, 3)
+	SYS SET_FOCUS	//(4, 0)
+___________________________________________
+
+3.1.6 object play constant loop
+
+Boy play ANM_P_SWIM2 loop -1
+
+	PUSHF [Boy]
+	PUSHO [Boy]
+	PUSHI 390
+	PUSHF 1.0
+	NEG
+	CASTI
+	SYS SET_SCRIPT_ULONG	//(3, 0)
+	PUSHI 200
+	SYS SET_SCRIPT_STATE	//(2, 0)
+___________________________________________
+
+3.1.8 delete object [with fade]
+
+delete Highlight
+
+	PUSHF [Highlight]
+	PUSHI 0				//0=without fade
+	SYS OBJECT_DELETE	//(2, 0)
+	ZERO [Highlight]
+___________________________________________
+
+3.1.8 delete object [with fade]
+
+delete Trainer with fade
+
+	PUSHF [Trainer]
+	PUSHI 1				//1=with fade
+	SYS OBJECT_DELETE	//(2, 0)
+	ZERO [Trainer]
+___________________________________________
+
+3.2.19 force object constant object [with object]
+
+force MyCreature CREATURE_HURL TinyStone with Trainer
+
+	PUSHF [MyCreature]
+	PUSHI 15				//CREATURE_HURL
+	PUSHF [TinyStone]
+	PUSHF [Trainer]			//with object
+	SYS CREATURE_DO_ACTION	//(4, 0)
+___________________________________________
+
+3.2.19 force object constant object [with object]
+
+force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+
+	PUSHF [MyCreature]
+	PUSHI 82				82=CREATURE_LOOK_AT_CAMERA
+	PUSHF [MyCreature]
+	PUSHO 0					//Using no object
+	SYS CREATURE_DO_ACTION	//(4, 0)
+___________________________________________
+
+3.8.21 Load Map "Filename"
+
+load map "scripts/land2.txt"
+
+	PUSHI 10656	//"scripts/land2.txt"
+	SYS LOAD_MAP	//(1, 0)
+___________________________________________
+
+3.8.27 Stop All Scripts Exclusing Files string
+
+stop all scripts excluding files "LandControlAll.txt"
+
+	PUSHI 10637	//"LandControlAll.txt"
+	SYS STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING	//(1, 0)
+___________________________________________
+
+3.8.36 set fade in time expression
+
+set fade in time 3
+
+	PUSHF 3.0
+	SYS SET_FADE_IN	//(1, 0)
+___________________________________________
+
+3.8.57 start sound constant soundbank
+
+start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SwimPos]
+
+	PUSHI 31
+	PUSHI 37
+	SYSF RANDOM_ULONG	//(2, 1)
+	PUSHI 5
+	PUSHF [SwimPos]
+	SYS GET_POSITION	//(1, 3)
+	PUSHB true
+	SYS PLAY_SOUND_EFFECT	//(6, 0)
+___________________________________________
+
+3.10.1 run script identifier
+
+run script SetupLand3
+
+	CALL SetupLand3
+___________________________________________
+
+3.11.1 wait until condition
+
+wait until read
+
+lbl1598:
+	SYS TEXT_READ	//(0, 1)
+	JZ lbl1598
+___________________________________________
+
+3.11.2 wait condition
+
+wait Random seconds
+
+	PUSHF [Random]
+	SLEEP
+___________________________________________
+
+3.14 state object constant position coord_expression float expression ulong expression, expression
+
+state Mother WANDER_AROUND
+
+	position [SoapBox]
+	float 6
+	ulong 4, 20
+
+a	PUSHF [Mother]
+b	PUSHI 199					//199=WANDER_AROUND=VILLAGER_STATE_SCRIPT_WANDER_AROUND_POSITION (in Info3.txt)
+c	PUSHI [Mother]
+d	PUSHF [SoapBox]
+e	SYS GET_POSITION			//(1, 3)
+f	SYS SET_SCRIPT_STATE_POS	//(4, 0) (d, e1, e2, e3)
+g	PUSHI [Mother]
+h	PUSHF 6.0
+i	SYS SET_SCRIPT_FLOAT		//(2, 0)	(g, h)
+j	PUSHI [Mother]
+k	PUSHF 4.0
+l	CASTI
+m	PUSHF 20.0
+n	CASTI
+o	SYS SET_SCRIPT_ULONG		//(3, 0)	(j, l, n)
+p	SYS SET_SCRIPT_STATE		//(2, 0)	(a, b)
+	
+Equivalent SYS calls:
+	SET_SCRIPT_STATE_POS(GET_POSITION(SoapBox))
+	SET_SCRIPT_FLOAT(Mother, 6.0)
+	SET_SCRIPT_ULONG(Mother, (int) 4, (int) 20.0)
+	SET_SCRIPT_STATE(Mother, WANDER_AROUND)
+___________________________________________
+
+3.15.1 If Block
+
+if number from 0 to Amount == 0
+	//statements
+end if
+
+	PUSHF 0.0
+	PUSHF [Amount]
+	SYS RANDOM	//(2, 1)
+	PUSHF 0.0
+	EQ
+	JZ lbl158A
+		//statements
+	JMP lbl158A
+lbl158A:
+___________________________________________
+
+3.15.2 while condition statements end while
+
+while BaywatchSwimmingCounter >= 1
+	//statements
+end while
+
+lbl158B:
+	PUSHF [BaywatchSwimmingCounter]
+	PUSHF 1.0
+	GEQ
+	JZ lbl1589
+		//statements
+JMP lbl158B
+	lbl1589:
+___________________________________________
+
+3.15.6 begin dialogue statements end dialogue
+
+begin dialogue
+	//statements
+end dialogue
+
+lbl1597:
+	SYS START_DIALOGUE	//(0, 1)
+	JZ lbl1597
+		//statements
+	SYS END_DIALOGUE	//(0, 0)
+___________________________________________
+
+3.16.2.1 say [single line] string
+
+say single line HELP_TEXT_BAYWATCH_25
+
+	PUSHB true		//single line
+	PUSHI 1591
+	PUSHI 0
+	SYS RUN_TEXT	//(3, 0)
+___________________________________________
+
+3.16.2.1 say [single line] string
+
+say HELP_TEXT_BAYWATCH_31
+
+	PUSHB false		//NO single line
+	PUSHI 1597
+	PUSHI 0
+	SYS RUN_TEXT	//(3, 0)
+___________________________________________
+
+3.16.1.11 eject spirit_type
+
+eject evil spirit
+
+	PUSHI 2				//2=evil
+	SYS SPIRIT_EJECT	//(1, 0)
+___________________________________________
+
+3.16.1.11 eject spirit_type
+
+eject good spirit
+
+	PUSHI 1				//1=good
+	SYS SPIRIT_EJECT	//(1, 0)
+___________________________________________
+
+5.2.2 constant of object
+
+AGE of Boy = 11
+
+	PUSHI 16			//16=AGE
+	PUSHF [Boy]
+	PUSHF 11.0
+	SYSF SET_PROPERTY	//(3, 0)
+___________________________________________
+
+5.2.2 constant of object
+
+if HEALTH of Boy <= 0
+	//statements
+end if
+
+	PUSHI 1				//1=HEALTH
+	PUSHF [Boy]
+	SYS GET_PROPERTY	//(2, 1)
+	PUSHF 0.0
+	LEQ
+	JZ lbl159C
+		//statements
+	JMP lbl159C
+lbl159C:
+___________________________________________
+
+6.24 object poisoned
+
+a = HealedDude poisoned
+
+	PUSHF [HealedDude]
+	SYS IS_POISONED	//(1, 1)
+	POPF a
+___________________________________________
+
+9.2 get types at position
+
+BlindWomanHut				= get HOUSE at [3713.5500, 2.9103, 3117.7803]
+
+	PUSHI 2		//type0 2=HOUSE
+	PUSHI 5000	//type1 5000=default
+	PUSHF 3713.55
+	CASTC
+	PUSHF 2.9103
+	CASTC
+	PUSHF 3117.7803
+	CASTC
+	PUSHB false
+	SYS CALL	//(6, 1)
+	POPF BlindWomanHut
+___________________________________________
+
+9.2 get types at position
+
+CircusMusic = get FEATURE FEATURE_INFO_EGPT_PYRAMID at [2254.4419, 52.9300, 1917.9126]
+
+	PUSHI 3		//type0 3=FEATURE
+	PUSHI 5		//type1 5=FEATURE_INFO_EGPT_PYRAMID
+	PUSHF 2254.442
+	CASTC
+	PUSHF 52.93
+	CASTC
+	PUSHF 1917.9126
+	CASTC
+	PUSHB false
+	SYS CALL	//(6, 1)
+	POPF CircusMusic
+___________________________________________
+
+9.2 get types at position radius expression
+
+Town = get TOWN at [1865.61,2641.24] radius 100
+
+	PUSHI 9			//type0 9=TOWN
+	PUSHI 5000		//type1 5000=default
+	PUSHF 1865.61
+	CASTC
+	PUSHF 2641.24
+	CASTC
+	PUSHC 0
+	SWAPI			//convert [x,z] to [x,0,z]
+	PUSHF 100.0		//radius
+	PUSHB false
+	SYS CALL_NEAR	//(7, 1)
+	POPF Town
+___________________________________________
+
+9.4 get types in object at coord_expression radius expression [excluding scripted]
+
+Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
+
+	PUSHI 4				//4=VILLAGER
+	PUSHI 5000
+	PUSHF [Town]
+	PUSHF [Slaver]
+	SYS GET_POSITION	//(1, 3)
+	PUSHF 100.0			//radius
+	PUSHB true			//excluding scripted
+	SYS CALL_IN_NEAR	//(8, 1)
+	POPF Victim
+___________________________________________
+
+9.4 get types in object not near coord_expression radius coord_expression
+
+Escapee = get SCRIPT_OBJECT_TYPE_VILLAGER in SlaveFlock not near [SlavePenPos] radius 10
+
+	PUSHI 4				//4=SCRIPT_OBJECT_TYPE_VILLAGER
+	PUSHI 5000
+	PUSHF [SlaveFlock]
+	PUSHF [SlavePenPos]
+	SYS GET_POSITION	//(1, 3)
+	PUSHF 10.0			//radius
+	PUSHB false
+	SYS CALL_IN_NOT_NEAR	//(8, 1)
+	POPF Escapee
+___________________________________________
+
+9.8 get not poisoned types in object
+
+HealedDude = get not poisoned VILLAGER in Town
+
+	PUSHI 4
+	PUSHI 5000
+	PUSHF [Town]
+	PUSHB false
+	SYS CALL_NOT_POISONED_IN	//(4, 1)
+	POPF HealedDude
+___________________________________________
+
+9.16 create types at position
+
+Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
+
+	PUSHI 2	// = HIGHLIGHT_CHALLENGE = SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER
+	PUSHF [VillagerHutPos]
+	SYS GET_POSITION	//(1, 3)
+	PUSHI 9
+	SYS CREATE_HIGHLIGHT	//(5, 1)
+	POPF Highlight
+___________________________________________
+
+9.20 create timer for expression second[s]
+
+SoditTimer = create timer for 30 seconds
+
+	PUSHF 30.0
+	SYS CREATE_TIMER	//(float) returns (Object)
+	POPF SoditTimer
+___________________________________________
+
+9.21 marker at position
+
+LookAt = marker at [2962.9587, 0.0000, 3079.3020]
+
+	PUSHI 1
+	PUSHI 0
+	PUSHF 2962.9587
+	CASTC
+	PUSHF 0.0
+	CASTC
+	PUSHF 3079.302
+	CASTC
+	SYS CREATE	//(5, 1)
+	POPF LookAt
+___________________________________________
+
+9.30 create anti influence at position position radius
+
+Influence=create anti influence at position [SwimPos] radius 30
+
+	PUSHF [SwimPos]
+	SYS GET_POSITION	//(1, 3)
+	PUSHF 30.0
+	PUSHI 0
+	PUSHI 1
+	SYS INFLUENCE_POSITION	//(6, 1)
+	POPF Influence
+___________________________________________
+
+9.47 detach [object] from FlockObject
+
+DeletedWolf = detach from WolfPack
+
+	PUSHO 0				//object 0=default=random object in the flock
+	PUSHF [WolfPack]	//flock
+	SYS FLOCK_DETACH	//(2, 1)
+	POPF DeletedWolf
+___________________________________________
+
+10.2 constant from constant to constant
+
+constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07
+	PUSHI 31			//31=LH_SCRIPT_SAMPLE_CHILD_LAUGH_01
+	PUSHI 37			//37=LH_SCRIPT_SAMPLE_CHILD_LAUGH_07
+	SYSF RANDOM_ULONG	//(2, 1)
+___________________________________________
+
+10.4 variable state of object
+
+CorrectMushroom = variable state of Puzzle
+
+	PUSHF [Puzzle]
+	SYS GET_OBJECT_STATE	//(1, 1)
+	CASTF
+	POPF CorrectMushroom
+___________________________________________
+
+11.3 [object]
+
+[SwimPos]
+
+	PUSHF [SwimPos]
+	SYS GET_POSITION	//(1, 3)
+___________________________________________
+
+12.13 time
+
+Count = time-31
+
+	SYS DLL_GETTIME	//(0, 1)
+	PUSHF 31.0
+	SUBF
+	POPF Count
+___________________________________________
+
+12.14 number from expression to expression
+
+Random = number from 1 to 4
+
+	PUSHF 1.0
+	PUSHF 4.0
+	SYS RANDOM	//(2, 1)
+	POPF Random
+___________________________________________
+
+12.16 size of object
+
+TownTotalNow = size of Town
+
+	PUSHF [Town]
+	SYS ID_SIZE	//(1, 1)
+	POPF TownTotalNow
+___________________________________________
+
+12.17 adult size of object
+
+___________________________________________
+
+12.18 capacity of object
+
+___________________________________________
+
+12.19 adult capacity of object
+
+___________________________________________
+
+12.20 poisoned size of object
+
+TownPoisoned = poisoned size of Town
+
+	PUSHF [Town]
+	SYS ID_POISONED_SIZE	//(1, 1)
+	POPF TownPoisoned
+___________________________________________
+
+
+___________________________________________
+
+
+___________________________________________
