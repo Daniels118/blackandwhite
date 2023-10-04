@@ -157,17 +157,17 @@ public class Main {
 		System.out.println("Syntax");
 		System.out.println("  chlasm -chlasm -i filename -o filename [-merge]");
 		System.out.println("  chlasm -asmchl -i files|-p filename -o filename");
-		System.out.println("  chlasm -compile -i files|-p filename -o filename");
+		//System.out.println("  chlasm -compile -i files|-p filename -o filename");
 		System.out.println("  chlasm -cmp -f1 filename -f2 filename");
-		System.out.println("  chlasm -print_ref -i filename");
-		System.out.println("  chlasm -print_natives");
+		System.out.println("  chlasm -prref -i filename");
+		System.out.println("  chlasm -prnatfn");
 		System.out.println();
 		System.out.println("Arguments");
 		System.out.println("  -chlasm  convert chl file to asm");
 		System.out.println("  -asmchl  convert asm file to chl");
-		System.out.println("  -compile compile source files into asm file");
+		//System.out.println("  -compile compile source files into asm file");
 		System.out.println("  -cmp     compare chl files ignoring line numbers");
 		System.out.println("  -prref   analyze the instructions in a chl file and print a table summary");
-		System.out.println("  -prnatfn  prints the list of native functions");
+		System.out.println("  -prnatfn prints the list of native functions");
 	}
 }
