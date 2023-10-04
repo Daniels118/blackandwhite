@@ -22,9 +22,9 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
     - name: Build with Ant
-      run: ant -noinput -buildfile build.xml
+      run: ant -noinput -buildfile chlasm/build.xml
     - uses: actions/upload-artifact@v3
       with:
         name: Package
-        path: build/chlasm.zip
+        path: chlasm/build/chlasm.zip
       
