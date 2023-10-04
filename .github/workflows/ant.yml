@@ -25,6 +25,6 @@ jobs:
       run: ant -noinput -buildfile chlasm/build.xml
     - uses: actions/upload-artifact@v3
       with:
-        name: Package
-        path: chlasm/build/chlasm.zip
+        name: chlasm
+        path: chlasm/build/chlasm
       
