@@ -38,6 +38,21 @@ import static it.ld.bw.chl.model.OPCodeAttr.*;
  *		PUSHC 0
  *		SWAPI
  * This could be avoided by implementing a proper rule in the parser.
+ * 
+ * 
+ * About SYS2
+ * SYS2 is used to call the following functions:
+ *   GET_PROPERTY				*called with SYS too
+ *   SET_PROPERTY
+ *   SET_INTERFACE_INTERACTION
+ *   RANDOM_ULONG
+ *   SET_GAMESPEED
+ *   GET_ALIGNMENT
+ * 
+ * 
+ * VSTACK includes:
+ * - opcodes which may operate both on native types and Coord;
+ * - opcodes which call user scripts or native functions.
  */
 
 public enum OPCode {
@@ -73,7 +88,9 @@ public enum OPCode {
 	SWAP(ARG|FINT|VSTACK);	//0x1D 
 	//LINE(ARG);			//0x1E Never found
 	
-	//keywords[opcode][flags][dataType]
+	/**This field maps the tuple {opcode, flags, datatype} to the respective mnemonic.
+	 * Access it as keywords[opcode][flags][dataType]
+	 */
 	static final String[][][] keywords = new String[][][] {
 /*00*/	{{"END"}},
 /*01*/	{{null, "JZ"}, {null, "JZ"}},
@@ -108,14 +125,23 @@ public enum OPCode {
 /*1E*/	null	//LINE
 	};
 	
+	/**Tells if this opcode expects an immediate value.*/
 	public final boolean hasArg;
+	/**Tells if the argument for this opcode is an instruction index.*/
 	public final boolean isIP;
+	/**Tells if this opcode is a jump, meaning that its operand is an instruction index. This
+	 * must also be taken into account to set the FORWARD flag.*/
 	public final boolean isJump;
+	/**Tells if the argument for this opcode is a scriptID.*/
 	public final boolean isScript;
+	/**Tells if the argument for this opcode must be coded as an int regardless of the datatype.*/
 	public final boolean forceInt;
+	/**Tells if this opcode allows to push or pop a variable number of values on the stack.*/
 	public final boolean varStack;
 	
+	/**Number of values popped from the stack, unless varStack is true.*/
 	public final int pop;
+	/**Number of values pushed to the stack, unless varStack is true.*/
 	public final int push;
 	
 	OPCode() {
@@ -141,9 +167,15 @@ public enum OPCode {
 		this.varStack = (attr & VSTACK) == VSTACK;
 	}
 	
-	public static String getKeyword(int code, int flags, int dataType) {
-		if (code < 0 || code >= keywords.length) throw new IllegalArgumentException("Invalid instruction code");
-		String[][] t = keywords[code];
+	/**Gets the mnemonic to code an instruction for the given opcode, flags and datatype.
+	 * @param opcode
+	 * @param flags
+	 * @param dataType
+	 * @return
+	 */
+	public static String getKeyword(int opcode, int flags, int dataType) {
+		if (opcode < 0 || opcode >= keywords.length) throw new IllegalArgumentException("Invalid instruction code");
+		String[][] t = keywords[opcode];
 		if (t == null || flags < 0 || flags >= t.length) throw new IllegalArgumentException("Invalid flags");
 		String[] t2 = t[flags];
 		if (t2 == null || dataType < 0 || dataType >= t2.length || t2[dataType] == null) throw new IllegalArgumentException("Invalid datatype");

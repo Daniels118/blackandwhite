@@ -86,7 +86,7 @@ public class ASMParser {
 		this.firstScriptID = firstScriptID;
 	}
 	
-	public CHLFile parse(List<File> files) throws IOException, ParseException {
+	private void reset() {
 		chl = new CHLFile();
 		globalVariables = chl.getGlobalVariables();
 		dataBuffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);
@@ -107,6 +107,10 @@ public class ASMParser {
 		dataBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		chl.getHeader().setVersion(Header.BW1);
 		globalVariables.setOffset(chl.getHeader().getLength());
+	}
+	
+	public CHLFile parse(List<File> files) throws IOException, ParseException {
+		reset();
 		for (File file : files) {
 			char section = 'H';	// H=header, D=data, G=global, S=script, A=autorun
 			try (BufferedReader str = new BufferedReader(new FileReader(file));) {

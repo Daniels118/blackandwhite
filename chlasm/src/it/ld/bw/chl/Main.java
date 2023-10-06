@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,49 +32,46 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		CmdLine cmd = new CmdLine(args);
 		if (cmd.getArgFlag("-chlasm")) {
-			File inp = cmd.getArgFile("-i");
-			File out = cmd.getArgFile("-o");
-			boolean merge = cmd.getArgFlag("-merge");
-			boolean printSourceLineNumbers = cmd.getArgFlag("-prlno");
-			chlToAsm(inp, out, merge, printSourceLineNumbers);
+			chlToAsm(cmd);
 		} else if (cmd.getArgFlag("-asmchl")) {
-			File prj = cmd.getArgFile("-p");
-			List<File> inp = cmd.getArgFiles("-i");
-			File out = cmd.getArgFile("-o");
-			if (prj == null) {
-				if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-			} else {
-				if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-				inp = readProject(prj);
-			}
-			asmToChl(inp, out);
+			asmToChl(cmd);
 		} else if (cmd.getArgFlag("-compile")) {
-			File prj = cmd.getArgFile("-p");
-			List<File> inp = cmd.getArgFiles("-i");
-			File out = cmd.getArgFile("-o");
-			if (prj == null) {
-				if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-			} else {
-				if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-				inp = readProject(prj);
-			}
-			compile(inp, out);
+			compile(cmd);
 		} else if (cmd.getArgFlag("-cmp")) {
-			File f1 = cmd.getArgFile("-f1");
-			File f2 = cmd.getArgFile("-f2");
-			compare(f1, f2);
+			compare(cmd);
 		} else if (cmd.getArgFlag("-prref")) {
-			File inp = cmd.getArgFile("-i");
-			printInstructionReference(inp);
+			printInstructionReference(cmd);
 		} else if (cmd.getArgFlag("-prnatfn")) {
-			printNatives();
+			printNatives(cmd);
 		} else {
-			printHelp();
+			String topic = cmd.getArgVal("-help");
+			if (topic == null) {
+				printHelp("help.txt");
+			} else {
+				if (topic.startsWith("-")) topic = topic.substring(1);
+				if (in(topic, "chlasm", "asmchl", "compile", "cmp", "prref", "prnatfn")) {
+					printHelp("help_" + topic + ".txt");
+				} else {
+					System.out.println("Unknown option: " + topic);
+				}
+			}
 			System.exit(1);
 		}
 	}
 	
-	private static void chlToAsm(File inp, File out, boolean merge, boolean printSourceLineNumbers) throws Exception {
+	private static void chlToAsm(CmdLine cmd) throws Exception {
+		File inp = mandatory(cmd.getArgFile("-i"), "-i");
+		File out = cmd.getArgFile("-o");
+		File prj = cmd.getArgFile("-p");
+		if (prj == null) {
+			if (out == null) throw new Exception("Please specify either -o or -p");
+		} else {
+			if (out != null) throw new Exception("Please specify either -o or -p");
+			if (!prj.isDirectory()) throw new Exception("-p must be a directory");
+		}
+		boolean printSourceLineNumbers = cmd.getArgFlag("-prlno");
+		File srcPath = cmd.getArgFile("-prsrc");
+		//
 		System.out.println("Loading compiled CHL...");
 		CHLFile chl = new CHLFile();
 		chl.read(inp);
@@ -81,16 +79,30 @@ public class Main {
 		chl.validate(System.out);
 		System.out.println("Writing ASM sources...");
 		ASMWriter writer = new ASMWriter();
-		writer.setPrintSourceLineEnabled(printSourceLineNumbers);
-		if (merge) {
+		writer.setPrintSourceLinenoEnabled(printSourceLineNumbers);
+		if (srcPath != null) {
+			writer.setSourcePath(srcPath.toPath());
+			writer.setPrintSourceLineEnabled(true);
+		}
+		if (out != null) {
 			writer.writeMerged(chl, out);
 		} else {
-			writer.write(chl, out);
+			writer.write(chl, prj);
 		}
 		System.out.println("Done.");
 	}
 	
-	private static void asmToChl(List<File> inp, File out) throws Exception {
+	private static void asmToChl(CmdLine cmd) throws Exception {
+		File prj = cmd.getArgFile("-p");
+		List<File> inp = cmd.getArgFiles("-i");
+		if (prj == null) {
+			if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+		} else {
+			if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+			inp = readProject(prj);
+		}
+		File out = mandatory(cmd.getArgFile("-o"), "-o");
+		//
 		System.out.println("Parsing ASM sources...");
 		ASMParser parser = new ASMParser();
 		CHLFile chl = parser.parse(inp);
@@ -99,7 +111,17 @@ public class Main {
 		System.out.println("Done.");
 	}
 	
-	private static void compile(List<File> inp, File out) throws Exception {
+	private static void compile(CmdLine cmd) throws Exception {
+		File prj = cmd.getArgFile("-p");
+		List<File> inp = cmd.getArgFiles("-i");
+		if (prj == null) {
+			if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+		} else {
+			if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+			inp = readProject(prj);
+		}
+		File out = mandatory(cmd.getArgFile("-o"), "-p");
+		//
 		System.out.println("Parsing CHL sources...");
 		CHLParser parser = new CHLParser();
 		CHLFile chl = parser.parse(inp);
@@ -108,7 +130,10 @@ public class Main {
 		System.out.println("Done.");
 	}
 	
-	private static void compare(File f1, File f2) throws Exception {
+	private static void compare(CmdLine cmd) throws Exception {
+		File f1 = mandatory(cmd.getArgFile("-f1"), "-f1");
+		File f2 = mandatory(cmd.getArgFile("-f2"), "-f2");
+		//
 		System.out.println("Loading "+f1.getName()+"...");
 		CHLFile chl1 = new CHLFile();
 		chl1.read(f1);
@@ -120,7 +145,9 @@ public class Main {
 		comparator.compare(chl1, chl2);
 	}
 	
-	private static void printInstructionReference(File inp) throws Exception {
+	private static void printInstructionReference(CmdLine cmd) throws Exception {
+		File inp = mandatory(cmd.getArgFile("-i"), "-i");
+		//
 		System.out.println("Loading compiled CHL...");
 		CHLFile chl = new CHLFile();
 		chl.read(inp);
@@ -128,7 +155,7 @@ public class Main {
 		chl.printInstructionReference(System.out);
 	}
 	
-	private static void printNatives() throws Exception {
+	private static void printNatives(CmdLine cmd) throws Exception {
 		for (NativeFunction f : NativeFunction.values()) {
 			System.out.println(f.ordinal() + ": " + f.name() + f.getInfoString());
 		}
@@ -151,25 +178,28 @@ public class Main {
 		return res;
 	}
 	
-	private static void printHelp() {
-		System.out.println("CHL Compiler");
-		System.out.println("Version 0.1");
-		System.out.println("Developer by Daniele Lombardi (alias Daniels118)");
-		System.out.println();
-		System.out.println("Syntax");
-		System.out.println("  chlasm -chlasm -i filename -o filename [-merge] [-prlno]");
-		System.out.println("  chlasm -asmchl -i files|-p filename -o filename");
-		//System.out.println("  chlasm -compile -i files|-p filename -o filename");
-		System.out.println("  chlasm -cmp -f1 filename -f2 filename");
-		System.out.println("  chlasm -prref -i filename");
-		System.out.println("  chlasm -prnatfn");
-		System.out.println();
-		System.out.println("Arguments");
-		System.out.println("  -chlasm  convert chl file to asm");
-		System.out.println("  -asmchl  convert asm file to chl");
-		//System.out.println("  -compile compile source files into asm file");
-		System.out.println("  -cmp     compare chl files ignoring line numbers");
-		System.out.println("  -prref   analyze the instructions in a chl file and print a table summary");
-		System.out.println("  -prnatfn prints the list of native functions");
+	private static void printHelp(String filename) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream(filename)));) {
+			String row;
+			while ((row = reader.readLine()) != null) {
+				if (!row.startsWith("//")) {
+					System.out.println(row);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static boolean in(String needle, String...haystack) {
+		for (String s : haystack) {
+			if (s.equals(needle)) return true;
+		}
+		return false;
+	}
+	
+	private static <T> T mandatory(T value, String name) {
+		if (value == null) throw new RuntimeException(name + " is mandatory");
+		return value;
 	}
 }

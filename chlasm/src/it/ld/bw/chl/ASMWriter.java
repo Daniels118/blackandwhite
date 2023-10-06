@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -37,10 +39,16 @@ import it.ld.bw.chl.model.DataType;
 
 public class ASMWriter {
 	private static final char[] ILLEGAL_CHARACTERS = {'/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':'};
+	private static final Charset SRC_CHARSET = Charset.forName("ISO-8859-1");
 	
 	private boolean printDataHintEnabled = true;
 	private boolean printNativeInfoEnabled = true;
+	private boolean printSourceLinenoEnabled = false;
 	private boolean printSourceLineEnabled = false;
+	private Path sourcePath = null;
+	
+	private String currentSourceFilename;
+	private String[] source;
 	
 	private PrintStream out;
 	
@@ -68,12 +76,28 @@ public class ASMWriter {
 		this.printNativeInfoEnabled = printNativeInfoEnabled;
 	}
 	
+	public boolean isPrintSourceLinenoEnabled() {
+		return printSourceLinenoEnabled;
+	}
+	
+	public void setPrintSourceLinenoEnabled(boolean printSourceLinenoEnabled) {
+		this.printSourceLinenoEnabled = printSourceLinenoEnabled;
+	}
+	
 	public boolean isPrintSourceLineEnabled() {
 		return printSourceLineEnabled;
 	}
-
+	
 	public void setPrintSourceLineEnabled(boolean printSourceLineEnabled) {
 		this.printSourceLineEnabled = printSourceLineEnabled;
+	}
+
+	public Path getSourcePath() {
+		return sourcePath;
+	}
+
+	public void setSourcePath(Path sourcePath) {
+		this.sourcePath = sourcePath;
 	}
 
 	public void write(CHLFile chl, File outdir) throws IOException, CompileException, InvalidScriptIdException {
@@ -81,7 +105,7 @@ public class ASMWriter {
 		List<Const> constants = chl.getDataSection().analyze();
 		Map<Integer, Const> constMap = mapConstants(constants);
 		List<String> sources = chl.getSourceFilenames();
-		Map<Integer, String> labels = getLabels(chl.getCode().getItems());
+		Map<Integer, Label> labels = getLabels(chl.getCode().getItems());
 		//
 		out.println("Writing _project.txt");
 		File prjFile = path.resolve("_project.txt").toFile();
@@ -131,7 +155,7 @@ public class ASMWriter {
 	public void writeMerged(CHLFile chl, File file) throws IOException, CompileException {
 		List<Const> constants = chl.getDataSection().analyze();
 		Map<Integer, Const> constMap = mapConstants(constants);
-		Map<Integer, String> labels = getLabels(chl.getCode().getItems());
+		Map<Integer, Label> labels = getLabels(chl.getCode().getItems());
 		try (FileWriter str = new FileWriter(file);) {
 			writeHeader(chl, str);
 			writeData(chl, str, constants);
@@ -141,16 +165,19 @@ public class ASMWriter {
 		}
 	}
 	
-	private Map<Integer, String> getLabels(List<Instruction> instructions) {
-		Map<Integer, String> labels = new HashMap<>();
+	private Map<Integer, Label> getLabels(List<Instruction> instructions) {
+		Map<Integer, Label> labels = new HashMap<>();
+		int index = 0;
 		for (Instruction instr : instructions) {
 			if (instr.opcode.isIP) {
-				String label = labels.get(instr.intVal);
+				Label label = labels.get(instr.intVal);
 				if (label == null) {
-					label = String.format("lbl%1$X", labels.size());
+					String name = String.format("lbl%1$X", labels.size());
+					label = new Label(name, instr.intVal > index);
 					labels.put(instr.intVal, label);
 				}
 			}
+			index++;
 		}
 		return labels;
 	}
@@ -185,7 +212,7 @@ public class ASMWriter {
 		str.write("\r\n");
 	}
 	
-	private void writeScripts(CHLFile chl, FileWriter str, Map<Integer, String> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScripts(CHLFile chl, FileWriter str, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		str.write("SCRIPTS\r\n");
 		str.write(String.format("//0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
 		String prevSourceFilename = "";
@@ -205,7 +232,7 @@ public class ASMWriter {
 		str.write("\r\n");
 	}
 	
-	private void writeScripts(CHLFile chl, FileWriter str, String sourceFilename, Map<Integer, String> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScripts(CHLFile chl, FileWriter str, String sourceFilename, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		str.write("SCRIPTS\r\n");
 		str.write("\r\n");
 		/* We need to iterate through all scripts to be sure that we can always access the next script in order to
@@ -221,7 +248,10 @@ public class ASMWriter {
 		}
 	}
 	
-	private void writeScript(CHLFile chl, FileWriter str, Script script, int limit, Map<Integer, String> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScript(CHLFile chl, FileWriter str, Script script, int limit, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+		if (printSourceLineEnabled) {
+			setSourceFile(script.getSourceFilename());
+		}
 		if (script.getVarOffset() > 0) {
 			//This forces the var offset to be the same of the original CHL when assembling again
 			str.write("global "+script.getGlobalVar(chl, script.getVarOffset())+"\r\n");
@@ -242,12 +272,28 @@ public class ASMWriter {
 		int prevSrcLine = 0;
 		do {
 			try {
-				String label = labels.get(index);
-				if (label != null) {
-					str.write(label + ":\r\n");
-				}
 				if (endFound) instrAfterEnd++;
 				instr = it.next();
+				Label label = labels.get(index);
+				/* If the label is referenced by a previous instruction, then print the label before
+				 * printing the original source line.
+				 */
+				if (label != null && label.backReferenced) {
+					str.write(label + ":\r\n");
+				}
+				if (printSourceLineEnabled && source != null
+						&& instr.lineNumber > 0 && instr.lineNumber <= source.length
+						&& instr.lineNumber != prevSrcLine) {
+					str.write("\t//" + source[instr.lineNumber - 1]);	//lineNumber start at 1
+					str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber + "\r\n");
+					prevSrcLine = instr.lineNumber;
+				}
+				/* If the label is referenced by a subsequent instruction, then print the label after
+				 * having printed the original source line.
+				 */
+				if (label != null && !label.backReferenced) {
+					str.write(label + ":\r\n");
+				}
 				str.write("\t" + instr.toString(chl, script, labels));
 				boolean isConstRef = instr.opcode == OPCode.PUSH && instr.flags == 0 && instr.dataType == DataType.INT;
 				if (printDataHintEnabled && isConstRef && instr.intVal > 0 && constMap.containsKey(instr.intVal)) {
@@ -256,8 +302,8 @@ public class ASMWriter {
 					NativeFunction f = NativeFunction.fromCode(instr.intVal);
 					str.write("\t//" + f.getInfoString());
 				}
-				if (printSourceLineEnabled && instr.lineNumber > 0 && instr.lineNumber != prevSrcLine) {
-					str.write("\t\t//" + script.getSourceFilename() + ":" + instr.lineNumber);
+				if (printSourceLinenoEnabled && instr.lineNumber > 0 && instr.lineNumber != prevSrcLine) {
+					str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber);
 					prevSrcLine = instr.lineNumber;
 				}
 				str.write("\r\n");
@@ -287,10 +333,41 @@ public class ASMWriter {
 		str.write("\r\n");
 	}
 	
+	private void setSourceFile(String sourceFilename) {
+		if (!sourceFilename.equals(currentSourceFilename)) {
+			Path file = sourcePath.resolve(sourceFilename);
+			try {
+				List<String> lines = Files.readAllLines(file, SRC_CHARSET);
+				source = lines.toArray(new String[0]);
+			} catch (IOException e) {
+				source = null;
+				out.println("WARNING: failed to read source file '" + sourceFilename + "': " + e);
+			}
+			currentSourceFilename = sourceFilename;
+		}
+	}
+	
 	private static boolean isValidFilename(String s) {
 		for (char c : ILLEGAL_CHARACTERS) {
 			if (s.indexOf(c) >= 0) return false;
 		}
 		return true;
+	}
+	
+	
+	private static class Label {
+		public final String name;
+		/**Tells whether this label is referenced by a previous instruction or not.*/
+		public final boolean backReferenced;
+		
+		public Label(String name, boolean backReferenced) {
+			this.name = name;
+			this.backReferenced = backReferenced;
+		}
+		
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 }

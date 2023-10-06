@@ -1,0 +1,9 @@
+Convert asm file to chl
+
+Syntax
+  chlasm -asmchl -i files|-p filename -o filename
+
+Arguments
+  -i input source files; order matters
+  -p input source folder
+  -o output CHL file

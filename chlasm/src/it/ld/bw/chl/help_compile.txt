@@ -1,0 +1,9 @@
+Compile source files into asm file
+
+Syntax
+  chlasm -compile -i files|-p filename -o filename
+
+Arguments
+  -i input source files; order matters
+  -p input source folder
+  -o output CHL file

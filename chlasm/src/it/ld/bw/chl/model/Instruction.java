@@ -37,14 +37,15 @@ import java.util.Map;
 public class Instruction extends Struct {
 	public static final int LENGTH = 5 * 4;	// 5 fields of 4 bytes
 	
-	private static final int SIGNIFICATIVE_DIGITS = 8;
+	private static final int SIGNIFICANT_DIGITS = 8;
 	private static final DecimalFormat decimalFormat = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
+	/**This holds a mapping between mnemonics and sample instructions.*/
 	private static final Map<String, Instruction> model = new HashMap<>();
 	
 	static {
 		decimalFormat.setMinimumFractionDigits(1);
-		//
+		//Build the mapping between mnemonics and sample instructions
 		for (int iCode = 0; iCode < OPCode.keywords.length; iCode++) {
 			final String[][] t = OPCode.keywords[iCode];
 			if (t != null) {
@@ -80,6 +81,7 @@ public class Instruction extends Struct {
 		return LENGTH;
 	}
 	
+	@Override
 	public void read(EndianDataInputStream str) throws Exception {
 		int v = str.readInt();
 		if (v < 0 || v >= OPCode.values().length) throw new InvalidOPCodeException(v);
@@ -115,6 +117,7 @@ public class Instruction extends Struct {
 		}
 	}
 	
+	@Override
 	public void write(EndianDataOutputStream str) throws Exception {
 		str.writeInt(opcode.ordinal());
 		str.writeInt(flags);
@@ -136,10 +139,19 @@ public class Instruction extends Struct {
 		str.writeInt(lineNumber);
 	}
 	
+	/**Gets the mnemonic used to code this instruction.
+	 * @return
+	 */
 	public String getKeyword() {
 		return OPCode.getKeyword(opcode.ordinal(), flags, dataType.ordinal());
 	}
 	
+	/**Gets the number of values this instruction pops from the stack.
+	 * @param chl
+	 * @return
+	 * @throws InvalidScriptIdException
+	 * @throws InvalidNativeFunctionException
+	 */
 	public int getPopCount(CHLFile chl) throws InvalidScriptIdException, InvalidNativeFunctionException {
 		switch (opcode) {
 			case SYS:
@@ -157,6 +169,11 @@ public class Instruction extends Struct {
 		}
 	}
 	
+	/**Gets the number of values pushed to the stack after the execution of this instruction.
+	 * @param chl
+	 * @return
+	 * @throws InvalidNativeFunctionException
+	 */
 	public int getPushCount(CHLFile chl) throws InvalidNativeFunctionException {
 		switch (opcode) {
 		case SYS:
@@ -179,7 +196,14 @@ public class Instruction extends Struct {
 		return toString(null, null, null);
 	}
 	
-	public String toString(CHLFile chl, Script script, Map<Integer, String> labels) {
+	/**Gets the string representation of this instruction. If additional parameters are
+	 * specified, this method tries to replace raw values with known symbols where possible.
+	 * @param chl may be null
+	 * @param script may be null
+	 * @param labels may be null
+	 * @return
+	 */
+	public String toString(CHLFile chl, Script script, Map<Integer, ?> labels) {
 		String s = getKeyword();
 		boolean popNull = opcode == OPCode.POP && intVal == 0;
 		boolean isZero = opcode == OPCode.CAST && (flags & ZERO) != 0;
@@ -201,7 +225,7 @@ public class Instruction extends Struct {
 					s += intVal;
 				}
 			} else if (opcode.isIP) {
-				String label = null;
+				Object label = null;
 				if (labels != null) label = labels.get(intVal);
 				s += (label != null) ? label : String.format("0x%1$08X", intVal);
 			} else if ((flags & REF) != 0) {
@@ -225,7 +249,7 @@ public class Instruction extends Struct {
 					}
 				}
 			} else if (opcode.forceInt) {
-				s += intVal;	//The SWAP argument is the number of values to swap, so it is always an integer regardless of the datatype
+				s += intVal;	//The SWAP argument is always an integer regardless of the datatype
 			} else {
 				switch (dataType) {
 					case FLOAT:
@@ -278,12 +302,20 @@ public class Instruction extends Struct {
 		return r;
 	}
 	
+	/**This method tries to format float numbers like they where coded in the original source scripts, i.e.:
+	 *   - simple decimal format (no scientific notation, etc.);
+	 *   - at most 7 significant digits shared between int and decimal part;
+	 *   - at least one decimal digit, even if more then 7 total.
+	 * It isn't perfect, but very close.
+	 * @param v
+	 * @return
+	 */
 	private static String format(float v) {
-		decimalFormat.setMaximumFractionDigits(SIGNIFICATIVE_DIGITS - 1);
+		decimalFormat.setMaximumFractionDigits(SIGNIFICANT_DIGITS - 1);
 		String r = decimalFormat.format(v);
-		int nInt = r.indexOf('.');
+		int nInt = r.indexOf('.');	//Compute the number of int digits
 		if (nInt > 1) {
-			int nDec = Math.max(1, Math.min(SIGNIFICATIVE_DIGITS - nInt, SIGNIFICATIVE_DIGITS - 1));
+			int nDec = Math.max(1, Math.min(SIGNIFICANT_DIGITS - nInt, SIGNIFICANT_DIGITS - 1));
 			decimalFormat.setMaximumFractionDigits(nDec);
 			r = decimalFormat.format(v);
 		}

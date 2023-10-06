@@ -1,0 +1,21 @@
+CHL Compiler
+Version 0.1
+Developer by Daniele Lombardi (alias Daniels118)
+
+Syntax
+  chlasm -chlasm <parameters>
+  chlasm -asmchl <parameters>
+//  chlasm -compile <parameters>
+  chlasm -cmp <parameters>
+  chlasm -prref <parameters>
+  chlasm -prnatfn
+  chlasm -help option
+
+Arguments
+  -chlasm  convert chl file to asm
+  -asmchl  convert asm file to chl
+//  -compile compile source files into asm file
+  -cmp     compare chl files ignoring line numbers
+  -prref   analyze the instructions in a chl file and print a table summary
+  -prnatfn prints the list of native functions
+  -help    prints the help specific to the selected option (chlasm, asmchl...)
