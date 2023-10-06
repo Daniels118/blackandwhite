@@ -7,8 +7,8 @@ public class InvalidAutorunScriptException extends Exception {
 	
 	private final Script script;
 	
-	public InvalidAutorunScriptException(Script script) {
-		super("Script " + script.getName() + " expects some arguments, cannot be used as autorun script");
+	public InvalidAutorunScriptException(String msg, Script script) {
+		super(msg);
 		this.script = script;
 	}
 	

@@ -66,7 +66,11 @@ public class AutoStartScripts extends Section {
 		for (int scriptID : scripts) {
 			Script script = chl.getScriptsSection().getScript(scriptID);
 			if (script.getParameterCount() != 0) {
-				throw new InvalidAutorunScriptException(script);
+				String msg = "Script " + script.getName() + " expects some arguments, cannot be used as autorun script";
+				throw new InvalidAutorunScriptException(msg, script);
+			} else if ("LandControlAll".equals(script.getName())) {
+				String msg = "Script LandControlAll is called by game code, must not be used as autorun script";
+				throw new InvalidAutorunScriptException(msg, script);
 			}
 		}
 	}

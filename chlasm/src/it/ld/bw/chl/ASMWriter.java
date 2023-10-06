@@ -40,6 +40,7 @@ public class ASMWriter {
 	
 	private boolean printDataHintEnabled = true;
 	private boolean printNativeInfoEnabled = true;
+	private boolean printSourceLineEnabled = false;
 	
 	private PrintStream out;
 	
@@ -67,6 +68,14 @@ public class ASMWriter {
 		this.printNativeInfoEnabled = printNativeInfoEnabled;
 	}
 	
+	public boolean isPrintSourceLineEnabled() {
+		return printSourceLineEnabled;
+	}
+
+	public void setPrintSourceLineEnabled(boolean printSourceLineEnabled) {
+		this.printSourceLineEnabled = printSourceLineEnabled;
+	}
+
 	public void write(CHLFile chl, File outdir) throws IOException, CompileException, InvalidScriptIdException {
 		Path path = outdir.toPath();
 		List<Const> constants = chl.getDataSection().analyze();
@@ -230,6 +239,7 @@ public class ASMWriter {
 		Instruction instr;
 		boolean endFound = false;
 		int instrAfterEnd = 0;
+		int prevSrcLine = 0;
 		do {
 			try {
 				String label = labels.get(index);
@@ -245,6 +255,10 @@ public class ASMWriter {
 				} else if (printNativeInfoEnabled && instr.opcode == OPCode.SYS) {
 					NativeFunction f = NativeFunction.fromCode(instr.intVal);
 					str.write("\t//" + f.getInfoString());
+				}
+				if (printSourceLineEnabled && instr.lineNumber > 0 && instr.lineNumber != prevSrcLine) {
+					str.write("\t\t//" + script.getSourceFilename() + ":" + instr.lineNumber);
+					prevSrcLine = instr.lineNumber;
 				}
 				str.write("\r\n");
 				endFound |= instr.opcode == OPCode.END;

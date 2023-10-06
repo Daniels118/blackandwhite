@@ -153,8 +153,12 @@ public class CHLFile {
 	public boolean validate(PrintStream out) {
 		boolean res = true;
 		//Code
+		boolean landControlAllFound = false;
 		List<Instruction> instructions = code.getItems();
 		for (Script script : scriptsSection.getItems()) {
+			if ("LandControlAll".equals(script.getName())) {
+				landControlAllFound = true;
+			}
 			for (int i = script.getInstructionAddress(); i < instructions.size(); i++) {
 				Instruction instr = instructions.get(i);
 				try {
@@ -173,7 +177,12 @@ public class CHLFile {
 			autoStartScripts.validate(this);
 		} catch (Exception e) {
 			res = false;
-			out.println("Autostart scripts: " + e.getMessage() + "\r\n");
+			out.println("Autostart scripts: " + e.getMessage());
+		}
+		//LandControlAll
+		if (!landControlAllFound) {
+			res = false;
+			out.println("Script LandControlAll not found");
 		}
 		return res;
 	}

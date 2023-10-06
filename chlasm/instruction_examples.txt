@@ -7,51 +7,22 @@ TODO: add missing statements
 Each statement is introduced by its chapter number and syntax taken from the
 "Lionhead Challenge Language Documentation" released for Creature Isle; in some cases the syntax
 has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
-On the subsequent line there is a real statement extracted from the same script files.
+On the subsequent line there is the description of the statement.
+On the subsequent line there is a real statement extracted from the script files cited above.
 The subsequent lines are the equivalent assembler code decompiled using this tool and
 located with hard research work. Note that the current CHL has been patched by LH, while the scripts
 available to us are at the original version, so not all statements have an exact match with the
 decompiled code.
 Statements are ordered by chapter number.
-Some statements does not have chapter number/syntax because they explains very basic things that
-have no documentation; these statements are placed first.
 Some complex statements may have additional info to help understand their implementation.
 
 ___________________________________________
 
-- Increment
+2.5.1 run script IDENTIFIER[(parameters)]
 
-BaywatchMurder++
-
-	PUSHF [BaywatchMurder]
-	PUSHF 1.0
-	ADDF
-	POPF BaywatchMurder
-___________________________________________
-
-- 2D coordinates
-
-[1865.61,2641.24]
-
-	PUSHF 1865.61
-	CASTC
-	PUSHF 2641.24
-	CASTC
-	PUSHC 0
-	SWAPI			//convert [x,z] to [x,0,z]
-___________________________________________
-
-- Assignment expression
-
-Amount = 250/(BaywatchSwimmingCounter)
-
-	PUSHF 250.0
-	PUSHF [BaywatchSwimmingCounter]
-	DIV
-	POPF Amount
-___________________________________________
-
-2.5.1 run script identifier
+Auto-run declarations are used to specify any scripts which are to be run immediately upon start-up.
+You will probably want to run all of the challenges this way, as the challenge scripts may simply wait
+until a certain condition is satisfied before they begin proper.
 
 run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
 
@@ -64,7 +35,26 @@ run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADV
 	CALL ChallengeHighlightNotifyWithEndVariable
 ___________________________________________
 
-3.1.1 move object position to position [radius expression]
+2.5.4.1 IDENTIFIER = EXPRESSION
+
+Amount = 250/(BaywatchSwimmingCounter)
+
+	PUSHF 250.0
+	PUSHF [BaywatchSwimmingCounter]
+	DIV
+	POPF Amount
+___________________________________________
+	
+2.5.7 end script IDENTIFIER
+
+end script VortexEntryPerson
+
+	END
+___________________________________________
+
+3.1.1 move OBJECT position to POSITION [radius EXPRESSION]
+
+This makes the object move between the two positions.
 
 move MyCreature position to [NewCreature] radius 15
 
@@ -75,24 +65,68 @@ move MyCreature position to [NewCreature] radius 15
 	SYS MOVE_GAME_THING	//(5, 0)
 ___________________________________________
 
-3.1.4 set object focus to position
+3.1.2 set OBJECT position to POSITION
+
+This make the object position change.
+
+set camera position to [1891.039, 31.693, 2520.674]
+
+	PUSHF 1891.039
+	CASTC
+	PUSHF 31.693
+	CASTC
+	PUSHF 2520.674
+	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
+___________________________________________
+
+3.1.3 set OBJECT disciple ENUM_VILLAGER_DISCIPLE [with sound]
+
+This allows you to make a villager a disciple in the game. The with sound is optional.
+
+set Villager disciple VILLAGER_DISCIPLE_BUILDER with sound
+
+	PUSHF [Villager]
+	PUSHI 4				//4=VILLAGER_DISCIPLE_BUILDER
+	PUSHB true			//with sound
+	SYS SET_DISCIPLE	//[3, 0] (ObjectFloat object, ENUM_VILLAGER_DISCIPLE discipleType, bool withSound)
+___________________________________________
+
+3.1.4 set OBJECT focus to POSITION
+
+Makes the object turn to face the position passed, or just look at the position passed depending on
+how flexable an object is.
 
 set Boy focus to [LookAt]
 
 	PUSHF [Boy]
 	PUSHF [LookAt]
 	SYS GET_POSITION	//(1, 3)
-	SYS SET_FOCUS	//(4, 0)
+	SYS SET_FOCUS	//[4, 0] (ObjectFloat object, Coord position)
 ___________________________________________
 
-3.1.6 object play constant loop
+3.1.5 set OBJECT focus on OBJECT
+
+For the case of a creature the creature will look at the moving object, but for other things they will
+turn to face the current position of the passed object.
+
+set MyCreature focus on Guide
+
+	PUSHF [MyCreature]		//object
+	PUSHF [Guide]			//target
+	SYS SET_FOCUS_ON_OBJECT	//[2, 0] (ObjectFloat object, ObjectFloat target)
+___________________________________________
+
+3.1.6 OBJECT play DETAIL_ANIM_TYPES loop EXPRESSION
+
+Set an object to play an animation for a number of times.
 
 Boy play ANM_P_SWIM2 loop -1
 
-	PUSHF [Boy]
+	PUSHF [Boy]				//object
 	PUSHO [Boy]
-	PUSHI 390
-	PUSHF 1.0
+	PUSHI 390				//390=ANM_P_SWIM2
+	PUSHF 1.0				//loop times
 	NEG
 	CASTI
 	SYS SET_SCRIPT_ULONG	//(3, 0)
@@ -100,27 +134,411 @@ Boy play ANM_P_SWIM2 loop -1
 	SYS SET_SCRIPT_STATE	//(2, 0)
 ___________________________________________
 
-3.1.8 delete object [with fade]
+3.1.7 set OBJECT anim DETAIL_ANIM_TYPES
+
+Very useful if you wish to change the walk animation of a character eg. Pied piper walks with a dance.
+
+set Brother anim ANM_P_WALK_INJURED
+
+	PUSHF [Brother]					//object
+	PUSHI 426						//426=ANM_P_WALK_INJURED
+	SYS OVERRIDE_STATE_ANIMATION	//[2, 0] (ObjectFloat obj, DETAIL_ANIM_TYPES animType)
+___________________________________________
+
+3.1.8 delete OBJECT [with fade]
+
+This deletes an object from the game. If you wish something to die before being deleted you should set
+it's health to 0.0. NB. Deleting an object which is a container will dispand the members of the container,
+not delete them.
 
 delete Highlight
 
-	PUSHF [Highlight]
+	PUSHF [Highlight]	//object
 	PUSHI 0				//0=without fade
 	SYS OBJECT_DELETE	//(2, 0)
 	ZERO [Highlight]
-___________________________________________
-
-3.1.8 delete object [with fade]
 
 delete Trainer with fade
 
-	PUSHF [Trainer]
+	PUSHF [Trainer]		//object
 	PUSHI 1				//1=with fade
 	SYS OBJECT_DELETE	//(2, 0)
 	ZERO [Trainer]
 ___________________________________________
 
-3.2.19 force object constant object [with object]
+3.1.9 set OBJECT properties inner EXPRESSION outer EXPRESSION [calm EXPRESSION]
+
+If an object is a flock the properties are changed to the values defined, where the outer is the size
+of the area the flock occupies, and the inner is the radius of the whole area the flock can roam around
+relative to the flock position. If an object is weather the inner in the centre of the storm, and the
+outter is where the storm fades to nothing from the inner stats, to no stats. It is suggested you make
+the outer value at least twice the size of the inner value.
+
+set VortexFlock properties inner 2 outer 10
+
+	PUSHF [VortexFlock]					//object
+	PUSHF 2.0							//inner val
+	PUSHF 10.0							//outer val
+	PUSHF 0.0							//calm val
+	SYS CHANGE_INNER_OUTER_PROPERTIES	//[4, 0] (ObjectFloat obj, float inner, float outer, float calm)
+___________________________________________
+
+3.1.10 is identical to 3.1.9
+___________________________________________
+
+3.1.11 set OBJECT text property text constant CONSTANT category constant CONSTANT
+
+Changes the text propert of a object (script highlight at present).
+
+set Highlight text property text constant HelpTextEnum category constant HelpTextCategory
+
+	PUSHF [Highlight]			//object
+	PUSHF [HelpTextEnum]		//textConst
+	CASTI
+	PUSHF [HelpTextCategory]	//categoryConst
+	CASTI
+	SYS HIGHLIGHT_PROPERTIES	//[3, 0] (ObjectFloat object, int text, int category)
+___________________________________________
+
+3.1.12 set OBJECT velocity heading POSITION speed EXPRESSION
+
+If an object is weather it sets the wind to the velocity specified. Note that strong winds move pretty
+damn fast so be careful! If an object is something with Physics in the game it applies a velocity to
+it towards a position.
+
+set Person velocity heading [DirectionPos] speed Velocity
+
+	PUSHF [Person]				//object
+	PUSHF [DirectionPos]
+	SYS GET_POSITION			//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [Velocity]			//speed val
+	SYS SET_HEADING_AND_SPEED	//[5, 0] (ObjectFloat object, Coord position, float speed)
+___________________________________________
+
+3.1.13 set OBJECT target POSITION time EXPRESSION
+
+Applies physics to an object so that it lands at the defined position in a given time.
+
+set Meteor target [Target] time 4
+
+	PUSHF [Meteor]		//object
+	PUSHF [Target]		//target
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF 4.0			//time val
+	SYS SET_TARGET		//[5, 0] (ObjectFloat obj, Coord position, float time)
+___________________________________________
+
+3.1.14 set OBJECT time to EXPRESSION second[s]
+
+This timer is not displayed. This function sets the countdown time to the value, and the count up
+time to 0. This function can also be used to set the duration of time betwen each spell created on
+a spell dispenser object.
+
+set RandomAttackTimer time to 50 seconds
+
+	PUSHF [RandomAttackTimer]
+	PUSHF 50.0
+	SYS SET_TIMER_TIME	//[2, 0] (ObjectFloat timer, float time)
+___________________________________________
+
+3.1.15 set OBJECT radius EXPRESSION
+
+Sets the radius of an object (spell).
+
+set Shield radius ShieldState*35
+
+	PUSHF [Shield]
+	PUSHF [ShieldState]
+	PUSHF 35.0
+	MUL
+	SYS SET_MAGIC_RADIUS	//[2, 0] (ObjectFloat object, float radius)
+___________________________________________
+
+3.1.16 set OBJECT mana EXPRESSION
+
+Sets the radius of an object (worshipsite).
+
+set WorshipSite mana 0
+
+	PUSHF [WorshipSite]	//object
+	PUSHF 0.0			//mana val
+	SYS GAME_SET_MANA	//[2, 0] (ObjectFloat object, float mana)
+___________________________________________
+
+3.1.17 set OBJECT temperature EXPRESSION
+
+Sets the temperature of an object.
+
+set Meteor temperature 2000
+
+	PUSHF [Meteor]
+	PUSHF 2000.0
+	SYS SET_TEMPERATURE	//[2, 0] (ObjectFloat obj, float temperature)
+___________________________________________
+
+3.1.18 release OBJECT
+
+This releases a game object from the script, and sets it into the game without deleting.
+
+release MyCreature
+
+	PUSHF [MyCreature]
+	SYS RELEASE_FROM_SCRIPT	//[1, 0] (ObjectFloat obj)
+___________________________________________
+
+3.1.19 release OBJECT focus
+
+Game creatures can be in the sim with there focus being set to an object or position. This functions
+free's up the creatures head behaviour.
+
+release MyCreature focus
+
+	PUSHF [MyCreature]			//creature
+	SYS RELEASE_OBJECT_FOCUS	//[1, 0] (ObjectFloat object)
+___________________________________________
+
+3.1.20 set OBJECT forward|reverse walk path CAMERA_ENUM from EXPRESSION to EXPRESSION
+
+Sets a living thing on a walk path defined in the camera editor, where direction is either 'forward'
+or 'reverse' on the walk path, and from/to is the percentage start pos, and the percentage end pos
+of the walk in the range [0, 1].
+
+set BlindWoman forward walk path TRACK00 from 0.0 to 1.0
+
+	PUSHF [BlindWoman]	//object
+	PUSHB true			//forward
+	PUSHI 7				//camera_enum 7=TRACK00
+	PUSHF 0.0			//from val
+	PUSHF 1.0			//to val
+	SYS WALK_PATH		//[5, 0] (ObjectFloat object, bool forward, int camera_enum, float valFrom, float valTo)
+___________________________________________
+
+3.1.21 enable|disable OBJECT active
+
+Sets a script highlight to active state.
+
+enable Highlight active
+
+	PUSHB true
+	PUSHF [Highlight]
+	SYS SET_ACTIVE	//[2, 0] (bool active, ObjectFloat object)
+___________________________________________
+
+3.1.22 open|close OBJECT
+
+Sets a script object state to open or close animations, for example the big door used to find your creature.
+
+open Plinth
+
+	PUSHB true			//open
+	PUSHF [Plinth]		//object
+	SYS SET_OPEN_CLOSE	//[2, 0] (bool open, ObjectFloat object)
+
+close PiperCave
+
+	PUSHB false			//close
+	PUSHF [PiperCave]	//object
+	SYS SET_OPEN_CLOSE	//[2, 0] (bool close, ObjectFloat object)
+___________________________________________
+
+3.2.1 set OBJECT desire ENUM_CREATURE_DESIRES to EXPRESSION
+
+Sets the current value of one of the creature's desires (between 0 and 1 where 1 is full).
+
+set CreatureGuardian desire ANGER to 0.05
+
+	PUSHF [CreatureGuardian]
+	PUSHI 2
+	PUSHF 0.05
+	SYS CREATURE_SET_DESIRE_VALUE	//[3, 0] (ObjectFloat creature, ENUM_CREATURE_DESIRES desire, float value)
+___________________________________________
+
+3.2.2 set OBJECT only desire ENUM_CREATURE_DESIRES
+
+Sets the creature desire to the only focus, until you turn it off.
+
+set MyCreature only desire CREATURE_DESIRE_SADNESS
+
+	PUSHF [MyCreature]				//creature
+	PUSHI 27						//desire
+	PUSHF 86400.0					//value
+	SYS SET_CREATURE_ONLY_DESIRE	//[3, 0] (ObjectFloat creature, ENUM_CREATURE_DESIRES desire, float value)
+___________________________________________
+
+3.2.3 set OBJECT disable only desire
+
+Sets the only creature desire off, returning the creature back to normal behavior.
+
+set MyCreature disable only desire
+
+	PUSHF [MyCreature]					//creature
+	SYS SET_CREATURE_ONLY_DESIRE_OFF	//[1, 0] (ObjectFloat creature)
+___________________________________________
+
+3.2.4 set OBJECT desire ENUM_CREATURE_DESIRES ENUM_SCRIPT_BOOL
+
+Turn on or off a desire.
+
+set CreatureGuardian desire HUNGER SCRIPT_TRUE
+
+	PUSHF [CreatureGuardian]			//creature
+	PUSHI 4								//desire
+	PUSHI 1								//1=SCRIPT_TRUE
+	SYS CREATURE_SET_DESIRE_ACTIVATED3	//[3, 0] (ObjectFloat creature, ENUM_CREATURE_DESIRES desire, ENUM_SCRIPT_BOOL active)
+___________________________________________
+
+3.2.5 set OBJECT ENUM_DEVELOPMENT_PHASE development
+
+Sets the creatures development (See creatureenum.h).
+
+set MyCreature DEVELOPMENT_PHASE_INITIAL development
+
+	PUSHF [MyCreature]			//creature
+	PUSHI 0						//0=DEVELOPMENT_PHASE_INITIAL
+	SYS SET_CREATURE_DEV_STAGE	//[2, 0] (ObjectFloat creature, ENUM_DEVELOPMENT_PHASE stage)
+___________________________________________
+
+3.2.6 set OBJECT magic properties ENUM_MAGIC_TYPE [time EXPRESSION]
+
+Sets the objects magic type and time duration (Spell dispensers).
+
+set spell_dispenser magic properties constant magic_type
+
+	PUSHF [spell_dispenser]		//object
+	PUSHF [magic_type]			//magicType
+	CASTI
+	PUSHF 0.0					//time
+	SYS SET_MAGIC_PROPERTIES	//[3, 0] (ObjectFloat object, ENUM_MAGIC_TYPE magicType, float duration)
+___________________________________________
+
+3.2.7 enable|disable OBJECT attack own town
+
+Enables/disables a creatures ability to attack their own town.
+
+Never found (SET_ATTACK_OWN_TOWN)
+___________________________________________
+
+3.2.8 enable|disable OBJECT reaction
+
+Enables/disables a creatures reactions.
+
+Never found (CREATURE_REACTION?)
+___________________________________________
+
+3.2.9 enable|disable OBJECT development script
+
+Enables/disables a creature in dev script.
+
+disable MyCreature development script
+
+	PUSHB false					//enable
+	PUSHF [MyCreature]			//creature
+	SYS CREATURE_IN_DEV_SCRIPT	//[2, 0] (bool enable, ObjectFloat creature)
+___________________________________________
+
+3.2.10 enable|disable OBJECT spell reversion
+
+Enables/disables a creatures ability to revert spells.
+
+Never found (CREATURE_SPELL_REVERSION)
+___________________________________________
+
+3.2.11 enable|disable OBJECT anim time modify
+
+Only effects the creature, and Starts/stops his animation time from being effected by his size.
+Normal state is enabled.
+
+disable MyCreature anim time modify
+
+	PUSHB false					//disable
+	PUSHF [MyCreature]			//creature
+	SYS SET_ANIMATION_MODIFY	//[2, 0] (bool enable, ObjectFloat creature)
+___________________________________________
+
+3.2.12 set OBJECT all desire ENUM_SCRIPT_BOOL
+
+Enable/Disable all the desires.
+
+set CreatureGuardian all desires SCRIPT_FALSE
+
+	PUSHF [CreatureGuardian]			//creature
+	PUSHI 0								//0=SCRIPT_FALSE
+	SYS CREATURE_SET_DESIRE_ACTIVATED2	//[2, 0] (ObjectFloat creature, ENUM_SCRIPT_BOOL active)
+___________________________________________
+
+3.2.13 set OBJECT desire maximum ENUM_CREATURE_DESIRES to EXPRESSION
+
+Warning: must be used with knowledge of what desire maximums actually do.
+
+set CreatureGuardian desire maximum HUNGER to 0.1
+
+	PUSHF [CreatureGuardian]		//creature
+	PUSHI 4							//desire
+	PUSHF 0.1						//value
+	SYS CREATURE_SET_DESIRE_MAXIMUM	//[3, 0] (ObjectFloat creature, ENUM_CREATURE_DESIRES desire, float value)
+___________________________________________
+
+3.2.14 set OBJECT priority EXPRESSION
+
+Sets the priority of the current agenda (determines how easily what he is doing can be interrupted).
+0 means very low priority (easily interruptable), 1 means max priority (not interruptable).
+This is useful for when you want to force a creature to do something, but also allow the thing you've
+forced him to do to be overrideable by other new things that might come along. You are in effect setting
+the autonomy level of the creature: the lower the priority, the more autonomous (and the higher the
+priority, the less autonomous).
+
+set CreatureGuardian priority 0.00001
+
+	PUSHF [CreatureGuardian]			//creature
+	PUSHF 0.00001						//priority
+	SYS CREATURE_SET_AGENDA_PRIORITY	//[2, 0] (ObjectFloat creature, float priority)
+___________________________________________
+
+3.2.15 set player_creature to OBJECT
+
+Assigns a particular creature to a player (used when choosing a creature for the first time).
+
+set player_creature to CreatureCow
+
+	PUSHF [CreatureCow]		//creature
+	SYS CREATURE_SET_PLAYER	//[1, 0] (ObjectFloat creature)
+___________________________________________
+
+3.2.16 teach OBJECT ENUM_CREATURE_ACTION_TYPES CONSTANT SCRIPT_BOOL
+
+Teach creature a specific lesson. First argument is type of action: INTELLECTUAL, PHYSICAL or MAGIC.
+Second argument is which action, eg: CREATURE_INTELLECTUAL_ACTION_KNOWN_ABOUT_FISH (in Enum.h).
+Third argument is bool (true or false - whether he knows the lesson or unlearns the lesson).
+
+teach Guide MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
+
+	PUSHF [Guide]					//creature
+	PUSHI 1							//typeOfAction
+	PUSHI 11						//action
+	PUSHI 1							//knows
+	SYS CREATURE_SET_KNOWS_ACTION	//[4, 0] (ObjectFloat creature, ENUM_CREATURE_ACTION_TYPES typeOfAction, int action, SCRIPT_BOOL knows)
+___________________________________________
+
+3.2.17 teach OBJECT all
+
+Teaches the creature every lesson.
+
+Never found
+___________________________________________
+
+3.2.18 teach OBJECT all excluding CONSTANT
+
+Teaches the creature every lesson excluding the type defined.
+
+Never found
+___________________________________________
+
+3.2.19 force OBJECT CREATURE_ACTION OBJECT [with OBJECT]
+
+Forces the creature to stop what he is doing and do a particular action.
+Second argument is which action to perform, eg: POINT_AT (see CREATURE_ACTION in CreatureEnum.h).
+Third argument is the object the action is applied to.
+Fourth argument is the object that is used for the action.
 
 force MyCreature CREATURE_HURL TinyStone with Trainer
 
@@ -129,9 +547,6 @@ force MyCreature CREATURE_HURL TinyStone with Trainer
 	PUSHF [TinyStone]
 	PUSHF [Trainer]			//with object
 	SYS CREATURE_DO_ACTION	//(4, 0)
-___________________________________________
-
-3.2.19 force object constant object [with object]
 
 force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
 
@@ -142,15 +557,774 @@ force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
 	SYS CREATURE_DO_ACTION	//(4, 0)
 ___________________________________________
 
-3.8.21 Load Map "Filename"
+3.2.20 force OBJECT CREATURE_ACTION OBJECT
+
+See 3.2.19
+___________________________________________
+
+3.2.21 enable|disable OBJECT friends with OBJECT
+
+Forces the creature to be friends with another creature.
+
+enable Gremlin friends with Ogre
+
+	PUSHB true					//enable
+	PUSHF [Gremlin]				//creature
+	PUSHF [Ogre]				//target
+	SYS CREATURE_FORCE_FRIENDS	//[3, 0] (bool enable, ObjectFloat creature, ObjectFloat targetCreature)
+___________________________________________
+
+3.2.22 initialise number of constant for OBJECT
+
+Clears the number of times the creature has eaten anything / attacked anything / etc (see
+SCRIPT_PERFORMED_ACTION enum in CreatureEnum.h).
+
+Never found (CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION)
+___________________________________________
+
+3.2.23 force action OBJECT finish
+
+Force creature to stop whatever he is doing.
+
+Never found (CREATURE_FORCE_FINISH)
+___________________________________________
+
+3.2.24 enable OBJECT confined to POSITION radius EXPRESSION
+
+Confines an object at a position within a radius.
+
+Never found (CONFINED_OBJECT)
+___________________________________________
+
+3.2.25 disable OBJECT confined
+
+Stops an object being confined.
+
+Never found (CONFINED_OBJECT)
+___________________________________________
+
+3.2.26 clear dropped by OBJECT
+
+Clears the last known object dropped by the creature from its memory (used in CreatureSavingPeople.txt).
+
+Never found (CLEAR_DROPPED_BY_OBJECT)
+___________________________________________
+
+3.2.27 attach OBJECT leash to OBJECT
+
+Attaches a creatures leash to the passed object.
+
+Never found (ATTACH_OBJECT_LEASH_TO_OBJECT)
+___________________________________________
+
+3.2.28 attach OBJECT leash to hand
+
+Attaches a creatures leash to the hand.
+
+Never found (ATTACH_OBJECT_LEASH_TO_HAND)
+___________________________________________
+
+3.2.29 enable|disable leash on OBJECT
+
+Sets if the creature pays attention to the leash.
+
+disable leash on MyCreature
+
+	PUSHB false			//disable
+	PUSHF [MyCreature]	//creature
+	SYS SET_LEASH_WORKS	//[2, 0] (bool enable, ObjectFloat creature)
+___________________________________________
+
+3.2.30 toggles player EXPRESSION leash
+
+Toggles the players leash on/off.
+
+toggle player 1 leash
+
+	PUSHF 1.0			//player
+	SYS TOGGLE_LEASH	//[1, 0] (int player)
+___________________________________________
+
+3.2.31 set player EXPRESSION ally with player EXPRESSION percentage EXPRESSION
+
+Sets an ally value between players in range [0, 1].
+
+set player 1 ally with player 2 percentage 0
+
+	PUSHF 1.0			//player1
+	PUSHF 2.0			//player2
+	PUSHF 0.0			//percentage
+	SYS SET_PLAYER_ALLY	//[3, 0] (float player1, float player2, float percentage)
+___________________________________________
+
+3.2.32 enable/disable player EXPRESSION wind resistance
+
+If this is disabled any throwing with a player hand will be unrealistically accurate.
+
+Never found
+___________________________________________
+
+3.2.33 detach OBJECT leash
+
+Detaches the objects leash.
+
+detach MyCreature leash
+
+	PUSHF [MyCreature]		//creature
+	SYS DETACH_OBJECT_LEASH	//[1, 0] (ObjectFloat creature)
+___________________________________________
+
+3.2.34 swap creature from OBJECT to OBJECT
+
+Swaps the creature to a different animal, keeping it's current characteristics.
+
+swap creature from MyCreature to NewCreature
+
+	PUSHF [MyCreature]	//fromCreature
+	PUSHF [NewCreature]	//toCreature
+	SYS SWAP_CREATURE	//[2, 0] (ObjectFloat fromCreature, ObjectFloat toCreature)
+___________________________________________
+
+3.2.35 set OBJECT home position POSITION
+
+Sets the creatures home position.
+
+set CreatureCow home position [HomePos]
+
+	PUSHF [CreatureCow]
+	PUSHF [HomePos]
+	SYS GET_POSITION		//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS SET_CREATURE_HOME	//[4, 0] (ObjectFloat creature, Coord position)
+___________________________________________
+
+3.2.36 set OBJECT creed properties hand ENUM_HAND_GLOW scale EXPRESSION power EXPRESSION time EXPRESSION
+
+Sets the creatures creed details.
+
+set MyCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 0.1 time 0.0
+
+	PUSHF [MyCreature]					//creature
+	PUSHI 3								//handGlow 3=HAND_GLOW_ABOVE
+	PUSHF 5.0							//scale
+	PUSHF 0.1							//power
+	PUSHF 0.0							//time
+	SYS SET_CREATURE_CREED_PROPERTIES	//[5, 0] (ObjectFloat creature, ENUM_HAND_GLOW handGlow, float scale, float power, float time)
+___________________________________________
+
+3.2.37 enable|disable OBJECT auto fighting
+
+Sets the creatures auto fighting or not when in a fight.
+
+disable Guide auto fighting
+
+	PUSHB false						//disable
+	PUSHF [Guide]					//creature
+	SYS SET_CREATURE_AUTO_FIGHTING	//[2, 0] (bool enable, ObjectFloat creature)
+___________________________________________
+
+3.2.38 enable|disable fight exit
+
+Sets if a fight can be exited by interaction.
+
+Never found (SET_FIGHT_EXIT)
+___________________________________________
+
+3.2.39 queue OBJECT fight move ENUM_FIGHT_MOVES
+
+Queues a fight move into the objects fight move list.
+
+queue Guide fight move CTR_HIT_BLOCK
+
+	PUSHF [Guide]						//creature
+	PUSHI 3								//3=CTR_HIT_BLOCK
+	SYS SET_CREATURE_QUEUE_FIGHT_MOVE	//[2, 0] (ObjectFloat creature, ENUM_FIGHT_MOVES move)
+___________________________________________
+
+3.2.40 queue OBJECT fight step CONSTANT
+
+Queues a fight step into the objects fight move list.
+
+Never found (SET_CREATURE_QUEUE_FIGHT_STEP)
+___________________________________________
+
+3.2.41 queue OBJECT fight spell CONSTANT
+
+Queues a fight spell into the objects fight move list.
+
+Never found (SET_CREATURE_QUEUE_FIGHT_SPELL)
+___________________________________________
+
+3.2.42 set OBJECT name ENUM_HELP_TEXT
+
+Sets the creatures name.
+
+set ComputerCreature name HELP_TEXT_KHAZAR_CREATURE_NAME_01
+
+	PUSHF [ComputerCreature]	//creature
+	PUSHI 5002					//HELP_TEXT_KHAZAR_CREATURE_NAME_01
+	SYS SET_CREATURE_NAME		//[2, 0] (ObjectFloat creature, ENUM_HELP_TEXT textID)
+___________________________________________
+
+3.3.1 set computer player EXPRESSION position to POSITION
+
+Sets the computer player position. Once the computer player gets to the position he will be paused until
+you enable the computer player in the script.
+
+set computer player 2 position to [2508.825, 105.190, 1772.476] 
+
+	PUSHF 2.0							//player
+	PUSHF 2508.825						//x
+	CASTC								//
+	PUSHF 105.19						//y
+	CASTC								//
+	PUSHF 1772.476						//z
+	CASTC								//
+	PUSHB false							//alwaysFalse
+	SYS SET_COMPUTER_PLAYER_POSITION	//[5, 0] (float player, Coord position, bool alwaysFalse)
+___________________________________________
+
+3.3.2 move computer player EXPRESSION to POSITION speed EXPRESSION [with fixed height]
+
+Moves the computer player to a coordinate at a speed. Once the computer player gets to the position
+he will be paused until you enable the computer player in the script.
+
+move computer player 3 to [Pos1]  speed LethySpeed with fixed height
+
+	PUSHF 3.0							//player
+	PUSHF [Pos1]						//
+	SYS GET_POSITION					//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [LethySpeed]					//speed
+	PUSHB true							//with fixed height
+	SYS MOVE_COMPUTER_PLAYER_POSITION	//[6, 0] (float player, Coord position, float speed, bool withFixedHeight)
+___________________________________________
+
+3.3.3 enable|disable computer player EXPRESSION
+
+Turns the computer player on and off.
+
+disable computer player 2
+
+	PUSHB false							//disable
+	PUSHF 2.0							//player
+	SYS ENABLE_DISABLE_COMPUTER_PLAYER1	//[2, 0] (bool enable, float player)
+___________________________________________
+
+3.3.4 pause|unpause computer player EXPRESSION
+
+Pauses and unpauses the computer player.
+
+pause computer player 2
+
+	PUSHB true							//pause
+	PUSHF 2.0							//player
+	SYS ENABLE_DISABLE_COMPUTER_PLAYER2	//[2, 0] (bool pause, float player)
+___________________________________________
+
+3.3.5 set computer player EXPRESSION personality STRING EXPRESSION
+
+Alters the computer players personality, by altering the probibilty of a certain aspect.
+
+set computer player 2 personality "ExpandInfluence" 0.20
+
+	PUSHF 2.0							//player
+	PUSHI 3952							//"ExpandInfluence"
+	PUSHF 0.2							//probability
+	SYS SET_COMPUTER_PLAYER_PERSONALITY	//[3, 0] (float player, StrPtr aspect, float probability)
+___________________________________________
+
+3.3.6 set computer player EXPRESSION suppression STRING EXPRESSION
+
+Alters the computer players personality.
+
+Never found (SET_COMPUTER_PLAYER_SUPPRESSION)
+___________________________________________
+
+3.3.7 set computer player EXPRESSION speed EXPRESSION
+
+Alters the computer players speed.
+
+set computer player 2 speed 150.0
+
+	PUSHF 2.0						//player
+	PUSHF 150.0						//speed
+	SYS SET_COMPUTER_PLAYER_SPEED	//[2, 0] (float player, float speed)
+___________________________________________
+
+3.3.8 force computer player EXPRESSION action STRING OBJECT OBJECT
+
+Forces the computer player to do an action.
+
+force computer player 2 action "DIRECTPickupAndDropObject" Villager DisciplePos
+
+	PUSHF 2.0							//player
+	PUSHI 4032							//"DIRECTPickupAndDropObject"
+	PUSHF [Villager]					//obj1
+	PUSHF [DisciplePos]					//obj2
+	SYS FORCE_COMPUTER_PLAYER_ACTION	//[4, 0] (float player, StrPtr action, ObjectFloat obj1, ObjectFloat obj2)
+___________________________________________
+
+3.3.9 queue computer player EXPRESSION action comp_string OBJECT OBJECT
+
+A computer player has a list of tasks it has decided to do. This adds a computer player action into the
+queue of tasks at the end.
+
+queue computer player 2 action "ShallCastWoodSpell" Town SpellIcon
+
+	PUSHF 2.0							//player
+	PUSHI 5189							//"ShallCastWoodSpell"
+	PUSHF [Town]						//obj1
+	PUSHF [SpellIcon]					//obj2
+	SYS QUEUE_COMPUTER_PLAYER_ACTION	//[4, 0] (float player, StrPtr action, ObjectFloat obj1, ObjectFloat obj2)
+___________________________________________
+
+3.3.10 release computer player EXPRESSION
+
+Releases a computer player back into the game.
+
+release computer player 3
+
+	PUSHF 3.0					//player
+	SYS RELEASE_COMPUTER_PLAYER	//[1, 0] (float player)
+___________________________________________
+
+3.3.11 set computer player EXPRESSION attitude to player EXPRESSION to EXPRESSION
+
+Alters the computer players attitude to a given player in range [-1, 1]. Anything < 0 should be nice
+towards you, anything >0.5 and he'll be very reactive to your attacks.
+
+set computer player 2 attitude to player 1 to 2.0
+
+	PUSHF 2.0							//player1
+	PUSHF 1.0							//player2
+	PUSHF 2.0							//attitude
+	SYS SET_COMPUTER_PLAYER_ATTITUDE	//[3, 0] (float player1, float player2, float attitude)
+___________________________________________
+
+3.3.12 load computer player EXPRESSION personality STRING
+
+Loads in a computer player personality.
+
+Never found (LOAD_COMPUTER_PLAYER_PERSONALITY)
+___________________________________________
+
+3.3.13 save computer player EXPRESSION personality STRING
+
+Saves a computer player personality
+
+Never found (SAVE_COMPUTER_PLAYER_PERSONALITY)
+___________________________________________
+
+3.4.1 stop all games for OBJECT
+
+Stops all the games associated with an object, currently only applicable to football matches.
+
+Never found (STOP_ALL_GAMES)
+___________________________________________
+
+3.4.2 attach OBJECT to game OBJECT for playing_side team
+
+Attaches a player to the game for a specified side, the side is defined by either the word 'home' or 'away'.
+
+Never found (ATTACH_TO_GAME)
+___________________________________________
+
+3.4.3 detach OBJECT in game OBJECT from playing_side team
+
+Detaches a player from the football game.
+
+Never found (DETACH_FROM_GAME)
+___________________________________________
+
+3.4.4 detach player from OBJECT from playing_side team
+
+Detaches a player from the football game.
+
+Never found (DETACH_UNDEFINED_FROM_GAME)
+___________________________________________
+
+3.4.5 enable|disable OBJECT only for scripts
+
+Makes the object only usable for scripts, so for the football match this means that the pitch is not
+naturally used by the villagers. If you don't set it back to allowed for scripts, it doesn't get
+automatically restored after it has been released from the scripts, so be warned!
+
+Never found (SET_ONLY_FOR_SCRIPTS)
+___________________________________________
+
+3.4.6 start OBJECT with OBJECT as referee
+
+Starts a game with a specified ref-
+
+Never found (START_MATCH_WITH_REFEREE)
+___________________________________________
+
+3.5.1 set OBJECT fade start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION
+
+Starts a game with a specified ref. ???????
+
+set Mist fade start scale 1 end scale 2 start transparency 50 end transparency 0 time 10
+
+	PUSHF [Mist]		//SingingStonesSongs.txt:101
+	PUSHF 1.0
+	PUSHF 2.0
+	PUSHF 50.0
+	PUSHF 0.0
+	PUSHF 10.0
+	SYS SET_MIST_FADE	//[6, 0] (?, ?, ?, ?, ?, ?)
+___________________________________________
+
+3.6.1 disband OBJECT
+
+Removes all objects from the container, which if there are no references left to script things will
+release them into the game.
+
+disband AnimalFlock
+
+	PUSHF [AnimalFlock]	//flock
+	SYS FLOCK_DISBAND	//[1, 0] (ObjectFloat flock)
+___________________________________________
+
+3.6.2 populate OBJECT with EXPRESSION constant
+
+Populates a container like a flock with a number of things.
+
+
+___________________________________________
+
+3.7.1 set game time EXPRESSION
+
+The visual time of day can be set, the value is [0, 24]. Setting the game time to 21.99 sets the time to
+9pm plus 99 percent of the hour. ie. 1% of an hour before 10pm.
+
+
+___________________________________________
+
+3.7.2 set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
+
+Set the visual game time properties. Duration in seconds (Usually about 1700) percentage (night to day ratio)
+currently 0.083, and the percentage dawn and dusk (not included in the night ratio) is usually about 0.04.
+
+
+___________________________________________
+
+3.7.3 set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
+
+Identical to 3.7.2
+___________________________________________
+
+3.7.4 move game time EXPRESSION time EXPRESSION
+
+Move the time of day in black and white over a period of time.
+
+
+___________________________________________
+
+3.7.5 enable|disable game time
+
+Sets if the game visual time changes.
+
+
+___________________________________________
+
+3.8.1 affect alignment by EXPRESSION
+
+Player alignment consists of a number of elements which combine to make the overall character of the
+player. You can update the player alignment with a value in range [-1, 1] where minus values are evil,
+and positive values are good. The extremes can be used safely for scripts, and should be used for
+extreme cases of good and evil results of scripts - as scripts only form part of the player profile.
+
+
+___________________________________________
+
+3.8.2 enable|disable OBJECT poisoned
+
+Sets an object or container to all being poisoned or cured of poisoning.
+
+
+___________________________________________
+
+3.8.3 enable|disable OBJECT build worship site
+
+Sets the town/citadel can or cannot build worship site.
+
+
+___________________________________________
+
+3.8.4 enable|disable help system
+
+Sets the help system on/off.
+
+
+___________________________________________
+
+3.8.5 enable|disable OBJECT skeleton
+
+Sets the object as a skeleton true or false.
+
+
+___________________________________________
+
+3.8.6 enable|disable OBJECT indestructible
+
+Sets the object as indestructible or not.
+
+
+___________________________________________
+
+3.8.7 enable|disable OBJECT hurt by fire.
+
+Sets the object as hurt by fire or not, normal behavior is hurt by fire.
+
+
+___________________________________________
+
+3.8.8 enable|disable OBJECT set on fire
+
+Sets the object as possible to be lit by fires. Generally objects can burn, but in some scripts villagers
+must not be burnt.
+
+
+___________________________________________
+
+3.8.9 enable|disable OBJECT on fire EXPRESSION
+
+Sets an object or container to all being on fire or not. A value on how on fierce the blaze is in
+range [0, 1]. 1 will obviously burn faster.
+
+
+___________________________________________
+
+3.8.10 enable|disable OBJECT moveable
+
+Sets an object to moveable, that is, is moveable by hand, creature and physics or not. If enabled,
+it has its default behavior.
+
+
+___________________________________________
+
+3.8.11 enable|disable OBJECT pickup
+
+Sets an object to pickupable, that is, is pickupable by hand, or creature. If enabled it has its default behavior.
+
+
+___________________________________________
+
+3.8.12 enable|disable creature sound
+
+Sets the creature sounds on or off in a widescreen section.
+
+
+___________________________________________
+
+3.8.13 enable|disable sound
+
+Sets the game sounds on or off.
+
+
+___________________________________________
+
+3.8.14 set interaction CONSTANT
+
+Allows the scripter to enable/disable certain features of the interface. This is most useful when the game
+is at the beginning.
+
+
+___________________________________________
+
+3.8.15 snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] ENUM_HELP_TEXT SCRIPT[(parameters)]
+
+This is used to take a photo for inside the temple so the player can call a reminder script to find out
+what they should be doing in the game to complete any script. You don't have to pass the position of the
+snapshot. If you don't, the current camera position is passed. Not sending the success value defaults to
+0.5 and the alignment not being sent defaults to 0.0.
+
+snapshot quest success 0.9 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_14)
+
+	PUSHB true		//quest
+	SYS GET_CAMERA_POSITION	//[0, 3] () returns (Coord)
+	SYS GET_CAMERA_FOCUS	//[0, 3] () returns (Coord)
+	PUSHF 0.9		//success val
+	PUSHF 0.0		//alignment val
+	PUSHI 2465		//2465=HELP_TEXT_TITLE_105
+	PUSHI 1192		//"StandardReminder"
+	PUSHI 4713		//args[0]=HELP_TEXT_GUIDE_DIES_14
+	CASTF
+	PUSHI 1			//argc
+	PUSHI 64		//challengeID
+	SYS SNAPSHOT	//[?, 0] (bool quest, Coord position, Coord focus, float success, float alignment, ENUM_HELP_TEXT titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
+
+snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+	PUSHB false		//quest
+	SYS GET_CAMERA_POSITION	//[0, 3] () returns (Coord)
+	SYS GET_CAMERA_FOCUS	//[0, 3] () returns (Coord)
+	PUSHF 0.0		//success val
+	PUSHF 0.0		//alignment val
+	PUSHI 2423		//HELP_TEXT_TITLE_01
+	PUSHI 3621		//"StandardReminder"
+	PUSHI 1602		//args[0]
+	CASTF
+	PUSHI 1			//argc
+	PUSHI 9			//challengeID
+	SYS SNAPSHOT	//[?, 0] (bool quest, Coord position, Coord focus, float success, float alignment, ENUM_HELP_TEXT titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
+___________________________________________
+
+3.8.16 update snapshot [success EXPRESSION] [alignment EXPRESSION] ENUM_HELP_TEXT SCRIPT[(parameters)]
+
+This is used to take a photo for inside the temple so the player can call a reminder script to find out
+what they should be doing in the game to complete any script. You don't have to pass the position of the
+snapshot. If you don't, the current camera position is passed. Not sending the success value defaults to
+0.5 and the alignment not being sent defaults to 0.0.
+
+update snapshot success 0.08 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_02)
+
+	PUSHF 0.08	//success val
+	PUSHF 0.0	//alignment val
+	PUSHI 2465	//2465=HELP_TEXT_TITLE_105
+	PUSHI 34	//"StandardReminder"
+	PUSHI 1010	//1010=HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_02
+	CASTF
+	PUSHI 1		//argc
+	PUSHI 64	//challengeID set by previous "challenge" statement at compile time
+	SYS UPDATE_SNAPSHOT	//[?, 0] (float success, float alignment, ENUM_HELP_TEXT titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
+___________________________________________
+
+3.8.17 update snapshot details [success EXPRESSION] [alignment EXPRESSION] ENUM_HELP_TEXT [taking picture]
+
+This is used to take a photo for inside the temple so the player can call a reminder script to find out
+what they should be doing in the game to complete any script. You don't have to pass the position of the
+snapshot. If you don't, the current camera position is passed. Not sending the success value defaults to
+0.5 and the alignment not being sent defaults to 0.0.
+
+update snapshot details success 1.0 alignment -1.0 HELP_TEXT_TITLE_35
+
+	SYS GET_CAMERA_POSITION		//[0, 3] () returns (Coord)
+	SYS GET_CAMERA_FOCUS		//[0, 3] () returns (Coord)
+	PUSHF 1.0					//success
+	PUSHF 1.0
+	NEG							//alignment
+	PUSHI 2451					//HELP_TEXT_TITLE_35
+	PUSHB false					//NO taking picture
+	PUSHI 18					//challengeID 18=THE_MISSIONARIES
+	SYS UPDATE_SNAPSHOT_PICTURE	//[11, 0] (Coord position, Coord focus, float success, float alignment, ENUM_HELP_TEXT titleStrID, bool takingPicture, int challengeID)
+
+update snapshot details success 1 alignment ModifAl HELP_TEXT_TITLE_35 taking picture
+
+	SYS GET_CAMERA_POSITION		//[0, 3] () returns (Coord)
+	SYS GET_CAMERA_FOCUS		//[0, 3] () returns (Coord)
+	PUSHF 1.0					//success
+	PUSHF [ModifAl]				//alignment
+	PUSHI 2451					//HELP_TEXT_TITLE_35
+	PUSHB true					//taking picture
+	PUSHI 18					//challengeID 18=THE_MISSIONARIES
+	SYS UPDATE_SNAPSHOT_PICTURE	//[11, 0] (Coord position, Coord focus, float success, float alignment, ENUM_HELP_TEXT titleStrID, bool takingPicture, int challengeID)
+___________________________________________
+
+3.8.18 set game speed to EXPRESSION
+
+This function is useful for simulating slow motion in the game. Setting the game speed to a value in
+range [0, 1] means a percentage of the normal game speed. ie. 0.5=half game speed. Setting the value to
+more than 1 is a multiple of the normal game speed. ie. 2=twice normal game speed.
+
+set game speed to 0.5
+
+	PUSHF 0.5			//speed
+	SYS2 SET_GAMESPEED	//[1, 0] (float speed)
+___________________________________________
+
+3.8.19 build building at POSITION desire EXPRESSION
+
+If a building is planned in the landscape you can trigger the associated town to have a desire to build the
+planned building. Be careful with putting the desire [0, 1] too high, as it will look strange having the
+town building a building. Also the number of buildings per building is defined in the spreadsheet.
+
+build building at [3361.26,3241.85] desire 1.0
+
+	PUSHF 3361.26		//x
+	CASTC
+	PUSHF 3241.8501		//z
+	CASTC
+	PUSHC 0				//y
+	SWAPI
+	PUSHF 1.0			//desire
+	SYS BUILD_BUILDING	//[4, 0] (Coord position, float desire)
+___________________________________________
+
+3.8.20 add for building OBJECT to OBJECT
+
+Adds an object to the town to be built list.
+
+Never found (GAME_ADD_FOR_BUILDING)
+___________________________________________
+
+3.8.21 load map STRING
+
+Removes all the current map data, and then loads the map defined. All scripts are still held, but
+you are going to need to stop all scripts from the previous file which are running!
 
 load map "scripts/land2.txt"
 
-	PUSHI 10656	//"scripts/land2.txt"
-	SYS LOAD_MAP	//(1, 0)
+	PUSHI 10656		//"scripts/land2.txt"
+	SYS LOAD_MAP	//[1, 0] (StrPtr path)
 ___________________________________________
 
-3.8.27 Stop All Scripts Exclusing Files string
+3.8.22 save game in slot EXPRESSION
+
+Saves the game into a specific slot inside the citadel. No. is 14 reserved for on leaving a land for
+purposes of the saving design, using other numbers will override specific windows inside the citadel.
+
+Never found
+
+	PUSHI 1					//slot
+	SYS SAVE_GAME_IN_SLOT
+___________________________________________
+
+3.8.23 stop script STRING
+
+Stops the script running.
+
+stop script "BaywatchSwimmingBoy"
+
+	PUSHI 3740		//"BaywatchSwimmingBoy"
+	SYS STOP_SCRIPT	//[1, 0] (StrPtr scriptName)
+___________________________________________
+
+3.8.24 stop all scripts excluding STRING
+
+Stops all the scripts running excluding the list passed. The list is a list of scripts, and sub scripts.
+If you want to exclude a whole file, then see "stop all script files excluding". Stopping scripts just
+stops them, they can be run again as they will remain in memory.
+
+Never found
+
+	PUSHI 12345						//scriptName
+	SYS STOP_ALL_SCRIPTS_EXCLUDING	//[1, 0] (StrPtr scriptName)
+___________________________________________
+
+3.8.25 stop scripts in files STRING
+
+Stops all the scripts in the file list.
+
+stop scripts in files "CreatureGuide.txt"
+
+	PUSHI 2445					//"CreatureGuide.txt"
+	SYS STOP_SCRIPTS_IN_FILES	//[1, 0] (StrPtr sourceFilename)
+___________________________________________
+
+3.8.26 stop scripts in file STRING excluding STRING
+
+Stops all the scripts in the file list passed excluding the list passed.
+
+stop scripts in files "TheMissionaries.txt" excluding "CheckSailors"
+
+	PUSHI 2960							//"TheMissionaries.txt"
+	PUSHI 2980							//"CheckSailors"
+	SYS STOP_SCRIPTS_IN_FILES_EXCLUDING	//[2, 0] (StrPtr sourceFilename, StrPtr scriptName)
+___________________________________________
+
+3.8.27 stop all scripts excluding files STRING
+
+Stops all the scripts except ones in the file list passed.
 
 stop all scripts excluding files "LandControlAll.txt"
 
@@ -158,7 +1332,61 @@ stop all scripts excluding files "LandControlAll.txt"
 	SYS STOP_ALL_SCRIPTS_IN_FILES_EXCLUDING	//(1, 0)
 ___________________________________________
 
-3.8.36 set fade in time expression
+3.8.28 clear clicked object
+
+Clears the memory of the last interface clicked object.
+
+
+___________________________________________
+
+3.8.29 clear clicked position
+
+Clears the memory of the last interface clicked position.
+
+___________________________________________
+
+3.8.30 clear hit object
+
+Clears the memory of the last game collided object.
+
+
+___________________________________________
+
+3.8.31 enable|disable constant avi sequence
+
+Starts/stops an avi sequence.
+
+___________________________________________
+
+3.8.32 enable|disable constant avi sequence
+
+Identical to 3.8.31
+___________________________________________
+
+3.8.33 run CONSTANT developer function
+
+Runs an in dev function.
+
+
+___________________________________________
+
+3.8.34 run map script line STRING
+
+Runs a map script line.
+
+
+___________________________________________
+
+3.8.35 set fade red EXPRESSION green EXPRESSION blue EXPRESSION time EXPRESSION
+
+Fades the screen in a given time to a given color.
+
+
+___________________________________________
+
+3.8.36 set fade in time EXPRESSION
+
+Fades the screen back in a given time.
 
 set fade in time 3
 
@@ -166,7 +1394,152 @@ set fade in time 3
 	SYS SET_FADE_IN	//(1, 0)
 ___________________________________________
 
-3.8.57 start sound constant soundbank
+3.8.37 enable|disable spell constant for player EXPRESSION
+
+Enables/disables a spell for a specific player.
+
+
+___________________________________________
+
+3.8.38 clear player EXPRESSION spell charging
+
+Stops a player spells from charging.
+
+
+___________________________________________
+
+3.8.39 load my_creature at POSITION
+
+Loads your creature into the game at a specific position.
+
+
+___________________________________________
+
+3.8.40 load creature STRING player EXPRESSION at POSITION
+
+Loads a computer creature according to a file name for a player without creature into the game at a specific position.
+
+
+___________________________________________
+
+3.8.41 set EXPRESSION land balance EXPRESSION
+
+Sets the towns balance (Peter no descriptive function to balance lands).
+
+
+___________________________________________
+
+3.8.42 set OBJECT belief scale EXPRESSION
+
+Sets the towns belief scaled by the number passed.
+
+
+___________________________________________
+
+3.8.43 set OBJECT player EXPRESSION realative belief
+
+Sets the towns relative belief to to the highest belief in a player.
+
+
+___________________________________________
+
+3.8.44 set OBJECT player EXPRESSION belief EXPRESSION
+
+Sets the towns belief of a player to an an amount time that of the owner.
+
+
+___________________________________________
+
+3.8.45 set OBJECT desire boost CONSTANT EXPRESSION
+
+Sets the towns desire boost (use a value from -1 -> 1).
+
+
+___________________________________________
+
+3.8.46 enable|disable player EXPRESSION virtual influence
+
+Enables/disables the players virtual influence.
+
+
+___________________________________________
+
+3.8.47 start angle sound
+
+Starts sound effects when you rotate.
+
+
+___________________________________________
+
+3.8.48 start pitch sound
+
+Starts sound effects when you move the pitch.
+
+
+___________________________________________
+
+3.8.49 start OBJECT fade out
+
+Starts the object fading out - only used by vortex at present.
+
+
+___________________________________________
+
+3.8.50 enable|disable OBJECT high graphics detail
+
+Sets the objects graphics detail.
+
+
+___________________________________________
+
+3.8.51 enable|disable leash draw
+
+Sets if the leash is drawn or not in a widescreen section.
+
+
+___________________________________________
+
+3.8.52 enable|disable highlight draw
+
+Sets if the highlights (scrolls) are drawn or not in a widescreen section.
+
+
+___________________________________________
+
+3.8.53 enable|disable spell constant in OBJECT
+
+Sets the magic available within a town.
+
+
+___________________________________________
+
+3.8.54 add OBJECT target at POSITION
+
+Adds a target to the objects target list (Currently only used by spot visuals).
+
+
+___________________________________________
+
+3.8.55 add OBJECT target on OBJECT
+
+Adds a object target to the objects target list (Currently only used by spot visuals).
+
+
+___________________________________________
+
+3.8.56 enable|disable intro building
+
+Sets the building state for the introduction of the game.
+
+
+___________________________________________
+
+3.8.57 start sound constant SOUNDBANK
+
+This function plays a sound effect not in 3d space, with an optional bank. If you don't define a bank
+it defaults to the main game sfx bank. The option extra key word means is if you don't want the say to
+interrupt the previous say sound effect which is the normal behavior. So effectively you have two slot
+for the say sound.
 
 start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SwimPos]
 
@@ -180,14 +1553,185 @@ start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CH
 	SYS PLAY_SOUND_EFFECT	//(6, 0)
 ___________________________________________
 
-3.10.1 run script identifier
+3.8.58 start sound constant SOUNDBANK
+
+This function plays a sound effect not in 3d space, with an optional bank. If you don't define a bank it
+defaults to the main game sfx bank.
+
+
+___________________________________________
+
+3.8.59 start sound constant SOUNDBANK
+
+This function plays a sound effect not in 3d space, with an optional bank. If you don't define a bank it
+defaults to the main game sfx bank.
+
+
+___________________________________________
+
+3.8.60 start sound constant SOUNDBANK
+
+This function plays a sound effect not in 3d space, with an optional bank. If you don't define a bank it
+defaults to the main game sfx bank.
+
+
+___________________________________________
+
+3.8.61 start sound constant SOUNDBANK at POSITION
+
+This function plays a sound effect in 3d space, with an optional bank. If you don't define a bank it
+defaults to the main game sfx bank.
+
+
+___________________________________________
+
+3.8.62 enter|exit temple
+
+Enter or exit the temple. This must be done in a widescreen section, and in a begin temple help script
+script. As the temple pauses the game and only processes the temple help scripts within it's walls.
+
+
+___________________________________________
+
+3.8.63 enable|disable temple
+
+Enables the player from entering or exiting the temple using the click to temple door.
+
+
+___________________________________________
+
+3.8.64 enable|disable creature in temple
+
+Enables the creature from being displayed within the temple.
+
+
+___________________________________________
+
+3.8.65 set bookmark EXPRESSION to POSITION
+
+Sets a bookmark to a set position.
+
+
+___________________________________________
+
+3.8.66 set OBJECT building properties CONSTANT size EXPRESSION
+
+Sets an object (scaffold) to the building type and size. This function has an option "destroys when placed"
+if you wish the placement of the scaffold to destroy things the guarantee it builds something when placed.
+
+
+___________________________________________
+
+3.8.67 set OBJECT fade in opt_time_2
+
+Sets an object to fade in, if it is the creature you can pass an optional time value - not doing so defaults
+in two seconds.
+
+
+___________________________________________
+
+3.8.68 delete all weather at POSITION radius EXPRESSION
+
+Deletes all weather storm data at position with a radius. This does not delete all weather climates,
+but just the storms created by them.
+
+
+___________________________________________
+
+3.8.69 enable|disable climate weather
+
+Enables/disables the climate weather system, which is the system placed in the map data.
+
+
+___________________________________________
+
+3.8.70 enable|disable climate create storms
+
+Enables/disables the climate weather system creating storms. The climate system is the the system placed
+in the map data.
+
+
+___________________________________________
+
+3.8.71 restart OBJECT
+
+Reinitializes the object, (EG. Puzzles).
+
+
+___________________________________________
+
+3.8.72 start immersion CONSTANT
+
+Starts an immersion effect playing.
+
+
+___________________________________________
+
+3.8.73 stop immersion CONSTANT
+
+Stops an immersion effect playing.
+
+
+___________________________________________
+
+3.8.74 stop all immersion
+
+Stops all immersion effects from playing.
+
+
+___________________________________________
+
+3.8.75 set OBJECT carrying CONSTANT
+
+Using the CARRIED_OBJECT enum, you can set a villager to carrying an object (eg. Fishing rod) like they
+usually do in the game. Using the enum CARRIED_OBJECT_NONE as the carried object stops an object from
+being carried.
+
+
+___________________________________________
+
+3.9.1 create reaction OBJECT CONSTANT
+
+Creates a reaction centred around an object which moves with the object the reaction information is
+stored in the spreadsheet (Misc section) and the enum for which reaction to use is enum.h
+
+
+___________________________________________
+
+3.9.2 detach reaction OBJECT
+
+Removes *every* reaction associated with this object
+
+
+___________________________________________
+
+3.9.3 detach CONSTANT reaction OBJECT
+
+Removes all reactions of the type associated with this object
+
+
+___________________________________________
+
+3.10.1 run script IDENTIFIER
+
+Runs a script, and does not return control to the script which calls this statement until the called script
+is finished.
 
 run script SetupLand3
 
 	CALL SetupLand3
 ___________________________________________
 
-3.11.1 wait until condition
+3.10.2 run background script IDENTIFIER
+
+Runs a script as a background task, and continues running the script which called it.
+
+
+___________________________________________
+
+3.11.1 wait until CONDITION
+
+Self-explainatory.
 
 wait until read
 
@@ -196,7 +1740,9 @@ lbl1598:
 	JZ lbl1598
 ___________________________________________
 
-3.11.2 wait condition
+3.11.2 wait CONDITION
+
+Same as above but without need for the word until.
 
 wait Random seconds
 
@@ -204,30 +1750,152 @@ wait Random seconds
 	SLEEP
 ___________________________________________
 
-3.14 state object constant position coord_expression float expression ulong expression, expression
+3.12.1 start music CONSTANT
+
+Only one script tune can play at once, this function starts a script tune which has no 3d position in the world.
+
+
+___________________________________________
+
+3.12.2 stop music
+
+Stops the script music that is playing. NB. Only one tune can be played at one time.
+
+
+___________________________________________
+
+3.12.3 attach music CONSTANT to OBJECT
+
+Attaches a tune to a game object, such that when the object is near the camera the tune is played and can
+be heard in the 3d direction of the object.
+
+
+___________________________________________
+
+3.12.4 detach music from OBJECT
+
+If an object has music attached to it, this function stops the music from playing for the object.
+
+
+___________________________________________
+
+3.12.5 move music from OBJECT to OBJECT
+
+If an object has music attached to it, it moves it to the another defined object.
+
+
+___________________________________________
+
+3.12.6 enable|disable music on OBJECT
+
+If an object has music attached to it, it enables to music playing or sets the object to not playing
+music but setting silence in the area.
+
+
+___________________________________________
+
+3.12.7 restart music on OBJECT
+
+restarts the music on a game music thing.
+
+
+___________________________________________
+
+3.12.8 set OBJECT music position to POSITION
+
+Sets the objects music play position to one different to the object position.
+
+
+___________________________________________
+
+3.12.9 enable|disable alignment music
+
+Sets a flag in the game to allow alignment music to play or not.
+
+
+___________________________________________
+
+3.13.1 set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
+
+You are going to have to experiment with the results to be honest, but here is a guide:
+degrees in c (used for the game to decide if people think it's warm enough to go outside etc)
+rainfall 0->1 (0=no rain 1=Lots of rain)
+snowfall -1->1 (-1 is full melt on snow, 1=snow storm. It is suggested rain storms melt the snow a little,
+for snow snows it is advised to be agressive with the value!)
+overcast (0->1 Visibility)
+speed (Multiplier of normal. ie. 1 = Normal 0 = No fall speed! 2 = Double Speed 0.5 = Half speed)
+
+
+___________________________________________
+
+3.13.2 set OBJECT properties time EXPRESSION fade EXPRESSION
+
+You are going to have to experiment with the results to be honest, but here is a guide:
+time (number of seconds it lasts, if you want it to last for ages you have to bump the seconds to something silly!)
+fade (The time it takes for the strom to gather at the position and get to full stats)
+
+
+___________________________________________
+
+3.13.3 set OBJECT properties clouds EXPRESSION shade EXPRESSION height EXPRESSION
+
+You are going to have to experiment, but here is a guide:
+clouds (The number of clouds - recommend 8 for a heavy storm, less for lighter. More than 8 for a
+massive outrageous storm!)
+cloudshade (0->1 The blackness of the clouds. 0 means normal clouds, 1 means they'll be incredibly black)
+cloudheight Height of (Recommend 160metres) rain/snow starts here and falls to the ground
+
+
+___________________________________________
+
+3.13.4 set OBJECT properties sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION
+
+You are going to have to experiment, but here is a guide:
+the time between flashes/forks is random between the min and max boundaries:
+sheetmin minimum time between lightning flashes
+sheetmax maximum time between lightning flashes
+forkmin minimum time between lightning forks
+forkmax maximum time between lightning forks
+
+
+___________________________________________
+
+3.13.5 enable/disable OBJECT affected by wind
+
+Sets object to be moved by the wind or not in the game. Note that strong winds move storms etc pretty
+damn fast so be careful!
+
+
+___________________________________________
+
+3.14 state OBJECT CONSTANT position POSITION float EXPRESSION ulong EXPRESSION, EXPRESSION
+
+This is a dangerous feature, where you can set the object in a state. Do not set them into a simulation
+state as it may go mad! States have data which needs to be set up for the specific state, the float,
+ulong, and position params may need to be filled for the state. BE CAREFUL!
 
 state Mother WANDER_AROUND
 
-	position [SoapBox]
-	float 6
-	ulong 4, 20
+position [SoapBox]
+float 6
+ulong 4, 20
 
-a	PUSHF [Mother]
-b	PUSHI 199					//199=WANDER_AROUND=VILLAGER_STATE_SCRIPT_WANDER_AROUND_POSITION (in Info3.txt)
-c	PUSHI [Mother]
-d	PUSHF [SoapBox]
-e	SYS GET_POSITION			//(1, 3)
-f	SYS SET_SCRIPT_STATE_POS	//(4, 0) (d, e1, e2, e3)
-g	PUSHI [Mother]
-h	PUSHF 6.0
-i	SYS SET_SCRIPT_FLOAT		//(2, 0)	(g, h)
-j	PUSHI [Mother]
-k	PUSHF 4.0
-l	CASTI
-m	PUSHF 20.0
-n	CASTI
-o	SYS SET_SCRIPT_ULONG		//(3, 0)	(j, l, n)
-p	SYS SET_SCRIPT_STATE		//(2, 0)	(a, b)
+	PUSHF [Mother]
+	PUSHI 199					//199=WANDER_AROUND=VILLAGER_STATE_SCRIPT_WANDER_AROUND_POSITION (in Info3.txt)
+	PUSHI [Mother]
+	PUSHF [SoapBox]
+	SYS GET_POSITION			//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS SET_SCRIPT_STATE_POS	//[4, 0] (ObjectInt object, Coord position)
+	PUSHI [Mother]
+	PUSHF 6.0
+	SYS SET_SCRIPT_FLOAT		//[2, 0] (ObjectInt object, float)
+	PUSHI [Mother]
+	PUSHF 4.0
+	CASTI
+	PUSHF 20.0
+	CASTI
+	SYS SET_SCRIPT_ULONG		//[3, 0] (Object object, int, int)
+	SYS SET_SCRIPT_STATE		//[2, 0] (ObjectFloat object, int)
 	
 Equivalent SYS calls:
 	SET_SCRIPT_STATE_POS(GET_POSITION(SoapBox))
@@ -237,6 +1905,8 @@ Equivalent SYS calls:
 ___________________________________________
 
 3.15.1 If Block
+
+A check of the condition of something, which if succeeds processes a number of statements.
 
 if number from 0 to Amount == 0
 	//statements
@@ -253,7 +1923,9 @@ end if
 lbl158A:
 ___________________________________________
 
-3.15.2 while condition statements end while
+3.15.2 while CONDITION STATEMENTS end while
+
+This block is used to run code while a condition is still true.
 
 while BaywatchSwimmingCounter >= 1
 	//statements
@@ -269,7 +1941,35 @@ JMP lbl158B
 	lbl1589:
 ___________________________________________
 
-3.15.6 begin dialogue statements end dialogue
+3.15.3 begin loop STATEMENTS end loop
+
+Statements in this block loop forever unless an exception is true.
+
+
+___________________________________________
+
+3.15.4 begin cinema STATEMENTS end cinema
+
+Takes control of the camera, the dialogue, the game speed feature, and sets the screen to widescreen
+mode. Statements after this will not be run until control is successful. At the end of a cinema sequence
+the game is returned to non widescreen, the spirits are sent home, and the game speed is set to normal.
+If you don't want the spririts to go home and wish to keep dialogue control then you can do
+"end cinema with spirits".
+
+
+___________________________________________
+
+3.15.5 begin camera STATEMENTS end camera
+
+Takes control of the camera, the dialogue, the game speed feature. Statements after this will not be run
+until control is successful. At the end of a camera sequence, the spirits are sent home, and the game speed
+is set to normal. If you don't want the spririts to go home and wish to keep dialogue control then you can
+do "end camera with spirits".
+
+
+___________________________________________
+
+3.15.6 begin dialogue STATEMENTS end dialogue
 
 begin dialogue
 	//statements
@@ -282,7 +1982,145 @@ lbl1597:
 	SYS END_DIALOGUE	//(0, 0)
 ___________________________________________
 
-3.16.2.1 say [single line] string
+3.15.7 begin known dialogue STATEMENTS end dialogue
+
+Occasionally you need to be able to be in a function which is already in Dialogue control from the
+calling function Using this block means you can use the dialogue control you already have.
+
+
+___________________________________________
+
+3.15.8 begin known cinema STATEMENTS end dialogue
+
+Occasionally you need to be able to be in a function which is already in Dialogue control from the
+calling function Using this block means you can use the cinema control you already have.
+
+
+___________________________________________
+
+3.15.9 begin dual camera to OBJECT object STATEMENTS end dual camera
+
+Creates a camera which keeps two objects on screen.
+
+
+___________________________________________
+
+3.15.10 begin dual camera to OBJECT OBJECT.
+
+Creates a camera which keeps two objects on screen.
+
+
+___________________________________________
+
+3.16.1.1 make spirit_type point to OBJECT
+
+When dealing with spirits, it is often not desirable to create objects to refer to them. You can
+refer to a spirit directly by using its spirit_type. This command makes the specified spirit appear,
+if necessary, and then point to the target object.
+
+
+___________________________________________
+
+3.16.1.2 make spirit_type point at POSITION
+
+Occasionally you might want to make an object (usually a help spirit) point to another object. You can
+do this via the make command.
+
+
+___________________________________________
+
+3.16.1.3 make spirit_type play across EXPRESSION down EXPRESSION CONSTANT [speed_expression]
+
+The specified spirit type will play an animation at the set position, (percentage x across the screen,
+and percentage y down the screen) at an optionally defined speed percentage
+
+
+___________________________________________
+
+3.16.1.4 make spirit_type cling across EXPRESSION down EXPRESSION
+
+The specified spirit type will cling to the edge of the screen, closest to the (percentage x across
+the screen, and percentage y down the screen) position given. This works when they have not been ejected,
+so they can cling from the start. To stop them clinging either eject or send home. They can still look
+around and point while clinging.
+
+
+___________________________________________
+
+3.16.1.5 make spirit_type fly across EXPRESSION down EXPRESSION
+
+The specified spirit type will fly to the position on the screen, (percentage x across the screen, and
+percentage y down the screen)
+
+
+___________________________________________
+
+3.16.1.6 make spirit_type fly across EXPRESSION down EXPRESSION
+
+The specified spirit type will fly to the position on the screen, (percentage x across the screen, and
+percentage y down the screen)
+
+
+___________________________________________
+
+3.16.1.7 stop spirit_type pointing
+
+Stops the spirit pointing, irrespective of if it is.
+
+
+___________________________________________
+
+3.16.1.8 make spirit_type look at POSITION
+
+The specified spirit type will look to the set position.
+
+
+___________________________________________
+
+3.16.1.9 make spirit_type look at OBJECT
+
+The specified spirit type will look at the target object.
+
+
+___________________________________________
+
+3.16.1.10 stop spirit_type looking
+
+Stops the spirit looking, irrespective of if it is.
+
+
+___________________________________________
+
+3.16.1.11 eject spirit_type
+
+eject evil spirit
+
+	PUSHI 2				//1=good, 2=evil
+	SYS SPIRIT_EJECT	//(1, 0)
+___________________________________________
+
+3.16.1.12 appear spirit_type
+
+Make the spirit type Appear in front of the player in a puff of smoke. Irrespective of the script type.
+
+
+___________________________________________
+
+3.16.1.13 disappear spirit_type
+
+Make the spirit type disappear in front of the player in a puff of smoke. Irrespective of the script type.
+
+
+___________________________________________
+
+3.16.1.14 send spirit_type home
+
+The specified spirit type will move off the screen.
+
+
+___________________________________________
+
+3.16.2.1 say [single line] STRING
 
 say single line HELP_TEXT_BAYWATCH_25
 
@@ -292,33 +2130,336 @@ say single line HELP_TEXT_BAYWATCH_25
 	SYS RUN_TEXT	//(3, 0)
 ___________________________________________
 
-3.16.2.1 say [single line] string
+3.16.2.2 say STRING with number EXPRESSION
 
-say HELP_TEXT_BAYWATCH_31
+When developing a script it is useful to have a text out function to debug or put in temp text until
+the script has been scripted. This version places a value at the
+$d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 
-	PUSHB false		//NO single line
-	PUSHI 1597
-	PUSHI 0
-	SYS RUN_TEXT	//(3, 0)
+
 ___________________________________________
 
-3.16.1.11 eject spirit_type
+3.16.2.3 say CONSTANT
 
-eject evil spirit
+This displays text predefined which may have sound attached to it which will be automatically played.
 
-	PUSHI 2				//2=evil
-	SYS SPIRIT_EJECT	//(1, 0)
+
 ___________________________________________
 
-3.16.1.11 eject spirit_type
+3.16.2.4 say CONSTANT with number EXPRESSION
 
-eject good spirit
+This displays text predefined which may have sound attached to it which will be automatically played.
+This version places a value at the
+$d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 
-	PUSHI 1				//1=good
-	SYS SPIRIT_EJECT	//(1, 0)
+
 ___________________________________________
 
-5.2.2 constant of object
+3.16.2.5 clear dialogue
+
+Clears the text in the dialogue window (Dark Bar).
+
+
+___________________________________________
+
+3.16.2.6 close dialogue
+
+Closes the dialogue window (Dark Bar).
+
+close dialogue
+
+	SYS GAME_CLOSE_DIALOGUE
+___________________________________________
+
+3.17.1 draw text constant across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+
+This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
+text colour function.
+
+
+___________________________________________
+
+3.17.2 draw text string across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+
+This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
+text colour function.
+
+
+___________________________________________
+
+3.17.3 set draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION
+
+This function sets the draw text colours for all the following calls to draw text. The range of red/green/blue
+are 0->255.
+
+
+___________________________________________
+
+3.17.4 fade all draw text time EXPRESSION seconds
+
+Fades out all the draw text in a time.
+
+
+___________________________________________
+
+3.17.5 set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION
+
+This sets the window on screen that the game engine will display in.
+
+
+___________________________________________
+
+3.17.6 clear clipping window time EXPRESSION
+
+Sets the clipping window of the game engine to full screen.
+
+
+___________________________________________
+
+3.18.1 set camera zones to STRING
+
+Sets the camera zones to the one defined in a file.
+
+set camera zones to "Land1Zone5.exc"
+
+	PUSHI 2141			//"Land1Zone5.exc"
+	SYS SET_CAMERA_ZONE	//[1, 0] (StrPtr filename)
+___________________________________________
+
+3.18.2 store camera details
+
+stores the camera details, (foc, pos).
+
+
+___________________________________________
+
+3.18.3 restore camera details
+
+restores the camera details, (foc, pos) from the last ones sent by the store function.
+
+
+___________________________________________
+
+3.18.4 reset camera lens time EXPRESSION
+
+Resets the camera lens.
+
+
+___________________________________________
+
+3.18.5 enable|disable clipping distance EXPRESSION
+
+Sets the clipping distance.
+
+
+___________________________________________
+
+3.18.6 set camera lens EXPRESSION time EXPRESSION
+
+Sets the camera lens in an optional amount of time.
+
+
+___________________________________________
+
+3.18.7 move camera position to POSITION time EXPRESSION
+
+Moves the camera position smoothly from where it is to the stated position in an amount of time.
+
+
+___________________________________________
+
+3.18.8 set camera position to POSITION
+
+Sets the camera position instantly.
+
+
+___________________________________________
+
+3.18.9 move camera focus to POSITION time EXPRESSION
+
+Moves the camera focus smoothly from where it is to the stated position in an amount of time.
+
+
+___________________________________________
+
+3.18.10 set camera focus to POSITION
+
+Sets the camera focus instantly.
+
+
+___________________________________________
+
+3.18.11 move camera to face OBJECT distance EXPRESSION time EXPRESSION
+
+Moves the camera to face an object, with a distance from the object and a time to get to the said position.
+
+
+___________________________________________
+
+3.18.12 set camera to face OBJECT distance EXPRESSION
+
+Sets the camera to face an object, with a distance from the object.
+
+
+___________________________________________
+
+3.18.13 set camera focus follow OBJECT
+
+This sets the camera focus to follow on an object.
+
+
+___________________________________________
+
+3.18.14 set camera position follow OBJECT
+
+This sets the camera position to follow an object with the current heading.
+
+
+___________________________________________
+
+3.18.15 set camera focus follow computer player EXPRESSION
+
+This sets the camera focus to follow a computer player.
+
+
+___________________________________________
+
+3.18.16 set camera position follow computer player EXPRESSION
+
+This sets the camera position to follow a computer player.
+
+
+___________________________________________
+
+3.18.17 set camera follow OBJECT distance EXPRESSION
+
+This sets the camera to follow an object with the current heading at the defined distance.
+
+
+___________________________________________
+
+3.18.18 move camera focus follow OBJECT
+
+This moves the camera focus to follow on an object.
+
+
+___________________________________________
+
+3.18.19 move camera position follow OBJECT
+
+This moves the camera position to follow an object with the current heading.
+
+
+___________________________________________
+
+3.18.20 camera follow OBJECT distance EXPRESSION
+
+This sets the camera to follow an object with the current heading at the defined distance.
+
+
+___________________________________________
+
+3.18.21 set camera properties speed EXPRESSION angle EXPRESSION enable|disable behind
+
+Sets the camera properties for following something. The speed is a mulitplier of normal catch up
+speed of the camera, and the enable/disable behind, locks/unlocks the camera trying to remain behind
+the object it is following.
+
+
+___________________________________________
+
+3.18.22 set camera to camera_enum
+
+Instantly sets the camera to a camera position and focus defined in the camera editor.
+
+
+___________________________________________
+
+3.18.23 move camera to camera_enum time EXPRESSION
+
+Moves the camera to a camera position and focus defined in the camera editor in a define time.
+
+
+___________________________________________
+
+3.18.24 camera path camera_enum
+
+In the camera editor you can create camera paths. An enum in cameraposenum.h
+
+
+___________________________________________
+
+3.18.25 enable|disable camera fixed rotation at POSITION
+
+DANGEROUS - fixes the camera rotation point. Used in learning script
+
+
+___________________________________________
+
+3.18.26 shake camera at POSITION radius EXPRESSION amplitude EXPRESSION time EXPRESSION
+
+Shakes the camera for an amount of time. This does not need to be in a camera block.
+
+
+___________________________________________
+
+3.18.27 set dual camera to OBJECT OBJECT
+
+Updates the dualcamera to keep two objects on screen.
+
+
+___________________________________________
+
+3.18.28 start hand demo STRING
+
+Play hand demo of a prerecorded hand movement.
+
+
+___________________________________________
+
+3.18.29 start jc special CONSTANT
+
+Starts one of JC's predefined special features.
+
+
+___________________________________________
+
+3.18.30 enable|disable jc special on OBJECT
+
+Starts one of JC's predefined special features on an object.
+
+
+___________________________________________
+
+3.18.31 set camera position POSITION focus POSITION lens EXPRESSION
+
+Sets the camera position, focus and lens instantly.
+
+
+___________________________________________
+
+3.18.32 move camera position POSITION focus POSITION lens EXPRESSION time EXPRESSION
+
+Moves the camera position, focus and lens in a given time.
+
+
+___________________________________________
+
+4.1 when CONDITION STATEMENTS
+
+No documentation.
+
+
+___________________________________________
+
+4.2 until CONDITION STATEMENTS
+
+No documentation.
+
+
+___________________________________________
+
+5.2.2 CONSTANT of OBJECT
 
 AGE of Boy = 11
 
@@ -326,9 +2467,6 @@ AGE of Boy = 11
 	PUSHF [Boy]
 	PUSHF 11.0
 	SYSF SET_PROPERTY	//(3, 0)
-___________________________________________
-
-5.2.2 constant of object
 
 if HEALTH of Boy <= 0
 	//statements
@@ -345,7 +2483,183 @@ end if
 lbl159C:
 ___________________________________________
 
-6.24 object poisoned
+5.3.7 ++
+
+BaywatchMurder++
+
+	PUSHF [BaywatchMurder]
+	PUSHF 1.0
+	ADDF
+	POPF BaywatchMurder
+___________________________________________
+
+6.1 POSITION viewed
+
+Is a position on screen.
+
+
+___________________________________________
+
+6.2 OBJECT active
+
+If an object is active - eg. ScriptHighlight is active, spell dispenser active or reward is opened.
+
+
+___________________________________________
+
+6.3 OBJECT viewed
+
+Returns if an object is on screen or not.
+
+
+___________________________________________
+
+6.4 key constant down
+
+If an key is pressed down.
+
+
+___________________________________________
+
+6.5 POSITION valid for creature
+
+Is the position valid for a creature to be at (Eg. Not a mountain side).
+
+
+___________________________________________
+
+6.6 OBJECT can view camera
+
+Returns if an object can view the camera
+
+
+___________________________________________
+
+6.7 inside temple
+
+Is the player inside the temple?
+
+
+___________________________________________
+
+6.8 within rotation
+
+Is the player within the interface rotation border?
+
+
+___________________________________________
+
+6.9 OBJECT within flock distance
+
+Returns all members of a flock within their flock limits?
+
+
+___________________________________________
+
+6.10 OBJECT clicked
+
+If an object is the last object clicked and has been clicked in the last few seconds then this check is true.
+
+
+___________________________________________
+
+6.11 OBJECT hit
+
+If an object is the last object hit (collided with by a physics object) and has been clicked in the
+last few seconds then this check is true.
+
+
+___________________________________________
+
+6.12 OBJECT locked interaction
+
+If an object is in locked interaction - eg. Totem moving up and down, creature stroking.
+
+
+___________________________________________
+
+6.13 OBJECT not clicked
+
+If an object is not the last object clicked or has not been clicked in the last few seconds then this check is true.
+
+
+___________________________________________
+
+6.14 POSITION clicked radius EXPRESSION
+
+If the last postion clicked (if in the last few seconds) is within the defined radius of the defined
+position this check is true.
+
+
+___________________________________________
+
+6.15 hand demo played
+
+Checks to see if a hand demo is running
+
+
+___________________________________________
+
+6.16 hand demo trigger
+
+If the hand demo trigger has been set to TRUE. The hand demo can be created with triggers. Calling this
+will tell when a trigger is come across. Not that triggers are clear once this function is called.
+
+
+___________________________________________
+
+6.17 jc special CONSTANT played
+
+Checks to see if a specific jc special is running.
+
+
+___________________________________________
+
+6.18 OBJECT played
+
+A check on if an object has finished playing it's animation or if weather has finished it's current storm.
+
+
+___________________________________________
+
+6.19 OBJECT music played
+
+A check on if an object has finished playing it's music.
+
+
+___________________________________________
+
+6.20 CONSTANT music played
+
+Returns if the script music passed is no longer playing
+
+
+___________________________________________
+
+6.21 OBJECT cast by OBJECT
+
+A check on if an object (Spell) was cast by a specific object
+
+
+___________________________________________
+
+6.22 spirit_type played
+
+A check on if a spirit_type has finished playing it's animation.
+
+
+___________________________________________
+
+6.23 spirit_type speaks CONSTANT
+
+A check on if a spirit_type speaks the text?
+
+
+___________________________________________
+
+6.24 OBJECT poisoned
+
+A check on an object to see if it is poisoned.
 
 a = HealedDude poisoned
 
@@ -354,7 +2668,423 @@ a = HealedDude poisoned
 	POPF a
 ___________________________________________
 
-9.2 get types at position
+6.25 OBJECT skeleton
+
+A check on an object to see if it is a skeleton.
+
+
+___________________________________________
+
+6.26 OBJECT of type TYPES
+
+A check on an object to see if it is of a certain type.
+
+
+___________________________________________
+
+6.27 OBJECT on fire
+
+A check on an object to see if it is on fire.
+
+
+___________________________________________
+
+6.28 fire near POSITION radius EXPRESSION
+
+A check on an position to see if it there is a fire within the defined radius.
+
+
+___________________________________________
+
+6.29 spell wind near POSITION radius EXPRESSION
+
+A check on an position to see if it there is a spell wind within the defined radius.
+
+
+___________________________________________
+
+6.30 camera ready
+
+Has the camera has reached the position it is going to.
+
+
+___________________________________________
+
+6.31 widescreen ready
+
+Has the widescreen transition finished.
+
+
+___________________________________________
+
+6.32 fade ready
+
+Has the fade transition finished.
+
+
+___________________________________________
+
+6.33 camera not ready
+
+No doc.
+
+
+___________________________________________
+
+6.34 dialogue ready
+
+Returns if we can have dialogue control.
+
+
+___________________________________________
+
+6.35 spirit not ready
+
+No doc.
+
+
+___________________________________________
+
+6.36 camera player EXPRESSION ready
+
+Has the computer player done all the tasks it had planned? For example when you requested it to set
+it's position, or move it's position.
+
+
+___________________________________________
+
+6.37 player EXPRESSION wind resistance
+
+This test whether the wind resistance flag is on (the default).
+
+
+___________________________________________
+
+6.38 POSITION near POSITION radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.39 POSITION at POSITION
+
+No doc.
+
+
+___________________________________________
+
+6.40 OBJECT in OBJECT
+
+No doc.
+
+
+___________________________________________
+
+6.41 POSITION not viewed
+
+No doc.
+
+
+___________________________________________
+
+6.42 OBJECT not viewed
+
+No doc.
+
+
+___________________________________________
+
+6.43 POSITION not near POSITION radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.44 POSITION not at POSITION
+
+No doc.
+
+
+___________________________________________
+
+6.45 OBJECT not in OBJECT
+
+No doc.
+
+
+___________________________________________
+
+6.46 OBJECT in OBJECT hand
+
+No doc.
+
+
+___________________________________________
+
+6.47 OBJECT not in OBJECT hand
+
+No doc.
+
+
+___________________________________________
+
+6.48 OBJECT interacting with OBJECT
+
+Is object interacting with an object, currently only used to see if a creature is interacting with a totem.
+
+
+___________________________________________
+
+6.49 creature CONSTANT is available
+
+See if player has a creature type available.
+
+
+___________________________________________
+
+6.50 get desire of OBJECT is CONSTANT
+
+No doc.
+
+
+___________________________________________
+
+6.51 OBJECT is CONSTANT
+
+Casts the result of a get property to BOOLEAN - Not sure if this function is used.
+
+
+___________________________________________
+
+6.52 OBJECT is not CONSTANT
+
+No doc.
+
+
+___________________________________________
+
+6.53 read
+
+No doc.
+
+
+___________________________________________
+
+6.54 expression second[s]
+
+Waits for a number of second(s) to elapse from the moment the instruction is called.
+
+
+___________________________________________
+
+6.55 OBJECT exists
+
+Checks a variable to see if it has a game thing.
+
+
+___________________________________________
+
+6.56 OBJECT not exists
+
+No doc.
+
+
+___________________________________________
+
+6.57 OBJECT affected by spell CONSTANT
+
+Returns if an object is affected by spell. Only works on creatures at present.
+
+
+___________________________________________
+
+6.58 OBJECT leashed
+
+Returns if an object is leashed or not.
+
+
+___________________________________________
+
+6.59 OBJECT leashed to OBJECT
+
+Returns if an object is leashed to an object or not.
+
+
+___________________________________________
+
+6.60 OBJECT fighting
+
+Returns if an object is fighting.
+
+
+___________________________________________
+
+6.61 OBJECT is auto fighting
+
+Checks if an object is auto fighting whenin a fight.
+
+
+___________________________________________
+
+6.62 OBJECT male
+
+Checks the sex of an object for if it's male.
+
+
+___________________________________________
+
+6.63 help system on
+
+Returns if the help system is on.
+
+
+___________________________________________
+
+6.64 player has mouse wheel
+
+Returns if the player has a mouse wheel.
+
+
+___________________________________________
+
+6.65 spell CONSTANT for player EXPRESSION
+
+Checks if a player has a specific spell
+
+
+___________________________________________
+
+6.66 immersion exists
+Checks if a player has an immersion mouse
+
+
+___________________________________________
+
+6.67 sound exists
+Checks if a player has sound.
+
+
+___________________________________________
+
+6.68 Spell Charging
+
+Check if a spell (any) is charging for a player.
+
+
+___________________________________________
+
+6.69 Specific Spell Charging
+
+Check if a specific spell is charging for a player.
+
+
+___________________________________________
+
+6.70 music line EXPRESSION
+
+Look at the last line of music that was playing.
+
+
+___________________________________________
+
+6.71 Logical Operators
+
+No doc.
+
+
+___________________________________________
+
+6.71.1 not CONDITION
+
+When the condition is not true.
+
+
+___________________________________________
+
+6.71.2 CONDITION and CONDITION
+
+No doc.
+
+
+___________________________________________
+
+6.71.3 CONDITION or CONDITION
+
+No doc.
+
+
+___________________________________________
+
+6.71.4 EXPRESSION == EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.71.5 EXPRESSION != EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.71.6 EXPRESSION >= EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.71.7 EXPRESSION <= EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.71.8 EXPRESSION > EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+6.71.9 EXPRESSION < EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+7 remove resource CONSTANT EXPRESSION from OBJECT
+
+Removes an amount of resource from an object, and returns the amount removed. If the amount asked for
+is greater than what is available than the full amount available is taken.
+
+
+___________________________________________
+
+8 add resource CONSTANT EXPRESSION from OBJECT
+
+Adds an amount of resource to an object, and returns the amount added. If the amount asked for is greater
+than the storage space left then the remaining space only will be filled.
+
+
+___________________________________________
+
+9.1 get TYPE [SUBTYPE] at POSITION [radius EXPRESSION]
+
+Gets an object of a type, and an optional sub_type.
+
+
+___________________________________________
+
+9.2 get TYPE [SUBTYPE] at POSITION [radius EXPRESSION]
+
+No doc.
 
 BlindWomanHut				= get HOUSE at [3713.5500, 2.9103, 3117.7803]
 
@@ -367,11 +3097,8 @@ BlindWomanHut				= get HOUSE at [3713.5500, 2.9103, 3117.7803]
 	PUSHF 3117.7803
 	CASTC
 	PUSHB false
-	SYS CALL	//(6, 1)
+	SYS CALL	//[6, 1] (Type type, Subtype subtype, Coord position, bool alwaysFalse) returns (float)
 	POPF BlindWomanHut
-___________________________________________
-
-9.2 get types at position
 
 CircusMusic = get FEATURE FEATURE_INFO_EGPT_PYRAMID at [2254.4419, 52.9300, 1917.9126]
 
@@ -384,11 +3111,8 @@ CircusMusic = get FEATURE FEATURE_INFO_EGPT_PYRAMID at [2254.4419, 52.9300, 1917
 	PUSHF 1917.9126
 	CASTC
 	PUSHB false
-	SYS CALL	//(6, 1)
+	SYS CALL	//[6, 1] (Type type, Subtype subtype, Coord position, bool alwaysFalse) returns (float)
 	POPF CircusMusic
-___________________________________________
-
-9.2 get types at position radius expression
 
 Town = get TOWN at [1865.61,2641.24] radius 100
 
@@ -406,7 +3130,16 @@ Town = get TOWN at [1865.61,2641.24] radius 100
 	POPF Town
 ___________________________________________
 
-9.4 get types in object at coord_expression radius expression [excluding scripted]
+9.3 get TYPE [SUBTYPE] in state CONSTANT at POSITION radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+9.4.1 get TYPE [SUBTYPE] in OBJECT at POSITION radius EXPRESSION [excluding scripted]
+
+Looks in a container for an object at the defined position.
 
 Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
 
@@ -421,7 +3154,9 @@ Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
 	POPF Victim
 ___________________________________________
 
-9.4 get types in object not near coord_expression radius coord_expression
+9.4.2 get TYPE [SUBTYPE] in OBJECT not near POSITION radius EXPRESSION
+
+Looks in a container for an object not near the defined position.
 
 Escapee = get SCRIPT_OBJECT_TYPE_VILLAGER in SlaveFlock not near [SlavePenPos] radius 10
 
@@ -436,7 +3171,30 @@ Escapee = get SCRIPT_OBJECT_TYPE_VILLAGER in SlaveFlock not near [SlavePenPos] r
 	POPF Escapee
 ___________________________________________
 
-9.8 get not poisoned types in object
+9.5 get TYPE [SUBTYPE] in OBJECT
+
+Gets objects of type in a container.
+
+
+___________________________________________
+
+9.6 get building TYPE in OBJECT exclude_scripted
+
+Gets a building of a certain type in a town.
+
+
+___________________________________________
+
+9.7 get poisoned TYPE [SUBTYPE] in OBJECT
+
+Gets a poisoned object from a container.
+
+
+___________________________________________
+
+9.8 get not poisoned TYPE [SUBTYPE] in OBJECT
+
+Gets a non-poisoned object from a container.
 
 HealedDude = get not poisoned VILLAGER in Town
 
@@ -448,7 +3206,58 @@ HealedDude = get not poisoned VILLAGER in Town
 	POPF HealedDude
 ___________________________________________
 
-9.16 create types at position
+9.9 get TYPE [SUBTYPE] in OBJECT at POSITION radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+9.10 get TYPE [SUBTYPE] flying at POSITION radius EXPRESSION exclude_scripted
+
+Gets an object flying of type within a radius of a position.
+
+
+___________________________________________
+
+9.11 get totem statue in OBJECT
+
+Gets the totem staue from the town centre object as it is not in the map for a search.
+
+
+___________________________________________
+
+9.12 get player EXPRESSION creature
+
+Gets the players creature.
+
+
+___________________________________________
+
+9.13 get computer player EXPRESSION
+
+Gets the computer player specified.
+
+
+___________________________________________
+
+9.14 create TYPE [SUBTYPE] at POSITION
+
+Creates a game object at a position.
+
+
+___________________________________________
+
+9.15 create random villager of tribe CONSTANT at POSITION
+
+Creates a random villager type of the selected tribe at young adult age.
+
+
+___________________________________________
+
+9.16 create TYPE [SUBTYPE] at POSITION
+
+Creates a game object at a position.
 
 Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
 
@@ -460,7 +3269,31 @@ Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
 	POPF Highlight
 ___________________________________________
 
-9.20 create timer for expression second[s]
+9.17 create mist at POSITION scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
+
+Creates some mist at a position.
+
+
+___________________________________________
+
+9.18 create with angle EXPRESSION and scale EXPRESSION types at POSITION
+
+Creates a game object at a position with an angle and scale.
+
+
+___________________________________________
+
+9.19 create creature from creature
+
+No doc.
+
+
+___________________________________________
+
+9.20 create timer for EXPRESSION second[s]
+
+This timer is not displayed. Use it for triggers dependent on time, or optimizing doing searches it
+is often worth starting a timer object within the script.
 
 SoditTimer = create timer for 30 seconds
 
@@ -470,6 +3303,8 @@ SoditTimer = create timer for 30 seconds
 ___________________________________________
 
 9.21 marker at position
+
+Creates a position marker.
 
 LookAt = marker at [2962.9587, 0.0000, 3079.3020]
 
@@ -485,7 +3320,65 @@ LookAt = marker at [2962.9587, 0.0000, 3079.3020]
 	POPF LookAt
 ___________________________________________
 
-9.30 create anti influence at position position radius
+9.22 marker at camera_enum
+
+No doc.
+
+
+___________________________________________
+
+9.23 reward at POSITION [from sky]
+
+Creates a reward at the position, with an optional from sky parameter.
+
+
+___________________________________________
+
+9.24 reward at POSITION
+
+Creates a reward at the position.
+
+
+___________________________________________
+
+9.25 flock at POSITION
+
+No doc.
+
+
+___________________________________________
+
+9.26 make object dance CONSTANT around POSITION time EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+9.27 create influence on OBJECT radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+9.28 create influence at POSITION radius EXPRESSION
+
+Creates an influence at a position.
+
+
+___________________________________________
+
+9.29 create anti influence on OBJECT radius EXPRESSION
+
+No doc.
+
+
+___________________________________________
+
+9.30 create anti influence at position POSITION radius EXPRESSION
+
+No doc.
 
 Influence=create anti influence at position [SwimPos] radius 30
 
@@ -498,7 +3391,185 @@ Influence=create anti influence at position [SwimPos] radius 30
 	POPF Influence
 ___________________________________________
 
-9.47 detach [object] from FlockObject
+9.31 get held by OBJECT
+
+Gets the currently held object by an object (A creature only currently).
+
+
+___________________________________________
+
+9.32 get dropped by OBJECT
+
+Gets the last object dropped by an object (A creature only currently).
+
+
+___________________________________________
+
+9.33 get nearest town at POSITION for player EXPRESSION radius EXPRESSION
+
+Gets the nearest town of a players near a position within a radius.
+
+
+___________________________________________
+
+9.34 get town with id EXPRESSION
+
+Gets the town which has a particular id.
+
+
+___________________________________________
+
+9.35 get OBJECT hand is over
+
+Gets the object the interface hand is over.
+
+
+___________________________________________
+
+9.36 get OBJECT clicked
+
+Gets the object clicked.
+
+
+___________________________________________
+
+9.37 get OBJECT flock
+
+Gets the object flock if it has one.
+
+
+___________________________________________
+
+9.38 get OBJECT held
+
+Gets the object held by the hand.
+
+
+___________________________________________
+
+9.39 get target OBJECT for OBJECT
+
+No doc.
+
+
+___________________________________________
+
+9.40 get area at POSITION radius EXPRESSION
+
+Gets an arena within the specified radius.
+
+
+___________________________________________
+
+9.41 get hit object
+
+Gets the last known valid object which was hit. This is DANGEROUS, as the object may change state when
+placed in and out of the script. Please only call this when you are sure the object is semi known.
+
+
+___________________________________________
+
+9.42 get object which hit
+
+Gets the last known object which hit the last hit object. This is DANGEROUS, as the object may change state
+when placed in and out of the script. Please only call this when you are sure the object is semi known.
+
+
+___________________________________________
+
+9.43 get football pitch in OBJECT
+
+Gets football pitch in a town.
+
+
+___________________________________________
+
+9.44 Spells
+A number of spells can be cast in the game, be careful and read each function description below.
+NB. Note all creature spells must use 'cast spell on object' where the object is a creature.
+LIGHTNING_BOLT uses the from coord_expression as the source position, and the target pos/object as the
+direction to cast towards. BUT the bolt may fall short or hit targets beyond, as it works as if playing
+the game. Choose a point somewhere nearish the object and cast it at the object and everything should be ok!
+At the time of this document the following spells are available:
+SPELL_FIREBALL_LEVEL_1
+SPELL_FIREBALL_LEVEL_2
+SPELL_FIREBALL_LEVEL_3
+SPELL_LIGHTNING_LEVEL_1
+SPELL_LIGHTNING_LEVEL_2
+SPELL_LIGHTNING_LEVEL_3
+SPELL_EXPLOSION_LEVEL_1
+SPELL_EXPLOSION_LEVEL_2
+SPELL_HEAL_LEVEL_1
+SPELL_HEAL_LEVEL_2
+SPELL_TELEPORT
+SPELL_FOOD
+SPELL_WOOD
+SPELL_STORM_LEVEL_1
+SPELL_STORM_LEVEL_2
+SPELL_STORM_LEVEL_3
+SPELL_TORNADO
+SPELL_SHIELD
+___________________________________________
+
+9.44.1 cast spell on object from coord_expression radius expression time expression curl expression
+
+This function is used to cast a spell at an object, the parameters are as follows if one is not used
+just put the value 0 in:
+from coord_expression - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
+radius expression - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
+time expression - The amount of time you want the spell to last, -1, will make it last forever, or until
+it naturally finishes. Most spells automatically delete themselves after the cast, however specify something
+sensible for LIGHTNING, SHIELD and TORNADO spells
+curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
+
+
+___________________________________________
+
+9.44.2 cast spell at POSITION from POSITION radius EXPRESSION time EXPRESSION curl EXPRESSION
+
+This function is used to cast a spell at a position, the parameters are as follows if one is not used just
+put the value 0 in:
+from coord_expression - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
+radius expression - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
+time expression - The amount of time you want the spell to last, -1, will make it last forever, or until it
+naturally finishes. Most spells automatically delete themselves after the cast, however specify something
+sensible for LIGHTNING, SHIELD and TORNADO spells
+curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
+
+
+___________________________________________
+
+9.44.3 get spell CONSTANT at POSITION radius EXPRESSION
+
+Returns if a spell was cast at a position within a radois, if it was a shield then returns if a position is protected by spells NOT USING THE RADIUS.
+
+
+___________________________________________
+
+9.45.1 create special effect CONSTANT at POSITION time EXPRESSION
+
+Creates an in game special effect at a position with a duration.
+
+
+___________________________________________
+
+9.45.2 create special effect CONSTANT to OBJECT time EXPRESSION
+
+Creates an in game special effect on an object with a duration.
+
+
+___________________________________________
+
+9.46 attach OBJECT to OBJECT leader
+
+No doc.
+
+
+___________________________________________
+
+9.47 detach [OBJECT] from OBJECT
+
+Detach a specific object or random thing from the container, or group.
 
 DeletedWolf = detach from WolfPack
 
@@ -508,7 +3579,7 @@ DeletedWolf = detach from WolfPack
 	POPF DeletedWolf
 ___________________________________________
 
-10.2 constant from constant to constant
+10.2 constant from CONSTANT to CONSTANT
 
 constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07
 	PUSHI 31			//31=LH_SCRIPT_SAMPLE_CHILD_LAUGH_01
@@ -516,7 +3587,17 @@ constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07
 	SYSF RANDOM_ULONG	//(2, 1)
 ___________________________________________
 
-10.4 variable state of object
+10.3 get action text for OBJECT
+
+No doc.
+
+
+___________________________________________
+
+10.4 variable state of OBJECT
+
+Returns the constant for the final state of an object. So if an object is moving to a position it
+returns the destination state not the current moving state. This also works for puzzle objects.
 
 CorrectMushroom = variable state of Puzzle
 
@@ -526,7 +3607,82 @@ CorrectMushroom = variable state of Puzzle
 	POPF CorrectMushroom
 ___________________________________________
 
-11.3 [object]
+10.5 get hand state
+
+Gets the hand state.
+
+
+___________________________________________
+
+10.6 constant expression
+
+No doc.
+
+
+___________________________________________
+
+10.7 get OBJECT type
+
+Gets the object script type.
+
+
+___________________________________________
+
+10.8 get OBJECT sub type
+
+Gets the object sub type.
+
+
+___________________________________________
+
+10.9 get player EXPRESSION last spell cast
+
+Gets the the player last cast spell type.
+
+
+___________________________________________
+
+10.10 get OBJECT leash type
+
+Gets the object leash type.
+
+
+___________________________________________
+
+10.11 get CONSTANT opposite creature type
+
+Returns an appropriate creature type for Khazar/Lethys/Nemesis constant.
+
+
+___________________________________________
+
+10.12 get OBJECT fight action
+
+Gets the creatures fight action.
+
+
+___________________________________________
+
+11.1 [EXPRESSION,EXPRESSION,EXPRESSION]
+
+No doc.
+
+
+___________________________________________
+
+11.2 [EXPRESSION,EXPRESSION]
+
+[1865.61,2641.24]
+
+	PUSHF 1865.61
+	CASTC
+	PUSHF 2641.24
+	CASTC
+	PUSHC 0
+	SWAPI			//convert [x,z] to [x,0,z]
+___________________________________________
+
+11.3 [OBJECT]
 
 [SwimPos]
 
@@ -534,7 +3690,217 @@ ___________________________________________
 	SYS GET_POSITION	//(1, 3)
 ___________________________________________
 
+11.4 camera position
+
+The camera current position.
+
+
+___________________________________________
+
+11.5 camera focus
+
+The current camera focus position.
+
+
+___________________________________________
+
+11.6 stored camera position
+
+The last stored camera position.
+
+
+___________________________________________
+
+11.7 stored camera focus
+
+The current stored camera focus position.
+
+
+___________________________________________
+
+11.8 hand position
+
+Returns the last know multiplayer friendly position of the hand, or if single player the current hand position.
+
+
+___________________________________________
+
+11.9 facing camera position distance EXPRESSION
+
+Returns a position facing the camera position at a distance away.
+
+
+___________________________________________
+
+11.10 computer player position
+
+Returns the position of the computer player.
+
+
+___________________________________________
+
+11.11 last player EXPRESSION spell cast position
+
+Returns the position the player last cast a spell.
+
+
+___________________________________________
+
+11.12 get target from POSITION to POSITION distance EXPRESSION angle EXPRESSION
+
+Gets a position in the direction from/to at a defined distance and relative angle to the from/to.
+A vector is created from from/to and then using this as direction vector, a relative angle to it in
+the x/z axis, and distance along this said angle (+/- 0-> 180 degrees), I return a position which
+holds the distances in the x, y, and z.
+
+
+___________________________________________
+
+11.13 arse position of OBJECT
+
+Returns the position of the objects arse.
+
+
+___________________________________________
+
+11.14 belly position of OBJECT
+
+Returns the position of the objects belly.
+
+
+___________________________________________
+
+11.15 destination of OBJECT
+
+No doc.
+
+
+___________________________________________
+
+11.16 Coordinate Arithmetic
+
+No doc.
+
+
+___________________________________________
+
+11.16.1 position + position
+
+No doc.
+
+
+___________________________________________
+
+11.16.2 position - position
+
+No doc.
+
+
+___________________________________________
+
+11.16.3 expression * position
+
+No doc.
+
+
+___________________________________________
+
+11.16.4 position / expression
+
+No doc.
+
+
+___________________________________________
+
+11.16.5 -position
+
+No doc.
+
+
+___________________________________________
+
+11.16.6 (position)
+
+No doc.
+
+
+___________________________________________
+
+12.3 CONSTANT of OBJECT
+
+Game objects have properties, and you can use the values of these properties in expressions.
+
+
+___________________________________________
+
+12.4 alignment of player
+
+The current alignment of the player is a number from -1 to 1.
+
+
+___________________________________________
+
+12.5 influence at POSITION
+
+You can find out the strength of the player's influence at a particular position. influence can be
+'influence' or 'raw influence' the raw version means excluding the player allies influence.
+
+
+___________________________________________
+
+12.6 get player EXPRESSION influence at POSITION
+
+You can find out the strength of the given player's influence at a particular position.
+
+
+___________________________________________
+
+12.7 get player EXPRESSION town total
+
+Returns the number of towns a player owns
+
+
+___________________________________________
+
+12.8 get time since player EXPRESSION attacked OBJECT
+
+gets the time since a player attacked a town. If the player never attacked a town the time since the
+attack is a very huge amount of time.
+
+
+___________________________________________
+
+12.9 get OBJECT music distance
+
+Gets the distance some music can be heard from a music thing.
+
+
+___________________________________________
+
+12.10 get OBJECT interaction magnitude
+
+Gets the interaction value on an object, (Creature) > 0 is Nice stroke, < 0 is slap!
+
+
+___________________________________________
+
+12.11 get CONSTANT music distance
+
+Gets the distance some music can be heard from a music type.
+
+
+___________________________________________
+
+12.12 land height at POSITION
+
+Gets the height the land is above sea level.
+
+
+___________________________________________
+
 12.13 time
+
+The global number of game turns the script has been processed through.
 
 Count = time-31
 
@@ -544,7 +3910,9 @@ Count = time-31
 	POPF Count
 ___________________________________________
 
-12.14 number from expression to expression
+12.14 number from EXPRESSION to EXPRESSION
+
+Gets a random number between two values.
 
 Random = number from 1 to 4
 
@@ -554,7 +3922,16 @@ Random = number from 1 to 4
 	POPF Random
 ___________________________________________
 
-12.16 size of object
+12.15 get resource CONSTANT in OBJECT
+
+Objects can have food and wood, this function returns the amount of food/wood an object has.
+
+
+___________________________________________
+
+12.16 size of OBJECT
+
+Gets the amount of objects in a container (Flock/Dance/Town).
 
 TownTotalNow = size of Town
 
@@ -563,19 +3940,30 @@ TownTotalNow = size of Town
 	POPF TownTotalNow
 ___________________________________________
 
-12.17 adult size of object
+12.17 adult size of OBJECT
+
+Gets the amount of adults in a container (Town).
+
 
 ___________________________________________
 
-12.18 capacity of object
+12.18 capacity of OBJECT
+
+Gets capacity of an object, (Town) eg. The amount of room for adults and children.
+
 
 ___________________________________________
 
-12.19 adult capacity of object
+12.19 adult capacity of OBJECT
+
+Gets adult capacity of an object, (Town) eg. The amount of room for adults.
+
 
 ___________________________________________
 
-12.20 poisoned size of object
+12.20 poisoned size of OBJECT
+
+Gets the amount of objects poisoned in a container (Flock/Dance/Town).
 
 TownPoisoned = poisoned size of Town
 
@@ -584,8 +3972,318 @@ TownPoisoned = poisoned size of Town
 	POPF TownPoisoned
 ___________________________________________
 
+12.21 get number of CONSTANT for OBJECT
+
+No doc.
+
 
 ___________________________________________
+
+12.22 get OBJECT time remaining
+
+This timer is not displayed. This function tells you how much time is left on the countdown.
+
+
+___________________________________________
+
+12.23 get OBJECT time since set
+
+This timer is not displayed. This function tells you how much time since it was set/created.
+
+
+___________________________________________
+
+12.24 get OBJECT fight queue hits
+
+Gets the creatures no of hits in it's fight queue.
+
+
+___________________________________________
+
+12.25 get inclusion distance
+
+The game limits your camera area (inclusion) at different times, this function tells you how near the edge you are.
+
+
+___________________________________________
+
+12.26 get OBJECT walk path percentage
+
+Gets the percentage an object is on a walk path, if the object becomes held in the hand or anyother state than walk path this function returns 1.
+
+
+___________________________________________
+
+12.27 get slowest speed in OBJECT
+
+Gets the slowest speed in the container.
+
+
+___________________________________________
+
+12.28 get distance from POSITION to POSITION
+
+Gets the distance from one position to another position.
+
+
+___________________________________________
+
+12.29 get mana for spell CONSTANT
+
+Gets the mana required for a spell.
+
+
+___________________________________________
+
+12.30 get building and villager health total in OBJECT
+
+This returns a helath total of a towns buildings and people. This is not a general value 0->1 it is a sum of the helath of each individual building and person.
+
+
+___________________________________________
+
+12.31 get OBJECT mana total
+
+Gets the radius of an object (worshipsite).
+
+
+___________________________________________
+
+12.32 number of mouse buttons
+
+Gets the number of mouse buttons.
+
+
+___________________________________________
+
+12.33 get size of OBJECT playing_side team
+
+Gets the number of players in a game in a specific team.
+
+
+___________________________________________
+
+12.34 get OBJECT played percentage
+
+Gets the object played percentage for the current anim it is doing.
+
+
+___________________________________________
+
+12.35 get OBJECT belief for player EXPRESSION
+
+Gets the object belief for a player.
+
+
+___________________________________________
+
+12.36 get worship deaths in OBJECT
+
+Gets the number of worship deaths in a town.
+
+
+___________________________________________
+
+12.37 get OBJECT help
+
+Gets the objects help (Reward).
+
+
+___________________________________________
+
+12.38 get OBJECT first help
+
+Gets the objects help info start enum.
+
+
+___________________________________________
+
+12.39 get OBJECT last help
+
+Gets the objects help info end enum.
+
+
+___________________________________________
+
+12.40 get OBJECT fade
+
+Gets the objects fade percentage.
+
+
+___________________________________________
+
+12.41 get OBJECT info bits
+
+Gets the objects info bits if there are any. Currenlty used for plinths to find out what is sitting on them.
+
+
+___________________________________________
+
+12.42 number of times action CONSTANT by OBJECT
+
+Gets the number of times an object has performed an action.
+
+
+___________________________________________
+
+12.43 get player EXPRESSION time since last spell cast
+
+Gets the time since the player last cast a spell.
+
+
+___________________________________________
+
+12.44 get computer player EXPRESSION attitude to player EXPRESSION
+
+Gets the computer players attitude to a given player 0->1 (0->100%).
+
+
+___________________________________________
+
+12.45 get player EXPRESSION ally percentage with player EXPRESSION
+
+Gets an ally value between players.
+
+
+___________________________________________
+
+12.46.1 get moon percentage
+
+No doc.
+
+
+___________________________________________
+
+12.46.2 get game time
+
+Gets the in game worlds time.
+
+
+___________________________________________
+
+12.46.3 get real time
+
+No doc.
+
+
+___________________________________________
+
+12.46.4 get real day
+
+No doc.
+
+
+___________________________________________
+
+12.46.5 get real weekday
+
+No doc.
+
+
+___________________________________________
+
+12.46.6 get real month
+
+No doc.
+
+
+___________________________________________
+
+12.46.7 get real year
+
+No doc.
+
+
+___________________________________________
+
+12.47.1 get OBJECT desire CONSTANT
+
+Gets the percentage desire a town has for something (See Enums.h).
+
+
+___________________________________________
+
+12.48.1 get CONSTANT events per second
+
+Gets the events per second (over a very long period).
+
+
+___________________________________________
+
+12.48.2 get time since CONSTANT event
+
+Gets the time since the last event occured.
+
+
+___________________________________________
+
+12.48.3 get CONSTANT total events
+
+Gets the total amount of events (May be a huge value!).
+
+
+___________________________________________
+
+12.48.4 square root EXPRESSION
+
+Gets the square root of a number.
+
+
+___________________________________________
+
+12.49.1 expression + expression
+
+No doc.
+
+
+___________________________________________
+
+12.49.2 expression - expression
+
+No doc.
+
+
+___________________________________________
+
+12.49.3 expression * expression
+
+No doc.
+
+
+___________________________________________
+
+12.49.4 expression / expression
+
+No doc.
+
+
+___________________________________________
+
+12.49.5 expression % expression
+
+Get the modulus of the two values. As we work with floats the remainder includes the decimal point info.
+eg. 10.54 %8 gives a value of 2.54 exm: 1.54%8.
+
+
+___________________________________________
+
+12.49.6 -expression
+
+No doc.
+
+
+___________________________________________
+
+12.49.7 variable constant
+
+No doc.
+
+
+___________________________________________
+
+12.49.8 (expression)
+
+No doc.
 
 
 ___________________________________________

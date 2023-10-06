@@ -34,7 +34,8 @@ public class Main {
 			File inp = cmd.getArgFile("-i");
 			File out = cmd.getArgFile("-o");
 			boolean merge = cmd.getArgFlag("-merge");
-			chlToAsm(inp, out, merge);
+			boolean printSourceLineNumbers = cmd.getArgFlag("-prlno");
+			chlToAsm(inp, out, merge, printSourceLineNumbers);
 		} else if (cmd.getArgFlag("-asmchl")) {
 			File prj = cmd.getArgFile("-p");
 			List<File> inp = cmd.getArgFiles("-i");
@@ -72,7 +73,7 @@ public class Main {
 		}
 	}
 	
-	private static void chlToAsm(File inp, File out, boolean merge) throws Exception {
+	private static void chlToAsm(File inp, File out, boolean merge, boolean printSourceLineNumbers) throws Exception {
 		System.out.println("Loading compiled CHL...");
 		CHLFile chl = new CHLFile();
 		chl.read(inp);
@@ -80,6 +81,7 @@ public class Main {
 		chl.validate(System.out);
 		System.out.println("Writing ASM sources...");
 		ASMWriter writer = new ASMWriter();
+		writer.setPrintSourceLineEnabled(printSourceLineNumbers);
 		if (merge) {
 			writer.writeMerged(chl, out);
 		} else {
@@ -155,7 +157,7 @@ public class Main {
 		System.out.println("Developer by Daniele Lombardi (alias Daniels118)");
 		System.out.println();
 		System.out.println("Syntax");
-		System.out.println("  chlasm -chlasm -i filename -o filename [-merge]");
+		System.out.println("  chlasm -chlasm -i filename -o filename [-merge] [-prlno]");
 		System.out.println("  chlasm -asmchl -i files|-p filename -o filename");
 		//System.out.println("  chlasm -compile -i files|-p filename -o filename");
 		System.out.println("  chlasm -cmp -f1 filename -f2 filename");

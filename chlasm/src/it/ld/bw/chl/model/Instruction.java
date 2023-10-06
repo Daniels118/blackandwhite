@@ -27,16 +27,24 @@ import it.ld.utils.EndianDataOutputStream;
 
 import static it.ld.bw.chl.model.OPCodeFlag.*;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class Instruction extends Struct {
 	public static final int LENGTH = 5 * 4;	// 5 fields of 4 bytes
 	
+	private static final int SIGNIFICATIVE_DIGITS = 8;
+	private static final DecimalFormat decimalFormat = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	
 	private static final Map<String, Instruction> model = new HashMap<>();
 	
 	static {
+		decimalFormat.setMinimumFractionDigits(1);
+		//
 		for (int iCode = 0; iCode < OPCode.keywords.length; iCode++) {
 			final String[][] t = OPCode.keywords[iCode];
 			if (t != null) {
@@ -221,7 +229,7 @@ public class Instruction extends Struct {
 			} else {
 				switch (dataType) {
 					case FLOAT:
-						s += floatVal;
+						s += format(floatVal);
 						break;
 					case BOOLEAN:
 						s += (boolVal ? "true" : "false");
@@ -267,6 +275,18 @@ public class Instruction extends Struct {
 		r.opcode = m.opcode;
 		r.flags = m.flags;
 		r.dataType = m.dataType;
+		return r;
+	}
+	
+	private static String format(float v) {
+		decimalFormat.setMaximumFractionDigits(SIGNIFICATIVE_DIGITS - 1);
+		String r = decimalFormat.format(v);
+		int nInt = r.indexOf('.');
+		if (nInt > 1) {
+			int nDec = Math.max(1, Math.min(SIGNIFICATIVE_DIGITS - nInt, SIGNIFICATIVE_DIGITS - 1));
+			decimalFormat.setMaximumFractionDigits(nDec);
+			r = decimalFormat.format(v);
+		}
 		return r;
 	}
 }
