@@ -504,7 +504,7 @@ set player_creature to CreatureCow
 	SYS CREATURE_SET_PLAYER	//[1, 0] (ObjectFloat creature)
 ___________________________________________
 
-3.2.16 teach OBJECT ENUM_CREATURE_ACTION_TYPES CONSTANT SCRIPT_BOOL
+3.2.16 teach OBJECT ENUM_CREATURE_ACTION_TYPES CONSTANT ENUM_SCRIPT_BOOL
 
 Teach creature a specific lesson. First argument is type of action: INTELLECTUAL, PHYSICAL or MAGIC.
 Second argument is which action, eg: CREATURE_INTELLECTUAL_ACTION_KNOWN_ABOUT_FISH (in Enum.h).
@@ -516,7 +516,7 @@ teach Guide MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
 	PUSHI 1							//typeOfAction
 	PUSHI 11						//action
 	PUSHI 1							//knows
-	SYS CREATURE_SET_KNOWS_ACTION	//[4, 0] (ObjectFloat creature, ENUM_CREATURE_ACTION_TYPES typeOfAction, int action, SCRIPT_BOOL knows)
+	SYS CREATURE_SET_KNOWS_ACTION	//[4, 0] (ObjectFloat creature, ENUM_CREATURE_ACTION_TYPES typeOfAction, int action, ENUM_SCRIPT_BOOL knows)
 ___________________________________________
 
 3.2.17 teach OBJECT all

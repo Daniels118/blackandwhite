@@ -104,7 +104,7 @@ public enum NativeFunction {
 	OVERRIDE_STATE_ANIMATION("ObjectFloat obj, DETAIL_ANIM_TYPES animType"),
 	CREATURE_CREATE_RELATIVE_TO_CREATURE("ObjectFloat, float, Coord position, int", "Object"),
 	CREATURE_LEARN_EVERYTHING("ObjectFloat creature"),
-	CREATURE_SET_KNOWS_ACTION("ObjectFloat creature, ENUM_CREATURE_ACTION_TYPES typeOfAction, int action, SCRIPT_BOOL knows"),
+	CREATURE_SET_KNOWS_ACTION("ObjectFloat creature, ENUM_CREATURE_ACTION_TYPES typeOfAction, int action, ENUM_SCRIPT_BOOL knows"),
 	CREATURE_SET_AGENDA_PRIORITY("ObjectFloat creature, float priority"),
 	CREATURE_TURN_OFF_ALL_DESIRES(1),	//Never found; guess (ObjectFloat creature)
 	CREATURE_LEARN_DISTINCTION_ABOUT_ACTIVITY_OBJECT(4),	//Never found
