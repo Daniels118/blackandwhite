@@ -1,4 +1,5 @@
 #When a challenge statement is found, the challengeID is used at compile time to build the subsequent snapshot calls.
+#Those are challenge IDs found in the original story. The full list is available in ScriptChallengeEnums.h
 
 HERMIT_HUT					 6
 PLAGUE						 7

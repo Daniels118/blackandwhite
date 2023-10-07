@@ -14,7 +14,7 @@ exception stack.
 Just after the ENDEXCEPT instruction must be placed the followings:
 1) a fixed JMP to skip the subsequent exception handler code from normal execution;
 2) the exception handler code;
-3) the FAILEXCEPT instruction; this is used by the exception handler executor to know that the exception
+3) the ITEREXCEPT instruction; this is used by the exception handler executor to know that the exception
    handler code is ended and must be evaluated again from the beginning;
 4) whatever instruction; the fixed JMP at point 1 must point here. If this handler was defined at script
    level, then this instruction is END.
@@ -127,7 +127,7 @@ lblUntil1:
 	BRKEXCEPT
 	JMP lblEndExcept
 lblUntilNotMatched:
-	FAILEXCEPT
+	ITEREXCEPT
 lblEndExcept:
 
 
@@ -164,6 +164,6 @@ lblEndWhile:
 	JMP lblEndExcept
 lblExceptionHandler:
 	//Here would go the exception handlers
-	FAILEXCEPT
+	ITEREXCEPT
 lblEndExcept:
 

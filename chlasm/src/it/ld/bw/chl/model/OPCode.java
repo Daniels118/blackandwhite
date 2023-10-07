@@ -50,6 +50,14 @@ import static it.ld.bw.chl.model.OPCodeAttr.*;
  *   GET_ALIGNMENT
  * 
  * 
+ * About CALL/START
+ * Arguments must be pushed in the same order they appear in the script signature, and must be popped
+ * in the same order. This is conceptually wrong, so I guess the LHVM automatically inverts the order
+ * of the last N values on the stack (where N is the number of parameters of the script). Please note
+ * that parameters of user scripts cannot be of coordinate type, so there is no risk of coordinate
+ * inversion (i.e. [x,y,z] to [z,y,x]).
+ * 
+ * 
  * VSTACK includes:
  * - opcodes which may operate both on native types and Coord;
  * - opcodes which call user scripts or native functions.
@@ -83,7 +91,7 @@ public enum OPCode {
 	CALL(SCRIPT|VSTACK),	//0x18 Alias: CALL, START, RUN
 	ENDEXCEPT(1, 0),		//0x19 Alias: FREE, ENDB, ENDEXCEPT
 	RETEXCEPT(),			//0x1A Never found
-	FAILEXCEPT(),			//0x1B Alias: FAILEXCEPT, ITER
+	ITEREXCEPT(),			//0x1B Alias: FAILEXCEPT, ITER
 	BRKEXCEPT(1, 0),		//0x1C Alias: BRKEXCEPT, ENDC
 	SWAP(ARG|FINT|VSTACK);	//0x1D 
 	//LINE(ARG);			//0x1E Never found
@@ -119,7 +127,7 @@ public enum OPCode {
 /*18*/	{{null, "CALL"}, {null, "START"}},
 /*19*/	{{null, "ENDEXCEPT"}, {null, "FREE"}},
 /*1A*/	null,	//RETEXCEPT
-/*1B*/	{{null, "FAILEXCEPT"}},
+/*1B*/	{{null, "ITEREXCEPT"}},
 /*1C*/	{{null, "BRKEXCEPT"}},
 /*1D*/	{{null, "SWAPI", "SWAPF"}},
 /*1E*/	null	//LINE

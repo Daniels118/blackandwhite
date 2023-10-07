@@ -22,6 +22,7 @@ import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
 import it.ld.bw.chl.exceptions.InvalidOPCodeException;
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.bw.chl.exceptions.InvalidVariableIdException;
+import it.ld.bw.chl.model.NativeFunction.Argument;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
@@ -148,14 +149,16 @@ public class Instruction extends Struct {
 	
 	/**Gets the number of values this instruction pops from the stack.
 	 * @param chl
-	 * @return
+	 * @return the number of values popped from the stack, or -1 if this cannot be determined at compile time.
 	 * @throws InvalidScriptIdException
 	 * @throws InvalidNativeFunctionException
 	 */
 	public int getPopCount(CHLFile chl) throws InvalidScriptIdException, InvalidNativeFunctionException {
 		switch (opcode) {
 			case SYS:
-				return NativeFunction.fromCode(intVal).pop;
+				NativeFunction func = NativeFunction.fromCode(intVal);
+				if (func.varargs) return -1;
+				return func.pop;
 			case CALL:
 				return chl.getScriptsSection().getScript(intVal).getParameterCount();
 			case SWAP:
@@ -179,12 +182,12 @@ public class Instruction extends Struct {
 		case SYS:
 			return NativeFunction.fromCode(intVal).push;
 		case CALL:
-			return 0;
+			return 0;	//User defined scripts cannot return values
 		case SWAP:
 			return dataType == DataType.COORDS ? 6 : 2;
 		case ADD:
 		case SUB:
-			return dataType == DataType.COORDS ? 3 : 2;
+			return dataType == DataType.COORDS ? 3 : 1;
 		default:
 			assert !opcode.varStack: "Variable output not set for " + opcode;
 			return opcode.pop;

@@ -157,7 +157,7 @@ public class Main {
 	
 	private static void printNatives(CmdLine cmd) throws Exception {
 		for (NativeFunction f : NativeFunction.values()) {
-			System.out.println(f.ordinal() + ": " + f.name() + f.getInfoString());
+			System.out.println(f.getCStyleSignature());
 		}
 	}
 	
