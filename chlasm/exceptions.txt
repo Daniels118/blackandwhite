@@ -1,0 +1,169 @@
+### My notes about how exception works ###
+
+Exceptions allow to execute some code whenever a condition meets, even if the script execution is locked in a loop.
+I guess the exception handler is executed in a separate thread, or evaluated at every instruction of the main script.
+What is sure is the exception handling runs on its own stack, because it must not interfere with the main script.
+An interesting aspect is that the exception handler code is embedded in the calling script, but it is skipped
+from normal execution by a fixed JMP instruction.
+
+Exception handlers are stacked on an exception stack. An exception handler gets activated by EXCEPT and
+deactivated by ENDEXCEPT. The EXCEPT instruction must specify the address of the first instruction of the
+exception handler. The ENDEXCEPT must not specify anything, because it just removes the last handler from the
+exception stack.
+
+Just after the ENDEXCEPT instruction must be placed the followings:
+1) a fixed JMP to skip the subsequent exception handler code from normal execution;
+2) the exception handler code;
+3) the FAILEXCEPT instruction; this is used by the exception handler executor to know that the exception
+   handler code is ended and must be evaluated again from the beginning;
+4) whatever instruction; the fixed JMP at point 1 must point here. If this handler was defined at script
+   level, then this instruction is END.
+
+There are 2 types of exception which buildup the handler code: "when" and "until".
+
+The "when" exceptions are similar to "if" statements: they check a condition and execute or skip the subsequent
+user defined statements.
+
+The "until" exceptions let the programmer specify only a condition. The subsequent statements are fixed,
+and more explicitly are these ones:
+	PUSHB false
+	SYS SET_WIDESCREEN
+	SYS END_GAME_SPEED
+	SYS END_DIALOGUE
+	SYS END_CAMERA_CONTROL
+	BRKEXCEPT
+
+They clear any camera or dialogue sequence, and the BRKEXCEPT makes the script end without the execution of
+further instructions.
+
+Exceptions can be defined at script level and in loops. When assembling, the fixed part of the exception
+handler implementation is always coded for every script and loop, regardless of whether an exception is
+actually coded. I guess this reduces the performance of the system, so it could be worth to handle it better.
+
+One weird thing is how to understand the end of a "when" block. I guess it ends whenever one of the following is found:
+- another "when" statement
+- a "until" statement
+- a "end loop" statement
+- a "end while" statement
+- a "end script" statement
+
+This implies that you cannot insert normal code just after a "when" block, but you can do it after "until" statements.
+So, "when" blocks should appear at the end of script or loop body, while "until" blocks may appear at any point.
+"when" blocks may also appear at any point if they are followed by an "until" statement, but I don't recommend it,
+doing so would produce a mess. Luckily I haven't found such cases in the original scripts.
+
+
+## Examples ##
+
+Consider the following code:
+
+Repeat = 0
+while Repeat < 100
+	Repeat++
+	when SomeVar == 2
+		Repeat += 2
+	when SomeVar == 3
+		Repeat += 3
+	until SomeVar == 4
+end while
+
+
+This is how it should be translated:
+	
+	//Repeat = 0
+	PUSHF 0.0
+	POPF [Repeat]
+	//while Repeat < 100
+	EXCEPT lblExceptionHandler
+lblStartWhile:
+	PUSHF [Repeat]
+	PUSHF 100.0
+	LT
+	JZ lblEndWhile
+		//while body
+		//Repeat++
+		PUSHF [Repeat]
+		PUSHF 1.0
+		ADD
+		POPF Repeat
+	//end while
+	JMP lbllblStartWhile
+lblEndWhile:
+	ENDEXCEPT
+	JMP lblEndExcept
+lblExceptionHandler:
+	//when SomeVar == 2
+	PUSHF [SomeVar]
+	PUSHF 2.0
+	EQ
+	JZ lblWhen2
+		//Repeat += 2
+		PUSHF [Repeat]
+		PUSHF 2.0
+		ADD
+		POPF Repeat
+lblWhen2:
+	//when SomeVar == 3
+	PUSHF [SomeVar]
+	PUSHF 3.0
+	EQ
+	JZ lblUntil1
+		//Repeat += 3
+		PUSHF [Repeat]
+		PUSHF 3.0
+		ADD
+		POPF Repeat
+lblUntil1:
+	//until SomeVar == 4
+	PUSHF [SomeVar]
+	PUSHF 4.0
+	EQ
+	JZ lblUntilNotMatched
+	PUSHB false
+	SYS SET_WIDESCREEN
+	SYS END_GAME_SPEED
+	SYS END_DIALOGUE
+	SYS END_CAMERA_CONTROL
+	BRKEXCEPT
+	JMP lblEndExcept
+lblUntilNotMatched:
+	FAILEXCEPT
+lblEndExcept:
+
+
+The same code without any exception:
+
+Repeat = 0
+while Repeat < 100
+	Repeat++
+end while
+
+
+Translates to:
+
+	//Repeat = 0
+	PUSHF 0.0
+	POPF [Repeat]
+	//while Repeat < 100
+	EXCEPT lblExceptionHandler
+lblStartWhile:
+	PUSHF [Repeat]
+	PUSHF 100.0
+	LT
+	JZ lblEndWhile
+		//while body
+		//Repeat++
+		PUSHF [Repeat]
+		PUSHF 1.0
+		ADD
+		POPF Repeat
+	//end while
+	JMP lbllblStartWhile
+lblEndWhile:
+	ENDEXCEPT
+	JMP lblEndExcept
+lblExceptionHandler:
+	//Here would go the exception handlers
+	FAILEXCEPT
+lblEndExcept:
+

@@ -307,7 +307,7 @@ set BlindWoman forward walk path TRACK00 from 0.0 to 1.0
 
 	PUSHF [BlindWoman]	//object
 	PUSHB true			//forward
-	PUSHI 7				//camera_enum 7=TRACK00
+	PUSHI 7				//CAMERA_ENUM 7=TRACK00
 	PUSHF 0.0			//from val
 	PUSHF 1.0			//to val
 	SYS WALK_PATH		//[5, 0] (ObjectFloat object, bool forward, int camera_enum, float valFrom, float valTo)
@@ -2451,17 +2451,17 @@ send good spirit home		//#CreatureDevelopment.txt:1747
 	SYS SPIRIT_HOME	//[1, 0] (ENUM_HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.2.1 say [single line] STRING
+3.16.2.1 say [single line] STRING [withInteraction]
 
 When developing a script it is useful to have a text out function to debug or put in temp text until
 the script has been scripted.
 
-say single line HELP_TEXT_BAYWATCH_25
+say single line "Sorry, the boss got the cheat removed"		//#LandControlAll.txt:279
 
-	PUSHB true		//single line
-	PUSHI 1591
-	PUSHI 0
-	SYS RUN_TEXT	//(3, 0)
+	PUSHB true		//singleLine
+	PUSHI 10804		//"Sorry, the boss got the cheat removed"
+	PUSHI 0			//withInteraction
+	SYS TEMP_TEXT	//[3, 0] (bool singleLine, StrPtr string, int withInteraction)
 ___________________________________________
 
 3.16.2.2 say STRING with number EXPRESSION
@@ -2470,30 +2470,44 @@ When developing a script it is useful to have a text out function to debug or pu
 the script has been scripted. This version places a value at the
 $d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 
-
+Never found (TEMP_TEXT_WITH_NUMBER)
 ___________________________________________
 
-3.16.2.3 say CONSTANT
+3.16.2.3 say [single line] CONSTANT [with interaction]
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 
+say HELP_TEXT_DYK_EXPLAINED_01		//#DidYouKnow.txt:12
 
+	PUSHB false		//singleLine
+	PUSHI 6421		//textID
+	PUSHI 0			//withInteraction
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, ENUM_HELP_TEXT textID, int withInteraction)
 ___________________________________________
 
-3.16.2.4 say CONSTANT with number EXPRESSION
+3.16.2.4 say constant EXPRESSION with number EXPRESSION
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 This version places a value at the
 $d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 
+say constant StatText with number Need		//#HelpSystem.txt:108
 
+	PUSHB false					//
+	PUSHF [StatText]			//string
+	CASTI						//
+	PUSHF [Need]				//number
+	PUSHI 0						//
+	SYS RUN_TEXT_WITH_NUMBER	//[4, 0] (bool alwaysFalse, int string, float number, int alwaysZero)
 ___________________________________________
 
 3.16.2.5 clear dialogue
 
 Clears the text in the dialogue window (Dark Bar).
 
+clear dialogue		//#lostbrother.txt:835
 
+	SYS GAME_CLEAR_DIALOGUE	//[0, 0] ()
 ___________________________________________
 
 3.16.2.6 close dialogue
@@ -2505,20 +2519,36 @@ close dialogue
 	SYS GAME_CLOSE_DIALOGUE
 ___________________________________________
 
-3.17.1 draw text constant across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+3.17.1 draw text ENUM_HELP_TEXT across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
 
 This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
 text colour function.
 
-
+draw text HELP_TEXT_GAME_OVER across 0.25 down 0.45 width 0.5 height 0.1 size 0.075 fade in time 3 seconds		//#GameOver.txt:88
+	PUSHI 6670			//ENUM_HELP_TEXT
+	PUSHF 0.25			//across
+	PUSHF 0.45			//down
+	PUSHF 0.5			//width
+	PUSHF 0.1			//height
+	PUSHF 0.075			//size
+	PUSHF 3.0			//fade
+	SYS GAME_DRAW_TEXT	//[7, 0] (ENUM_HELP_TEXT textID, float across, float down, float width, float height, float size, float fade)
 ___________________________________________
 
-3.17.2 draw text string across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+3.17.2 draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
 
 This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
 text colour function.
 
-
+draw text "Peter Molyneux" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds		//#landcontrol5.txt:319
+	PUSHI 6850				//"Peter Molyneux"
+	PUSHF 0.1				//
+	PUSHF 0.3				//
+	PUSHF 0.4				//
+	PUSHF 0.1				//
+	PUSHF 0.05				//
+	PUSHF 2.0				//
+	SYS GAME_DRAW_TEMP_TEXT	//[7, 0] (StrPtr string, float across, float down, float width, float height, float size, float fade)
 ___________________________________________
 
 3.17.3 set draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION
@@ -2526,28 +2556,46 @@ ___________________________________________
 This function sets the draw text colours for all the following calls to draw text. The range of red/green/blue
 are 0->255.
 
+set draw text colour red 255 green 255 blue 255		//#GameOver.txt:87
 
+	PUSHF 255.0					//red
+	PUSHF 255.0					//green
+	PUSHF 255.0					//blue
+	SYS SET_DRAW_TEXT_COLOUR	//[3, 0] (float red, float green, float blue)
 ___________________________________________
 
 3.17.4 fade all draw text time EXPRESSION seconds
 
 Fades out all the draw text in a time.
 
+fade all draw text time 1 seconds							//#GameOver.txt:9
 
+	PUSHF 1.0				//time
+	SYS FADE_ALL_DRAW_TEXT	//[1, 0] (float time)
 ___________________________________________
 
 3.17.5 set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION
 
 This sets the window on screen that the game engine will display in.
 
+set clipping window across 0.1 down 0.2 width 0.4 height 0.6 time 0.5				//#landcontrol5.txt:117
 
+	PUSHF 0.1				//across
+	PUSHF 0.2				//down
+	PUSHF 0.4				//width
+	PUSHF 0.6				//height
+	PUSHF 0.5				//time
+	SYS SET_CLIPPING_WINDOW	//[5, 0] (float across, float down, float width, float height, float time)
 ___________________________________________
 
 3.17.6 clear clipping window time EXPRESSION
 
 Sets the clipping window of the game engine to full screen.
 
+clear clipping window time 0.5		//#landcontrol5.txt:135
 
+	PUSHF 0.5					//time
+	SYS CLEAR_CLIPPING_WINDOW	//[1, 0] (float time)
 ___________________________________________
 
 3.18.1 set camera zones to STRING
@@ -2564,219 +2612,336 @@ ___________________________________________
 
 stores the camera details, (foc, pos).
 
+Never found
 
+	SYS STORE_CAMERA_DETAILS	//[0, 0] ()
 ___________________________________________
 
 3.18.3 restore camera details
 
 restores the camera details, (foc, pos) from the last ones sent by the store function.
 
+//Never found
 
+	SYS RESTORE_CAMERA_DETAILS	//[0, 0] ()
 ___________________________________________
 
 3.18.4 reset camera lens time EXPRESSION
 
 Resets the camera lens.
 
-
+Never found
 ___________________________________________
 
 3.18.5 enable|disable clipping distance EXPRESSION
 
 Sets the clipping distance.
 
-
+Never found (SET_GRAPHICS_CLIPPING)
 ___________________________________________
 
 3.18.6 set camera lens EXPRESSION time EXPRESSION
 
 Sets the camera lens in an optional amount of time.
 
+set camera lens 100 time 6		//#TheMissionaries.txt:1522
 
+	PUSHF 100.0				//lens
+	PUSHF 6.0				//time
+	SYS MOVE_CAMERA_LENS	//[2, 0] (float lens, float time)
 ___________________________________________
 
 3.18.7 move camera position to POSITION time EXPRESSION
 
 Moves the camera position smoothly from where it is to the stated position in an amount of time.
 
+move camera position to [pos]+[0,80,60] time 4		//#Reward.txt:78
 
+	PUSHF [pos]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF 0.0
+	CASTC
+	PUSHF 80.0
+	CASTC
+	PUSHF 60.0
+	CASTC
+	ADDC
+	PUSHF 4.0					//time
+	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
 ___________________________________________
 
 3.18.8 set camera position to POSITION
 
 Sets the camera position instantly.
 
+set camera position to [1891.039, 31.693, 2520.674]				// Wakeup position 1		//#CreatureDevelopment.txt:386
 
+	PUSHF 1891.0389
+	CASTC
+	PUSHF 31.693001
+	CASTC
+	PUSHF 2520.6741
+	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 ___________________________________________
 
 3.18.9 move camera focus to POSITION time EXPRESSION
 
 Moves the camera focus smoothly from where it is to the stated position in an amount of time.
 
+move camera focus to [pos] time 3		//#Reward.txt:79
 
+	PUSHF [pos]
+	SYS GET_POSITION		//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF 3.0				//time
+	SYS MOVE_CAMERA_FOCUS	//[4, 0] (Coord position, float time)
 ___________________________________________
 
 3.18.10 set camera focus to POSITION
 
 Sets the camera focus instantly.
 
+set camera focus to	[1899.053, 30.312, 2518.680]						//#CreatureDevelopment.txt:387
 
+	PUSHF 1899.053
+	CASTC
+	PUSHF 30.312
+	CASTC
+	PUSHF 2518.6799
+	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 ___________________________________________
 
 3.18.11 move camera to face OBJECT distance EXPRESSION time EXPRESSION
 
 Moves the camera to face an object, with a distance from the object and a time to get to the said position.
 
+move camera to face Guide distance 30 time 2		//#CreatureGuide.txt:222
 
+	PUSHF [Guide]					//target
+	PUSHF 30.0						//distance
+	PUSHF 2.0						//time
+	SYS MOVE_CAMERA_TO_FACE_OBJECT	//[3, 0] (ObjectFloat target, float distance, float time)
 ___________________________________________
 
 3.18.12 set camera to face OBJECT distance EXPRESSION
 
 Sets the camera to face an object, with a distance from the object.
 
-
+Never found (SET_CAMERA_TO_FACE_OBJECT)
 ___________________________________________
 
 3.18.13 set camera focus follow OBJECT
 
 This sets the camera focus to follow on an object.
 
+set camera focus follow reward1		//#Reward.txt:105
 
+	PUSHF [reward1]			//target
+	SYS SET_FOCUS_FOLLOW	//[1, 0] (ObjectFloat target)
 ___________________________________________
 
 3.18.14 set camera position follow OBJECT
 
 This sets the camera position to follow an object with the current heading.
 
+set camera position follow Sister		//#lostbrother.txt:505
 
+	PUSHF [Sister]			//target
+	SYS SET_POSITION_FOLLOW	//[1, 0] (ObjectFloat target)
 ___________________________________________
 
 3.18.15 set camera focus follow computer player EXPRESSION
 
 This sets the camera focus to follow a computer player.
 
+Never found
 
+	PUSHF 1									//player
+	SYS SET_FOCUS_FOLLOW_COMPUTER_PLAYER	//[1, 0] (float player)
 ___________________________________________
 
 3.18.16 set camera position follow computer player EXPRESSION
 
 This sets the camera position to follow a computer player.
 
+Never found
 
+	PUSHF 1									//player
+	SYS SET_POSITION_FOLLOW_COMPUTER_PLAYER	//[1, 0] (float player)
 ___________________________________________
 
 3.18.17 set camera follow OBJECT distance EXPRESSION
 
 This sets the camera to follow an object with the current heading at the defined distance.
 
+set camera follow Son distance 3								// camera follow boy running		//#followus.txt:396
 
+	PUSHF [Son]							//target
+	PUSHF 3.0							//distance
+	SYS SET_FOCUS_AND_POSITION_FOLLOW	//[2, 0] (ObjectFloat target, float distance)
 ___________________________________________
 
 3.18.18 move camera focus follow OBJECT
 
 This moves the camera focus to follow on an object.
 
+move camera focus follow Shepherd		//#thelostflock.txt:205
 
+	PUSHF [Shepherd]	//target
+	SYS FOCUS_FOLLOW	//[1, 0] (ObjectFloat target)
 ___________________________________________
 
 3.18.19 move camera position follow OBJECT
 
 This moves the camera position to follow an object with the current heading.
 
-
+Never found
+	
+	PUSHF [object]		//target
+	SYS POSITION_FOLLOW	//[1, 0] (ObjectFloat target)
 ___________________________________________
 
 3.18.20 camera follow OBJECT distance EXPRESSION
 
 This sets the camera to follow an object with the current heading at the defined distance.
 
+set camera follow Son distance 3								// camera follow boy running		//#followus.txt:396
 
+	PUSHF [Son]							//target
+	PUSHF 3.0							//distance
+	SYS SET_FOCUS_AND_POSITION_FOLLOW	//[2, 0] (ObjectFloat target, float distance)
 ___________________________________________
 
-3.18.21 set camera properties speed EXPRESSION angle EXPRESSION enable|disable behind
+3.18.21 set camera properties distance EXPRESSION speed EXPRESSION angle EXPRESSION enable|disable behind
 
 Sets the camera properties for following something. The speed is a mulitplier of normal catch up
 speed of the camera, and the enable/disable behind, locks/unlocks the camera trying to remain behind
 the object it is following.
 
+set camera properties distance 3 speed 0 angle 22.5 enable behind		//#followus.txt:397
 
+	PUSHF 3.0				//distance
+	PUSHF 0.0				//speed
+	PUSHF 22.5				//angle
+	PUSHB true				//enable behind
+	SYS CAMERA_PROPERTIES	//[4, 0] (float distance, float speed, float angle, bool enableBehind)
 ___________________________________________
 
-3.18.22 set camera to camera_enum
+3.18.22 set camera to CAMERA_ENUM
 
 Instantly sets the camera to a camera position and focus defined in the camera editor.
 
+set camera to T00_000		//#LearnInfluence.txt:19
 
+	PUSHI 368					//T00_000
+	SYS CONVERT_CAMERA_FOCUS	//[1, 3] (int) returns (Coord)
+	PUSHI 368					//T00_000
+	SYS CONVERT_CAMERA_POSITION	//[1, 3] (int) returns (Coord)
+	SYS SET_CAMERA_POSITION		//[3, 0] (Coord position)
+	SYS SET_CAMERA_FOCUS		//[3, 0] (Coord position)
 ___________________________________________
 
-3.18.23 move camera to camera_enum time EXPRESSION
+3.18.23 move camera to CAMERA_ENUM time EXPRESSION
 
 Moves the camera to a camera position and focus defined in the camera editor in a define time.
+WARNING: this implementation looks bugged, the "time" should be pushed 2 times.
 
+move camera to T00_000 time 3											// Cam look at dying brother		//#lostbrother.txt:782
 
+	PUSHI 432
+	SYS CONVERT_CAMERA_FOCUS	//[1, 3] (int) returns (Coord)
+	PUSHI 432
+	SYS CONVERT_CAMERA_POSITION	//[1, 3] (int) returns (Coord)
+	PUSHF 3.0
+	SWAPF 4
+	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
+	SYS MOVE_CAMERA_FOCUS		//[4, 0] (Coord position, float time)
 ___________________________________________
 
-3.18.24 camera path camera_enum
+3.18.24 camera path CAMERA_ENUM
 
 In the camera editor you can create camera paths. An enum in cameraposenum.h
 
+camera path TRACK00		//#lostbrother.txt:788
 
+	PUSHI 39
+	SYS RUN_CAMERA_PATH	//[1, 0] (int cameraEnum)
 ___________________________________________
 
 3.18.25 enable|disable camera fixed rotation at POSITION
 
 DANGEROUS - fixes the camera rotation point. Used in learning script
 
-
+Never found (SET_FIXED_CAM_ROTATION)
 ___________________________________________
 
 3.18.26 shake camera at POSITION radius EXPRESSION amplitude EXPRESSION time EXPRESSION
 
 Shakes the camera for an amount of time. This does not need to be in a camera block.
 
+shake camera at [TemplePos] radius 200.0 amplitude 0.1 time 1		//#GameOver.txt:20
 
+	PUSHF [TemplePos]
+	SYS GET_POSITION	//target
+	PUSHF 200.0			//radius
+	PUSHF 0.1			//amplitude
+	PUSHF 1.0			//duration
+	SYS SHAKE_CAMERA	//[6, 0] (Coord position, float radius, float amplitude, float duration)
 ___________________________________________
 
 3.18.27 set dual camera to OBJECT OBJECT
 
 Updates the dualcamera to keep two objects on screen.
 
+Never found
 
+	PUSHF [obj1]
+	PUSHF [obj2]
+	SYS UPDATE_DUAL_CAMERA	//[2, 0] (ObjectFloat obj1, ObjectFloat obj2)
 ___________________________________________
 
-3.18.28 start hand demo STRING
+3.18.28 start hand demo STRING [with pause] [without hand modify]
 
 Play hand demo of a prerecorded hand movement.
 
+start hand demo "rotate" with pause on trigger		//#HandDemos.txt:18
 
+	PUSHI 231			//"rotate"
+	PUSHB true			//withPause
+	PUSHB false			//withoutHandModify
+	SYS PLAY_HAND_DEMO	//[3, 0] (StrPtr string, bool withPause, bool withoutHandModify)
 ___________________________________________
 
 3.18.29 start jc special CONSTANT
 
 Starts one of JC's predefined special features.
 
+start jc special SJC_SWITCH_OFF_BOOKMARK		//#followus.txt:293
 
+	PUSHI 15			//SJC_SWITCH_OFF_BOOKMARK
+	SYS PLAY_JC_SPECIAL	//[1, 0] (int feature)
 ___________________________________________
 
 3.18.30 enable|disable jc special on OBJECT
 
 Starts one of JC's predefined special features on an object.
 
-
+Never found
 ___________________________________________
 
 3.18.31 set camera position POSITION focus POSITION lens EXPRESSION
 
 Sets the camera position, focus and lens instantly.
 
-
+Never found (SET_CAMERA_POS_FOC_LENS)
 ___________________________________________
 
 3.18.32 move camera position POSITION focus POSITION lens EXPRESSION time EXPRESSION
 
 Moves the camera position, focus and lens in a given time.
 
-
+Never found (MOVE_CAMERA_POS_FOC_LENS)
 ___________________________________________
 
 4.1 when CONDITION STATEMENTS
@@ -3654,7 +3819,7 @@ LookAt = marker at [2962.9587, 0.0000, 3079.3020]
 	POPF LookAt
 ___________________________________________
 
-9.22 marker at camera_enum
+9.22 marker at CAMERA_ENUM
 
 No doc.
 

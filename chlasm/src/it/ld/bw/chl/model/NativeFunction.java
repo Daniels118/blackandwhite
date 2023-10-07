@@ -34,8 +34,8 @@ public enum NativeFunction {
 	NONE(),
 	SET_CAMERA_POSITION("Coord position"),
 	SET_CAMERA_FOCUS("Coord position"),
-	MOVE_CAMERA_POSITION("Coord position, float"),
-	MOVE_CAMERA_FOCUS("Coord position, float"),
+	MOVE_CAMERA_POSITION("Coord position, float time"),
+	MOVE_CAMERA_FOCUS("Coord position, float time"),
 	GET_CAMERA_POSITION("", "Coord"),
 	GET_CAMERA_FOCUS("", "Coord"),
 	SPIRIT_EJECT("ENUM_HELP_SPIRIT_TYPE spirit"),
@@ -44,8 +44,8 @@ public enum NativeFunction {
 	SPIRIT_POINT_GAME_THING("ENUM_HELP_SPIRIT_TYPE spirit, ObjectFloat target, bool inWorld"),
 	GAME_THING_FIELD_OF_VIEW("ObjectFloat object", "bool"),
 	POS_FIELD_OF_VIEW("Coord position", "bool"),
-	RUN_TEXT("bool singleLine, ENUM_HELP_TEXT textID, int"),
-	TEMP_TEXT("bool, StrPtr string, int"),
+	RUN_TEXT("bool singleLine, ENUM_HELP_TEXT textID, int withInteraction"),
+	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction"),
 	TEXT_READ("", "bool"),
 	GAME_THING_CLICKED("ObjectFloat object", "bool"),
 	SET_SCRIPT_STATE("ObjectFloat object, int"),
@@ -83,7 +83,7 @@ public enum NativeFunction {
 	DETACH_MUSIC("ObjectFloat object"),
 	OBJECT_DELETE("ObjectFloat obj, int withFade"),	//Use "ZERO [varname]" just after to clear the object reference.
 	FOCUS_FOLLOW("ObjectFloat target"),
-	POSITION_FOLLOW("ObjectFloat target"),
+	POSITION_FOLLOW("ObjectFloat target"),	//Never found
 	CALL_NEAR("ENUM_SCRIPT_OBJECT_TYPES type, Subtype subtype, Coord position, float radius, bool", "Object"),
 	SPECIAL_EFFECT_POSITION("int, Coord position, float", "float"),
 	SPECIAL_EFFECT_OBJECT("int, ObjectFloat obj, float", "float"),
@@ -114,8 +114,8 @@ public enum NativeFunction {
 	CREATURE_SET_DESIRE_ACTIVATED3("ObjectFloat creature, ENUM_CREATURE_DESIRES desire, ENUM_SCRIPT_BOOL active"),
 	CREATURE_SET_DESIRE_ACTIVATED2("ObjectFloat creature, ENUM_SCRIPT_BOOL active"),
 	CREATURE_SET_DESIRE_MAXIMUM("ObjectFloat creature, ENUM_CREATURE_DESIRES desire, float value"),
-	CONVERT_CAMERA_POSITION("int", "float, float, float"),
-	CONVERT_CAMERA_FOCUS("int", "float, float, float"),
+	CONVERT_CAMERA_POSITION("int", "Coord"),
+	CONVERT_CAMERA_FOCUS("int", "Coord"),
 	CREATURE_SET_PLAYER("ObjectFloat creature"),
 	START_COUNTDOWN_TIMER(1),			//Never found
 	CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION(2),	//Never found
@@ -140,7 +140,7 @@ public enum NativeFunction {
 	GET_ACTION_TEXT_FOR_OBJECT("ObjectFloat obj", "int"),	//The return value is used as second parameter in RUN_TEXT
 	CREATE_DUAL_CAMERA_WITH_POINT("ObjectFloat obj, Coord position"),	//Never found
 	SET_CAMERA_TO_FACE_OBJECT(2),		//Never found
-	MOVE_CAMERA_TO_FACE_OBJECT("ObjectFloat obj, float, float"),
+	MOVE_CAMERA_TO_FACE_OBJECT("ObjectFloat target, float distance, float time"),
 	GET_MOON_PERCENTAGE("", "float"),	//Never found
 	POPULATE_CONTAINER("ObjectFloat obj, float quantity, ENUM_SCRIPT_OBJECT_TYPES type, Subtype subtype"),
 	ADD_REFERENCE(1, 1),				//Never found
@@ -152,7 +152,7 @@ public enum NativeFunction {
 	GET_REAL_DAY2(0, 1),				//Never found
 	GET_REAL_MONTH(0, 1),				//Never found
 	GET_REAL_YEAR(0, 1),				//Never found
-	RUN_CAMERA_PATH("int"),
+	RUN_CAMERA_PATH("int cameraEnum"),
 	START_DIALOGUE("", "bool"),
 	END_DIALOGUE(),
 	IS_SPIRIT_READY("", "bool"),
@@ -213,7 +213,7 @@ public enum NativeFunction {
 	WALK_PATH("ObjectFloat object, bool forward, int camera_enum, float valFrom, float valTo"),
 	FOCUS_AND_POSITION_FOLLOW(2),
 	GET_WALK_PATH_PERCENTAGE(1, 1),
-	CAMERA_PROPERTIES(4),
+	CAMERA_PROPERTIES("float distance, float speed, float angle, bool enableBehind"),
 	ENABLE_DISABLE_MUSIC(2),			//Never found
 	GET_MUSIC_OBJ_DISTANCE(1, 1),
 	GET_MUSIC_ENUM_DISTANCE(1, 1),
@@ -234,7 +234,7 @@ public enum NativeFunction {
 	GET_SLOWEST_SPEED(1, 1),
 	GET_OBJECT_HELD1(0, 1),
 	HELP_SYSTEM_ON("", "bool"),			//Never found
-	SHAKE_CAMERA(6),
+	SHAKE_CAMERA("Coord position, float radius, float amplitude, float duration"),
 	SET_ANIMATION_MODIFY("bool enable, ObjectFloat creature"),
 	SET_AVI_SEQUENCE("bool enable, int aviSequence"),
 	PLAY_GESTURE(5),
@@ -242,7 +242,7 @@ public enum NativeFunction {
 	HAS_MOUSE_WHEEL("", "bool"),
 	NUM_MOUSE_BUTTONS(0, 1),
 	SET_CREATURE_DEV_STAGE("ObjectFloat creature, ENUM_DEVELOPMENT_PHASE stage"),
-	SET_FIXED_CAM_ROTATION(4),
+	SET_FIXED_CAM_ROTATION(4),			//Never found
 	SWAP_CREATURE("ObjectFloat fromCreature, ObjectFloat toCreature"),
 	GET_ARENA(5, 1),
 	GET_FOOTBALL_PITCH(1, 1),
@@ -264,8 +264,8 @@ public enum NativeFunction {
 	SET_ATTACK_OWN_TOWN(2),				//Never found
 	IS_FIGHTING(1, 1),
 	SET_MAGIC_RADIUS("ObjectFloat object, float radius"),
-	TEMP_TEXT_WITH_NUMBER(4),
-	RUN_TEXT_WITH_NUMBER(4),
+	TEMP_TEXT_WITH_NUMBER(4),			//Never found
+	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero"),
 	CREATURE_SPELL_REVERSION(2),		//Never found 
 	GET_DESIRE(2, 1),
 	GET_EVENTS_PER_SECOND(1, 1),
@@ -299,7 +299,7 @@ public enum NativeFunction {
 	CREATE_MIST(9, 1),
 	SET_MIST_FADE(6),
 	GET_OBJECT_FADE(1, 1),
-	PLAY_HAND_DEMO(3),
+	PLAY_HAND_DEMO("StrPtr string, bool withPause, bool withoutHandModify"),
 	IS_PLAYING_HAND_DEMO("", "bool"),
 	GET_ARSE_POSITION(1, 3),
 	IS_LEASHED_TO_OBJECT(2, 1),
@@ -309,18 +309,18 @@ public enum NativeFunction {
 	GET_OBJECT_HELD2(1, 1),
 	GET_ACTION_COUNT(2, 1),
 	GET_OBJECT_LEASH_TYPE(1, 1),
-	SET_FOCUS_FOLLOW(1),
-	SET_POSITION_FOLLOW(1),
-	SET_FOCUS_AND_POSITION_FOLLOW(2),
+	SET_FOCUS_FOLLOW("ObjectFloat target"),
+	SET_POSITION_FOLLOW("ObjectFloat target"),
+	SET_FOCUS_AND_POSITION_FOLLOW("ObjectFloat target, float distance"),
 	SET_CAMERA_LENS(1),
-	MOVE_CAMERA_LENS(2),
+	MOVE_CAMERA_LENS("float lens, float time"),
 	CREATURE_REACTION(2),				//Never found
 	CREATURE_IN_DEV_SCRIPT("bool enable, ObjectFloat creature"),
-	STORE_CAMERA_DETAILS(),
-	RESTORE_CAMERA_DETAILS(),
+	STORE_CAMERA_DETAILS(),				//Never found
+	RESTORE_CAMERA_DETAILS(),			//Never found
 	START_ANGLE_SOUND1("bool enable"),
-	SET_CAMERA_POS_FOC_LENS(7),
-	MOVE_CAMERA_POS_FOC_LENS(8),
+	SET_CAMERA_POS_FOC_LENS(7),			//Never found
+	MOVE_CAMERA_POS_FOC_LENS(8),		//Never found
 	GAME_TIME_ON_OFF("bool enable"),
 	MOVE_GAME_TIME("float hourOfTheDay, float duration"),
 	SET_HIGH_GRAPHICS_DETAIL("bool enable, ObjectFloat object"),
@@ -332,7 +332,7 @@ public enum NativeFunction {
 	ADD_SPOT_VISUAL_TARGET_POS("ObjectFloat object, Coord position"),
 	ADD_SPOT_VISUAL_TARGET_OBJECT("ObjectFloat object, ObjectFloat target"),
 	SET_INDESTRUCTABLE("bool indestructible, ObjectFloat object"),
-	SET_GRAPHICS_CLIPPING(2),
+	SET_GRAPHICS_CLIPPING(2),			//Never found
 	SPIRIT_APPEAR("ENUM_HELP_SPIRIT_TYPE spirit"),
 	SPIRIT_DISAPPEAR("ENUM_HELP_SPIRIT_TYPE spirit"),
 	SET_FOCUS_ON_OBJECT("ObjectFloat object, ObjectFloat target"),
@@ -359,7 +359,7 @@ public enum NativeFunction {
 	CLEAR_CONFINED_OBJECT(1),
 	GET_OBJECT_FLOCK(1, 1),
 	SET_PLAYER_BELIEF("ObjectFloat object, float player, float belief"),
-	PLAY_JC_SPECIAL(1),
+	PLAY_JC_SPECIAL("int feature"),
 	IS_PLAYING_JC_SPECIAL(1, 1),
 	VORTEX_PARAMETERS(8),
 	LOAD_CREATURE("ENUM_CREATURE_TYPE type, StrPtr mindFilename, float player, Coord position"),
@@ -405,8 +405,8 @@ public enum NativeFunction {
 	SET_DISCIPLE("ObjectFloat object, ENUM_VILLAGER_DISCIPLE discipleType, bool withSound"),
 	RELEASE_COMPUTER_PLAYER("float player"),
 	SET_COMPUTER_PLAYER_SPEED("float player, float speed"),
-	SET_FOCUS_FOLLOW_COMPUTER_PLAYER(1),
-	SET_POSITION_FOLLOW_COMPUTER_PLAYER(1),
+	SET_FOCUS_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
+	SET_POSITION_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
 	CALL_COMPUTER_PLAYER(1, 1),
 	CALL_BUILDING_IN_TOWN(4, 1),
 	SET_CAN_BUILD_WORSHIPSITE("bool enable, ObjectFloat object"),
@@ -466,12 +466,12 @@ public enum NativeFunction {
 	STOP_IMMERSION("ENUM_IMMERSION_EFFECT_TYPE effect"),	//Never found
 	STOP_ALL_IMMERSION(),				//Never found
 	SET_CREATURE_IN_TEMPLE("bool enable"),
-	GAME_DRAW_TEXT(7),
-	GAME_DRAW_TEMP_TEXT(7),
-	FADE_ALL_DRAW_TEXT(1),
-	SET_DRAW_TEXT_COLOUR(3),
-	SET_CLIPPING_WINDOW(5),
-	CLEAR_CLIPPING_WINDOW(1),
+	GAME_DRAW_TEXT("ENUM_HELP_TEXT textID, float across, float down, float width, float height, float size, float fade"),
+	GAME_DRAW_TEMP_TEXT("StrPtr string, float across, float down, float width, float height, float size, float fade"),
+	FADE_ALL_DRAW_TEXT("float time"),
+	SET_DRAW_TEXT_COLOUR("float red, float green, float blue"),
+	SET_CLIPPING_WINDOW("float across, float down, float width, float height, float time"),
+	CLEAR_CLIPPING_WINDOW("float time"),
 	SAVE_GAME_IN_SLOT("int slot"),		//Never found
 	SET_OBJECT_CARRYING("ObjectFloat object, ENUM_CARRIED_OBJECT carriedObj"),
 	POS_VALID_FOR_CREATURE(3, 1),
