@@ -69,7 +69,7 @@ public enum NativeFunction {
 /*023*/	GET_POSITION("ObjectFloat object", "Coord"),
 /*024*/	SET_POSITION("ObjectFloat object, Coord position"),
 /*025*/	GET_DISTANCE("Coord p0, Coord p1", "float"),
-/*026*/	CALL("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, bool alwaysFalse", "float"),
+/*026*/	CALL("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, bool excludingScripted", "float"),
 /*027*/	CREATE("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position", "Object"),
 /*028*/	RANDOM("float min, float max", "float"),
 /*029*/	DLL_GETTIME("", "float"),			//"time" statement, see section 12.13 of CHL doc.
@@ -94,13 +94,13 @@ public enum NativeFunction {
 /*048*/	OBJECT_DELETE("ObjectFloat obj, int withFade"),	//Use "ZERO [varname]" just after to clear the object reference.
 /*049*/	FOCUS_FOLLOW("ObjectFloat target"),
 /*050*/	POSITION_FOLLOW("ObjectFloat target"),	//Never found
-/*051*/	CALL_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool", "Object"),
+/*051*/	CALL_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool excludingScripted", "Object"),
 /*052*/	SPECIAL_EFFECT_POSITION("int, Coord position, float", "float"),
 /*053*/	SPECIAL_EFFECT_OBJECT("int, ObjectFloat obj, float", "float"),
 /*054*/	DANCE_CREATE("ObjectFloat obj, int, Coord position, float", "Object"),
-/*055*/	CALL_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat obj, bool", "Object"),
+/*055*/	CALL_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted", "Object"),
 /*056*/	CHANGE_INNER_OUTER_PROPERTIES("ObjectFloat obj, float inner, float outer, float calm"),
-/*057*/	SNAPSHOT("bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float... args, int argc, int challengeID"),
+/*057*/	SNAPSHOT("bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float... args, int argc, int challengeID"), //The challengeID is set at compile time by the previous "challenge" statement
 /*058*/	GET_ALIGNMENT("int", "float", true),
 /*059*/	SET_ALIGNMENT(2),					//Never found; guess (int, float)
 /*060*/	INFLUENCE_OBJECT("ObjectFloat obj, float, int, int", "Object"),
@@ -110,7 +110,7 @@ public enum NativeFunction {
 /*064*/	PLAYED("ObjectFloat obj", "bool"),
 /*065*/	RANDOM_ULONG("int min, int max", "int", true),
 /*066*/	SET_GAMESPEED("float speed", true),
-/*067*/	CALL_IN_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat obj, Coord pos, float radius, bool excludingScripted", "Object"),
+/*067*/	CALL_IN_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, Coord pos, float radius, bool excludingScripted", "Object"),
 /*068*/	OVERRIDE_STATE_ANIMATION("ObjectFloat obj, DETAIL_ANIM_TYPES animType"),
 /*069*/	CREATURE_CREATE_RELATIVE_TO_CREATURE("ObjectFloat, float, Coord position, int", "Object"),
 /*070*/	CREATURE_LEARN_EVERYTHING("ObjectFloat creature"),
@@ -184,7 +184,7 @@ public enum NativeFunction {
 /*138*/	STOP_LOOKING("HELP_SPIRIT_TYPE spirit"),
 /*139*/	LOOK_AT_POSITION("HELP_SPIRIT_TYPE spirit, Coord position"),
 /*140*/	PLAY_SPIRIT_ANIM(5),				//Never found
-/*141*/	CALL_IN_NOT_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat obj, Coord pos, float radius, bool excludingScripted", "bool"),
+/*141*/	CALL_IN_NOT_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, Coord pos, float radius, bool excludingScripted", "Object"),
 /*142*/	SET_CAMERA_ZONE("StrPtr filename"),	//filename is relative to folder Data\Zones, eg. Land1Zone5.exc
 /*143*/	GET_OBJECT_STATE("ObjectFloat obj", "int"),
 /*144*/	REVEAL_COUNTDOWN_TIMER(),			//Never found
@@ -206,8 +206,8 @@ public enum NativeFunction {
 /*160*/	GET_OBJECT_HAND_IS_OVER("", "bool"),	//Never found
 /*161*/	ID_POISONED_SIZE("ObjectFloat obj", "float"),
 /*162*/	IS_POISONED("ObjectFloat obj", "bool"),
-/*163*/	CALL_POISONED_IN(4, 1),				//Never found
-/*164*/	CALL_NOT_POISONED_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat obj, bool", "Object"),
+/*163*/	CALL_POISONED_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted", "Object"),	//Never found
+/*164*/	CALL_NOT_POISONED_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted", "Object"),
 /*165*/	SPIRIT_PLAYED("HELP_SPIRIT_TYPE spirit", "bool"),	//Never found
 /*166*/	CLING_SPIRIT("HELP_SPIRIT_TYPE spirit, float xPercent, float yPercent"),
 /*167*/	FLY_SPIRIT("HELP_SPIRIT_TYPE spirit, float xPercent, float yPercent"),
@@ -240,7 +240,7 @@ public enum NativeFunction {
 /*194*/	GAME_THING_HIT("ObjectFloat object", "bool"),
 /*195*/	SPELL_AT_THING(8, 1),
 /*196*/	SPELL_AT_POS(10, 1),
-/*197*/	CALL_PLAYER_CREATURE(1, 1),
+/*197*/	CALL_PLAYER_CREATURE("float player", "Object"),
 /*198*/	GET_SLOWEST_SPEED(1, 1),
 /*199*/	GET_OBJECT_HELD1(0, 1),
 /*200*/	HELP_SYSTEM_ON("", "bool"),			//Never found
@@ -315,7 +315,7 @@ public enum NativeFunction {
 /*269*/	IS_LEASHED_TO_OBJECT("ObjectFloat object, ObjectFloat target", "bool"),
 /*270*/	GET_INTERACTION_MAGNITUDE(1, 1),
 /*271*/	IS_CREATURE_AVAILABLE("CREATURE_TYPE type", "bool"),
-/*272*/	CREATE_HIGHLIGHT(5, 1),
+/*272*/	CREATE_HIGHLIGHT("HIGHLIGHT_INFO type, Coord position, int challengeID", "Object"), //The challengeID is set at compile time by the previous "challenge" statement
 /*273*/	GET_OBJECT_HELD2(1, 1),
 /*274*/	GET_ACTION_COUNT(2, 1),
 /*275*/	GET_OBJECT_LEASH_TYPE(1, 1),
@@ -359,7 +359,7 @@ public enum NativeFunction {
 /*313*/	SET_COMPUTER_PLAYER_POSITION("float player, Coord position, bool alwaysFalse"),
 /*314*/	GET_STORED_CAMERA_POSITION(0, "Coord"),
 /*315*/	GET_STORED_CAMERA_FOCUS(0, "Coord"),
-/*316*/	CALL_NEAR_IN_STATE(8, 1),
+/*316*/	CALL_NEAR_IN_STATE("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, int state, Coord position, float radius, bool excludingScripted", "Object"),
 /*317*/	SET_CREATURE_SOUND("bool enable"),
 /*318*/	CREATURE_INTERACTING_WITH(2, "bool"),	//Never found
 /*319*/	SET_SUN_DRAW(1),
@@ -394,9 +394,9 @@ public enum NativeFunction {
 /*348*/	START_ANGLE_SOUND2("bool enable"),
 /*349*/	THING_JC_SPECIAL(3),
 /*350*/	MUSIC_PLAYED2(1, 1),				//Never found
-/*351*/	UPDATE_SNAPSHOT_PICTURE("Coord position, Coord focus, float success, float alignment, int titleStrID, bool takingPicture, int challengeID"),
+/*351*/	UPDATE_SNAPSHOT_PICTURE("Coord position, Coord focus, float success, float alignment, int titleStrID, bool takingPicture, int challengeID"), //The challengeID is set at compile time by the previous "challenge" statement
 /*352*/	STOP_SCRIPTS_IN_FILES_EXCLUDING("StrPtr sourceFilename, StrPtr scriptName"),
-/*353*/	CREATE_RANDOM_VILLAGER_OF_TRIBE(4, 1),
+/*353*/	CREATE_RANDOM_VILLAGER_OF_TRIBE("TRIBE_TYPE tribe, Coord position", "Object"),
 /*354*/	TOGGLE_LEASH("int player"),
 /*355*/	GAME_SET_MANA("ObjectFloat object, float mana"),
 /*356*/	SET_MAGIC_PROPERTIES("ObjectFloat object, MAGIC_TYPE magicType, float duration"),
@@ -417,8 +417,8 @@ public enum NativeFunction {
 /*371*/	SET_COMPUTER_PLAYER_SPEED("float player, float speed"),
 /*372*/	SET_FOCUS_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
 /*373*/	SET_POSITION_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
-/*374*/	CALL_COMPUTER_PLAYER(1, 1),
-/*375*/	CALL_BUILDING_IN_TOWN(4, 1),
+/*374*/	CALL_COMPUTER_PLAYER("float player", "Object"),
+/*375*/	CALL_BUILDING_IN_TOWN(4, 1),			//Never found
 /*376*/	SET_CAN_BUILD_WORSHIPSITE("bool enable, ObjectFloat object"),
 /*377*/	GET_FACING_CAMERA_POSITION(1, "Coord"),
 /*378*/	SET_COMPUTER_PLAYER_ATTITUDE("float player1, float player2, float attitude"),	//Attitude in range [-1, 1]; -1=nice, 1=reactive
@@ -426,7 +426,7 @@ public enum NativeFunction {
 /*380*/	LOAD_COMPUTER_PLAYER_PERSONALITY(2),	//Never found; guess (float player, StrPtr filename)
 /*381*/	SAVE_COMPUTER_PLAYER_PERSONALITY(2),	//Never found; guess (float player, StrPtr filename)
 /*382*/	SET_PLAYER_ALLY("float player1, float player2, float percentage"),
-/*383*/	CALL_FLYING(6, 1),
+/*383*/	CALL_FLYING("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool excluding scripted", "Object"),
 /*384*/	SET_OBJECT_FADE_IN("ObjectFloat object, float time"),
 /*385*/	IS_AFFECTED_BY_SPELL("ObjectFloat object", "bool"),
 /*386*/	SET_MAGIC_IN_OBJECT("bool enable, int MAGIC_TYPE, ObjectFloat object"),
@@ -468,7 +468,7 @@ public enum NativeFunction {
 /*422*/	GET_MANA(1, 1),
 /*423*/	CLEAR_PLAYER_SPELL_CHARGING("float player"),
 /*424*/	STOP_SOUND_EFFECT(3),
-/*425*/	GET_TOTEM_STATUE(1, 1),
+/*425*/	GET_TOTEM_STATUE("ObjectFloat town", "Object"),
 /*426*/	SET_SET_ON_FIRE("bool enable, ObjectFloat object"),
 /*427*/	SET_LAND_BALANCE(2),				//Never found
 /*428*/	SET_OBJECT_BELIEF_SCALE(2),			//Never found
@@ -733,6 +733,7 @@ public enum NativeFunction {
 		CARRIED_OBJECT(),				//defined in Enum.h
 		REACTION(),						//defined in Enum.h
 		ABODE_NUMBER(),					//defined in Enum.h
+		TRIBE_TYPE(),					//defined in Enum.h
 		DETAIL_ANIM_TYPES();			//defined in info1.txt (alias of ANIM_LIST in AllMeshes.h)
 		
 		private static final Map<String, ArgType> map = new HashMap<>();
@@ -744,20 +745,20 @@ public enum NativeFunction {
 		}
 		
 		public final String keyword;
+		public final boolean isInt;
 		public final int stackCount;
 		
 		private ArgType() {
-			this.keyword = this.name();
-			this.stackCount = 1;
+			this(null);
 		}
 		
 		private ArgType(String keyword) {
-			this.keyword = keyword;
-			this.stackCount = 1;
+			this(keyword, 1);
 		}
 		
 		private ArgType(String keyword, int stackCount) {
-			this.keyword = keyword;
+			this.keyword = keyword != null ? keyword : this.name();
+			this.isInt = this.ordinal() >= 9;	//STRPTR
 			this.stackCount = stackCount;
 		}
 		

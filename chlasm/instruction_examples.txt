@@ -1225,7 +1225,7 @@ snapshot quest success 0.9 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(vari
 	PUSHI 4713		//args[0]=HELP_TEXT_GUIDE_DIES_14
 	CASTF
 	PUSHI 1			//argc
-	PUSHI 64		//challengeID
+	PUSHI 64		//challengeID set by previous "challenge" statement at compile time
 	SYS SNAPSHOT	//[?, 0] (bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
 
 snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
@@ -1240,7 +1240,7 @@ snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(v
 	PUSHI 1602		//args[0]
 	CASTF
 	PUSHI 1			//argc
-	PUSHI 9			//challengeID
+	PUSHI 9			//challengeID set by previous "challenge" statement at compile time
 	SYS SNAPSHOT	//[?, 0] (bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
 ___________________________________________
 
@@ -1280,7 +1280,7 @@ update snapshot details success 1.0 alignment -1.0 HELP_TEXT_TITLE_35
 	NEG							//alignment
 	PUSHI 2451					//HELP_TEXT_TITLE_35
 	PUSHB false					//NO taking picture
-	PUSHI 18					//challengeID 18=THE_MISSIONARIES
+	PUSHI 18					//challengeID set by previous "challenge" statement at compile time
 	SYS UPDATE_SNAPSHOT_PICTURE	//[11, 0] (Coord position, Coord focus, float success, float alignment, int titleStrID, bool takingPicture, int challengeID)
 
 update snapshot details success 1 alignment ModifAl HELP_TEXT_TITLE_35 taking picture
@@ -1291,7 +1291,7 @@ update snapshot details success 1 alignment ModifAl HELP_TEXT_TITLE_35 taking pi
 	PUSHF [ModifAl]				//alignment
 	PUSHI 2451					//HELP_TEXT_TITLE_35
 	PUSHB true					//taking picture
-	PUSHI 18					//challengeID 18=THE_MISSIONARIES
+	PUSHI 18					//challengeID set by previous "challenge" statement at compile time
 	SYS UPDATE_SNAPSHOT_PICTURE	//[11, 0] (Coord position, Coord focus, float success, float alignment, int titleStrID, bool takingPicture, int challengeID)
 ___________________________________________
 
@@ -3898,66 +3898,57 @@ add resource RESOURCE_TYPE_WOOD 148 to Villager 		//#followus.txt:1030
 	POPF
 ___________________________________________
 
-9.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION]
+9.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [excluding scripted]
 
 Gets an object of a type, and an optional sub_type.
 
+GranaryStorage = get HOUSE at [1826.7900, 28.1400, 2641.3601]		//#CreatureDevelopment.txt:1668
 
+	PUSHF [GranaryStorage]
+	POPI
+	PUSHI 2			//type 2=HOUSE
+	PUSHI 5000		//subtype 5000=SCRIPT_FIND_TYPE_ANY
+	PUSHF 1826.79
+	CASTC
+	PUSHF 28.139999
+	CASTC
+	PUSHF 2641.3601
+	CASTC
+	PUSHB false		//excluding scripted
+	SYS CALL		//[6, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, bool excludingScripted) returns (float)
+	POPF GranaryStorage
 ___________________________________________
 
-9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION]
+9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION] [excluding scripted]
+
+Gets an object of a type, and an optional sub_type, within a given radius.
+
+piggy=get ANIMAL ANIMAL_INFO_PIG at hand position radius 5.5 excluding scripted		//#CreatureDevelopment.txt:186
+
+	PUSHI 6					//type 6=ANIMAL
+	PUSHI 10				//subtype 10=ANIMAL_INFO_PIG
+	SYS GET_HAND_POSITION	//[0, 3] () returns (Coord)
+	PUSHF 5.5				//radius
+	PUSHB true				//excludingScripted
+	SYS CALL_NEAR			//[7, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, excludingScripted) returns (Object)
+	POPF piggy
+___________________________________________
+
+9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION [excluding scripted]
 
 No doc.
 
-BlindWomanHut				= get HOUSE at [3713.5500, 2.9103, 3117.7803]
+DeadSheep = get ANIMAL SHEEP in state ANIMAL_STATE_DEAD at [Field] radius 30		//#thelostflock.txt:387
 
-	PUSHI 2		//type 2=HOUSE
-	PUSHI 5000	//subtype 5000=SCRIPT_FIND_TYPE_ANY
-	PUSHF 3713.55
-	CASTC
-	PUSHF 2.9103
-	CASTC
-	PUSHF 3117.7803
-	CASTC
-	PUSHB false
-	SYS CALL	//[6, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, bool alwaysFalse) returns (float)
-	POPF BlindWomanHut
-
-CircusMusic = get FEATURE FEATURE_INFO_EGPT_PYRAMID at [2254.4419, 52.9300, 1917.9126]
-
-	PUSHI 3		//type 3=FEATURE
-	PUSHI 5		//subtype 5=FEATURE_INFO_EGPT_PYRAMID
-	PUSHF 2254.442
-	CASTC
-	PUSHF 52.93
-	CASTC
-	PUSHF 1917.9126
-	CASTC
-	PUSHB false
-	SYS CALL	//[6, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, bool alwaysFalse) returns (float)
-	POPF CircusMusic
-
-Town = get TOWN at [1865.61,2641.24] radius 100
-
-	PUSHI 9			//type0 9=TOWN
-	PUSHI 5000		//type1 5000=SCRIPT_FIND_TYPE_ANY
-	PUSHF 1865.61
-	CASTC
-	PUSHF 2641.24
-	CASTC
-	PUSHC 0
-	SWAPI			//convert [x,z] to [x,0,z]
-	PUSHF 100.0		//radius
-	PUSHB false
-	SYS CALL_NEAR	//(7, 1)
-	POPF Town
-___________________________________________
-
-9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION
-
-No doc.
-
-
+	PUSHI 6					//type
+	PUSHI 4					//subtype
+	PUSHI 15				//state
+	PUSHF [Field]
+	SYS GET_POSITION		//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF 30.0				//radius
+	PUSHB false				//excluding scripted
+	SYS CALL_NEAR_IN_STATE	//[8, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, int state, Coord position, float radius, bool excludingScripted) returns (Object)
+	POPF DeadSheep
 ___________________________________________
 
 9.4.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
@@ -3968,54 +3959,68 @@ Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
 
 	PUSHI 4				//type 4=VILLAGER
 	PUSHI 5000			//subtype 5000=SCRIPT_FIND_TYPE_ANY
-	PUSHF [Town]
+	PUSHF [Town]		//container
 	PUSHF [Slaver]
-	SYS GET_POSITION	//(1, 3)
+	SYS GET_POSITION	//position
 	PUSHF 100.0			//radius
-	PUSHB true			//excluding scripted
-	SYS CALL_IN_NEAR	//(8, 1)
+	PUSHB true			//excludingScripted
+	SYS CALL_IN_NEAR	//[8, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, Coord position, float position, bool excludingScripted) returns (Object)
 	POPF Victim
 ___________________________________________
 
-9.4.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near COORD_EXPR radius EXPRESSION
+9.4.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near COORD_EXPR radius EXPRESSION [excluding scripted]
 
 Looks in a container for an object not near the defined position.
 
 Escapee = get SCRIPT_OBJECT_TYPE_VILLAGER in SlaveFlock not near [SlavePenPos] radius 10
 
-	PUSHI 4				//type 4=SCRIPT_OBJECT_TYPE_VILLAGER
-	PUSHI 5000			//subtype 5000=SCRIPT_FIND_TYPE_ANY
-	PUSHF [SlaveFlock]
+	PUSHI 4					//type 4=SCRIPT_OBJECT_TYPE_VILLAGER
+	PUSHI 5000				//subtype 5000=SCRIPT_FIND_TYPE_ANY
+	PUSHF [SlaveFlock]		//container
 	PUSHF [SlavePenPos]
-	SYS GET_POSITION	//(1, 3)
-	PUSHF 10.0			//radius
-	PUSHB false
-	SYS CALL_IN_NOT_NEAR	//(8, 1)
+	SYS GET_POSITION		//position
+	PUSHF 10.0				//radius
+	PUSHB false				//excludingScripted
+	SYS CALL_IN_NOT_NEAR	//[8, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, Coord pos, float radius, bool excludingScripted) returns (Object)
 	POPF Escapee
 ___________________________________________
 
-9.5 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
+9.5 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
 
 Gets objects of type in a container.
 
+Villager = get VILLAGER in NorseTown excluding scripted		//#followus.txt:654
 
+	PUSHI 4				//type 4=VILLAGER
+	PUSHI 5000			//subtype 5000=SCRIPT_FIND_TYPE_ANY
+	PUSHF [NorseTown]	//container
+	PUSHB true			//excluding scripted
+	SYS CALL_IN			//[4, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted) returns (Object)
+	POPF Villager
 ___________________________________________
 
-9.6 get building TYPE in OBJECT exclude_scripted
+9.6 get building TYPE in OBJECT [excluding scripted]
 
 Gets a building of a certain type in a town.
 
-
+Never found (CALL_BUILDING_IN_TOWN)
 ___________________________________________
 
 9.7 get poisoned TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
 
 Gets a poisoned object from a container.
 
+Never found
 
+	PUSHI 4					//type 4=VILLAGER
+	PUSHI 5000				//subtype 5000=SCRIPT_FIND_TYPE_ANY
+	PUSHF [Town]			//container
+	PUSHB false				//excluding scripted
+	SYS CALL_POISONED_IN	//[4, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted) returns (Object)
+	POPF HealedDude
 ___________________________________________
 
-9.8 get not poisoned SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
+9.8 get not poisoned SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
 
 Gets a non-poisoned object from a container.
 
@@ -4023,72 +4028,104 @@ HealedDude = get not poisoned VILLAGER in Town
 
 	PUSHI 4						//type 4=VILLAGER
 	PUSHI 5000					//subtype 5000=SCRIPT_FIND_TYPE_ANY
-	PUSHF [Town]
-	PUSHB false
-	SYS CALL_NOT_POISONED_IN	//(4, 1)
+	PUSHF [Town]				//container
+	PUSHB false					//excluding scripted
+	SYS CALL_NOT_POISONED_IN	//[4, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted) returns (Object)
 	POPF HealedDude
 ___________________________________________
 
-9.9 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION
+9.9 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
 
-No doc.
-
-
+Merged with 9.4.1
 ___________________________________________
 
-9.10 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at COORD_EXPR radius EXPRESSION exclude_scripted
+9.10 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at COORD_EXPR radius EXPRESSION [excluding scripted]
 
 Gets an object flying of type within a radius of a position.
 
+NearbyObject = get ROCK_OBJECT flying at [Bloke] radius 40 excluding scripted		//#throwthroughshield.txt:13
 
+	PUSHI 33			//type
+	PUSHI 5000			//subtype
+	PUSHF [Bloke]
+	SYS GET_POSITION	//position
+	PUSHF 40.0			//radius
+	PUSHB true			//excluding scripted
+	SYS CALL_FLYING	//[7, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool excluding scripted) returns (Object)
+	POPF NearbyObject
 ___________________________________________
 
 9.11 get totem statue in OBJECT
 
-Gets the totem staue from the town centre object as it is not in the map for a search.
+Gets the totem statue from the town center object as it is not in the map for a search.
 
+Totem=get totem statue in TownCentre		//#LearnWorshipping.txt:17
 
+	PUSHF [TownCentre]		//town
+	SYS GET_TOTEM_STATUE	//[1, 1] (ObjectFloat town) returns (Object)
+	POPF Totem
 ___________________________________________
 
 9.12 get player EXPRESSION creature
 
 Gets the players creature.
 
+MyCreature=get player 1 creature		//#VortexEntry.txt:25
 
+	PUSHF 1.0					//player
+	SYS CALL_PLAYER_CREATURE	//[1, 1] (float player) returns (Object)
+	POPF MyCreature
 ___________________________________________
 
 9.13 get computer player EXPRESSION
 
 Gets the computer player specified.
 
+Khazar = get computer player 2		//#beginland2.txt:355
 
+	PUSHF 2.0					//player
+	SYS CALL_COMPUTER_PLAYER	//[1, 1] (float player) returns (Object)
+	POPF Khazar
 ___________________________________________
 
 9.14 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
 
 Creates a game object at a position.
 
+Vortex = create VORTEX VORTEX_TYPE_OUT at [VortexPos]		//#VortexEntry.txt:18
 
+	PUSHI 23			//type
+	PUSHI 1				//subtype
+	PUSHF [VortexPos]
+	SYS GET_POSITION	//position
+	SYS CREATE			//[5, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position) returns (Object)
+	POPF Vortex
 ___________________________________________
 
 9.15 create random villager of tribe CONSTANT_EXPRESSION at COORD_EXPR
 
 Creates a random villager type of the selected tribe at young adult age.
 
+Child = create random villager of tribe TRIBE_TYPE_NORSE at [CaveFlock]		//#piedpiper.txt:253
 
+	PUSHI 7								//tribe
+	PUSHF [CaveFlock]					//
+	SYS GET_POSITION					//position
+	SYS CREATE_RANDOM_VILLAGER_OF_TRIBE	//[4, 1] (TRIBE_TYPE tribe, Coord position) returns (Object)
+	POPF Child
 ___________________________________________
 
-9.16 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
+9.16 create highlight HIGHLIGHT_INFO at COORD_EXPR
 
-Creates a game object at a position.
+Creates a game highlight object (scroll) at a position.
 
 Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
 
-	PUSHI 2	// = HIGHLIGHT_CHALLENGE = SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER
+	PUSHI 2					//2=HIGHLIGHT_CHALLENGE=SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER
 	PUSHF [VillagerHutPos]
-	SYS GET_POSITION	//(1, 3)
-	PUSHI 9
-	SYS CREATE_HIGHLIGHT	//(5, 1)
+	SYS GET_POSITION		//position
+	PUSHI 9					//challengeID set by previous "challenge" statement at compile time
+	SYS CREATE_HIGHLIGHT	//[5, 1] (HIGHLIGHT_INFO type, Coord position, int challengeID) returns (Object)
 	POPF Highlight
 ___________________________________________
 
