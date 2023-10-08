@@ -1,10 +1,13 @@
 ### My notes about how exception works ###
 
 Exceptions allow to execute some code whenever a condition meets, even if the script execution is locked in a loop.
-I guess the exception handler is executed in a separate thread, or evaluated at every instruction of the main script.
-What is sure is the exception handling runs on its own stack, because it must not interfere with the main script.
+I guess the exception handler is executed in a separate thread, or evaluated every N instructions of the main script.
+What is sure is that the exception handling runs on its own stack, because it must not interfere with the main script,
+but it could share its local variables (like a closure).
 An interesting aspect is that the exception handler code is embedded in the calling script, but it is skipped
 from normal execution by a fixed JMP instruction.
+Another notable thing is that the conditions are just normal test instructions within an infinite loop, so there is
+no real callback mechanism. This means that exception handling consumes CPU time, so use it with care.
 
 Exception handlers are stacked on an exception stack. An exception handler gets activated by EXCEPT and
 deactivated by ENDEXCEPT. The EXCEPT instruction must specify the address of the first instruction of the

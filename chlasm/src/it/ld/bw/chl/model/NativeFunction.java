@@ -24,7 +24,7 @@ import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
  * 
  * When a function returns a value, if the return value is going to be put into a variable, then
  * POPF must be used (preceded by CASTF if the function returns an int); if the return value has
- * to be thrown away, then POPO is used.
+ * to be thrown away, then POPO/POPF is used.
  * When a function expects an Object, then PUSHO is used.
  * When a function expects an ObjectFloat, then PUSHF is used, unless you want to pass a null object,
  * in which case you should use "PUSHO 0" (see FLOCK_DETACH).
@@ -288,7 +288,7 @@ public enum NativeFunction {
 /*242*/	SET_FADE_IN(1),
 /*243*/	FADE_FINISHED(0, "bool"),
 /*244*/	SET_PLAYER_MAGIC(3),
-/*245*/	HAS_PLAYER_MAGIC(2, 1),
+/*245*/	HAS_PLAYER_MAGIC("MAGIC_TYPE spell, float player", "bool"),
 /*246*/	SPIRIT_SPEAKS(2, 1),
 /*247*/	BELIEF_FOR_PLAYER(2, 1),
 /*248*/	GET_HELP(1, 1),
@@ -365,7 +365,7 @@ public enum NativeFunction {
 /*319*/	SET_SUN_DRAW(1),
 /*320*/	OBJECT_INFO_BITS(1, 1),
 /*321*/	SET_HURT_BY_FIRE("bool enable, ObjectFloat object"),
-/*322*/	CONFINED_OBJECT(5),					//Never found
+/*322*/	CONFINED_OBJECT(5),				//Never found
 /*323*/	CLEAR_CONFINED_OBJECT(1),
 /*324*/	GET_OBJECT_FLOCK(1, 1),
 /*325*/	SET_PLAYER_BELIEF("ObjectFloat object, float player, float belief"),
@@ -373,12 +373,12 @@ public enum NativeFunction {
 /*327*/	IS_PLAYING_JC_SPECIAL(1, "bool"),
 /*328*/	VORTEX_PARAMETERS(8),
 /*329*/	LOAD_CREATURE("CREATURE_TYPE type, StrPtr mindFilename, float player, Coord position"),
-/*330*/	IS_SPELL_CHARGING(1, "bool"),
-/*331*/	IS_THAT_SPELL_CHARGING(2, "bool"),
+/*330*/	IS_SPELL_CHARGING(1, "bool"),	//Never found
+/*331*/	IS_THAT_SPELL_CHARGING(2, "bool"),	//Never found
 /*332*/	OPPOSING_CREATURE(1, 1),
 /*333*/	FLOCK_WITHIN_LIMITS("ObjectFloat object", "bool"),	//Never found
 /*334*/	HIGHLIGHT_PROPERTIES("ObjectFloat object, int text, int category"),
-/*335*/	LAST_MUSIC_LINE(1, 1),
+/*335*/	LAST_MUSIC_LINE("float line", "bool"),
 /*336*/	HAND_DEMO_TRIGGER(0, "bool"),
 /*337*/	GET_BELLY_POSITION(1, "Coord"),
 /*338*/	SET_CREATURE_CREED_PROPERTIES("ObjectFloat creature, HAND_GLOW handGlow, float scale, float power, float time"),
@@ -401,7 +401,7 @@ public enum NativeFunction {
 /*355*/	GAME_SET_MANA("ObjectFloat object, float mana"),
 /*356*/	SET_MAGIC_PROPERTIES("ObjectFloat object, MAGIC_TYPE magicType, float duration"),
 /*357*/	SET_GAME_SOUND("bool enable"),
-/*358*/	SEX_IS_MALE(1, "bool"),
+/*358*/	SEX_IS_MALE("ObjectFloat object", "bool"),
 /*359*/	GET_FIRST_HELP(1, 1),
 /*360*/	GET_LAST_HELP(1, 1),
 /*361*/	IS_ACTIVE("ObjectFloat object", "bool"),
@@ -434,7 +434,7 @@ public enum NativeFunction {
 /*388*/	OBJECT_CAPACITY(1, 1),
 /*389*/	OBJECT_ADULT_CAPACITY(1, 1),
 /*390*/	SET_CREATURE_AUTO_FIGHTING("bool enable, ObjectFloat creature"),
-/*391*/	IS_AUTO_FIGHTING(1, "bool"),
+/*391*/	IS_AUTO_FIGHTING("ObjectFloat creature", "bool"),	//Never found
 /*392*/	SET_CREATURE_QUEUE_FIGHT_MOVE("ObjectFloat creature, FIGHT_MOVE move"),
 /*393*/	SET_CREATURE_QUEUE_FIGHT_SPELL(2),	//Never found; guess (ObjectFloat creature, ENUM_FIGHT_SPELLS spell)
 /*394*/	SET_CREATURE_QUEUE_FIGHT_STEP(2),	//Never found; guess (ObjectFloat creature, ENUM_FIGHT_STEPS step)

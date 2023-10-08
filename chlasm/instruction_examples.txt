@@ -8,7 +8,8 @@ Each statement is introduced by its chapter number and syntax taken from the
 "Lionhead Challenge Language Documentation" released for Creature Isle; in some cases the syntax
 has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
 On the subsequent line there is the description of the statement taken from the same document.
-On the subsequent line there is a real statement extracted from the script files cited above.
+On the subsequent line there is a real statement extracted from the script files cited above. In some
+cases the statement has been simplified to highlight just the relevant part.
 The subsequent lines are the equivalent assembler code decompiled using this tool and
 located with hard research work. Note that the current CHL has been patched by LH, while the scripts
 available to us are at the original version, so not all statements have an exact match with the
@@ -1941,21 +1942,26 @@ ___________________________________________
 
 Self-explainatory.
 
-wait until read
+wait until read		//#StandardReminder.txt:15
 
-lbl1598:
+lbl5:
 	SYS TEXT_READ	//[0, 1] () returns (bool)
-	JZ lbl1598
+	JZ lbl5
 ___________________________________________
 
 3.11.2 wait CONDITION
 
 Same as above but without need for the word until.
 
-wait Random seconds
+wait until TempMyCreature played and NewCreature played		//#SwapCreatures.txt:427
 
-	PUSHF [Random]
-	SLEEP
+lbl7C:
+	PUSHF [TempMyCreature]
+	SYS PLAYED	//[1, 1] (ObjectFloat obj) returns (bool)
+	PUSHF [NewCreature]
+	SYS PLAYED	//[1, 1] (ObjectFloat obj) returns (bool)
+	AND
+	JZ lbl7C
 ___________________________________________
 
 3.12.1 start music CONSTANT_EXPRESSION
@@ -3586,17 +3592,16 @@ read
 	SYS TEXT_READ	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.54 wait EXPRESSION second[s]
+6.54 EXPRESSION second[s]
 
 Waits for a number of second(s) to elapse from the moment the instruction is called.
-The implementation is quite weird, it suggests that the sleep may fail under some circumstances,
-in which case it is retried until it succeeds. This means that the sleep may last longer.
+Use this in a "wait until" statements to pop the returned value from the stack.
 
-wait 15 seconds		//#VortexEntry.txt:31
+//	wait 15 seconds		//#VortexEntry.txt:31
 
 lblE:
 	PUSHF 15.0
-	SLEEP
+	SLEEP				//Returns boolean true
 	JZ lblE
 ___________________________________________
 
@@ -3666,140 +3671,203 @@ ___________________________________________
 
 6.61 OBJECT is auto fighting
 
-Checks if an object is auto fighting whenin a fight.
+Checks if an object is auto fighting when in a fight.
 
+Never found
 
+	PUSHF [creature]		//creature
+	SYS IS_AUTO_FIGHTING	//[1, 1] (ObjectFloat creature) returns (bool)
 ___________________________________________
 
 6.62 OBJECT male
 
 Checks the sex of an object for if it's male.
 
+Helper is male		//#TheMissionaries.txt:1376
 
+	PUSHF [Helper]	//object
+	SYS SEX_IS_MALE	//[1, 1] (ObjectFloat object) returns (bool)
 ___________________________________________
 
 6.63 help system on
 
 Returns if the help system is on.
 
+Never found
 
+	SYS HELP_SYSTEM_ON	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.64 player has mouse wheel
 
 Returns if the player has a mouse wheel.
 
+player has mouse wheel		//#LandControlT.txt:1306
 
+	SYS HAS_MOUSE_WHEEL	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.65 spell CONSTANT_EXPRESSION for player EXPRESSION
 
 Checks if a player has a specific spell
 
+spell MAGIC_TYPE_FIREBALL for player 1			//#LandControlT.txt:1393
 
+	PUSHI 1					//spell
+	PUSHF 1.0				//player
+	SYS HAS_PLAYER_MAGIC	//[2, 1] (MAGIC_TYPE spell, float player) returns (bool)
 ___________________________________________
 
 6.66 immersion exists
 Checks if a player has an immersion mouse
 
+immersion exists		//#followus.txt:53
 
+	SYS IMMERSION_EXISTS	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.67 sound exists
+
 Checks if a player has sound.
 
+Never found
 
+	SYS SOUND_EXISTS	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.68 Spell Charging
+6.68 spell charging
 
 Check if a spell (any) is charging for a player.
 
-
+Never found (IS_SPELL_CHARGING)
 ___________________________________________
 
-6.69 Specific Spell Charging
+6.69 specific spell charging
 
 Check if a specific spell is charging for a player.
 
-
+Never found (IS_THAT_SPELL_CHARGING)
 ___________________________________________
 
 6.70 music line EXPRESSION
 
 Look at the last line of music that was playing.
 
+music line 1		//#TheMissionaries.txt:502
 
-___________________________________________
-
-6.71 Logical Operators
-
-No doc.
-
-
+	PUSHF 1.0			//line
+	SYS LAST_MUSIC_LINE	//[1, 1] (float line) returns (bool)
 ___________________________________________
 
 6.71.1 not CONDITION
 
 When the condition is not true.
 
+not MyCreature locked interaction					// Player is not interacting with Creature		//#CreatureDevelopment.txt:287
 
+	PUSHF [MyCreature]
+	SYS IS_LOCKED_INTERACTION	//[1, 1] (ObjectFloat object) returns (bool)
+	NOT
 ___________________________________________
 
 6.71.2 CONDITION and CONDITION
 
 No doc.
 
+camera position near [Highlight] radius 100 and NewCreature viewed		//#SwapCreatures.txt:58
 
+	SYS GET_CAMERA_POSITION	//[0, 3] () returns (Coord)
+	PUSHF [Highlight]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 100.0
+	LT
+	PUSHF [NewCreature]
+	SYS GAME_THING_FIELD_OF_VIEW	//[1, 1] (ObjectFloat object) returns (bool)
+	AND
 ___________________________________________
 
 6.71.3 CONDITION or CONDITION
 
 No doc.
 
+Highlight clicked or NewCreature clicked		//#SwapCreatures.txt:70
 
+	PUSHF [Highlight]
+	SYS GAME_THING_CLICKED	//[1, 1] (ObjectFloat object) returns (bool)
+	PUSHF [NewCreature]
+	SYS GAME_THING_CLICKED	//[1, 1] (ObjectFloat object) returns (bool)
+	OR
 ___________________________________________
 
 6.71.4 EXPRESSION == EXPRESSION
 
 No doc.
 
+SwapActive == 1		//#SwapCreatures.txt:45
 
+lbl41:
+	PUSHF [SwapActive]
+	PUSHF 1.0
+	EQ
 ___________________________________________
 
 6.71.5 EXPRESSION != EXPRESSION
 
 No doc.
 
-
+GlobalReset != 1 		//#SwapCreatures.txt:366
+	PUSHF [GlobalReset]
+	PUSHF 1.0
+	NEQ
 ___________________________________________
 
 6.71.6 EXPRESSION >= EXPRESSION
 
 No doc.
 
+get AztecTown belief for player 1 >= 0.1		//#setupland1.txt:181
 
+	PUSHF [AztecTown]
+	PUSHF 1.0
+	SYS BELIEF_FOR_PLAYER	//[2, 1] (?, ?) returns (?)
+	PUSHF 0.1
+	GEQ
 ___________________________________________
 
 6.71.7 EXPRESSION <= EXPRESSION
 
 No doc.
 
+get ReminderTimer2 time remaining <= 0		//#SwapCreatures.txt:59
 
+	PUSHF [ReminderTimer2]
+	SYS GET_TIMER_TIME_REMAINING	//[1, 1] (ObjectFloat timer) returns (float)
+	PUSHF 0.0
+	LEQ
 ___________________________________________
 
 6.71.8 EXPRESSION > EXPRESSION
 
 No doc.
 
+ActiveTime > 0		//#SwapCreatures.txt:38
 
+	PUSHF [ActiveTime]
+	PUSHF 0.0
+	GT
 ___________________________________________
 
 6.71.9 EXPRESSION < EXPRESSION
 
 No doc.
 
+WhichTextFirst < WhichTextLast		//#HelpSystem.txt:14
 
+lblFB:
+	PUSHF [WhichTextFirst]
+	PUSHF [WhichTextLast]
+	LT
 ___________________________________________
 
 7 remove resource CONSTANT_EXPRESSION EXPRESSION from OBJECT
@@ -3807,7 +3875,13 @@ ___________________________________________
 Removes an amount of resource from an object, and returns the amount removed. If the amount asked for
 is greater than what is available than the full amount available is taken.
 
+remove resource FOOD RemoveAmount from GranaryStorage		//#CreatureDevelopment.txt:1671
 
+	PUSHI 0					//resource
+	PUSHF [RemoveAmount]	//quantity
+	PUSHF [GranaryStorage]	//object
+	SYS REMOVE_RESOURCE		//[3, 1] (int resource, float quantity, ObjectFloat obj) returns (float)
+	POPF
 ___________________________________________
 
 8 add resource CONSTANT_EXPRESSION EXPRESSION from OBJECT
@@ -3815,7 +3889,13 @@ ___________________________________________
 Adds an amount of resource to an object, and returns the amount added. If the amount asked for is greater
 than the storage space left then the remaining space only will be filled.
 
+add resource RESOURCE_TYPE_WOOD 148 to Villager 		//#followus.txt:1030
 
+	PUSHI 1
+	PUSHF 148.0
+	PUSHF [Villager]
+	SYS ADD_RESOURCE	//[3, 1] (int resource, float quantity, ObjectFloat obj) returns (float)
+	POPF
 ___________________________________________
 
 9.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION]
