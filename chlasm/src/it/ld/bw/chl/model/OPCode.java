@@ -48,6 +48,10 @@ import static it.ld.bw.chl.model.OPCodeAttr.*;
  *   RANDOM_ULONG
  *   SET_GAMESPEED
  *   GET_ALIGNMENT
+ *   
+ * When calling GET_PROPERTY, SYS2 is used in the following cases:
+ * - when the requested property is a boolean, in which case the result must be casted to bool;
+ * - in the implementation of property assignment (see 5.2.2 in instruction_examples.txt).
  * 
  * 
  * About CALL/START

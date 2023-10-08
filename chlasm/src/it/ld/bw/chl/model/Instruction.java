@@ -22,7 +22,6 @@ import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
 import it.ld.bw.chl.exceptions.InvalidOPCodeException;
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.bw.chl.exceptions.InvalidVariableIdException;
-import it.ld.bw.chl.model.NativeFunction.Argument;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
@@ -293,6 +292,10 @@ public class Instruction extends Struct {
 				}
 			}
 		}
+	}
+	
+	public boolean isFree() {
+		return opcode == OPCode.ENDEXCEPT && (flags & FREE) == FREE;
 	}
 	
 	public static Instruction fromKeyword(String keyword) {

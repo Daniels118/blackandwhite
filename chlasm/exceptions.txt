@@ -32,6 +32,7 @@ and more explicitly are these ones:
 	SYS END_DIALOGUE
 	SYS END_CAMERA_CONTROL
 	BRKEXCEPT
+	JMP labelAfterITEREXCEPT
 
 They clear any camera or dialogue sequence, and the BRKEXCEPT makes the script end without the execution of
 further instructions.

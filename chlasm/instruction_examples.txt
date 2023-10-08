@@ -7,7 +7,7 @@ TODO: add missing samples
 Each statement is introduced by its chapter number and syntax taken from the
 "Lionhead Challenge Language Documentation" released for Creature Isle; in some cases the syntax
 has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
-On the subsequent line there is the description of the statement.
+On the subsequent line there is the description of the statement taken from the same document.
 On the subsequent line there is a real statement extracted from the script files cited above.
 The subsequent lines are the equivalent assembler code decompiled using this tool and
 located with hard research work. Note that the current CHL has been patched by LH, while the scripts
@@ -15,6 +15,16 @@ available to us are at the original version, so not all statements have an exact
 decompiled code.
 Statements are ordered by chapter number.
 Some complex statements may have additional info to help understand their implementation.
+
+### Notes ###
+All SWAP instructions could be avoided by coding the arguments in the proper order. This could be
+a chance for an optimization option.
+
+All variable assignment are preceded by a "PUSH [var], POPI", which I think this is useless.
+The same happens with SET_PROPERTY. Removing these useless instructions could be a chance for an
+optimization.
+
+The implementation of 3.18.23 looks bugged.
 
 ___________________________________________
 
@@ -54,7 +64,7 @@ end script VortexEntryPerson
 	END
 ___________________________________________
 
-3.1.1 move OBJECT position to POSITION [radius EXPRESSION]
+3.1.1 move OBJECT position to COORD_EXPR [radius EXPRESSION]
 
 This makes the object move between the two positions.
 
@@ -67,7 +77,7 @@ move MyCreature position to [NewCreature] radius 15
 	SYS MOVE_GAME_THING	//(5, 0)
 ___________________________________________
 
-3.1.2 set OBJECT position to POSITION
+3.1.2 set OBJECT position to COORD_EXPR
 
 This make the object position change.
 
@@ -94,7 +104,7 @@ set Villager disciple VILLAGER_DISCIPLE_BUILDER with sound
 	SYS SET_DISCIPLE	//[3, 0] (ObjectFloat object, VILLAGER_DISCIPLE discipleType, bool withSound)
 ___________________________________________
 
-3.1.4 set OBJECT focus to POSITION
+3.1.4 set OBJECT focus to COORD_EXPR
 
 Makes the object turn to face the position passed, or just look at the position passed depending on
 how flexable an object is.
@@ -202,7 +212,7 @@ set Highlight text property text constant HelpTextEnum category constant HelpTex
 	SYS HIGHLIGHT_PROPERTIES	//[3, 0] (ObjectFloat object, int text, int category)
 ___________________________________________
 
-3.1.12 set OBJECT velocity heading POSITION speed EXPRESSION
+3.1.12 set OBJECT velocity heading COORD_EXPR speed EXPRESSION
 
 If an object is weather it sets the wind to the velocity specified. Note that strong winds move pretty
 damn fast so be careful! If an object is something with Physics in the game it applies a velocity to
@@ -217,7 +227,7 @@ set Person velocity heading [DirectionPos] speed Velocity
 	SYS SET_HEADING_AND_SPEED	//[5, 0] (ObjectFloat object, Coord position, float speed)
 ___________________________________________
 
-3.1.13 set OBJECT target POSITION time EXPRESSION
+3.1.13 set OBJECT target COORD_EXPR time EXPRESSION
 
 Applies physics to an object so that it lands at the defined position in a given time.
 
@@ -591,7 +601,7 @@ Force creature to stop whatever he is doing.
 Never found (CREATURE_FORCE_FINISH)
 ___________________________________________
 
-3.2.24 enable OBJECT confined to POSITION radius EXPRESSION
+3.2.24 enable OBJECT confined to COORD_EXPR radius EXPRESSION
 
 Confines an object at a position within a radius.
 
@@ -687,7 +697,7 @@ swap creature from MyCreature to NewCreature
 	SYS SWAP_CREATURE	//[2, 0] (ObjectFloat fromCreature, ObjectFloat toCreature)
 ___________________________________________
 
-3.2.35 set OBJECT home position POSITION
+3.2.35 set OBJECT home position COORD_EXPR
 
 Sets the creatures home position.
 
@@ -767,7 +777,7 @@ set ComputerCreature name HELP_TEXT_KHAZAR_CREATURE_NAME_01
 	SYS SET_CREATURE_NAME		//[2, 0] (ObjectFloat creature, int textID)
 ___________________________________________
 
-3.3.1 set computer player EXPRESSION position to POSITION
+3.3.1 set computer player EXPRESSION position to COORD_EXPR
 
 Sets the computer player position. Once the computer player gets to the position he will be paused until
 you enable the computer player in the script.
@@ -785,7 +795,7 @@ set computer player 2 position to [2508.825, 105.190, 1772.476]
 	SYS SET_COMPUTER_PLAYER_POSITION	//[5, 0] (float player, Coord position, bool alwaysFalse)
 ___________________________________________
 
-3.3.2 move computer player EXPRESSION to POSITION speed EXPRESSION [with fixed height]
+3.3.2 move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height]
 
 Moves the computer player to a coordinate at a speed. Once the computer player gets to the position
 he will be paused until you enable the computer player in the script.
@@ -1296,7 +1306,7 @@ set game speed to 0.5
 	SYS2 SET_GAMESPEED	//[1, 0] (float speed)
 ___________________________________________
 
-3.8.19 build building at POSITION desire EXPRESSION
+3.8.19 build building at COORD_EXPR desire EXPRESSION
 
 If a building is planned in the landscape you can trigger the associated town to have a desire to build the
 planned building. Be careful with putting the desire [0, 1] too high, as it will look strange having the
@@ -1499,7 +1509,7 @@ clear player 1 spell charging		//#LearnGestures.txt:11
 	SYS CLEAR_PLAYER_SPELL_CHARGING	//[1, 0] (float player)
 ___________________________________________
 
-3.8.39 load my_creature at POSITION
+3.8.39 load my_creature at COORD_EXPR
 
 Loads your creature into the game at a specific position.
 
@@ -1510,7 +1520,7 @@ load my_creature at [CreaturePos]		//#VortexEntry.txt:24
 	SYS LOAD_MY_CREATURE	//[3, 0] (Coord position)
 ___________________________________________
 
-3.8.40 load creature CREATURE_TYPE STRING player EXPRESSION at POSITION
+3.8.40 load creature CREATURE_TYPE STRING player EXPRESSION at COORD_EXPR
 
 Loads a computer creature according to a file name for a player without creature into the game at a specific position.
 The file is relative to path Scripts\CreatureMind.
@@ -1660,7 +1670,7 @@ enable spell SPELL_PHYSICAL_SHIELD in Town		//#Land2ShieldChallenge.txt:364
 	SYS SET_MAGIC_IN_OBJECT	//[3, 0] (bool enable, int spell, ObjectFloat object)
 ___________________________________________
 
-3.8.54 add OBJECT target at POSITION
+3.8.54 add OBJECT target at COORD_EXPR
 
 Adds a target to the objects target list (Currently only used by spot visuals).
 
@@ -1690,7 +1700,7 @@ Sets the building state for the introduction of the game.
 Never found (SET_INTRO_BUILDING)
 ___________________________________________
 
-3.8.57 start sound CONSTANT_EXPRESSION SOUNDBANK [at POSITION]
+3.8.57 start sound CONSTANT_EXPRESSION SOUNDBANK [at COORD_EXPR]
 
 This function plays a sound effect not in 3d space, with an optional bank. If you don't define a bank
 it defaults to the main game sfx bank.
@@ -1722,7 +1732,7 @@ ___________________________________________
 Identical to 2.8.57
 ___________________________________________
 
-3.8.61 start sound constant SOUNDBANK at POSITION
+3.8.61 start sound constant SOUNDBANK at COORD_EXPR
 
 Merged with 2.8.57
 ___________________________________________
@@ -1755,7 +1765,7 @@ disable creature in temple		//#lethysvortex.txt:185
 	SYS SET_CREATURE_IN_TEMPLE	//[1, 0] (bool enable)
 ___________________________________________
 
-3.8.65 set bookmark EXPRESSION to POSITION
+3.8.65 set bookmark EXPRESSION to COORD_EXPR
 
 Sets a bookmark to a set position.
 
@@ -1788,7 +1798,7 @@ set NewCreature fade in time 6		//#thebigfight.txt:206
 	SYS SET_OBJECT_FADE_IN	//[2, 0] (ObjectFloat object, float time)
 ___________________________________________
 
-3.8.68 delete all weather at POSITION radius EXPRESSION
+3.8.68 delete all weather at COORD_EXPR radius EXPRESSION
 
 Deletes all weather storm data at position with a radius. This does not delete all weather climates,
 but just the storms created by them.
@@ -2011,7 +2021,7 @@ restarts the music on a game music thing.
 Never found (RESTART_MUSIC)
 ___________________________________________
 
-3.12.8 set OBJECT music position to POSITION
+3.12.8 set OBJECT music position to COORD_EXPR
 
 Sets the objects music play position to one different to the object position.
 
@@ -2111,7 +2121,7 @@ disable Storm affected by wind		//#singingstonecircle.txt:790
 	SYS SET_AFFECTED_BY_WIND	//[2, 0] (bool enable, ObjectFloat object)
 ___________________________________________
 
-3.14 state OBJECT CONSTANT_EXPRESSION position POSITION float EXPRESSION ulong EXPRESSION, EXPRESSION
+3.14 state OBJECT CONSTANT_EXPRESSION position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
 
 This is a dangerous feature, where you can set the object in a state. Do not set them into a simulation
 state as it may go mad! States have data which needs to be set up for the specific state, the float,
@@ -2318,7 +2328,7 @@ make good spirit point to Object in world		//#HelpSystem.txt:136
 	SYS SPIRIT_POINT_GAME_THING	//[3, 0] (HELP_SPIRIT_TYPE spirit, ObjectFloat target, bool inWorld)
 ___________________________________________
 
-3.16.1.2 make SPIRIT_TYPE spirit point at POSITION
+3.16.1.2 make SPIRIT_TYPE spirit point at COORD_EXPR
 
 Occasionally you might want to make an object (usually a help spirit) point to another object. You can
 do this via the make command.
@@ -2383,7 +2393,7 @@ stop evil spirit pointing		//#Reward.txt:232
 	SYS STOP_POINTING	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.8 make SPIRIT_TYPE spirit look at POSITION
+3.16.1.8 make SPIRIT_TYPE spirit look at COORD_EXPR
 
 The specified spirit type will look to the set position.
 
@@ -2654,7 +2664,7 @@ set camera lens 100 time 6		//#TheMissionaries.txt:1522
 	SYS MOVE_CAMERA_LENS	//[2, 0] (float lens, float time)
 ___________________________________________
 
-3.18.7 move camera position to POSITION time EXPRESSION
+3.18.7 move camera position to COORD_EXPR time EXPRESSION
 
 Moves the camera position smoothly from where it is to the stated position in an amount of time.
 
@@ -2673,7 +2683,7 @@ move camera position to [pos]+[0,80,60] time 4		//#Reward.txt:78
 	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
 ___________________________________________
 
-3.18.8 set camera position to POSITION
+3.18.8 set camera position to COORD_EXPR
 
 Sets the camera position instantly.
 
@@ -2688,7 +2698,7 @@ set camera position to [1891.039, 31.693, 2520.674]				// Wakeup position 1		//#
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 ___________________________________________
 
-3.18.9 move camera focus to POSITION time EXPRESSION
+3.18.9 move camera focus to COORD_EXPR time EXPRESSION
 
 Moves the camera focus smoothly from where it is to the stated position in an amount of time.
 
@@ -2700,7 +2710,7 @@ move camera focus to [pos] time 3		//#Reward.txt:79
 	SYS MOVE_CAMERA_FOCUS	//[4, 0] (Coord position, float time)
 ___________________________________________
 
-3.18.10 set camera focus to POSITION
+3.18.10 set camera focus to COORD_EXPR
 
 Sets the camera focus instantly.
 
@@ -2857,7 +2867,7 @@ move camera to T00_000 time 3											// Cam look at dying brother		//#lostbro
 	PUSHI 432
 	SYS CONVERT_CAMERA_POSITION	//[1, 3] (int) returns (Coord)
 	PUSHF 3.0
-	SWAPF 4
+	SWAPF 4						//* again, why not just push the time in the proper place?
 	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
 	SYS MOVE_CAMERA_FOCUS		//[4, 0] (Coord position, float time)
 ___________________________________________
@@ -2872,14 +2882,14 @@ camera path TRACK00		//#lostbrother.txt:788
 	SYS RUN_CAMERA_PATH	//[1, 0] (int cameraEnum)
 ___________________________________________
 
-3.18.25 enable|disable camera fixed rotation at POSITION
+3.18.25 enable|disable camera fixed rotation at COORD_EXPR
 
 DANGEROUS - fixes the camera rotation point. Used in learning script
 
 Never found (SET_FIXED_CAM_ROTATION)
 ___________________________________________
 
-3.18.26 shake camera at POSITION radius EXPRESSION amplitude EXPRESSION time EXPRESSION
+3.18.26 shake camera at COORD_EXPR radius EXPRESSION amplitude EXPRESSION time EXPRESSION
 
 Shakes the camera for an amount of time. This does not need to be in a camera block.
 
@@ -2933,14 +2943,14 @@ Starts one of JC's predefined special features on an object.
 Never found
 ___________________________________________
 
-3.18.31 set camera position POSITION focus POSITION lens EXPRESSION
+3.18.31 set camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION
 
 Sets the camera position, focus and lens instantly.
 
 Never found (SET_CAMERA_POS_FOC_LENS)
 ___________________________________________
 
-3.18.32 move camera position POSITION focus POSITION lens EXPRESSION time EXPRESSION
+3.18.32 move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION
 
 Moves the camera position, focus and lens in a given time.
 
@@ -2969,7 +2979,7 @@ AGE of Boy = 11		//#baywatch.txt:31
 	PUSHF [Boy]
 	PUSHI 16			//* These instructions seem useless, I would remove them 
 	PUSHF [Boy]			//*
-	SYS2 GET_PROPERTY	//*
+	SYS2 GET_PROPERTY	//* Always use SYS2 here, regardless of the type of property
 	POPI				//*
 	PUSHF 11.0
 	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object, float val)
@@ -3009,7 +3019,7 @@ WhichTextFirst++		//#HelpSystem.txt:15
 	POPF WhichTextFirst
 ___________________________________________
 
-6.1 POSITION viewed
+6.1 COORD_EXPR viewed
 
 Is a position on screen.
 
@@ -3051,7 +3061,7 @@ key constant 57 down
 	SYS KEY_DOWN	//[1, 1] (int key) returns (bool)
 ___________________________________________
 
-6.5 POSITION valid for creature
+6.5 COORD_EXPR valid for creature
 
 Is the position valid for a creature to be at (Eg. Not a mountain side).
 
@@ -3147,7 +3157,7 @@ Highlight not clicked		//#TheMissionaries.txt:40
 	NOT						//not
 ___________________________________________
 
-6.14 POSITION clicked radius EXPRESSION
+6.14 COORD_EXPR clicked radius EXPRESSION
 
 If the last position clicked (if in the last few seconds) is within the defined radius of the defined
 position this check is true.
@@ -3282,236 +3292,376 @@ Fanatic on fire
 	SYS IS_ON_FIRE	//[1, 1] (ObjectFloat obj) returns (bool)
 ___________________________________________
 
-6.28 fire near POSITION radius EXPRESSION
+6.28 fire near COORD_EXPR radius EXPRESSION
 
 A check on an position to see if it there is a fire within the defined radius.
 
+fire near [IdolPos] radius 30		//#idolpyre.txt:178
 
+	PUSHF [IdolPos]		//
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF 30.0			//radius
+	SYS IS_FIRE_NEAR	//[4, 1] (Coord position, float radius) returns (bool)
 ___________________________________________
 
-6.29 spell wind near POSITION radius EXPRESSION
+6.29 spell wind near COORD_EXPR radius EXPRESSION
 
 A check on an position to see if it there is a spell wind within the defined radius.
 
-
+Never found
 ___________________________________________
 
 6.30 camera ready
 
 Has the camera has reached the position it is going to.
 
+camera ready		//#Reward.txt:80
 
+	SYS HAS_CAMERA_ARRIVED	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.31 widescreen ready
 
 Has the widescreen transition finished.
 
+widescreen ready		//#ChallengeNotify.txt:27
 
+	SYS WIDESCREEN_TRANSISTION_FINISHED	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.32 fade ready
 
 Has the fade transition finished.
 
+fade ready		//#LandControlT.txt:552
 
+	SYS FADE_FINISHED	//[0, 1] () returns (bool)
 ___________________________________________
 
 6.33 camera not ready
 
 No doc.
 
+camera ready		//#Reward.txt:80
 
+	SYS HAS_CAMERA_ARRIVED	//[0, 1] () returns (bool)
+	NOT
 ___________________________________________
 
 6.34 dialogue ready
 
 Returns if we can have dialogue control.
 
+dialogue ready		//#HelpSystem.txt:210
 
+	SYS IS_DIALOGUE_READY	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.35 spirit not ready
+6.35 dialogue not ready
 
 No doc.
 
-
+	SYS IS_DIALOGUE_READY	//[0, 1] () returns (bool)
+	NOT
 ___________________________________________
 
-6.36 camera player EXPRESSION ready
+6.36 computer player EXPRESSION ready
 
 Has the computer player done all the tasks it had planned? For example when you requested it to set
 it's position, or move it's position.
 
+computer player 3 ready		//#beginland2.txt:64
 
+	PUSHF 3.0					//player
+	SYS COMPUTER_PLAYER_READY	//[1, 1] (float player) returns (bool)
 ___________________________________________
 
 6.37 player EXPRESSION wind resistance
 
 This test whether the wind resistance flag is on (the default).
 
-
+Never found
 ___________________________________________
 
-6.38 POSITION near POSITION radius EXPRESSION
+6.38 COORD_EXPR near COORD_EXPR radius EXPRESSION
+
+Tells if 2 positions are within the given distance.
+
+[NewCreature] near [MyCreature] radius 50		//#SwapCreatures.txt:76
+
+	PUSHF [NewCreature]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [MyCreature]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 50.0
+	LT
+
+Equivalent SYS calls:
+	GET_DISTANCE(COORD_EXPR, COORD_EXPR) < radius
+___________________________________________
+
+6.39 COORD_EXPR at COORD_EXPR
 
 No doc.
 
+[TutorialGuide] at [Guide1Pos]		//#LandControlT.txt:303
 
-___________________________________________
+	PUSHF [TutorialGuide]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [Guide1Pos]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 0.0
+	EQ
 
-6.39 POSITION at POSITION
-
-No doc.
-
-
+Equivalent SYS calls:
+	GET_DISTANCE(COORD_EXPR, COORD_EXPR) == 0.0
 ___________________________________________
 
 6.40 OBJECT in OBJECT
 
 No doc.
 
+Child1 in Children		//#greedyfarmer.txt:334
 
+	PUSHF [Child1]		//object
+	PUSHF [Children]	//flock
+	SYS FLOCK_MEMBER	//[2, 1] (ObjectFloat obj, ObjectFloat flock) returns (bool)
 ___________________________________________
 
-6.41 POSITION not viewed
+6.41 COORD_EXPR not viewed
 
 No doc.
 
+[DoorPos] not viewed		//#CitadelGuide.txt:86
 
+	PUSHF [DoorPos]
+	SYS GET_POSITION		//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS POS_FIELD_OF_VIEW	//[3, 1] (Coord position) returns (bool)
+	NOT
 ___________________________________________
 
 6.42 OBJECT not viewed
 
 No doc.
 
+Woman not viewed
 
+	PUSHF [Woman]
+	SYS GAME_THING_FIELD_OF_VIEW	//[1, 1] (ObjectFloat object) returns (bool)
+	NOT
 ___________________________________________
 
-6.43 POSITION not near POSITION radius EXPRESSION
+6.43 COORD_EXPR not near COORD_EXPR radius EXPRESSION
 
 No doc.
 
+[NewCreature] not near [OldPositionCreature] radius 1		//#SwapCreatures.txt:463
 
+	PUSHF [NewCreature]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [OldPositionCreature]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 1.0
+	LT					//* why not replace with GEQ ?
+	NOT					//*
+
+Equivalent SYS calls:
+	!(GET_DISTANCE(COORD_EXPR, COORD_EXPR) < radius)
 ___________________________________________
 
-6.44 POSITION not at POSITION
+6.44 COORD_EXPR not at COORD_EXPR
 
 No doc.
 
+[Sculptor]  not at [SculptorPosi]		//#thesculptor.txt:84
 
+	PUSHF [Sculptor]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	PUSHF [SculptorPosi]
+	SYS GET_POSITION	//[1, 3] (ObjectFloat object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 0.0
+	EQ					//* why not replace with NEQ ?
+	NOT					//*
+
+Equivalent SYS calls:
+	!(GET_DISTANCE(COORD_EXPR, COORD_EXPR) == 0.0)
 ___________________________________________
 
 6.45 OBJECT not in OBJECT
 
 No doc.
 
+Never found. Guess:
 
+	PUSHF [Child1]		//object
+	PUSHF [Children]	//flock
+	SYS FLOCK_MEMBER	//[2, 1] (ObjectFloat obj, ObjectFloat flock) returns (bool)
+	NOT
 ___________________________________________
 
 6.46 OBJECT in OBJECT hand
 
 No doc.
 
+Hermit in MyCreature hand		//#thehermit.txt:22
 
+	PUSHF [Hermit]
+	PUSHF [MyCreature]
+	SYS IN_CREATURE_HAND	//[2, 1] (ObjectFloat obj, ObjectFloat creature) returns (bool)
 ___________________________________________
 
 6.47 OBJECT not in OBJECT hand
 
 No doc.
 
+Man not in MyCreature hand		//#creaturesavingpeople.txt:57
 
+	PUSHF [Man]				//object
+	PUSHF [MyCreature]		//creature
+	SYS IN_CREATURE_HAND	//[2, 1] (ObjectFloat obj, ObjectFloat creature) returns (bool)
+	NOT
 ___________________________________________
 
 6.48 OBJECT interacting with OBJECT
 
 Is object interacting with an object, currently only used to see if a creature is interacting with a totem.
 
-
+Never found (CREATURE_INTERACTING_WITH)
 ___________________________________________
 
 6.49 creature CONSTANT_EXPRESSION is available
 
 See if player has a creature type available.
 
-
+creature CREATURE_TYPE_LEOPARD is available	and GlobalCurrentCreature != variable CREATURE_TYPE_LEOPARD		//#CreatureBreeder.txt:131
+	
+	PUSHI 3						//3=CREATURE_TYPE_LEOPARD
+	SYS IS_CREATURE_AVAILABLE	//[1, 1] (CREATURE_TYPE type) returns (bool)
 ___________________________________________
 
 6.50 get desire of OBJECT is CONSTANT_EXPRESSION
 
 No doc.
 
-
+Never found
 ___________________________________________
 
 6.51 OBJECT is CONSTANT_EXPRESSION
 
-Casts the result of a get property to BOOLEAN - Not sure if this function is used.
+Casts the result of a get property to BOOLEAN.
 
+Person is FLYING		//#VortexEntry.txt:7
 
+	PUSHF [Person]		//object
+	PUSHI 5				//5=SCRIPT_OBJECT_PROPERTY_TYPE_FLYING
+	SWAPI				//* why not just swap the PUSH in the code ???
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object) returns (int|float)
+	CASTB
 ___________________________________________
 
 6.52 OBJECT is not CONSTANT_EXPRESSION
 
 No doc.
 
+Trainer is not FLYING		//#CreatureDevelopment.txt:897
 
+	PUSHF [Trainer]		//object
+	PUSHI 5				//5=SCRIPT_OBJECT_PROPERTY_TYPE_FLYING
+	SWAPI				//* why not just swap the PUSH in the code ???
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object) returns (int|float)
+	CASTB
+	NOT
 ___________________________________________
 
 6.53 read
 
-No doc.
+I guess this force the user to click the action button to continue the dialogue (after a RUN_TEXT).
 
+read
 
+	SYS TEXT_READ	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.54 expression second[s]
+6.54 wait EXPRESSION second[s]
 
 Waits for a number of second(s) to elapse from the moment the instruction is called.
+The implementation is quite weird, it suggests that the sleep may fail under some circumstances,
+in which case it is retried until it succeeds. This means that the sleep may last longer.
 
+wait 15 seconds		//#VortexEntry.txt:31
 
+lblE:
+	PUSHF 15.0
+	SLEEP
+	JZ lblE
 ___________________________________________
 
 6.55 OBJECT exists
 
 Checks a variable to see if it has a game thing.
 
+Highlight exists		//#SwapCreatures.txt:208
 
+	PUSHF [Highlight]
+	CASTO
+	SYS THING_VALID	//[1, 1] (Object object) returns (bool)
 ___________________________________________
 
 6.56 OBJECT not exists
 
 No doc.
 
+Spirit not exists		//#ChallengeNotify.txt:102
 
+	PUSHF [Spirit]
+	CASTO
+	SYS THING_VALID	//[1, 1] (Object object) returns (bool)
+	NOT
 ___________________________________________
 
 6.57 OBJECT affected by spell CONSTANT_EXPRESSION
 
 Returns if an object is affected by spell. Only works on creatures at present.
 
-
+MyCreature affected by spell CREATURE_SPELL_INVISIBLE		//#throwthroughshield.txt:92
+	PUSHF [MyCreature]			//object
+	PUSHI 33					//spell 33=MAGIC_TYPE_CREATURE_SPELL_INVISIBLE
+	SYS IS_AFFECTED_BY_SPELL	//[2, 1] (ObjectFloat object, MAGIC_TYPE spell) returns (bool)
 ___________________________________________
 
 6.58 OBJECT leashed
 
 Returns if an object is leashed or not.
 
+MyCreature leashed		//#CreatureDevelopment.txt:1135
 
+	PUSHF [MyCreature]	//object
+	SYS IS_LEASHED		//[1, 1] (ObjectFloat object) returns ("bool")
 ___________________________________________
 
 6.59 OBJECT leashed to OBJECT
 
 Returns if an object is leashed to an object or not.
 
+MyCreature leashed to HouseToLeashTo 		//#CreatureDevelopment.txt:1531
 
+	PUSHF [MyCreature]			//object
+	PUSHF [HouseToLeashTo]		//target
+	SYS IS_LEASHED_TO_OBJECT	//[2, 1] (ObjectFloat object, ObjectFloat target) returns (bool)
 ___________________________________________
 
 6.60 OBJECT fighting
 
 Returns if an object is fighting.
 
+Creature fighting		//#SetupComputerCreatures.txt:11
 
+	PUSHF [Creature]	//object
+	SYS IS_FIGHTING		//[1, 1] (ObjectFloat object) returns (bool)
 ___________________________________________
 
 6.61 OBJECT is auto fighting
@@ -3668,14 +3818,14 @@ than the storage space left then the remaining space only will be filled.
 
 ___________________________________________
 
-9.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at POSITION [radius EXPRESSION]
+9.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION]
 
 Gets an object of a type, and an optional sub_type.
 
 
 ___________________________________________
 
-9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at POSITION [radius EXPRESSION]
+9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION]
 
 No doc.
 
@@ -3723,14 +3873,14 @@ Town = get TOWN at [1865.61,2641.24] radius 100
 	POPF Town
 ___________________________________________
 
-9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONSTANT_EXPRESSION at POSITION radius EXPRESSION
+9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-9.4.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at POSITION radius EXPRESSION [excluding scripted]
+9.4.1 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
 
 Looks in a container for an object at the defined position.
 
@@ -3747,7 +3897,7 @@ Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
 	POPF Victim
 ___________________________________________
 
-9.4.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near POSITION radius EXPRESSION
+9.4.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near COORD_EXPR radius EXPRESSION
 
 Looks in a container for an object not near the defined position.
 
@@ -3799,14 +3949,14 @@ HealedDude = get not poisoned VILLAGER in Town
 	POPF HealedDude
 ___________________________________________
 
-9.9 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at POSITION radius EXPRESSION
+9.9 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-9.10 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at POSITION radius EXPRESSION exclude_scripted
+9.10 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at COORD_EXPR radius EXPRESSION exclude_scripted
 
 Gets an object flying of type within a radius of a position.
 
@@ -3834,21 +3984,21 @@ Gets the computer player specified.
 
 ___________________________________________
 
-9.14 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at POSITION
+9.14 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
 
 Creates a game object at a position.
 
 
 ___________________________________________
 
-9.15 create random villager of tribe CONSTANT_EXPRESSION at POSITION
+9.15 create random villager of tribe CONSTANT_EXPRESSION at COORD_EXPR
 
 Creates a random villager type of the selected tribe at young adult age.
 
 
 ___________________________________________
 
-9.16 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at POSITION
+9.16 create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
 
 Creates a game object at a position.
 
@@ -3862,14 +4012,14 @@ Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
 	POPF Highlight
 ___________________________________________
 
-9.17 create mist at POSITION scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
+9.17 create mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
 
 Creates some mist at a position.
 
 
 ___________________________________________
 
-9.18 create with angle EXPRESSION and scale EXPRESSION types at POSITION
+9.18 create with angle EXPRESSION and scale EXPRESSION types at COORD_EXPR
 
 Creates a game object at a position with an angle and scale.
 
@@ -3920,28 +4070,28 @@ No doc.
 
 ___________________________________________
 
-9.23 reward at POSITION [from sky]
+9.23 reward at COORD_EXPR [from sky]
 
 Creates a reward at the position, with an optional from sky parameter.
 
 
 ___________________________________________
 
-9.24 reward at POSITION
+9.24 reward at COORD_EXPR
 
 Creates a reward at the position.
 
 
 ___________________________________________
 
-9.25 flock at POSITION
+9.25 flock at COORD_EXPR
 
 No doc.
 
 
 ___________________________________________
 
-9.26 make object dance CONSTANT_EXPRESSION around POSITION time EXPRESSION
+9.26 make object dance CONSTANT_EXPRESSION around COORD_EXPR time EXPRESSION
 
 No doc.
 
@@ -3955,7 +4105,7 @@ No doc.
 
 ___________________________________________
 
-9.28 create influence at POSITION radius EXPRESSION
+9.28 create influence at COORD_EXPR radius EXPRESSION
 
 Creates an influence at a position.
 
@@ -3969,7 +4119,7 @@ No doc.
 
 ___________________________________________
 
-9.30 create anti influence at position POSITION radius EXPRESSION
+9.30 create anti influence at position COORD_EXPR radius EXPRESSION
 
 No doc.
 
@@ -3998,7 +4148,7 @@ Gets the last object dropped by an object (A creature only currently).
 
 ___________________________________________
 
-9.33 get nearest town at POSITION for player EXPRESSION radius EXPRESSION
+9.33 get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
 
 Gets the nearest town of a players near a position within a radius.
 
@@ -4047,7 +4197,7 @@ No doc.
 
 ___________________________________________
 
-9.40 get area at POSITION radius EXPRESSION
+9.40 get area at COORD_EXPR radius EXPRESSION
 
 Gets an arena within the specified radius.
 
@@ -4118,7 +4268,7 @@ curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
 
 ___________________________________________
 
-9.44.2 cast spell at POSITION from POSITION radius EXPRESSION time EXPRESSION curl EXPRESSION
+9.44.2 cast spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 
 This function is used to cast a spell at a position, the parameters are as follows if one is not used just
 put the value 0 in:
@@ -4132,14 +4282,14 @@ curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
 
 ___________________________________________
 
-9.44.3 get spell CONSTANT_EXPRESSION at POSITION radius EXPRESSION
+9.44.3 get spell CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION
 
 Returns if a spell was cast at a position within a radois, if it was a shield then returns if a position is protected by spells NOT USING THE RADIUS.
 
 
 ___________________________________________
 
-9.45.1 create special effect CONSTANT_EXPRESSION at POSITION time EXPRESSION
+9.45.1 create special effect CONSTANT_EXPRESSION at COORD_EXPR time EXPRESSION
 
 Creates an in game special effect at a position with a duration.
 
@@ -4278,7 +4428,7 @@ ___________________________________________
 	PUSHF 2641.24
 	CASTC
 	PUSHC 0
-	SWAPI			//convert [x,z] to [x,0,z]
+	SWAPI			//convert [x,z] to [x,0,z]. Why not just insert a "PUSHC 0" between the other 2 push ???
 ___________________________________________
 
 11.3 [OBJECT]
@@ -4345,7 +4495,7 @@ Returns the position the player last cast a spell.
 
 ___________________________________________
 
-11.12 get target from POSITION to POSITION distance EXPRESSION angle EXPRESSION
+11.12 get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION
 
 Gets a position in the direction from/to at a defined distance and relative angle to the from/to.
 A vector is created from from/to and then using this as direction vector, a relative angle to it in
@@ -4439,7 +4589,7 @@ The current alignment of the player is a number from -1 to 1.
 
 ___________________________________________
 
-12.5 influence at POSITION
+12.5 influence at COORD_EXPR
 
 You can find out the strength of the player's influence at a particular position. influence can be
 'influence' or 'raw influence' the raw version means excluding the player allies influence.
@@ -4447,7 +4597,7 @@ You can find out the strength of the player's influence at a particular position
 
 ___________________________________________
 
-12.6 get player EXPRESSION influence at POSITION
+12.6 get player EXPRESSION influence at COORD_EXPR
 
 You can find out the strength of the given player's influence at a particular position.
 
@@ -4490,7 +4640,7 @@ Gets the distance some music can be heard from a music type.
 
 ___________________________________________
 
-12.12 land height at POSITION
+12.12 land height at COORD_EXPR
 
 Gets the height the land is above sea level.
 
@@ -4620,7 +4770,7 @@ Gets the slowest speed in the container.
 
 ___________________________________________
 
-12.28 get distance from POSITION to POSITION
+12.28 get distance from COORD_EXPR to COORD_EXPR
 
 Gets the distance from one position to another position.
 
@@ -4830,35 +4980,35 @@ Gets the square root of a number.
 
 ___________________________________________
 
-12.49.1 expression + expression
+12.49.1 EXPRESSION + EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-12.49.2 expression - expression
+12.49.2 EXPRESSION - EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-12.49.3 expression * expression
+12.49.3 EXPRESSION * EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-12.49.4 expression / expression
+12.49.4 EXPRESSION / EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-12.49.5 expression % expression
+12.49.5 EXPRESSION % EXPRESSION
 
 Get the modulus of the two values. As we work with floats the remainder includes the decimal point info.
 eg. 10.54 %8 gives a value of 2.54 exm: 1.54%8.
@@ -4866,23 +5016,25 @@ eg. 10.54 %8 gives a value of 2.54 exm: 1.54%8.
 
 ___________________________________________
 
-12.49.6 -expression
+12.49.6 -EXPRESSION
 
 No doc.
 
 
 ___________________________________________
 
-12.49.7 variable constant
+12.49.7 variable CONSTANT_EXPRESSION
 
-No doc.
+Cast an int to float. This is required when a constant has to be assigned or compared to a variable,
+because constants are of type int and variables are of type float.
 
+variable CTR_FIGHT_RECOIL_LOW
 
+	PUSHI 8
+	CASTF
 ___________________________________________
 
-12.49.8 (expression)
+12.49.8 (EXPRESSION)
 
 No doc.
-
-
 ___________________________________________

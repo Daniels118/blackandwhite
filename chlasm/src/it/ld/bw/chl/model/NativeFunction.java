@@ -20,10 +20,13 @@ import java.util.Map;
 
 import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
 
-/* When a function returns a value, if the return value is going to be put into a variable, then
- * POPF must be used; if the return value has to be thrown away, then POPO is used.
- * When an Object is passed to a function, then PUSHO is used.
- * When an ObjectFloat is passed to a function, then PUSHF is used, unless you want to refer to a null object,
+/* Script variables are of type float, so proper conversion must be done when required.
+ * 
+ * When a function returns a value, if the return value is going to be put into a variable, then
+ * POPF must be used (preceded by CASTF if the function returns an int); if the return value has
+ * to be thrown away, then POPO is used.
+ * When a function expects an Object, then PUSHO is used.
+ * When a function expects an ObjectFloat, then PUSHF is used, unless you want to pass a null object,
  * in which case you should use "PUSHO 0" (see FLOCK_DETACH).
  * When an ObjectInt is passed to a function, then PUSHI is used.
  * 
@@ -61,7 +64,7 @@ public enum NativeFunction {
 /*018*/	SET_SCRIPT_STATE_POS("ObjectInt object, Coord position"),
 /*019*/	SET_SCRIPT_FLOAT("ObjectInt object, float"),
 /*020*/	SET_SCRIPT_ULONG("Object object, int, int"),
-/*021*/	GET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object", "int|float"),	//Call with SYS or SYS2 depending on the property
+/*021*/	GET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object", "int|float"),	//Call with SYS or SYS2, see OPCode.java
 /*022*/	SET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, ObjectFloat object, float val", true),
 /*023*/	GET_POSITION("ObjectFloat object", "Coord"),
 /*024*/	SET_POSITION("ObjectFloat object, Coord position"),
@@ -162,7 +165,7 @@ public enum NativeFunction {
 /*119*/	RUN_CAMERA_PATH("int cameraEnum"),
 /*120*/	START_DIALOGUE("", "bool"),
 /*121*/	END_DIALOGUE(),
-/*122*/	IS_SPIRIT_READY("", "bool"),
+/*122*/	IS_DIALOGUE_READY("", "bool"),		//Was IS_SPIRIT_READY
 /*123*/	CHANGE_WEATHER_PROPERTIES("ObjectFloat storm, float temperature, float rainfall, float snowfall, float overcast, float fallspeed"),
 /*124*/	CHANGE_LIGHTNING_PROPERTIES("ObjectFloat storm, float sheetmin, float sheetmax, float forkmin, float forkmax"),
 /*125*/	CHANGE_TIME_FADE_PROPERTIES("ObjectFloat storm, float duration, float fadeTime"),
@@ -183,7 +186,7 @@ public enum NativeFunction {
 /*140*/	PLAY_SPIRIT_ANIM(5),				//Never found
 /*141*/	CALL_IN_NOT_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat obj, Coord pos, float radius, bool excludingScripted", "bool"),
 /*142*/	SET_CAMERA_ZONE("StrPtr filename"),	//filename is relative to folder Data\Zones, eg. Land1Zone5.exc
-/*143*/	GET_OBJECT_STATE("ObjectFloat obj", "float"),	//Return value must be casted to float
+/*143*/	GET_OBJECT_STATE("ObjectFloat obj", "int"),
 /*144*/	REVEAL_COUNTDOWN_TIMER(),			//Never found
 /*145*/	SET_TIMER_TIME("ObjectFloat timer, float time"),
 /*146*/	CREATE_TIMER("float timeout", "Object"),
@@ -262,14 +265,14 @@ public enum NativeFunction {
 /*219*/	GAME_TEAM_SIZE(2),
 /*220*/	GAME_TYPE(1, 1),
 /*221*/	GAME_SUB_TYPE(1, 1),
-/*222*/	IS_LEASHED(1, 1),
+/*222*/	IS_LEASHED("ObjectFloat object", "bool"),
 /*223*/	SET_CREATURE_HOME("ObjectFloat creature, Coord position"),
 /*224*/	GET_HIT_OBJECT(0, 1),
 /*225*/	GET_OBJECT_WHICH_HIT(0, 1),
 /*226*/	GET_NEAREST_TOWN_OF_PLAYER(5, 1),
 /*227*/	SPELL_AT_POINT(5, 1),
 /*228*/	SET_ATTACK_OWN_TOWN(2),				//Never found
-/*229*/	IS_FIGHTING(1, 1),
+/*229*/	IS_FIGHTING("ObjectFloat object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("ObjectFloat object, float radius"),
 /*231*/	TEMP_TEXT_WITH_NUMBER(4),			//Never found
 /*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero"),
@@ -283,7 +286,7 @@ public enum NativeFunction {
 /*240*/	CREATE_REWARD_IN_TOWN(6, 1),
 /*241*/	SET_FADE("float red, float green, float blue, float time"),
 /*242*/	SET_FADE_IN(1),
-/*243*/	FADE_FINISHED(0, 1),
+/*243*/	FADE_FINISHED(0, "bool"),
 /*244*/	SET_PLAYER_MAGIC(3),
 /*245*/	HAS_PLAYER_MAGIC(2, 1),
 /*246*/	SPIRIT_SPEAKS(2, 1),
@@ -301,17 +304,17 @@ public enum NativeFunction {
 /*258*/	REMOVE_REACTION_OF_TYPE("ObjectFloat object, REACTION reaction"),
 /*259*/	CREATURE_LEARN_EVERYTHING_EXCLUDING(2),
 /*260*/	PLAYED_PERCENTAGE(1, 1),
-/*261*/	OBJECT_CAST_BY_OBJECT("ObjectFloat spell, ObjectFloat caster", "bool"),	//Never found
-/*262*/	IS_WIND_MAGIC_AT_POS(1, 1),
+/*261*/	OBJECT_CAST_BY_OBJECT("ObjectFloat spellInstance, ObjectFloat caster", "bool"),	//Never found
+/*262*/	IS_WIND_MAGIC_AT_POS(1, "bool"),
 /*263*/	CREATE_MIST(9, 1),
 /*264*/	SET_MIST_FADE(6),
 /*265*/	GET_OBJECT_FADE(1, 1),
 /*266*/	PLAY_HAND_DEMO("StrPtr string, bool withPause, bool withoutHandModify"),
 /*267*/	IS_PLAYING_HAND_DEMO("", "bool"),
 /*268*/	GET_ARSE_POSITION(1, "Coord"),
-/*269*/	IS_LEASHED_TO_OBJECT(2, 1),
+/*269*/	IS_LEASHED_TO_OBJECT("ObjectFloat object, ObjectFloat target", "bool"),
 /*270*/	GET_INTERACTION_MAGNITUDE(1, 1),
-/*271*/	IS_CREATURE_AVAILABLE(1, 1),
+/*271*/	IS_CREATURE_AVAILABLE("CREATURE_TYPE type", "bool"),
 /*272*/	CREATE_HIGHLIGHT(5, 1),
 /*273*/	GET_OBJECT_HELD2(1, 1),
 /*274*/	GET_ACTION_COUNT(2, 1),
@@ -358,7 +361,7 @@ public enum NativeFunction {
 /*315*/	GET_STORED_CAMERA_FOCUS(0, "Coord"),
 /*316*/	CALL_NEAR_IN_STATE(8, 1),
 /*317*/	SET_CREATURE_SOUND("bool enable"),
-/*318*/	CREATURE_INTERACTING_WITH(2, 1),
+/*318*/	CREATURE_INTERACTING_WITH(2, "bool"),	//Never found
 /*319*/	SET_SUN_DRAW(1),
 /*320*/	OBJECT_INFO_BITS(1, 1),
 /*321*/	SET_HURT_BY_FIRE("bool enable, ObjectFloat object"),
@@ -367,11 +370,11 @@ public enum NativeFunction {
 /*324*/	GET_OBJECT_FLOCK(1, 1),
 /*325*/	SET_PLAYER_BELIEF("ObjectFloat object, float player, float belief"),
 /*326*/	PLAY_JC_SPECIAL("int feature"),
-/*327*/	IS_PLAYING_JC_SPECIAL(1, 1),
+/*327*/	IS_PLAYING_JC_SPECIAL(1, "bool"),
 /*328*/	VORTEX_PARAMETERS(8),
 /*329*/	LOAD_CREATURE("CREATURE_TYPE type, StrPtr mindFilename, float player, Coord position"),
-/*330*/	IS_SPELL_CHARGING(1, 1),
-/*331*/	IS_THAT_SPELL_CHARGING(2, 1),
+/*330*/	IS_SPELL_CHARGING(1, "bool"),
+/*331*/	IS_THAT_SPELL_CHARGING(2, "bool"),
 /*332*/	OPPOSING_CREATURE(1, 1),
 /*333*/	FLOCK_WITHIN_LIMITS("ObjectFloat object", "bool"),	//Never found
 /*334*/	HIGHLIGHT_PROPERTIES("ObjectFloat object, int text, int category"),
@@ -384,7 +387,7 @@ public enum NativeFunction {
 /*341*/	SET_TOWN_DESIRE_BOOST("ObjectFloat object, TOWN_DESIRE_INFO desire, float boost"),
 /*342*/	IS_LOCKED_INTERACTION("ObjectFloat object", "bool"),
 /*343*/	SET_CREATURE_NAME("ObjectFloat creature, int textID"),
-/*344*/	COMPUTER_PLAYER_READY(1, 1),
+/*344*/	COMPUTER_PLAYER_READY("float player", "bool"),
 /*345*/	ENABLE_DISABLE_COMPUTER_PLAYER2("bool pause, float player"),
 /*346*/	CLEAR_ACTOR_MIND(1),
 /*347*/	ENTER_EXIT_CITADEL(1),				//Never found; guess (bool)
@@ -398,7 +401,7 @@ public enum NativeFunction {
 /*355*/	GAME_SET_MANA("ObjectFloat object, float mana"),
 /*356*/	SET_MAGIC_PROPERTIES("ObjectFloat object, MAGIC_TYPE magicType, float duration"),
 /*357*/	SET_GAME_SOUND("bool enable"),
-/*358*/	SEX_IS_MALE(1, 1),
+/*358*/	SEX_IS_MALE(1, "bool"),
 /*359*/	GET_FIRST_HELP(1, 1),
 /*360*/	GET_LAST_HELP(1, 1),
 /*361*/	IS_ACTIVE("ObjectFloat object", "bool"),
@@ -425,22 +428,22 @@ public enum NativeFunction {
 /*382*/	SET_PLAYER_ALLY("float player1, float player2, float percentage"),
 /*383*/	CALL_FLYING(6, 1),
 /*384*/	SET_OBJECT_FADE_IN("ObjectFloat object, float time"),
-/*385*/	IS_AFFECTED_BY_SPELL(2, 1),
-/*386*/	SET_MAGIC_IN_OBJECT("bool enable, int spell, ObjectFloat object"),
+/*385*/	IS_AFFECTED_BY_SPELL("ObjectFloat object", "bool"),
+/*386*/	SET_MAGIC_IN_OBJECT("bool enable, int MAGIC_TYPE, ObjectFloat object"),
 /*387*/	ID_ADULT_SIZE(1, 1),
 /*388*/	OBJECT_CAPACITY(1, 1),
 /*389*/	OBJECT_ADULT_CAPACITY(1, 1),
 /*390*/	SET_CREATURE_AUTO_FIGHTING("bool enable, ObjectFloat creature"),
-/*391*/	IS_AUTO_FIGHTING(1, 1),
+/*391*/	IS_AUTO_FIGHTING(1, "bool"),
 /*392*/	SET_CREATURE_QUEUE_FIGHT_MOVE("ObjectFloat creature, FIGHT_MOVE move"),
 /*393*/	SET_CREATURE_QUEUE_FIGHT_SPELL(2),	//Never found; guess (ObjectFloat creature, ENUM_FIGHT_SPELLS spell)
 /*394*/	SET_CREATURE_QUEUE_FIGHT_STEP(2),	//Never found; guess (ObjectFloat creature, ENUM_FIGHT_STEPS step)
-/*395*/	GET_CREATURE_FIGHT_ACTION(1, 1),
-/*396*/	CREATURE_FIGHT_QUEUE_HITS(1, 1),
-/*397*/	SQUARE_ROOT(1, 1),
-/*398*/	GET_PLAYER_ALLY(2, 1),
-/*399*/	SET_PLAYER_WIND_RESISTANCE(2, 1),
-/*400*/	GET_PLAYER_WIND_RESISTANCE(2, 1),
+/*395*/	GET_CREATURE_FIGHT_ACTION("ObjectFloat creature", "int"),
+/*396*/	CREATURE_FIGHT_QUEUE_HITS("ObjectFloat creature", "float"),
+/*397*/	SQUARE_ROOT("float value", "float"),	//Never found
+/*398*/	GET_PLAYER_ALLY(2, 1),				//Never found
+/*399*/	SET_PLAYER_WIND_RESISTANCE(2, 1),	//Never found
+/*400*/	GET_PLAYER_WIND_RESISTANCE(2, 1),	//Never found
 /*401*/	PAUSE_UNPAUSE_CLIMATE_SYSTEM("bool enable"),
 /*402*/	PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM("bool enable"),	//Never found
 /*403*/	GET_MANA_FOR_SPELL(1, 1),
@@ -486,7 +489,7 @@ public enum NativeFunction {
 /*443*/	GET_TOWN_AND_VILLAGER_HEALTH_TOTAL(1, 1),
 /*444*/	GAME_ADD_FOR_BUILDING(2),			//Never found
 /*445*/	ENABLE_DISABLE_ALIGNMENT_MUSIC("bool enable"),
-/*446*/	GET_DEAD_LIVING(4, 1),
+/*446*/	GET_DEAD_LIVING("Coord position, float radius", "Object"),
 /*447*/	ATTACH_SOUND_TAG(4),
 /*448*/	DETACH_SOUND_TAG(3),
 /*449*/	GET_SACRIFICE_TOTAL(1, 1),
@@ -527,6 +530,7 @@ public enum NativeFunction {
 		this(0, 0);
 	}
 	
+	//TODO comment out when finished
 	NativeFunction(int pop) {
 		this(pop, 0);
 	}
@@ -576,6 +580,7 @@ public enum NativeFunction {
 		this.sys2 = sys2;
 	}
 	
+	//TODO comment out when finished
 	NativeFunction(int pop, int push) {
 		this.pop = pop;
 		this.push = push;
@@ -596,6 +601,7 @@ public enum NativeFunction {
 		this.sys2 = false;
 	}
 	
+	//TODO comment out when finished
 	NativeFunction(int pop, String sRet) {
 		this.pop = pop;
 		this.args = new Argument[pop];
@@ -700,7 +706,7 @@ public enum NativeFunction {
 		OBJECT("Object"),
 		OBJECT_FLOAT("ObjectFloat"),
 		OBJECT_INT("ObjectInt"),
-		INT_OR_FLOAT("int|float"),
+		INT_OR_FLOAT("int|float"),		//used only with GET_PROPERTY
 		STRPTR("StrPtr"),				//int (byte offset in data section)
 		
 		/* The following are enums. Be aware that many enum values defined in .h files are obsolete,
@@ -708,12 +714,13 @@ public enum NativeFunction {
 		 */
 		SCRIPT_OBJECT_TYPE(),			//defined in ScriptEnums.h
 		SCRIPT_OBJECT_SUBTYPE(),		//various enums defined in info2.txt Enum.h
-		SCRIPT_OBJECT_PROPERTY_TYPE(),	//defined in ScriptEnums.h
+		SCRIPT_OBJECT_PROPERTY_TYPE(),	//defined in ScriptEnums.h - TODO: assign a type to each property
 		SCRIPT_BOOL(),					//defined in ScriptEnums.h
 		SCRIPT_INTERFACE_LEVEL(),		//defined in ScriptEnums.h
 		HELP_SPIRIT_TYPE(),				//defined in Enum.h
 		VILLAGER_DISCIPLE(),			//defined in Enum.h
 		CREATURE_DESIRES(),				//defined in Enum.h
+		CREATURE_TYPE(),				//defined in CreatureEnum.h
 		CREATURE_ACTION(),				//defined in CreatureEnum.h
 		DEVELOPMENT_PHASE(),			//defined in CreatureEnum.h
 		CREATURE_ACTION_TYPE(),			//see enums.txt
@@ -721,7 +728,6 @@ public enum NativeFunction {
 		MAGIC_TYPE(),					//defined in Enum.h
 		HAND_GLOW(),					//see enums.txt
 		FIGHT_MOVE(),					//see enums.txt
-		CREATURE_TYPE(),				//defined in CreatureEnum.h
 		TOWN_DESIRE_INFO(),				//defined in Enum.h
 		IMMERSION_EFFECT_TYPE(),		//defined in Enum.h
 		CARRIED_OBJECT(),				//defined in Enum.h

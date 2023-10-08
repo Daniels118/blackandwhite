@@ -264,12 +264,14 @@ public class ASMWriter {
 			str.write("\tLocal " + script.getVariables().get(i) + "\r\n");
 		}
 		//Code
+		List<Instruction> instructions = chl.getCode().getItems();
 		int index = script.getInstructionAddress();
-		ListIterator<Instruction> it = chl.getCode().getItems().listIterator(index);
+		ListIterator<Instruction> it = instructions.listIterator(index);
 		Instruction instr;
 		boolean endFound = false;
 		int instrAfterEnd = 0;
-		int prevSrcLine = 0;
+		int prevSrcLine = instructions.get(index + 1).lineNumber;
+		int skipSrcLines = 0;
 		do {
 			try {
 				if (endFound) instrAfterEnd++;
@@ -281,12 +283,22 @@ public class ASMWriter {
 				if (label != null && label.backReferenced) {
 					str.write(label + ":\r\n");
 				}
-				if (printSourceLineEnabled && source != null
-						&& instr.lineNumber > 0 && instr.lineNumber <= source.length
-						&& instr.lineNumber != prevSrcLine) {
-					str.write("\t//" + source[instr.lineNumber - 1]);	//lineNumber start at 1
-					str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber + "\r\n");
-					prevSrcLine = instr.lineNumber;
+				if (printSourceLineEnabled && source != null) {
+					if (instr.lineNumber > 0 && instr.lineNumber <= source.length
+							&& instr.lineNumber != prevSrcLine
+							&& instr.opcode != OPCode.JZ && instr.opcode != OPCode.EXCEPT) {
+						if (skipSrcLines > 0) {
+							skipSrcLines--;
+						} else if (instr.opcode == OPCode.BRKEXCEPT) {
+							skipSrcLines = 1;
+						} else {
+							str.write("//" + source[instr.lineNumber - 1]);	//line numbers start from 1
+							str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber + "\r\n");
+							prevSrcLine = instr.lineNumber;
+						}
+					} else if (instr.isFree()) {
+						str.write("//\tstart\r\n");
+					}
 				}
 				/* If the label is referenced by a subsequent instruction, then print the label after
 				 * having printed the original source line.
@@ -302,7 +314,10 @@ public class ASMWriter {
 					NativeFunction f = NativeFunction.fromCode(instr.intVal);
 					str.write("\t//" + f.getInfoString());
 				}
-				if (printSourceLinenoEnabled && instr.lineNumber > 0 && instr.lineNumber != prevSrcLine) {
+				if (printSourceLinenoEnabled
+						&& instr.lineNumber > 0
+						&& instr.lineNumber != prevSrcLine
+						&& instr.opcode != OPCode.JZ && instr.opcode != OPCode.EXCEPT) {
 					str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber);
 					prevSrcLine = instr.lineNumber;
 				}
