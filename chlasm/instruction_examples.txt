@@ -9,7 +9,7 @@ Each statement is introduced by its chapter number and syntax taken from the
 has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
 On the subsequent line there is the description of the statement taken from the same document.
 On the subsequent line there is a real statement extracted from the script files cited above. In some
-cases the statement has been simplified to highlight just the relevant part.
+cases the statement has been simplified to focus on the relevant part.
 The subsequent lines are the equivalent assembler code decompiled using this tool and
 located with hard research work. Note that the current CHL has been patched by LH, while the scripts
 available to us are at the original version, so not all statements have an exact match with the
@@ -4133,21 +4133,52 @@ ___________________________________________
 
 Creates some mist at a position.
 
+Mist = create mist at [2106.779, 9.597, 2997.927] scale 0.8 red 255 green 255 blue 255 transparency 0.1 height ratio 0.6 		//#SingingStonesSongs.txt:81
 
+	PUSHF 2106.7791
+	CASTC
+	PUSHF 9.5970001
+	CASTC
+	PUSHF 2997.927
+	CASTC
+	PUSHF 0.8		//scale
+	PUSHF 255.0		//red
+	PUSHF 255.0		//green
+	PUSHF 255.0		//blue
+	PUSHF 0.1		//transparency
+	PUSHF 0.6		//height ratio
+	SYS CREATE_MIST	//[9, 1] (Coord pos, float scale, float r, float g, float b, float transparency, float heightRatio) returns (Object)
+	POPF Mist
 ___________________________________________
 
-9.18 create with angle EXPRESSION and scale EXPRESSION types at COORD_EXPR
+9.18 create with angle EXPRESSION and scale EXPRESSION SCRIPT_OBJECT_TYPE SCRIPT_OBJECT_SUBTYPE at COORD_EXPR
 
 Creates a game object at a position with an angle and scale.
 
+spell_dispenser = create with angle tangle and scale 1.0 SCRIPT_OBJECT_TYPE_SPELL_DISPENSER ABODE_INFO_NORSE_SPELL_DISPENSER at [pos]		//#Reward.txt:202
 
+	PUSHF [tangle]					//angle
+	PUSHF 1.0						//scale
+	PUSHI 36						//type
+	PUSHI 126						//subtype
+	PUSHF [pos]
+	SYS GET_POSITION				//position
+	SYS CREATE_WITH_ANGLE_AND_SCALE	//[7, 1] (float angle, float scale, SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord pos) returns (Object)
+	POPF spell_dispenser
 ___________________________________________
 
-9.19 create creature from creature
+9.19 create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONST_EXPR
 
 No doc.
 
-
+Ogre = create_creature_from_creature MyCreature OgreScale at [OgrePosition] CREATURE_TYPE_OGRE			//#land4ogre.txt:104
+	PUSHF [MyCreature]							//creature
+	PUSHF [OgreScale]							//scale
+	PUSHF [OgrePosition]						//
+	SYS GET_POSITION							//position
+	PUSHI 13									//type
+	SYS CREATURE_CREATE_RELATIVE_TO_CREATURE	//[6, 1] (ObjectFloat creature, float scale, Coord position, CREATURE_TYPE type) returns (Object)
+	POPF Ogre
 ___________________________________________
 
 9.20 create timer for EXPRESSION second[s]
@@ -4158,7 +4189,7 @@ is often worth starting a timer object within the script.
 SoditTimer = create timer for 30 seconds
 
 	PUSHF 30.0
-	SYS CREATE_TIMER	//(float) returns (Object)
+	SYS CREATE_TIMER	//(float timeout) returns (Object)
 	POPF SoditTimer
 ___________________________________________
 
@@ -4168,15 +4199,15 @@ Creates a position marker.
 
 LookAt = marker at [2962.9587, 0.0000, 3079.3020]
 
-	PUSHI 1
-	PUSHI 0
-	PUSHF 2962.9587
+	PUSHI 1			//fixed SCRIPT_OBJECT_TYPE_MARKER
+	PUSHI 0			//fixed 0
+	PUSHF 2962.9587	//x
 	CASTC
-	PUSHF 0.0
+	PUSHF 0.0		//y
 	CASTC
-	PUSHF 3079.302
+	PUSHF 3079.302	//z
 	CASTC
-	SYS CREATE	//(5, 1)
+	SYS CREATE	//[5, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position) returns (Object)
 	POPF LookAt
 ___________________________________________
 
@@ -4184,141 +4215,206 @@ ___________________________________________
 
 No doc.
 
+BeginPos = marker at camera position		//#CreatureDevelopment.txt:675
 
+	PUSHI 1					//fixed SCRIPT_OBJECT_TYPE_MARKER
+	PUSHI 0					//fixed 0
+	SYS GET_CAMERA_POSITION	//position
+	SYS CREATE				//[5, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position) returns (Object)
+	POPF BeginPos
 ___________________________________________
 
 9.23 reward at COORD_EXPR [from sky]
 
 Creates a reward at the position, with an optional from sky parameter.
 
+Reward1 = reward REWARD_WATER at [2,0,2] from sky	// Hermit Gives reward		//#thehermit.txt:178
 
+	PUSHI 55			//reward
+	PUSHF 2.0
+	CASTC
+	PUSHF 0.0
+	CASTC
+	PUSHF 2.0
+	CASTC
+	PUSHB true			//from sky
+	SYS CREATE_REWARD	//[5, 1] (REWARD_OBJECT_INFO reward, Coord position, bool fromSky) returns (Object)
+	POPF Reward1
 ___________________________________________
 
 9.24 reward at COORD_EXPR
 
-Creates a reward at the position.
-
-
+Merged with 9.23
 ___________________________________________
 
 9.25 flock at COORD_EXPR
 
 No doc.
 
+Seagull = flock at [1410.771, 61.504, 2349.563] 		//#thesculptor.txt:329
 
+	PUSHF 1410.771
+	CASTC
+	PUSHF 61.504002
+	CASTC
+	PUSHF 2349.563
+	CASTC
+	SYS FLOCK_CREATE	//[3, 1] (Coord position) returns (Object)
+	POPF Seagull
 ___________________________________________
 
-9.26 make object dance CONSTANT_EXPRESSION around COORD_EXPR time EXPRESSION
+9.26 make OBJECT dance CONSTANT_EXPRESSION around COORD_EXPR time EXPRESSION
 
 No doc.
 
+WelcomeDance = make DanceDependant dance DANCE_INFO_NEW_DANCE_AROUND_PERSON around [CrowdPosition] time 30		//#followus.txt:667
 
+	PUSHF [DanceDependant]	//object
+	PUSHI 14				//type
+	PUSHF [CrowdPosition]
+	SYS GET_POSITION		//position
+	PUSHF 30.0				//duration
+	SYS DANCE_CREATE		//[6, 1] (ObjectFloat obj, DANCE_INFO type, Coord position, float duration) returns (Object)
+	POPF WelcomeDance
 ___________________________________________
 
-9.27 create influence on OBJECT radius EXPRESSION
+9.27 create [anti] influence on OBJECT radius EXPRESSION
 
 No doc.
 
+QuarryInfluence = create influence on QuarryPos radius 30		//#setupland1.txt:101
 
+	PUSHF [QuarryPos]		//target
+	PUSHF 30.0				//radius
+	PUSHI 0					//zero
+	PUSHI 0					//anti (1=anti, 0=normal)
+	SYS INFLUENCE_OBJECT	//[4, 1] (ObjectFloat target, float radius, int zero, int anti) returns (Object)
+	POPF QuarryInfluence
 ___________________________________________
 
-9.28 create influence at COORD_EXPR radius EXPRESSION
+9.28 create [anti] influence at COORD_EXPR radius EXPRESSION
 
 Creates an influence at a position.
 
+Influence = create influence at [2185.616, 94.651, 2409.528] radius 1000		//#LandControlT.txt:1930
 
+	PUSHF 2185.616
+	CASTC
+	PUSHF 94.651001
+	CASTC
+	PUSHF 2409.5281
+	CASTC
+	PUSHF 1000.0			//radius
+	PUSHI 0
+	PUSHI 0					//anti (1=anti, zero=normal)
+	SYS INFLUENCE_POSITION	//[6, 1] (Coord position, float radius, int zero, int anti) returns (Object)
+	POPF Influence
 ___________________________________________
 
 9.29 create anti influence on OBJECT radius EXPRESSION
 
-No doc.
-
-
+Merged with 9.27
 ___________________________________________
 
 9.30 create anti influence at position COORD_EXPR radius EXPRESSION
 
-No doc.
-
-Influence=create anti influence at position [SwimPos] radius 30
-
-	PUSHF [SwimPos]
-	SYS GET_POSITION	//(1, 3)
-	PUSHF 30.0
-	PUSHI 0
-	PUSHI 1
-	SYS INFLUENCE_POSITION	//(6, 1)
-	POPF Influence
+Merged with 9.28
 ___________________________________________
 
 9.31 get held by OBJECT
 
 Gets the currently held object by an object (A creature only currently).
 
+HeldObject = get held by MyCreature		//#CreatureDevelopment.txt:1333
 
+	PUSHF [MyCreature]
+	SYS GET_OBJECT_HELD2	//[1, 1] (ObjectFloat creature) returns (Object)
+	POPF HeldObject
 ___________________________________________
 
 9.32 get dropped by OBJECT
 
 Gets the last object dropped by an object (A creature only currently).
 
+Never found
 
+	PUSHF [creature]		//creature
+	SYS GET_OBJECT_DROPPED	//[1, 1] (ObjectFloat creature) returns (Object)
 ___________________________________________
 
 9.33 get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
 
 Gets the nearest town of a players near a position within a radius.
 
-
+Never found (GET_NEAREST_TOWN_OF_PLAYER)
 ___________________________________________
 
 9.34 get town with id EXPRESSION
 
 Gets the town which has a particular id.
 
+Town = get town with id 0		//#creaturesavingpeople.txt:107
 
+	PUSHF 0.0				//id
+	SYS GET_TOWN_WITH_ID	//[1, 1] (float id) returns (Object)
+	POPF Town
 ___________________________________________
 
 9.35 get OBJECT hand is over
 
 Gets the object the interface hand is over.
 
+Never found
 
+	SYS GET_OBJECT_HAND_IS_OVER	//[0, 1] () returns (Object)
 ___________________________________________
 
 9.36 get OBJECT clicked
 
 Gets the object clicked.
 
+ClickedObject=get object clicked		//#SingingStonesSongs.txt:947
 
+	SYS GET_OBJECT_CLICKED	//[0, 1] () returns ("Object")
+	POPF ClickedObject
 ___________________________________________
 
 9.37 get OBJECT flock
 
 Gets the object flock if it has one.
 
-
+Never found
+	
+	PUSHI [object]			//member
+	SYS GET_OBJECT_FLOCK	//[1, 1] (ObjectFloat member) returns (Object)
 ___________________________________________
 
 9.38 get OBJECT held
 
 Gets the object held by the hand.
 
+TempObject=get object held		//#HandDemos.txt:782
 
+	SYS GET_OBJECT_HELD1	//[0, 1] () returns (Object)
+	POPF TempObject
 ___________________________________________
 
-9.39 get target OBJECT for OBJECT
+9.39 get target object for OBJECT
 
 No doc.
 
+ObjectToActOn = get target object for MyCreature		//#CreatureHelp.txt:9
 
+	PUSHF [MyCreature]
+	SYS GET_TARGET_OBJECT	//[1, 1] (ObjectFloat obj) returns (Object)
+	POPF ObjectToActOn
 ___________________________________________
 
-9.40 get area at COORD_EXPR radius EXPRESSION
+9.40 get arena at COORD_EXPR radius EXPRESSION
 
 Gets an arena within the specified radius.
 
-
+Never found (GET_ARENA)
 ___________________________________________
 
 9.41 get hit object
@@ -4326,7 +4422,9 @@ ___________________________________________
 Gets the last known valid object which was hit. This is DANGEROUS, as the object may change state when
 placed in and out of the script. Please only call this when you are sure the object is semi known.
 
+Never found
 
+	SYS GET_HIT_OBJECT	//[0, 1] () returns (Object)
 ___________________________________________
 
 9.42 get object which hit
@@ -4334,69 +4432,76 @@ ___________________________________________
 Gets the last known object which hit the last hit object. This is DANGEROUS, as the object may change state
 when placed in and out of the script. Please only call this when you are sure the object is semi known.
 
+Never found
 
+	SYS GET_OBJECT_WHICH_HIT	//[0, 1] () returns (Object)
 ___________________________________________
 
 9.43 get football pitch in OBJECT
 
 Gets football pitch in a town.
 
+Never found
 
+	PUSHF [Town]			//town
+	SYS GET_FOOTBALL_PITCH	//[1, 1] (ObjectFloat town) returns (Object)
 ___________________________________________
 
 9.44 Spells
-A number of spells can be cast in the game, be careful and read each function description below.
-NB. Note all creature spells must use 'cast spell on object' where the object is a creature.
+Note all creature spells must use 'cast spell on object' where the object is a creature.
 LIGHTNING_BOLT uses the from coord_expression as the source position, and the target pos/object as the
 direction to cast towards. BUT the bolt may fall short or hit targets beyond, as it works as if playing
 the game. Choose a point somewhere nearish the object and cast it at the object and everything should be ok!
-At the time of this document the following spells are available:
-SPELL_FIREBALL_LEVEL_1
-SPELL_FIREBALL_LEVEL_2
-SPELL_FIREBALL_LEVEL_3
-SPELL_LIGHTNING_LEVEL_1
-SPELL_LIGHTNING_LEVEL_2
-SPELL_LIGHTNING_LEVEL_3
-SPELL_EXPLOSION_LEVEL_1
-SPELL_EXPLOSION_LEVEL_2
-SPELL_HEAL_LEVEL_1
-SPELL_HEAL_LEVEL_2
-SPELL_TELEPORT
-SPELL_FOOD
-SPELL_WOOD
-SPELL_STORM_LEVEL_1
-SPELL_STORM_LEVEL_2
-SPELL_STORM_LEVEL_3
-SPELL_TORNADO
-SPELL_SHIELD
 ___________________________________________
 
-9.44.1 cast spell on object from coord_expression radius expression time expression curl expression
+9.44.1 cast CONSTANT_EXPRESSION spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 
-This function is used to cast a spell at an object, the parameters are as follows if one is not used
-just put the value 0 in:
-from coord_expression - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
-radius expression - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
-time expression - The amount of time you want the spell to last, -1, will make it last forever, or until
+This function is used to cast a spell at an object, the parameters are as follows (if one is not used
+just put the value 0 in):
+from COORD_EXPR - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
+radius EXPRESSION - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
+time EXPRESSION - The amount of time you want the spell to last, -1, will make it last forever, or until
 it naturally finishes. Most spells automatically delete themselves after the cast, however specify something
 sensible for LIGHTNING, SHIELD and TORNADO spells
-curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
+curl EXPRESSION [-1, 1] percentage anticlockwise->clockwise. 0 is no curl.
 
+StrengthSpell = cast CREATURE_SPELL_STRONG spell on LCreature from [LCreature] radius 0 time -1 curl 0		//#killkhazar.txt:482
 
+	PUSHI 30			//spell
+	PUSHF [LCreature]	//target
+	PUSHF [LCreature]
+	SYS GET_POSITION	//from
+	PUSHF 0.0			//radius
+	PUSHF 1.0
+	NEG					//duration
+	PUSHF 0.0			//curl
+	SYS SPELL_AT_THING	//[8, 1] (MAGIC_TYPE spell, ObjectFloat target, Coord from, float radius, float duration, float curl) returns (Object)
+	POPF StrengthSpell
 ___________________________________________
 
-9.44.2 cast spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+9.44.2 cast CONSTANT_EXPRESSION spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 
-This function is used to cast a spell at a position, the parameters are as follows if one is not used just
-put the value 0 in:
-from coord_expression - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
-radius expression - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
-time expression - The amount of time you want the spell to last, -1, will make it last forever, or until it
+This function is used to cast a spell at a position, the parameters are as follows (if one is not used just
+put the value 0 in):
+from COORD_EXPR - FOOD, WOOD, LIGHTNING_BOLT* AND FIREBALL* all need a position the spell comes from.
+radius EXPRESSION - The radius of the spell, used for LIGHTNING, SHIELDS, AND TORNADO.
+time EXPRESSION - The amount of time you want the spell to last, -1, will make it last forever, or until it
 naturally finishes. Most spells automatically delete themselves after the cast, however specify something
 sensible for LIGHTNING, SHIELD and TORNADO spells
-curl expression - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
+curl EXPRESSION - -1 -> +1 percentage anticlockwise->clockwise. 0 is no curl.
 
+LightningAttack1 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos1] radius 5.0 time 3 curl 1		//#CreatureGuide.txt:559
 
+	PUSHI 6				//spell
+	PUSHF [Guide]
+	SYS GET_POSITION	//target
+	PUSHF [LightPos1]
+	SYS GET_POSITION	//from
+	PUSHF 5.0			//radius
+	PUSHF 3.0			//duration
+	PUSHF 1.0			//curl
+	SYS SPELL_AT_POS	//[10, 1] (MAGIC_TYPE spell, Coord target, Coord from, float radius, float duration, float curl) returns (Object)
+	POPF LightningAttack1
 ___________________________________________
 
 9.44.3 get spell CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION
