@@ -4508,7 +4508,14 @@ ___________________________________________
 
 Returns if a spell was cast at a position within a radois, if it was a shield then returns if a position is protected by spells NOT USING THE RADIUS.
 
+CPShield = get spell SPELL_PHYSICAL_SHIELD at [HutPos] radius 5		//#Land2ShieldChallenge.txt:112
 
+	PUSHI 20			//spell
+	PUSHF [HutPos]
+	SYS GET_POSITION	//position
+	PUSHF 5.0			//radius
+	SYS SPELL_AT_POINT	//[5, 1] (MAGIC_TYPE spell, Coord position, float radius) returns (Object)
+	POPF CPShield
 ___________________________________________
 
 9.45.1 create special effect CONSTANT_EXPRESSION at COORD_EXPR time EXPRESSION
