@@ -4522,21 +4522,41 @@ ___________________________________________
 
 Creates an in game special effect at a position with a duration.
 
+S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]		//#SwapCreatures.txt:164
 
+	PUSHI 10					//effect
+	PUSHF [NewCreature]
+	SYS GET_POSITION			//position
+	PUSHF 1.0					//duration
+	SYS SPECIAL_EFFECT_POSITION	//[5, 1] (int effect, Coord position, float duration) returns (Object)
+	POPF S1Effect
 ___________________________________________
 
 9.45.2 create special effect CONSTANT_EXPRESSION to OBJECT time EXPRESSION
 
 Creates an in game special effect on an object with a duration.
 
+SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1		//#protectgatekeys.txt:24
 
+	PUSHI 34					//effect
+	PUSHF [GateKey1]			//target
+	PUSHF 1.0
+	NEG							//duration
+	SYS SPECIAL_EFFECT_OBJECT	//[3, 1] (int effect, ObjectFloat target, float duration) returns (Object)
+	POPF SFX
 ___________________________________________
 
-9.46 attach OBJECT to OBJECT leader
+9.46 attach OBJECT to OBJECT [as leader]
 
 No doc.
 
+attach Father to FollowersFlock as leader		//#followus.txt:887
 
+	PUSHF [Father]			//object
+	PUSHF [FollowersFlock]	//flock
+	PUSHB true				//as leader
+	SYS FLOCK_ATTACH		//[3, 1] (ObjectFloat object, ObjectFloat flock, bool asLeader) returns (Object)
+	POPO
 ___________________________________________
 
 9.47 detach [OBJECT] from OBJECT
@@ -4547,7 +4567,7 @@ DeletedWolf = detach from WolfPack
 
 	PUSHO 0				//object 0=default=random object in the flock
 	PUSHF [WolfPack]	//flock
-	SYS FLOCK_DETACH	//(2, 1)
+	SYS FLOCK_DETACH	//[2, 1] (ObjectFloat obj, ObjectFloat flock) returns (Object)
 	POPF DeletedWolf
 ___________________________________________
 

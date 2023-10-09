@@ -80,7 +80,7 @@ public enum NativeFunction {
 /*034*/	SET_FOCUS("ObjectFloat object, Coord position"),
 /*035*/	HAS_CAMERA_ARRIVED("", "bool"),
 /*036*/	FLOCK_CREATE("Coord position", "Object"),
-/*037*/	FLOCK_ATTACH("ObjectFloat obj, ObjectFloat flock, bool", "Object"),	//Always discard return value with POPO
+/*037*/	FLOCK_ATTACH("ObjectFloat obj, ObjectFloat flock, bool asLeader", "Object"),	//Always discard return value with POPO
 /*038*/	FLOCK_DETACH("ObjectFloat obj, ObjectFloat flock", "Object"),	/* Use "PUSHO 0" to refer to a random object in the flock.Returns the detached object (useful when detaching a random one).*/
 /*039*/	FLOCK_DISBAND("ObjectFloat flock"),
 /*040*/	ID_SIZE("ObjectFloat flock", "float"),
@@ -95,8 +95,8 @@ public enum NativeFunction {
 /*049*/	FOCUS_FOLLOW("ObjectFloat target"),
 /*050*/	POSITION_FOLLOW("ObjectFloat target"),	//Never found
 /*051*/	CALL_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool excludingScripted", "Object"),
-/*052*/	SPECIAL_EFFECT_POSITION("int, Coord position, float", "float"),
-/*053*/	SPECIAL_EFFECT_OBJECT("int, ObjectFloat obj, float", "float"),
+/*052*/	SPECIAL_EFFECT_POSITION("int effect, Coord position, float duration", "Object"),
+/*053*/	SPECIAL_EFFECT_OBJECT("int effect, ObjectFloat target, float duration", "Object"),
 /*054*/	DANCE_CREATE("ObjectFloat obj, DANCE_INFO type, Coord position, float duration", "Object"),
 /*055*/	CALL_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, ObjectFloat container, bool excludingScripted", "Object"),
 /*056*/	CHANGE_INNER_OUTER_PROPERTIES("ObjectFloat obj, float inner, float outer, float calm"),
