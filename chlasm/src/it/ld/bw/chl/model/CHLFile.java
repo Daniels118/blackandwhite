@@ -162,7 +162,7 @@ public class CHLFile {
 			for (int i = script.getInstructionAddress(); i < instructions.size(); i++) {
 				Instruction instr = instructions.get(i);
 				try {
-					instr.validate(this, script);
+					instr.validate(this, script, i);
 				} catch (Exception e) {
 					res = false;
 					int offset = code.getOffset() + 4 + i * Instruction.LENGTH;

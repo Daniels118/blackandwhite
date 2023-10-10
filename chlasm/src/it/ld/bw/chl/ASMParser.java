@@ -522,7 +522,7 @@ public class ASMParser {
 		for (int i = 0; i < scripts.size(); i++) {
 			if (scriptsUsageCount[i] == 0) {
 				Script script = scripts.get(i);
-				String fmt = "WARNING: script %1$ 4d %2$s is never used (instruction address: %3$08X)";
+				String fmt = "NOTICE: script %1$ 4d %2$s is never used (instruction address: %3$08X)";
 				String msg = String.format(fmt, script.getScriptID(), script.getName(), script.getInstructionAddress());
 				out.println(msg);
 			}

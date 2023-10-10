@@ -18,6 +18,7 @@ package it.ld.bw.chl.model;
 import it.ld.bw.chl.exceptions.InvalidBooleanException;
 import it.ld.bw.chl.exceptions.InvalidDataTypeException;
 import it.ld.bw.chl.exceptions.InvalidInstructionAddressException;
+import it.ld.bw.chl.exceptions.InvalidInstructionException;
 import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
 import it.ld.bw.chl.exceptions.InvalidOPCodeException;
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
@@ -93,7 +94,7 @@ public class Instruction extends Struct {
 		if (v < 0 || v >= DataType.values().length) throw new InvalidDataTypeException(v);
 		dataType = DataType.values()[v];
 		//
-		if ((flags & REF) != 0 || opcode.forceInt) {
+		if (isReference() || opcode.forceInt) {
 			intVal = str.readInt();	//Address of variables, system functions index and swap count are always int, regardless of the datatype
 		} else {
 			switch (dataType) {
@@ -122,7 +123,7 @@ public class Instruction extends Struct {
 		str.writeInt(opcode.ordinal());
 		str.writeInt(flags);
 		str.writeInt(dataType.ordinal());
-		if ((flags & REF) != 0 || opcode.forceInt) {
+		if (isReference() || opcode.forceInt) {
 			str.writeInt(intVal);	//Address of variables, system functions index, and swap count are always int, regardless of the datatype
 		} else {
 			switch (dataType) {
@@ -156,7 +157,7 @@ public class Instruction extends Struct {
 		switch (opcode) {
 			case SYS:
 				NativeFunction func = NativeFunction.fromCode(intVal);
-				if (func.varargs) return -1;
+				if (func.varargs) return -1;	//Cannot determine the number of parameter for varargs
 				return func.pop;
 			case CALL:
 				return chl.getScriptsSection().getScript(intVal).getParameterCount();
@@ -230,7 +231,7 @@ public class Instruction extends Struct {
 				Object label = null;
 				if (labels != null) label = labels.get(intVal);
 				s += (label != null) ? label : String.format("0x%1$08X", intVal);
-			} else if ((flags & REF) != 0) {
+			} else if (isReference()) {
 				if (chl != null && script != null) {
 					String varName;
 					try {
@@ -268,11 +269,25 @@ public class Instruction extends Struct {
 		return s;
 	}
 	
-	public void validate() throws InvalidInstructionAddressException, InvalidScriptIdException, InvalidNativeFunctionException {
-		validate(null, null);
+	/**Verify the correctness of this instruction.
+	 * @throws InvalidInstructionAddressException
+	 * @throws InvalidScriptIdException
+	 * @throws InvalidNativeFunctionException
+	 * @throws InvalidInstructionException 
+	 */
+	public void validate() throws InvalidInstructionAddressException, InvalidScriptIdException, InvalidNativeFunctionException, InvalidInstructionException {
+		validate(null, null, -1);
 	}
 	
-	public void validate(CHLFile chl, Script script) throws InvalidInstructionAddressException, InvalidScriptIdException, InvalidNativeFunctionException {
+	/**Verify the correctness of this instruction, taking into account the context where it resides.
+	 * @param chl
+	 * @param script
+	 * @throws InvalidInstructionAddressException
+	 * @throws InvalidScriptIdException
+	 * @throws InvalidNativeFunctionException
+	 * @throws InvalidInstructionException 
+	 */
+	public void validate(CHLFile chl, Script script, int index) throws InvalidInstructionAddressException, InvalidScriptIdException, InvalidNativeFunctionException, InvalidInstructionException {
 		boolean popNull = opcode == OPCode.POP && intVal == 0;
 		boolean isZero = opcode == OPCode.CAST && (flags & ZERO) != 0;
 		boolean swapZero = opcode == OPCode.SWAP && intVal == 0;
@@ -287,17 +302,67 @@ public class Instruction extends Struct {
 					if (intVal < 0 || intVal >= chl.getCode().getItems().size()) {
 						throw new InvalidInstructionAddressException(intVal);
 					}
-				} else if ((flags & REF) != 0) {
+					if (opcode.isJump) {
+						if (isForward()) {
+							if (intVal < index) {
+								throw new InvalidInstructionException("The FORWARD flag is set, but the target address is lower than the current address");
+							}
+						} else {
+							if (intVal > index) {
+								throw new InvalidInstructionException("The FORWARD flag is not set, but the target address is greater than the current address");
+							}
+						}
+					}
+				} else if (isReference()) {
 					script.getVar(chl, intVal);
 				}
 			}
 		}
 	}
 	
+	/**Tells if the operand value is a reference to a variable.
+	 * @return
+	 */
+	public boolean isReference() {
+		return (flags & REF) == REF;
+	}
+	
+	/**For a jump instruction, tells if the target address is greater than the current address.
+	 * @return
+	 */
+	public boolean isForward() {
+		return (flags & FORWARD) == FORWARD;
+	}
+	
+	/**Tells if this is a START instruction. This is a shorthand to test if the opcode is CALL and
+	 * the ASYNC flag is set.
+	 * @return
+	 */
+	public boolean isStart() {
+		return opcode == OPCode.CALL && (flags & ASYNC) == ASYNC;
+	}
+	
+	/**Tells if this is a ZERO instruction. This is a shorthand to test if the opcode is CAST and
+	 * the ZERO flag is set.
+	 * @return
+	 */
+	public boolean isZero() {
+		return opcode == OPCode.CAST && (flags & ZERO) == ZERO;
+	}
+	
+	/**Tells if this is a FREE instruction. This is a shorthand to test if the opcode is ENDEXCEPT and
+	 * the FREE flag is set.
+	 * @return
+	 */
 	public boolean isFree() {
 		return opcode == OPCode.ENDEXCEPT && (flags & FREE) == FREE;
 	}
 	
+	/**Creates an Instruction instance based on the given mnemonic. The instruction has the opcode, flags and
+	 * datatype already initialized. Flags and datatype may require further modifications depending on the operand.
+	 * @param keyword
+	 * @return
+	 */
 	public static Instruction fromKeyword(String keyword) {
 		Instruction m = model.get(keyword);
 		if (m == null) return null;
@@ -311,8 +376,8 @@ public class Instruction extends Struct {
 	/**This method tries to format float numbers like they where coded in the original source scripts, i.e.:
 	 *   - simple decimal format (no scientific notation, etc.);
 	 *   - at most 7 significant digits shared between int and decimal part;
-	 *   - at least one decimal digit, even if more then 7 total.
-	 * It isn't perfect, but very close.
+	 *   - at least one decimal digit, even if more then 7 int digits.
+	 * Of course it can't always succeed, but most of times does or gets very close.
 	 * @param v
 	 * @return
 	 */

@@ -83,6 +83,7 @@ public class Main {
 		if (srcPath != null) {
 			writer.setSourcePath(srcPath.toPath());
 			writer.setPrintSourceLineEnabled(true);
+			writer.setPrintSourceCommentsEnabled(true);
 		}
 		if (out != null) {
 			writer.writeMerged(chl, out);

@@ -6,11 +6,14 @@ package it.ld.bw.chl.model;
  */
 
 public final class OPCodeFlag {
+	//Normal flags
 	public static final int REF = 1;
+	public static final int FORWARD = 1;
+	
+	//Alternate mnemonic flags
 	public static final int ASYNC = 1;
 	public static final int ZERO = 1;
 	public static final int FREE = 1;
-	public static final int FORWARD = 1;
 	
 	private OPCodeFlag() {}
 }

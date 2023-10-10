@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Stack;
 
 import it.ld.bw.chl.exceptions.CompileException;
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
@@ -46,6 +47,7 @@ public class ASMWriter {
 	private boolean printSourceLinenoEnabled = false;
 	private boolean printSourceLineEnabled = false;
 	private Path sourcePath = null;
+	private boolean printSourceCommentsEnabled = false;
 	
 	private String currentSourceFilename;
 	private String[] source;
@@ -95,11 +97,19 @@ public class ASMWriter {
 	public Path getSourcePath() {
 		return sourcePath;
 	}
-
+	
 	public void setSourcePath(Path sourcePath) {
 		this.sourcePath = sourcePath;
 	}
-
+	
+	public boolean isPrintSourceCommentsEnabled() {
+		return printSourceCommentsEnabled;
+	}
+	
+	public void setPrintSourceCommentsEnabled(boolean printSourceCommentsEnabled) {
+		this.printSourceCommentsEnabled = printSourceCommentsEnabled;
+	}
+	
 	public void write(CHLFile chl, File outdir) throws IOException, CompileException, InvalidScriptIdException {
 		Path path = outdir.toPath();
 		List<Const> constants = chl.getDataSection().analyze();
@@ -257,6 +267,34 @@ public class ASMWriter {
 			str.write("global "+script.getGlobalVar(chl, script.getVarOffset())+"\r\n");
 			str.write("\r\n");
 		}
+		Stack<String> comments = new Stack<>();
+		List<Instruction> instructions = chl.getCode().getItems();
+		final int firstInstruction = script.getInstructionAddress();
+		Instruction instr;
+		//Script comments
+		if (printSourceCommentsEnabled && source != null) {
+			instr = instructions.get(firstInstruction + 1);
+			if (instr.lineNumber <= 0) {
+				//In case there are no parameters and local vars
+				instr = instructions.get(firstInstruction + 2);
+			}
+			//Search for previous comments
+			for (int i = instr.lineNumber - 2; i >= 0; i--) {
+				String src = source[i];
+				String srcT = src.trim();
+				if (src.isBlank() || srcT.startsWith("//")) {
+					comments.push(src);
+				} else if ("start".equals(srcT) || srcT.startsWith("begin ")) {
+					comments.clear();
+				} else {
+					break;
+				}
+			}
+			//Write previous comments
+			while (!comments.isEmpty()) {
+				str.write(comments.pop() + "\r\n");
+			}
+		}
 		//Signature
 		str.write("begin "+script.getSignature()+"\r\n");
 		//Local variables
@@ -264,10 +302,8 @@ public class ASMWriter {
 			str.write("\tLocal " + script.getVariables().get(i) + "\r\n");
 		}
 		//Code
-		List<Instruction> instructions = chl.getCode().getItems();
-		int index = script.getInstructionAddress();
+		int index = firstInstruction;
 		ListIterator<Instruction> it = instructions.listIterator(index);
-		Instruction instr;
 		boolean endFound = false;
 		int instrAfterEnd = 0;
 		int prevSrcLine = instructions.get(index + 1).lineNumber;
@@ -284,20 +320,43 @@ public class ASMWriter {
 					str.write(label + ":\r\n");
 				}
 				if (printSourceLineEnabled && source != null) {
-					if (instr.lineNumber > 0 && instr.lineNumber <= source.length
+					if (instr.opcode == OPCode.EXCEPT) {
+						if (index > firstInstruction) {
+							/*The line number for EXCEPT is the one of the end of block (i.e. "end while"),
+							 * this would just cause confusion. We insert an empty comment just to separate
+							 * the EXCEPT from the previous instruction. */
+							str.write("//\r\n");
+						}
+					} else if (instr.lineNumber > 0 && instr.lineNumber <= source.length
 							&& instr.lineNumber != prevSrcLine
-							&& instr.opcode != OPCode.JZ && instr.opcode != OPCode.EXCEPT) {
+							&& instr.opcode != OPCode.JZ) {
 						if (skipSrcLines > 0) {
 							skipSrcLines--;
 						} else if (instr.opcode == OPCode.BRKEXCEPT) {
 							skipSrcLines = 1;
 						} else {
-							str.write("//" + source[instr.lineNumber - 1]);	//line numbers start from 1
+							if (printSourceCommentsEnabled) {
+								//Search for previous comments
+								for (int i = instr.lineNumber - 2; i >= 0; i--) {
+									String src = source[i];
+									if (src.isBlank() || src.trim().startsWith("//")) {
+										comments.push(src);
+									} else {
+										break;
+									}
+								}
+								//Write previous comments
+								while (!comments.isEmpty()) {
+									str.write(comments.pop() + "\r\n");
+								}
+							}
+							//Write the statement
+							str.write("//@" + source[instr.lineNumber - 1]);	//line numbers start from 1
 							str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber + "\r\n");
 							prevSrcLine = instr.lineNumber;
 						}
 					} else if (instr.isFree()) {
-						str.write("//\tstart\r\n");
+						str.write("//@\tstart\r\n");
 					}
 				}
 				/* If the label is referenced by a subsequent instruction, then print the label after
