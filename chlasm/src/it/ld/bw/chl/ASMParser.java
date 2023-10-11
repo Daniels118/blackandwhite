@@ -599,8 +599,11 @@ public class ASMParser {
 	private static String parseString(String s) {
 		if (!s.startsWith("\"") || !s.endsWith("\"")) return null;
 		s = s.substring(1, s.length() - 1);
-		s = s.replace("\\\"", "\"");
 		s = s.replace("\\\\", "\\");
+		s = s.replace("\\\"", "\"");
+		s = s.replace("\\r", "\r");
+		s = s.replace("\\n", "\n");
+		s = s.replace("\\t", "\t");
 		return s;
 	}
 	

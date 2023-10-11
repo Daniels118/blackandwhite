@@ -13,41 +13,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lexer;
+package it.ld.bw.chl.lang;
 
-public class Token {
-	public enum ValueType {
-		INT, FLOAT, BOOL, STRING
+public enum TokenType {
+	BLANK(false),
+	COMMENT(false),
+	BLOCK_COMMENT(false),
+	EOL,
+	KEYWORD,
+	COMMA,
+	POPEN,
+	PCLOSED,
+	SQOPEN,
+	SQCLOSED,
+	OPERATOR,
+	ASSIGN,
+	INC_ASSIGN,
+	DEC_ASSIGN,
+	MUL_ASSIGN,
+	DIV_ASSIGN,
+	MOD_ASSIGN,
+	COMPARE,
+	IDENTIFIER,
+	NUMBER,
+	STRING;
+	
+	/**Tells if this token must be taken into account or can be ignored.*/
+	public final boolean important;
+	
+	private TokenType() {
+		this(true);
 	}
 	
-	public int line;
-	public int col;
-	public TokenType type;
-	public ValueType valueType;
-	public String value;
-	
-	public Token(int line, int col, TokenType type) {
-		this(line, col, type, null);
-	}
-	
-	public Token(int line, int col, TokenType type, char value) {
-		this(line, col, type, String.valueOf(value));
-	}
-	
-	public Token(int line, int col, TokenType type, String value) {
-		this.line = line;
-		this.col = col;
-		this.type = type;
-		this.value = value;
-	}
-	
-	public Token setValue(String value) {
-		this.value = value;
-		return this;
-	}
-	
-	@Override
-	public String toString() {
-		return value;
+	private TokenType(boolean important) {
+		this.important = important;
 	}
 }

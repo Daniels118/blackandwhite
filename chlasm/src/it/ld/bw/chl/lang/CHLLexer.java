@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lexer;
+package it.ld.bw.chl.lang;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +29,6 @@ import it.ld.bw.chl.exceptions.ParseException;
  * because using ANTLR it should be more easy to generate a parser too. 
  */
 
-@Deprecated
 public class CHLLexer {
 	private enum Status {
 		DEFAULT, IDENTIFIER, NUMBER, STRING, COMMENT, BLOCK_COMMENT, BLANK
@@ -93,7 +92,10 @@ public class CHLLexer {
 							}
 						} else if (c == '/') {
 							char c2 = (char) str.read();
-							if (c2 == '/') {
+							if (c2 == '=') {
+								tokens.add(new Token(line, col, TokenType.DIV_ASSIGN, "/="));
+								col++;
+							} else if (c2 == '/') {
 								col++;
 								status = Status.COMMENT;
 								token = new Token(line, col, TokenType.COMMENT);
@@ -103,6 +105,15 @@ public class CHLLexer {
 								token = new Token(line, col, TokenType.BLOCK_COMMENT);
 								col++;
 								buffer.append("/*");
+							} else {
+								str.unread(c2);
+								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+							}
+						} else if (c == '%') {
+							char c2 = (char) str.read();
+							if (c2 == '=') {
+								tokens.add(new Token(line, col, TokenType.MOD_ASSIGN, "%="));
+								col++;
 							} else {
 								str.unread(c2);
 								tokens.add(new Token(line, col, TokenType.OPERATOR, c));

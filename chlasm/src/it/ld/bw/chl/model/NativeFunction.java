@@ -128,7 +128,7 @@ public enum NativeFunction {
 /*079*/	CREATURE_SET_DESIRE_ACTIVATED2("Object creature, SCRIPT_BOOL active"),
 /*080*/	CREATURE_SET_DESIRE_MAXIMUM("Object creature, CREATURE_DESIRES desire, float value"),
 /*081*/	CONVERT_CAMERA_POSITION("int", "Coord"),
-/*082*/	CONVERT_CAMERA_FOCUS("int", "Coord"),
+/*082*/	CONVERT_CAMERA_FOCUS("int camera_enum", "Coord"),
 /*083*/	CREATURE_SET_PLAYER("Object creature"),
 /*084*/	START_COUNTDOWN_TIMER("float timeout"),				//Never found
 /*085*/	CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION(2),	//Never found
@@ -223,7 +223,7 @@ public enum NativeFunction {
 /*174*/	SET_TEMPERATURE("Object obj, float temperature"),
 /*175*/	SET_ON_FIRE("bool enable, Object object, float burnSpeed"),
 /*176*/	SET_TARGET("Object obj, Coord position, float time"),
-/*177*/	WALK_PATH("Object object, bool forward, int camera_enum, float valFrom, float valTo"),
+/*177*/	WALK_PATH("Object object, bool forward, CAMERA_ENUM camera_enum, float valFrom, float valTo"),
 /*178*/	FOCUS_AND_POSITION_FOLLOW(2),						//Never found
 /*179*/	GET_WALK_PATH_PERCENTAGE("Object object", "float"),	//Never found
 /*180*/	CAMERA_PROPERTIES("float distance, float speed, float angle, bool enableBehind"),

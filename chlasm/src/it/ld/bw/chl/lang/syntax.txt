@@ -1,0 +1,545 @@
+### 3 Statements
+STATEMENTS: [STATEMENT]*
+
+STATEMENT: {
+	ASSIGNMENT
+	
+	move OBJECT position to COORD_EXPR [radius EXPRESSION]
+	set OBJECT position to COORD_EXPR
+	set OBJECT disciple CONST_EXPR [with sound]
+	set OBJECT focus to COORD_EXPR
+	set OBJECT focus on OBJECT
+	OBJECT play CONST_EXPR loop EXPRESSION
+	set OBJECT anim CONST_EXPR
+	delete OBJECT [with fade]
+	set OBJECT properties inner EXPRESSION outer EXPRESSION [calm EXPRESSION]
+	set OBJECT text property text CONST_EXPR category CONST_EXPR
+	set OBJECT velocity heading COORD_EXPR speed EXPRESSION
+	set OBJECT target COORD_EXPR time EXPRESSION
+	set OBJECT time to EXPRESSION second[s]
+	set OBJECT radius EXPRESSION
+	set OBJECT mana EXPRESSION
+	set OBJECT temperature EXPRESSION
+	release OBJECT
+	release OBJECT focus
+	set OBJECT forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION
+	enable|disable OBJECT active
+	open|close OBJECT
+	set OBJECT properties town OBJECT flock position COORD_EXPR distance EXPRESSION radius EXPRESSION flock OBJECT
+	set OBJECT desire CONST_EXPR to EXPRESSION
+	set OBJECT only desire CONST_EXPR
+	set OBJECT disable only desire
+	set OBJECT desire CONST_EXPR CONST_EXPR
+	set OBJECT CONST_EXPR development
+	set OBJECT magic properties MAGIC_TYPE [time EXPRESSION]
+	enable|disable OBJECT attack own town
+	enable|disable OBJECT reaction
+	enable|disable OBJECT development script
+	enable|disable OBJECT spell reversion
+	enable|disable OBJECT anim time modify
+	set OBJECT all desire CONST_EXPR
+	set OBJECT desire maximum CONST_EXPR to EXPRESSION
+	set OBJECT priority EXPRESSION
+	set player_creature to OBJECT
+	teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR
+	teach OBJECT all
+	teach OBJECT all excluding CONST_EXPR
+	force OBJECT CONST_EXPR OBJECT [with OBJECT]
+	enable|disable OBJECT friends with OBJECT
+	initialise number of constant for OBJECT
+	force action OBJECT finish
+	enable OBJECT confined to COORD_EXPR radius EXPRESSION
+	disable OBJECT confined
+	clear dropped by OBJECT
+	attach OBJECT leash to OBJECT
+	attach OBJECT leash to hand
+	enable|disable leash on OBJECT
+	toggles player EXPRESSION leash
+	set player EXPRESSION ally with player EXPRESSION percentage EXPRESSION
+	enable|disable player EXPRESSION wind resistance
+	detach OBJECT leash
+	swap creature from OBJECT to OBJECT
+	set OBJECT home position COORD_EXPR
+	set OBJECT creed properties hand HAND_GLOW scale EXPRESSION power EXPRESSION time EXPRESSION
+	enable|disable OBJECT auto fighting
+	enable|disable fight exit
+	queue OBJECT fight move FIGHT_MOVE
+	queue OBJECT fight step CONST_EXPR
+	queue OBJECT fight spell CONST_EXPR
+	set OBJECT name CONST_EXPR
+	enable|disable OBJECT auto scale EXPRESSION
+	set computer player EXPRESSION position to COORD_EXPR
+	move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height]
+	enable|disable computer player EXPRESSION
+	pause|unpause computer player EXPRESSION
+	set computer player EXPRESSION personality STRING EXPRESSION
+	set computer player EXPRESSION suppression STRING EXPRESSION
+	set computer player EXPRESSION speed EXPRESSION
+	force computer player EXPRESSION action STRING OBJECT OBJECT
+	queue computer player EXPRESSION action STRING OBJECT OBJECT
+	release computer player EXPRESSION
+	set computer player EXPRESSION attitude to player EXPRESSION to EXPRESSION
+	load computer player EXPRESSION personality STRING
+	save computer player EXPRESSION personality STRING
+	clear computer player EXPRESSION actions
+	stop all games for OBJECT
+	attach OBJECT to game OBJECT for playing_side team
+	detach OBJECT in game OBJECT from playing_side team
+	detach player from OBJECT from playing_side team
+	enable|disable OBJECT only for scripts
+	start OBJECT with OBJECT as referee
+	set OBJECT fade start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION
+	disband OBJECT
+	populate OBJECT with EXPRESSION SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE]
+	set game time EXPRESSION
+	set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
+	set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
+	move game time EXPRESSION time EXPRESSION
+	enable|disable game time
+	affect alignment by EXPRESSION
+	enable|disable OBJECT poisoned
+	enable|disable OBJECT build worship site
+	enable|disable help system
+	enable|disable OBJECT skeleton
+	enable|disable OBJECT indestructible
+	enable|disable OBJECT hurt by fire
+	enable|disable OBJECT set on fire
+	enable|disable OBJECT on fire EXPRESSION
+	enable|disable OBJECT moveable
+	enable|disable OBJECT pickup
+	enable|disable creature sound
+	enable|disable sound effects
+	set interaction CONST_EXPR
+	snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
+	update snapshot [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
+	update snapshot details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR [taking picture]
+	set game speed to EXPRESSION
+	build building at COORD_EXPR desire EXPRESSION
+	add for building OBJECT to OBJECT
+	load map STRING
+	save game in slot EXPRESSION
+	stop script STRING
+	stop all scripts excluding STRING
+	stop scripts in files STRING
+	stop scripts in file STRING excluding STRING
+	stop all scripts excluding files STRING
+	clear clicked object
+	clear clicked position
+	clear hit object
+	enable|disable CONST_EXPR avi sequence
+	enable|disable constant avi sequence
+	run CONST_EXPR developer function
+	run map script line STRING
+	set fade red EXPRESSION green EXPRESSION blue EXPRESSION time EXPRESSION
+	set fade in time EXPRESSION
+	enable|disable spell CONST_EXPR for player EXPRESSION
+	clear player EXPRESSION spell charging
+	load my_creature at COORD_EXPR
+	load creature CONST_EXPR STRING player EXPRESSION at COORD_EXPR
+	set EXPRESSION land balance EXPRESSION
+	set OBJECT belief scale EXPRESSION
+	set OBJECT player EXPRESSION relative belief
+	set OBJECT player EXPRESSION belief EXPRESSION
+	set OBJECT desire boost TOWN_DESIRE_INFO EXPRESSION
+	enable|disable player EXPRESSION virtual influence
+	enable|disable angle sound
+	enable|disable pitch sound
+	start OBJECT fade out
+	enable|disable OBJECT high graphics detail
+	enable|disable leash draw
+	enable|disable highlight draw
+	enable|disable spell constant in OBJECT
+	add OBJECT target at COORD_EXPR
+	add OBJECT target on OBJECT
+	enable|disable intro building
+	start say [extra] sound CONST_EXPR [at COORD_EXPR]
+	start sound CONST_EXPR [CONST_EXPR] [at COORD_EXPR]
+	stop sound CONST_EXPR [CONST_EXPR]
+	attach [3d] sound tag CONST_EXPR [CONST_EXPR] to OBJECT
+	detach sound tag CONST_EXPR [CONST_EXPR] from OBJECT
+	enter|exit temple
+	enable|disable temple
+	enable|disable creature in temple
+	set bookmark EXPRESSION to COORD_EXPR
+	set OBJECT building properties ABODE_NUMBER size EXPRESSION [destroys when placed]
+	set OBJECT fade in opt_time_2
+	delete all weather at COORD_EXPR radius EXPRESSION
+	enable|disable climate weather
+	enable|disable climate create storms
+	restart OBJECT
+	start immersion IMMERSION_EFFECT_TYPE
+	stop immersion IMMERSION_EFFECT_TYPE
+	stop all immersion
+	set OBJECT carrying CARRIED_OBJECT
+	attach reaction OBJECT ENUM_REACTION
+	detach reaction OBJECT
+	detach CONST_EXPR reaction OBJECT
+	run script IDENTIFIER
+	run background script IDENTIFIER
+	wait until CONDITION
+	wait CONDITION
+	start music CONST_EXPR
+	stop music
+	attach music CONST_EXPR to OBJECT
+	detach music from OBJECT
+	move music from OBJECT to OBJECT
+	enable|disable music on OBJECT
+	restart music on OBJECT
+	set OBJECT music position to COORD_EXPR
+	enable|disable alignment music
+	set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
+	set OBJECT properties time EXPRESSION fade EXPRESSION
+	set OBJECT properties clouds EXPRESSION shade EXPRESSION height EXPRESSION
+	set OBJECT properties sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION
+	enable|disable OBJECT affected by wind
+	state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
+	if CONDITION STATEMENTS [elsif CONDITION STATEMENTS]* [else STATEMENTS] end if
+	while CONDITION STATEMENTS EXCEPTIONS end while
+	begin loop STATEMENTS EXCEPTIONS end loop
+	begin cinema STATEMENTS EXCEPTIONS end cinema
+	begin camera STATEMENTS EXCEPTIONS end camera
+	begin dialogue STATEMENTS EXCEPTIONS end dialogue
+	begin known dialogue STATEMENTS end dialogue
+	begin known cinema STATEMENTS end dialogue
+	begin dual camera to OBJECT OBJECT STATEMENTS end dual camera
+	begin dual camera to OBJECT OBJECT
+	make SPIRIT_TYPE spirit point to OBJECT [in world]
+	make SPIRIT_TYPE spirit point at COORD_EXPR
+	make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
+	make SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
+	make SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
+	make SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
+	stop SPIRIT_TYPE spirit pointing
+	make SPIRIT_TYPE spirit look at COORD_EXPR
+	make SPIRIT_TYPE spirit look at OBJECT
+	stop SPIRIT_TYPE spirit looking
+	eject SPIRIT_TYPE spirit
+	make SPIRIT_TYPE spirit appear
+	disappear SPIRIT_TYPE spirit
+	send SPIRIT_TYPE spirit home
+	say [single line] STRING [with interaction]
+	say STRING with number EXPRESSION
+	say [single line] CONST_EXPR [with interaction]
+	say CONST_EXPR with number EXPRESSION
+	clear dialogue
+	close dialogue
+	draw text CONST_EXPR across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second[s]
+	draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second[s]
+	set draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION
+	fade all draw text time EXPRESSION second[s]
+	set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION
+	clear clipping window time EXPRESSION
+	set camera zones to STRING
+	store camera details
+	restore camera details
+	reset camera lens
+	enable|disable clipping distance EXPRESSION
+	set camera lens EXPRESSION [time EXPRESSION]
+	move camera position to COORD_EXPR time EXPRESSION
+	set camera position to COORD_EXPR
+	move camera focus to COORD_EXPR time EXPRESSION
+	set camera focus to COORD_EXPR
+	move camera to face OBJECT distance EXPRESSION time EXPRESSION
+	set camera to face OBJECT distance EXPRESSION
+	set camera focus follow OBJECT
+	set camera position follow OBJECT
+	set camera focus follow computer player EXPRESSION
+	set camera position follow computer player EXPRESSION
+	set camera follow OBJECT distance EXPRESSION
+	move camera focus follow OBJECT
+	move camera position follow OBJECT
+	camera follow OBJECT distance EXPRESSION
+	set camera properties distance EXPRESSION speed EXPRESSION angle EXPRESSION enable|disable behind
+	set camera to CONST_EXPR
+	move camera to CONST_EXPR time EXPRESSION
+	camera path CONST_EXPR
+	enable|disable camera fixed rotation at COORD_EXPR
+	shake camera at COORD_EXPR radius EXPRESSION amplitude EXPRESSION time EXPRESSION
+	set dual camera to OBJECT OBJECT
+	start hand demo STRING [with pause] [without hand modify]
+	start jc special CONST_EXPR
+	enable|disable jc special on OBJECT
+	set camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION
+	move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION
+}
+
+### 4 Exceptions
+EXCEPTIONS: [EXCEPTION]*
+
+EXCEPTION: {
+	when CONDITION STATEMENTS
+	until CONDITION
+}
+
+### 5 Variable Assigment
+ASSIGNMENT: {
+	IDENTIFIER = EXPRESSION
+	CONSTANT of OBJECT = EXPRESSION
+	IDENTIFIER += EXPRESSION
+	IDENTIFIER -= EXPRESSION
+	IDENTIFIER *= EXPRESSION
+	IDENTIFIER /= EXPRESSION
+	IDENTIFIER++
+	IDENTIFIER--
+}
+
+### 6 Conditions
+CONDITION: {
+	COORD_EXPR viewed
+	OBJECT active
+	OBJECT viewed
+	key CONST_EXPR down
+	COORD_EXPR valid for creature
+	OBJECT can view camera in EXPRESSION degrees
+	inside temple
+	within rotation
+	OBJECT within flock distance
+	OBJECT clicked
+	OBJECT hit
+	OBJECT locked interaction
+	OBJECT not clicked
+	COORD_EXPR clicked radius EXPRESSION
+	hand demo played
+	hand demo trigger
+	jc special CONST_EXPR played
+	OBJECT played
+	OBJECT music played
+	CONST_EXPR music played
+	OBJECT cast by OBJECT
+	SPIRIT_TYPE spirit played
+	SPIRIT_TYPE spirit speaks CONST_EXPR
+	OBJECT poisoned
+	OBJECT skeleton
+	OBJECT type TYPE [SCRIPT_OBJECT_SUBTYPE]
+	OBJECT on fire
+	fire near COORD_EXPR radius EXPRESSION
+	spell wind near COORD_EXPR radius EXPRESSION
+	camera ready
+	widescreen ready
+	fade ready
+	camera not ready
+	dialogue ready
+	dialogue not ready
+	computer player EXPRESSION ready
+	player EXPRESSION wind resistance
+	COORD_EXPR near COORD_EXPR radius EXPRESSION
+	COORD_EXPR at COORD_EXPR
+	OBJECT in OBJECT
+	COORD_EXPR not viewed
+	OBJECT not viewed
+	COORD_EXPR not near COORD_EXPR radius EXPRESSION
+	COORD_EXPR not at COORD_EXPR
+	OBJECT not in OBJECT
+	OBJECT in OBJECT hand
+	OBJECT not in OBJECT hand
+	OBJECT interacting with OBJECT
+	creature CONST_EXPR is available
+	get desire of OBJECT is CONST_EXPR
+	OBJECT is CONST_EXPR
+	OBJECT is not CONST_EXPR
+	read
+	EXPRESSION second[s]
+	OBJECT exists
+	OBJECT not exists
+	OBJECT affected by spell CONST_EXPR
+	OBJECT leashed
+	OBJECT leashed to OBJECT
+	OBJECT fighting
+	OBJECT is auto fighting
+	OBJECT male
+	help system on
+	player has mouse wheel
+	spell CONST_EXPR for player EXPRESSION
+	immersion exists
+	sound exists
+	spell charging
+	specific spell charging
+	music line EXPRESSION
+	not CONDITION
+	CONDITION and CONDITION
+	CONDITION or CONDITION
+	EXPRESSION == EXPRESSION
+	EXPRESSION != EXPRESSION
+	EXPRESSION >= EXPRESSION
+	EXPRESSION <= EXPRESSION
+	EXPRESSION > EXPRESSION
+	EXPRESSION < EXPRESSION
+	sound CONST_EXPR [CONST_EXPR] playing
+	say sound CONST_EXPR playing
+	remove resource CONST_EXPR EXPRESSION from OBJECT
+	add resource CONST_EXPR EXPRESSION from OBJECT
+	(CONDITION)
+}
+
+### 9 Objects
+OBJECT: {
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION] [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONST_EXPR at COORD_EXPR radius EXPRESSION [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near COORD_EXPR radius EXPRESSION [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+	get building TYPE in OBJECT [excluding scripted]
+	get poisoned TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
+	get not poisoned SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
+	get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at COORD_EXPR radius EXPRESSION [excluding scripted]
+	get totem statue in OBJECT
+	get player EXPRESSION creature
+	get computer player EXPRESSION
+	create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
+	create random villager of tribe CONST_EXPR at COORD_EXPR
+	create highlight HIGHLIGHT_INFO at COORD_EXPR
+	create mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
+	create with angle EXPRESSION and scale EXPRESSION SCRIPT_OBJECT_TYPE SCRIPT_OBJECT_SUBTYPE at COORD_EXPR
+	create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONST_EXPR
+	create timer for EXPRESSION second[s]
+	marker at position
+	marker at CONST_EXPR
+	reward CONST_EXPR at COORD_EXPR [from sky]
+	reward CONST_EXPR in OBJECT at COORD_EXPR [from sky]
+	flock at COORD_EXPR
+	make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
+	create [anti] influence on OBJECT radius EXPRESSION
+	create [anti] influence at COORD_EXPR radius EXPRESSION
+	create anti influence on OBJECT radius EXPRESSION
+	create anti influence at position COORD_EXPR radius EXPRESSION
+	get held by OBJECT
+	get dropped by OBJECT
+	get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
+	get town with id EXPRESSION
+	get OBJECT hand is over
+	get OBJECT clicked
+	get OBJECT flock
+	get OBJECT held
+	get target object for OBJECT
+	get arena at COORD_EXPR radius EXPRESSION
+	get hit object
+	get object which hit
+	get football pitch in OBJECT
+	cast CONST_EXPR spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+	cast CONST_EXPR spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+	get spell CONST_EXPR at COORD_EXPR radius EXPRESSION
+	create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
+	create special effect CONST_EXPR to OBJECT time EXPRESSION
+	attach OBJECT to OBJECT [as leader]
+	detach [OBJECT] from OBJECT
+}
+
+### 10 Constants
+CONST_EXPR: {
+	constant from CONST_EXPR to CONST_EXPR
+	get action text for OBJECT
+	variable state of OBJECT
+	get hand state
+	constant EXPRESSION
+	get OBJECT type
+	get OBJECT sub type
+	get player EXPRESSION last spell cast
+	get OBJECT leash type
+	get CONST_EXPR opposite creature type
+	get OBJECT fight action
+	(CONST_EXPR)
+	IDENTIFIER
+	NUMBER
+}
+
+### 11 Position
+COORD_EXPR: {
+	\[EXPRESSION, EXPRESSION, EXPRESSION\]
+	\[EXPRESSION, EXPRESSION\]
+	\[OBJECT\]
+	camera position
+	camera focus
+	stored camera position
+	stored camera focus
+	hand position
+	facing camera position distance EXPRESSION
+	computer player EXPRESSION position
+	last player EXPRESSION spell cast position
+	get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION
+	arse position of OBJECT
+	belly position of OBJECT
+	destination of OBJECT
+	COORD_EXPR + COORD_EXPR
+	COORD_EXPR - COORD_EXPR
+	EXPRESSION * COORD_EXPR
+	COORD_EXPR / EXPRESSION
+	-COORD_EXPR
+	(COORD_EXPR)
+	player EXPRESSION temple position
+	camera CONST_EXPR
+}
+
+### 12 Expressions
+EXPRESSION: {
+	CONSTANT of OBJECT
+	alignment of player
+	[raw] influence at COORD_EXPR
+	get player EXPRESSION influence at COORD_EXPR
+	get player EXPRESSION town total
+	get time since player EXPRESSION attacked OBJECT
+	get OBJECT music distance
+	get OBJECT interaction magnitude
+	get CONST_EXPR music distance
+	land height at COORD_EXPR
+	time
+	number from EXPRESSION to EXPRESSION
+	get resource CONST_EXPR in OBJECT
+	size of OBJECT
+	adult size of OBJECT
+	capacity of OBJECT
+	adult capacity of OBJECT
+	poisoned size of OBJECT
+	get number of CONST_EXPR for OBJECT
+	get OBJECT time remaining
+	get OBJECT time since set
+	get OBJECT fight queue hits
+	get inclusion distance
+	get OBJECT walk path percentage
+	get slowest speed in OBJECT
+	get distance from COORD_EXPR to COORD_EXPR
+	get mana for spell CONST_EXPR
+	get building and villager health total in OBJECT
+	get OBJECT mana total
+	number of mouse buttons
+	get size of OBJECT playing_side team
+	get OBJECT played percentage
+	get OBJECT belief for player EXPRESSION
+	get worship deaths in OBJECT
+	get OBJECT help
+	get OBJECT first help
+	get OBJECT last help
+	get OBJECT fade
+	get OBJECT info bits
+	number of times action CONST_EXPR by OBJECT
+	get player EXPRESSION time since last spell cast
+	get computer player EXPRESSION attitude to player EXPRESSION
+	get player EXPRESSION ally percentage with player EXPRESSION
+	get moon percentage
+	get game time
+	get real time
+	get real day
+	get real weekday
+	get real month
+	get real year
+	get OBJECT desire CONST_EXPR
+	get CONSTANT events per second
+	get time since CONSTANT event
+	get CONSTANT total event[s]
+	square root EXPRESSION
+	EXPRESSION + EXPRESSION
+	EXPRESSION - EXPRESSION
+	EXPRESSION * EXPRESSION
+	EXPRESSION / EXPRESSION
+	EXPRESSION % EXPRESSION
+	-EXPRESSION
+	variable CONST_EXPR
+	(EXPRESSION)
+	get OBJECT sacrifice total
+	get spell icon CONST_EXPR in OBJECT
+	get first in OBJECT
+	get next in OBJECT after OBJECT
+	player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
+	NUMBER
+}

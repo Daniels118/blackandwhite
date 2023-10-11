@@ -19,11 +19,12 @@ Some complex statements may have additional info to help understand their implem
 
 ### Notes ###
 All SWAP instructions could be avoided by coding the arguments in the proper order. This could be
-a chance for an optimization option.
+a chance for an optimization option. I think this was needed because the original parser gave no
+way of controlling the visit order of the AST.
 
 All variable assignment are preceded by a "PUSH [var], POPI", which I think this is useless.
 The same happens with SET_PROPERTY. Removing these useless instructions could be a chance for an
-optimization.
+optimization. I think this was due to how the original parser worked.
 
 The implementation of 3.18.23 looks bugged.
 
@@ -32,7 +33,7 @@ ___________________________________________
 ### 2.5 Scripts
 ___________________________________________
 
-2.5.1 run script IDENTIFIER[(parameters)]
+2.5.1 run script IDENTIFIER[(PARAMETERS)]
 
 Auto-run declarations are used to specify any scripts which are to be run immediately upon start-up.
 You will probably want to run all of the challenges this way, as the challenge scripts may simply wait
@@ -99,7 +100,7 @@ set camera position to [1891.039, 31.693, 2520.674]
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 ___________________________________________
 
-3.1.3 set OBJECT disciple VILLAGER_DISCIPLE [with sound]
+3.1.3 set OBJECT disciple CONST_EXPR [with sound]
 
 This allows you to make a villager a disciple in the game. The with sound is optional.
 
@@ -136,7 +137,7 @@ set MyCreature focus on Guide
 	SYS SET_FOCUS_ON_OBJECT	//[2, 0] (Object object, Object target)
 ___________________________________________
 
-3.1.6 OBJECT play DETAIL_ANIM_TYPES loop EXPRESSION
+3.1.6 OBJECT play CONST_EXPR loop EXPRESSION
 
 Set an object to play an animation for a number of times.
 
@@ -153,7 +154,7 @@ Boy play ANM_P_SWIM2 loop -1
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
 ___________________________________________
 
-3.1.7 set OBJECT anim DETAIL_ANIM_TYPES
+3.1.7 set OBJECT anim CONST_EXPR
 
 Very useful if you wish to change the walk animation of a character eg. Pied piper walks with a dance.
 
@@ -205,7 +206,7 @@ ___________________________________________
 3.1.10 is identical to 3.1.9
 ___________________________________________
 
-3.1.11 set OBJECT text property text CONSTANT_EXPRESSION category CONSTANT_EXPRESSION
+3.1.11 set OBJECT text property text CONST_EXPR category CONST_EXPR
 
 Changes the text propert of a object (script highlight at present).
 
@@ -253,7 +254,7 @@ This timer is not displayed. This function sets the countdown time to the value,
 time to 0. This function can also be used to set the duration of time betwen each spell created on
 a spell dispenser object.
 
-set RandomAttackTimer time to 50 seconds
+set RandomAttackTimer time to 50 second[s]
 
 	PUSHF [RandomAttackTimer]
 	PUSHF 50.0
@@ -316,7 +317,7 @@ release MyCreature focus
 	SYS RELEASE_OBJECT_FOCUS	//[1, 0] (Object creature)
 ___________________________________________
 
-3.1.20 set OBJECT forward|reverse walk path CAMERA_ENUM from EXPRESSION to EXPRESSION
+3.1.20 set OBJECT forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION
 
 Sets a living thing on a walk path defined in the camera editor, where direction is either 'forward'
 or 'reverse' on the walk path, and from/to is the percentage start pos, and the percentage end pos
@@ -329,7 +330,7 @@ set BlindWoman forward walk path TRACK00 from 0.0 to 1.0
 	PUSHI 7				//CAMERA_ENUM 7=TRACK00
 	PUSHF 0.0			//from val
 	PUSHF 1.0			//to val
-	SYS WALK_PATH		//[5, 0] (Object object, bool forward, int camera_enum, float valFrom, float valTo)
+	SYS WALK_PATH		//[5, 0] (Object object, bool forward, CAMERA_ENUM camera_enum, float valFrom, float valTo)
 ___________________________________________
 
 3.1.21 enable|disable OBJECT active
@@ -376,7 +377,7 @@ set Vortex properties town Town flock position [FlockPos] distance FlockDistance
 	SYS VORTEX_PARAMETERS		//[8, 0] (Object vortex, Object town, Coord position, float distance, float radius, Object flock)
 ___________________________________________
 
-3.2.1 set OBJECT desire CREATURE_DESIRES to EXPRESSION
+3.2.1 set OBJECT desire CONST_EXPR to EXPRESSION
 
 Sets the current value of one of the creature's desires (between 0 and 1 where 1 is full).
 
@@ -388,7 +389,7 @@ set CreatureGuardian desire ANGER to 0.05
 	SYS CREATURE_SET_DESIRE_VALUE	//[3, 0] (Object creature, CREATURE_DESIRES desire, float value)
 ___________________________________________
 
-3.2.2 set OBJECT only desire CREATURE_DESIRES
+3.2.2 set OBJECT only desire CONST_EXPR
 
 Sets the creature desire to the only focus, until you turn it off.
 
@@ -410,7 +411,7 @@ set MyCreature disable only desire
 	SYS SET_CREATURE_ONLY_DESIRE_OFF	//[1, 0] (Object creature)
 ___________________________________________
 
-3.2.4 set OBJECT desire CREATURE_DESIRES SCRIPT_BOOL
+3.2.4 set OBJECT desire CONST_EXPR CONST_EXPR
 
 Turn on or off a desire.
 
@@ -422,7 +423,7 @@ set CreatureGuardian desire HUNGER SCRIPT_TRUE
 	SYS CREATURE_SET_DESIRE_ACTIVATED3	//[3, 0] (Object creature, CREATURE_DESIRES desire, SCRIPT_BOOL active)
 ___________________________________________
 
-3.2.5 set OBJECT DEVELOPMENT_PHASE development
+3.2.5 set OBJECT CONST_EXPR development
 
 Sets the creatures development (See creatureenum.h).
 
@@ -490,7 +491,7 @@ disable MyCreature anim time modify
 	SYS SET_ANIMATION_MODIFY	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
-3.2.12 set OBJECT all desire SCRIPT_BOOL
+3.2.12 set OBJECT all desire CONST_EXPR
 
 Enable/Disable all the desires.
 
@@ -501,7 +502,7 @@ set CreatureGuardian all desires SCRIPT_FALSE
 	SYS CREATURE_SET_DESIRE_ACTIVATED2	//[2, 0] (Object creature, SCRIPT_BOOL active)
 ___________________________________________
 
-3.2.13 set OBJECT desire maximum CREATURE_DESIRES to EXPRESSION
+3.2.13 set OBJECT desire maximum CONST_EXPR to EXPRESSION
 
 Warning: must be used with knowledge of what desire maximums actually do.
 
@@ -539,7 +540,7 @@ set player_creature to CreatureCow
 	SYS CREATURE_SET_PLAYER	//[1, 0] (Object creature)
 ___________________________________________
 
-3.2.16 teach OBJECT CREATURE_ACTION_TYPE CREATURE_ACTION_SUBTYPE CONSTANT_EXPRESSION SCRIPT_BOOL
+3.2.16 teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR
 
 Teach creature a specific lesson. First argument is type of action: INTELLECTUAL, PHYSICAL or MAGIC.
 Second argument is which action, eg: CREATURE_INTELLECTUAL_ACTION_KNOWN_ABOUT_FISH (in Enum.h).
@@ -561,14 +562,14 @@ Teaches the creature every lesson.
 Never found
 ___________________________________________
 
-3.2.18 teach OBJECT all excluding CONSTANT_EXPRESSION
+3.2.18 teach OBJECT all excluding CONST_EXPR
 
 Teaches the creature every lesson excluding the type defined.
 
 Never found
 ___________________________________________
 
-3.2.19 force OBJECT CREATURE_ACTION OBJECT [with OBJECT]
+3.2.19 force OBJECT CONST_EXPR OBJECT [with OBJECT]
 
 Forces the creature to stop what he is doing and do a particular action.
 Second argument is which action to perform, eg: POINT_AT (see CREATURE_ACTION in CreatureEnum.h).
@@ -592,7 +593,7 @@ force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
 	SYS CREATURE_DO_ACTION	//[4, 0] (Object creature, CREATURE_ACTION, Object target, Object withObject)
 ___________________________________________
 
-3.2.20 force OBJECT CREATURE_ACTION OBJECT
+3.2.20 force OBJECT CONST_EXPR OBJECT
 
 See 3.2.19
 ___________________________________________
@@ -692,7 +693,7 @@ set player 1 ally with player 2 percentage 0
 	SYS SET_PLAYER_ALLY	//[3, 0] (float player1, float player2, float percentage)
 ___________________________________________
 
-3.2.32 enable/disable player EXPRESSION wind resistance
+3.2.32 enable|disable player EXPRESSION wind resistance
 
 If this is disabled any throwing with a player hand will be unrealistically accurate.
 
@@ -775,21 +776,21 @@ queue Guide fight move CTR_HIT_BLOCK
 	SYS SET_CREATURE_QUEUE_FIGHT_MOVE	//[2, 0] (Object creature, FIGHT_MOVE move)
 ___________________________________________
 
-3.2.40 queue OBJECT fight step CONSTANT_EXPRESSION
+3.2.40 queue OBJECT fight step CONST_EXPR
 
 Queues a fight step into the objects fight move list.
 
 Never found (SET_CREATURE_QUEUE_FIGHT_STEP)
 ___________________________________________
 
-3.2.41 queue OBJECT fight spell CONSTANT_EXPRESSION
+3.2.41 queue OBJECT fight spell CONST_EXPR
 
 Queues a fight spell into the objects fight move list.
 
 Never found (SET_CREATURE_QUEUE_FIGHT_SPELL)
 ___________________________________________
 
-3.2.42 set OBJECT name CONSTANT_EXPRESSION
+3.2.42 set OBJECT name CONST_EXPR
 
 Sets the creatures name.
 
@@ -910,7 +911,7 @@ force computer player 2 action "DIRECTPickupAndDropObject" Villager DisciplePos
 	SYS FORCE_COMPUTER_PLAYER_ACTION	//[4, 0] (float player, StrPtr action, Object obj1, Object obj2)
 ___________________________________________
 
-3.3.9 queue computer player EXPRESSION action comp_string OBJECT OBJECT
+3.3.9 queue computer player EXPRESSION action STRING OBJECT OBJECT
 
 A computer player has a list of tasks it has decided to do. This adds a computer player action into the
 queue of tasks at the end.
@@ -1237,7 +1238,7 @@ enable sound effects		//#FreeTheCreature.txt:463
 	SYS SET_GAME_SOUND	//[1, 0] (bool enable)
 ___________________________________________
 
-3.8.14 set interaction SCRIPT_INTERFACE_LEVEL
+3.8.14 set interaction CONST_EXPR
 
 Allows the scripter to enable/disable certain features of the interface. This is most useful when the game
 is at the beginning.
@@ -1248,7 +1249,7 @@ set interaction SCRIPT_INTERFACE_LEVEL_NORMAL		//#LandControlT.txt:48
 	SYS2 SET_INTERFACE_INTERACTION	//[1, 0] (SCRIPT_INTERFACE_LEVEL level)
 ___________________________________________
 
-3.8.15 snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] CONSTANT_EXPRESSION SCRIPT[(parameters)]
+3.8.15 snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
 
 This is used to take a photo for inside the temple so the player can call a reminder script to find out
 what they should be doing in the game to complete any script. You don't have to pass the position of the
@@ -1286,7 +1287,7 @@ snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(v
 	SYS SNAPSHOT	//[?, 0] (bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
 ___________________________________________
 
-3.8.16 update snapshot [success EXPRESSION] [alignment EXPRESSION] CONSTANT_EXPRESSION SCRIPT[(parameters)]
+3.8.16 update snapshot [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
 
 This is used to take a photo for inside the temple so the player can call a reminder script to find out
 what they should be doing in the game to complete any script. You don't have to pass the position of the
@@ -1306,7 +1307,7 @@ update snapshot success 0.08 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(va
 	SYS UPDATE_SNAPSHOT	//[?, 0] (float success, float alignment, int titleStrID, StrPtr reminderScript, float...args, int argc, int challengeID)
 ___________________________________________
 
-3.8.17 update snapshot details [success EXPRESSION] [alignment EXPRESSION] CONSTANT_EXPRESSION [taking picture]
+3.8.17 update snapshot details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR [taking picture]
 
 This is used to take a photo for inside the temple so the player can call a reminder script to find out
 what they should be doing in the game to complete any script. You don't have to pass the position of the
@@ -1476,7 +1477,7 @@ clear hit object		//#chooseyourcreature.txt:402
 	SYS CLEAR_HIT_OBJECT	//[0, 0] ()
 ___________________________________________
 
-3.8.31 enable|disable CONSTANT_EXPRESSION avi sequence
+3.8.31 enable|disable CONST_EXPR avi sequence
 
 Starts/stops an avi sequence.
 
@@ -1492,7 +1493,7 @@ ___________________________________________
 Identical to 3.8.31
 ___________________________________________
 
-3.8.33 run CONSTANT_EXPRESSION developer function
+3.8.33 run CONST_EXPR developer function
 
 Runs an in dev function.
 
@@ -1535,7 +1536,7 @@ set fade in time 3
 	SYS SET_FADE_IN	//[1, 0] (float duration)
 ___________________________________________
 
-3.8.37 enable|disable spell CONSTANT_EXPRESSION for player EXPRESSION
+3.8.37 enable|disable spell CONST_EXPR for player EXPRESSION
 
 Enables/disables a spell for a specific player.
 
@@ -1563,7 +1564,7 @@ load my_creature at [CreaturePos]		//#VortexEntry.txt:24
 	SYS LOAD_MY_CREATURE	//[3, 0] (Coord position)
 ___________________________________________
 
-3.8.40 load creature CREATURE_TYPE STRING player EXPRESSION at COORD_EXPR
+3.8.40 load creature CONST_EXPR STRING player EXPRESSION at COORD_EXPR
 
 Loads a computer creature according to a file name for a player without creature into the game at a specific position.
 The file is relative to path Scripts\CreatureMind.
@@ -1743,7 +1744,7 @@ Sets the building state for the introduction of the game.
 Never found (SET_INTRO_BUILDING)
 ___________________________________________
 
-3.8.57 start say [extra] sound CONSTANT_EXPRESSION [at COORD_EXPR]
+3.8.57 start say [extra] sound CONST_EXPR [at COORD_EXPR]
 
 This function plays a sound effect, optionally in 3d space. The option extra key word means is, if
 you don't want the say to interrupt the previous say sound effect, which is the normal behavior.
@@ -1761,7 +1762,7 @@ start say sound constant WhichTextFirst		//#HelpSystem.txt:232
 	SYS GAME_PLAY_SAY_SOUND_EFFECT	//[6, 0] (bool extra, int sound, Coord position, bool withPosition)
 ___________________________________________
 
-3.8.58 start sound CONSTANT_EXPRESSION [CONSTANT_EXPRESSION] [at COORD_EXPR]
+3.8.58 start sound CONST_EXPR [CONST_EXPR] [at COORD_EXPR]
 
 This function plays a sound effect, with an optional bank, optionally in 3d space. If you don't define a bank
 it defaults to AUDIO_SFX_BANK_TYPE_IN_GAME.
@@ -1778,7 +1779,7 @@ start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CH
 	SYS PLAY_SOUND_EFFECT	//[6, 0] (int sound, AUDIO_SFX_BANK_TYPE_SCRIPT_SFX soundbank, Coord position, bool withPosition)
 ___________________________________________
 
-3.8.59 stop sound CONSTANT_EXPR [CONSTANT_EXPR]
+3.8.59 stop sound CONST_EXPR [CONST_EXPR]
 
 Stops a sound effect, with an optional bank. If you don't define a bank it defaults to AUDIO_SFX_BANK_TYPE_IN_GAME.
 
@@ -1790,7 +1791,7 @@ stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX		//
 	SYS STOP_SOUND_EFFECT	//[3, 0] (bool alwaysFalse, int sound, AUDIO_SFX_BANK_TYPE soundbank)
 ___________________________________________
 
-3.8.60 attach [3d] sound tag CONSTANT_EXPR [CONSTANT_EXPR] to OBJECT
+3.8.60 attach [3d] sound tag CONST_EXPR [CONST_EXPR] to OBJECT
 
 ?
 
@@ -1804,7 +1805,7 @@ attach 3d sound tag constant BlokeSample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to Bloke
 	SYS ATTACH_SOUND_TAG	//[4, 0] (bool threeD, int sound, AUDIO_SFX_BANK_TYPE soundbank, Object target)
 ___________________________________________
 
-3.8.61 detach sound tag CONSTANT_EXPR [CONSTANT_EXPR] from OBJECT
+3.8.61 detach sound tag CONST_EXPR [CONST_EXPR] from OBJECT
 
 ?
 
@@ -1985,7 +1986,7 @@ Never found
 	SYS REMOVE_REACTION	//[1, 0] (Object object)
 ___________________________________________
 
-3.9.3 detach CONSTANT_EXPRESSION reaction OBJECT
+3.9.3 detach CONST_EXPR reaction OBJECT
 
 Removes all reactions of the type associated with this object
 
@@ -2042,7 +2043,7 @@ lbl7C:
 	JZ lbl7C
 ___________________________________________
 
-3.12.1 start music CONSTANT_EXPRESSION
+3.12.1 start music CONST_EXPR
 
 Only one script tune can play at once, this function starts a script tune which has no 3d position in the world.
 
@@ -2061,7 +2062,7 @@ stop music		//#CreatureDevelopment.txt:506
 	SYS STOP_MUSIC	//[0, 0] ()
 ___________________________________________
 
-3.12.3 attach music CONSTANT_EXPRESSION to OBJECT
+3.12.3 attach music CONST_EXPR to OBJECT
 
 Attaches a tune to a game object, such that when the object is near the camera the tune is played and can
 be heard in the 3d direction of the object.
@@ -2193,7 +2194,7 @@ set Storm properties sheetmin 2 sheetmax 7 forkmin 99999 forkmax 999999		//#sing
 	SYS CHANGE_LIGHTNING_PROPERTIES	//[5, 0] (Object storm, float sheetmin, float sheetmax, float forkmin, float forkmax)
 ___________________________________________
 
-3.13.5 enable/disable OBJECT affected by wind
+3.13.5 enable|disable OBJECT affected by wind
 
 Sets object to be moved by the wind or not in the game. Note that strong winds move storms etc pretty
 damn fast so be careful!
@@ -2205,7 +2206,7 @@ disable Storm affected by wind		//#singingstonecircle.txt:790
 	SYS SET_AFFECTED_BY_WIND	//[2, 0] (bool enable, Object object)
 ___________________________________________
 
-3.14 state OBJECT CONSTANT_EXPRESSION position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
+3.14 state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
 
 This is a dangerous feature, where you can set the object in a state. Do not set them into a simulation
 state as it may go mad! States have data which needs to be set up for the specific state, the float,
@@ -2240,7 +2241,7 @@ Equivalent SYS calls:
 	SET_SCRIPT_STATE(Mother, WANDER_AROUND)
 ___________________________________________
 
-3.15.1 If Block
+3.15.1 if CONDITION STATEMENTS (elsif CONDITION STATEMENTS)* [else STATEMENTS] end if
 
 A check of the condition of something, which if succeeds processes a number of statements.
 
@@ -2425,7 +2426,7 @@ make evil spirit point at [Highlight] in world		//#SwapCreatures.txt:63
 	SYS SPIRIT_POINT_POS	//[5, 0] (HELP_SPIRIT_TYPE spirit, Coord position, bool inWorld)
 ___________________________________________
 
-3.16.1.3 make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONSTANT_EXPRESSION [speed_expression]
+3.16.1.3 make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
 
 The specified spirit type will play an animation at the set position, (percentage x across the screen,
 and percentage y down the screen) at an optionally defined speed percentage
@@ -2546,7 +2547,7 @@ send good spirit home		//#CreatureDevelopment.txt:1747
 	SYS SPIRIT_HOME	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.2.1 say [single line] STRING [withInteraction]
+3.16.2.1 say [single line] STRING [with interaction]
 
 When developing a script it is useful to have a text out function to debug or put in temp text until
 the script has been scripted.
@@ -2568,7 +2569,7 @@ $d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 Never found (TEMP_TEXT_WITH_NUMBER)
 ___________________________________________
 
-3.16.2.3 say [single line] CONSTANT_EXPRESSION [with interaction]
+3.16.2.3 say [single line] CONST_EXPR [with interaction]
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 
@@ -2580,7 +2581,7 @@ say HELP_TEXT_DYK_EXPLAINED_01		//#DidYouKnow.txt:12
 	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 ___________________________________________
 
-3.16.2.4 say CONSTANT_EXPRESSION with number EXPRESSION
+3.16.2.4 say CONST_EXPR with number EXPRESSION
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 This version places a value at the
@@ -2614,7 +2615,7 @@ close dialogue
 	SYS GAME_CLOSE_DIALOGUE
 ___________________________________________
 
-3.17.1 draw text CONSTANT_EXPRESSION across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+3.17.1 draw text CONST_EXPR across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second[s]
 
 This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
 text colour function.
@@ -2631,7 +2632,7 @@ draw text HELP_TEXT_GAME_OVER across 0.25 down 0.45 width 0.5 height 0.1 size 0.
 	SYS GAME_DRAW_TEXT	//[7, 0] (int textID, float across, float down, float width, float height, float size, float fade)
 ___________________________________________
 
-3.17.2 draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION seconds
+3.17.2 draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second[s]
 
 This function draws text on screen with a time it fades into. The chosen colour is set by the set next draw
 text colour function.
@@ -2660,7 +2661,7 @@ set draw text colour red 255 green 255 blue 255		//#GameOver.txt:87
 	SYS SET_DRAW_TEXT_COLOUR	//[3, 0] (float red, float green, float blue)
 ___________________________________________
 
-3.17.4 fade all draw text time EXPRESSION seconds
+3.17.4 fade all draw text time EXPRESSION second[s]
 
 Fades out all the draw text in a time.
 
@@ -2927,7 +2928,7 @@ set camera properties distance 3 speed 0 angle 22.5 enable behind		//#followus.t
 	SYS CAMERA_PROPERTIES	//[4, 0] (float distance, float speed, float angle, bool enableBehind)
 ___________________________________________
 
-3.18.22 set camera to CAMERA_ENUM
+3.18.22 set camera to CONST_EXPR
 
 Instantly sets the camera to a camera position and focus defined in the camera editor.
 
@@ -2941,7 +2942,7 @@ set camera to T00_000		//#LearnInfluence.txt:19
 	SYS SET_CAMERA_FOCUS		//[3, 0] (Coord position)
 ___________________________________________
 
-3.18.23 move camera to CAMERA_ENUM time EXPRESSION
+3.18.23 move camera to CONST_EXPR time EXPRESSION
 
 Moves the camera to a camera position and focus defined in the camera editor in a define time.
 WARNING: this implementation looks bugged, the "time" should be pushed 2 times.
@@ -2958,7 +2959,7 @@ move camera to T00_000 time 3											// Cam look at dying brother		//#lostbro
 	SYS MOVE_CAMERA_FOCUS		//[4, 0] (Coord position, float time)
 ___________________________________________
 
-3.18.24 camera path CAMERA_ENUM
+3.18.24 camera path CONST_EXPR
 
 In the camera editor you can create camera paths. An enum in cameraposenum.h
 
@@ -3012,7 +3013,7 @@ start hand demo "rotate" with pause on trigger		//#HandDemos.txt:18
 	SYS PLAY_HAND_DEMO	//[3, 0] (StrPtr string, bool withPause, bool withoutHandModify)
 ___________________________________________
 
-3.18.29 start jc special CONSTANT_EXPRESSION
+3.18.29 start jc special CONST_EXPR
 
 Starts one of JC's predefined special features.
 
@@ -3056,7 +3057,7 @@ ___________________________________________
 See exceptions.txt
 ___________________________________________
 
-4.2 until CONDITION STATEMENTS
+4.2 until CONDITION
 
 See exceptions.txt
 ___________________________________________
@@ -3064,7 +3065,15 @@ ___________________________________________
 ### 5 Variable Assigment
 ___________________________________________
 
-5.2.2 CONSTANT of OBJECT
+5.2.1 IDENTIFIER = EXPRESSION
+
+variable = 1
+
+	PUSHF 1.0
+	POPF variable
+___________________________________________
+
+5.2.2 CONSTANT of OBJECT = EXPRESSION
 
 At the time of this document a game object can have a property enquired or set, depending on what
 makes sense. The implemented choices are found in scriptenums.h NB. If you are setting the SPEED
@@ -3096,13 +3105,43 @@ end if
 lbl159C:
 ___________________________________________
 
-5.3.2 += expression
+5.3.2 += EXPRESSION
 
 RequiredRotateAngle += 60		//#HandDemos.txt:524
 
 	PUSHF [RequiredRotateAngle]
 	PUSHF 60.0
 	ADDF
+	POPF RequiredRotateAngle
+___________________________________________
+
+5.3.3 -= EXPRESSION
+
+RequiredRotateAngle -= 60
+
+	PUSHF [RequiredRotateAngle]
+	PUSHF 60.0
+	SUBF
+	POPF RequiredRotateAngle
+___________________________________________
+
+5.3.4 *= EXPRESSION
+
+RequiredRotateAngle *= 60
+
+	PUSHF [RequiredRotateAngle]
+	PUSHF 60.0
+	MULF
+	POPF RequiredRotateAngle
+___________________________________________
+
+5.3.5 /= EXPRESSION
+
+RequiredRotateAngle /= 60
+
+	PUSHF [RequiredRotateAngle]
+	PUSHF 60.0
+	DIVF
 	POPF RequiredRotateAngle
 ___________________________________________
 
@@ -3113,6 +3152,16 @@ WhichTextFirst++		//#HelpSystem.txt:15
 	PUSHF [WhichTextFirst]
 	PUSHF 1.0
 	ADDF
+	POPF WhichTextFirst
+___________________________________________
+
+5.3.8 --
+
+WhichTextFirst--
+
+	PUSHF [WhichTextFirst]
+	PUSHF 1.0
+	SUBF
 	POPF WhichTextFirst
 ___________________________________________
 
@@ -3150,7 +3199,7 @@ Guide viewed			//#CreatureGuide.txt:447
 	SYS GAME_THING_FIELD_OF_VIEW	//[1, 1] (Object object) returns (bool)
 ___________________________________________
 
-6.4 key CONSTANT_EXPRESSION down
+6.4 key CONST_EXPR down
 
 If an key is pressed down.
 
@@ -3284,7 +3333,7 @@ hand demo trigger					//#HandDemos.txt:21
 	SYS HAND_DEMO_TRIGGER	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.17 jc special CONSTANT_EXPRESSION played
+6.17 jc special CONST_EXPR played
 
 Checks to see if a specific jc special is running.
 
@@ -3308,7 +3357,7 @@ A check on if an object has finished playing it's music.
 Never found (MUSIC_PLAYED1 or MUSIC_PLAYED2, the one which expects a float)
 ___________________________________________
 
-6.20 CONSTANT_EXPRESSION music played
+6.20 CONST_EXPR music played
 
 Returns if the script music passed is no longer playing
 
@@ -3336,7 +3385,7 @@ Never found
 	SYS SPIRIT_PLAYED	//[1, 1] (HELP_SPIRIT_TYPE spirit) returns (bool)
 ___________________________________________
 
-6.23 SPIRIT_TYPE spirit speaks CONSTANT_EXPRESSION
+6.23 SPIRIT_TYPE spirit speaks CONST_EXPR
 
 A check on if a SPIRIT_TYPE speaks the text?
 
@@ -3632,7 +3681,7 @@ Is object interacting with an object, currently only used to see if a creature i
 Never found (CREATURE_INTERACTING_WITH)
 ___________________________________________
 
-6.49 creature CONSTANT_EXPRESSION is available
+6.49 creature CONST_EXPR is available
 
 See if player has a creature type available.
 
@@ -3642,14 +3691,14 @@ creature CREATURE_TYPE_LEOPARD is available	and GlobalCurrentCreature != variabl
 	SYS IS_CREATURE_AVAILABLE	//[1, 1] (CREATURE_TYPE type) returns (bool)
 ___________________________________________
 
-6.50 get desire of OBJECT is CONSTANT_EXPRESSION
+6.50 get desire of OBJECT is CONST_EXPR
 
 No doc.
 
 Never found
 ___________________________________________
 
-6.51 OBJECT is CONSTANT_EXPRESSION
+6.51 OBJECT is CONST_EXPR
 
 Casts the result of a get property to BOOLEAN.
 
@@ -3662,7 +3711,7 @@ Person is FLYING		//#VortexEntry.txt:7
 	CASTB
 ___________________________________________
 
-6.52 OBJECT is not CONSTANT_EXPRESSION
+6.52 OBJECT is not CONST_EXPR
 
 No doc.
 
@@ -3721,7 +3770,7 @@ Spirit not exists		//#ChallengeNotify.txt:102
 	NOT
 ___________________________________________
 
-6.57 OBJECT affected by spell CONSTANT_EXPRESSION
+6.57 OBJECT affected by spell CONST_EXPR
 
 Returns if an object is affected by spell. Only works on creatures at present.
 
@@ -3800,7 +3849,7 @@ player has mouse wheel		//#LandControlT.txt:1306
 	SYS HAS_MOUSE_WHEEL	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.65 spell CONSTANT_EXPRESSION for player EXPRESSION
+6.65 spell CONST_EXPR for player EXPRESSION
 
 Checks if a player has a specific spell
 
@@ -3963,7 +4012,7 @@ lblFB:
 	LT
 ___________________________________________
 
-6.72 sound CONSTANT_EXPR [CONSTANT_EXPR] playing
+6.72 sound CONST_EXPR [CONST_EXPR] playing
 
 ?
 
@@ -3974,7 +4023,7 @@ sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing		//#
 	SYS GAME_SOUND_PLAYING	//[2, 1] (int sound, AUDIO_SFX_BANK_TYPE soundbank) returns (bool)
 ___________________________________________
 
-6.73 say sound CONSTANT_EXPR playing
+6.73 say sound CONST_EXPR playing
 
 ?
 
@@ -3985,7 +4034,7 @@ say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_01 playing //Check previous line is 
 	SYS SAY_SOUND_EFFECT_PLAYING	//[2, 1] (bool alwaysFalse, int sound) returns (bool)
 ___________________________________________
 
-7 remove resource CONSTANT_EXPRESSION EXPRESSION from OBJECT
+7 remove resource CONST_EXPR EXPRESSION from OBJECT
 
 Removes an amount of resource from an object, and returns the amount removed. If the amount asked for
 is greater than what is available than the full amount available is taken.
@@ -3999,7 +4048,7 @@ remove resource FOOD RemoveAmount from GranaryStorage		//#CreatureDevelopment.tx
 	POPF
 ___________________________________________
 
-8 add resource CONSTANT_EXPRESSION EXPRESSION from OBJECT
+8 add resource CONST_EXPR EXPRESSION from OBJECT
 
 Adds an amount of resource to an object, and returns the amount added. If the amount asked for is greater
 than the storage space left then the remaining space only will be filled.
@@ -4052,7 +4101,7 @@ piggy=get ANIMAL ANIMAL_INFO_PIG at hand position radius 5.5 excluding scripted	
 	POPF piggy
 ___________________________________________
 
-9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION [excluding scripted]
+9.3 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONST_EXPR at COORD_EXPR radius EXPRESSION [excluding scripted]
 
 No doc.
 
@@ -4220,7 +4269,7 @@ Vortex = create VORTEX VORTEX_TYPE_OUT at [VortexPos]		//#VortexEntry.txt:18
 	POPF Vortex
 ___________________________________________
 
-9.15 create random villager of tribe CONSTANT_EXPRESSION at COORD_EXPR
+9.15 create random villager of tribe CONST_EXPR at COORD_EXPR
 
 Creates a random villager type of the selected tribe at young adult age.
 
@@ -4285,7 +4334,7 @@ spell_dispenser = create with angle tangle and scale 1.0 SCRIPT_OBJECT_TYPE_SPEL
 	POPF spell_dispenser
 ___________________________________________
 
-9.19 create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONSTANT_EXPR
+9.19 create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONST_EXPR
 
 No doc.
 
@@ -4329,7 +4378,7 @@ LookAt = marker at [2962.9587, 0.0000, 3079.3020]
 	POPF LookAt
 ___________________________________________
 
-9.22 marker at CAMERA_ENUM
+9.22 marker at CONST_EXPR
 
 No doc.
 
@@ -4342,7 +4391,7 @@ BeginPos = marker at camera position		//#CreatureDevelopment.txt:675
 	POPF BeginPos
 ___________________________________________
 
-9.23 reward CONSTANT_EXPR at COORD_EXPR [from sky]
+9.23 reward CONST_EXPR at COORD_EXPR [from sky]
 
 Creates a reward at the position, with an optional from sky parameter.
 
@@ -4360,7 +4409,7 @@ Reward1 = reward REWARD_WATER at [2,0,2] from sky	// Hermit Gives reward		//#the
 	POPF Reward1
 ___________________________________________
 
-9.24 reward CONSTANT_EXPR in OBJECT at COORD_EXPR [from sky]
+9.24 reward CONST_EXPR in OBJECT at COORD_EXPR [from sky]
 
 Creates a reward at the position for a specific town, with an optional from sky parameter.
 
@@ -4392,7 +4441,7 @@ Seagull = flock at [1410.771, 61.504, 2349.563] 		//#thesculptor.txt:329
 	POPF Seagull
 ___________________________________________
 
-9.26 make OBJECT dance CONSTANT_EXPRESSION around COORD_EXPR time EXPRESSION
+9.26 make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
 
 No doc.
 
@@ -4578,12 +4627,12 @@ ___________________________________________
 
 9.44 Spells
 Note all creature spells must use 'cast spell on object' where the object is a creature.
-LIGHTNING_BOLT uses the from coord_expression as the source position, and the target pos/object as the
+LIGHTNING_BOLT uses the from CONST_EXPR as the source position, and the target pos/object as the
 direction to cast towards. BUT the bolt may fall short or hit targets beyond, as it works as if playing
 the game. Choose a point somewhere nearish the object and cast it at the object and everything should be ok!
 ___________________________________________
 
-9.44.1 cast CONSTANT_EXPRESSION spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+9.44.1 cast CONST_EXPR spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 
 This function is used to cast a spell at an object, the parameters are as follows (if one is not used
 just put the value 0 in):
@@ -4608,7 +4657,7 @@ StrengthSpell = cast CREATURE_SPELL_STRONG spell on LCreature from [LCreature] r
 	POPF StrengthSpell
 ___________________________________________
 
-9.44.2 cast CONSTANT_EXPRESSION spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+9.44.2 cast CONST_EXPR spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 
 This function is used to cast a spell at a position, the parameters are as follows (if one is not used just
 put the value 0 in):
@@ -4633,7 +4682,7 @@ LightningAttack1 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos1
 	POPF LightningAttack1
 ___________________________________________
 
-9.44.3 get spell CONSTANT_EXPRESSION at COORD_EXPR radius EXPRESSION
+9.44.3 get spell CONST_EXPR at COORD_EXPR radius EXPRESSION
 
 Returns if a spell was cast at a position within a radois, if it was a shield then returns if a position is protected by spells NOT USING THE RADIUS.
 
@@ -4647,7 +4696,7 @@ CPShield = get spell SPELL_PHYSICAL_SHIELD at [HutPos] radius 5		//#Land2ShieldC
 	POPF CPShield
 ___________________________________________
 
-9.45.1 create special effect CONSTANT_EXPRESSION at COORD_EXPR time EXPRESSION
+9.45.1 create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
 
 Creates an in game special effect at a position with a duration.
 
@@ -4661,7 +4710,7 @@ S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]		/
 	POPF S1Effect
 ___________________________________________
 
-9.45.2 create special effect CONSTANT_EXPRESSION to OBJECT time EXPRESSION
+9.45.2 create special effect CONST_EXPR to OBJECT time EXPRESSION
 
 Creates an in game special effect on an object with a duration.
 
@@ -4703,7 +4752,7 @@ ___________________________________________
 ### 10 Constants
 ___________________________________________
 
-10.2 constant from CONSTANT_EXPRESSION to CONSTANT_EXPRESSION
+10.2 constant from CONST_EXPR to CONST_EXPR
 
 Returns a random int value in the given range.
 
@@ -4804,7 +4853,7 @@ LeashType = variable get MyCreature leash type 		//#CreatureDevelopment.txt:1108
 	POPF LeashType
 ___________________________________________
 
-10.11 get CONSTANT_EXPRESSION opposite creature type
+10.11 get CONST_EXPR opposite creature type
 
 Returns an appropriate creature type for Khazar/Lethys/Nemesis constant.
 
@@ -4830,7 +4879,7 @@ ___________________________________________
 ### 11 Position
 ___________________________________________
 
-11.1 [EXPRESSION,EXPRESSION,EXPRESSION]
+11.1 [EXPRESSION, EXPRESSION, EXPRESSION]
 
 No doc.
 
@@ -4844,7 +4893,7 @@ No doc.
 	CASTC
 ___________________________________________
 
-11.2 [EXPRESSION,EXPRESSION]
+11.2 [EXPRESSION, EXPRESSION]
 
 [1865.61,2641.24]
 
@@ -5063,6 +5112,16 @@ TemplePos = marker at player 1 temple position		//#GameOver.txt:10
 	POPF TemplePos
 ___________________________________________
 
+11.8 camera CONST_EXPR
+
+?
+
+camera T00_000
+
+	PUSHI 199					//camera_enum
+	SYS CONVERT_CAMERA_FOCUS	//[1, 3] (int camera_enum) returns (Coord)
+___________________________________________
+
 ### 12 Expressions
 ___________________________________________
 
@@ -5159,7 +5218,7 @@ CurrentMagnitude = get MyCreature interaction magnitude		//#CreatureDevelopment.
 	POPF CurrentMagnitude
 ___________________________________________
 
-12.11 get CONSTANT_EXPRESSION music distance
+12.11 get CONST_EXPR music distance
 
 Gets the distance some music can be heard from a music type.
 
@@ -5204,7 +5263,7 @@ Random = number from 1 to 4
 	POPF Random
 ___________________________________________
 
-12.15 get resource CONSTANT_EXPRESSION in OBJECT
+12.15 get resource CONST_EXPR in OBJECT
 
 Objects can have food and wood, this function returns the amount of food/wood an object has.
 
@@ -5270,7 +5329,7 @@ TownPoisoned = poisoned size of Town
 	POPF TownPoisoned
 ___________________________________________
 
-12.21 get number of CONSTANT_EXPRESSION for OBJECT
+12.21 get number of CONST_EXPR for OBJECT
 
 No doc.
 
@@ -5350,7 +5409,7 @@ OriginalTreeDistance = get distance from [LeashTree] to [MyCreature]		//#Creatur
 	POPF OriginalTreeDistance
 ___________________________________________
 
-12.29 get mana for spell CONSTANT_EXPRESSION
+12.29 get mana for spell CONST_EXPR
 
 Gets the mana required for a spell.
 
@@ -5482,7 +5541,7 @@ PlinthValue = get Plinth info bits		//#chooseyourcreature.txt:409
 	POPF PlinthValue
 ___________________________________________
 
-12.42 number of times action CONSTANT_EXPRESSION by OBJECT
+12.42 number of times action CONST_EXPR by OBJECT
 
 Gets the number of times an object has performed an action.
 
@@ -5579,7 +5638,7 @@ No doc.
 Never found (GET_REAL_YEAR)
 ___________________________________________
 
-12.47.1 get OBJECT desire CONSTANT_EXPRESSION
+12.47.1 get OBJECT desire CONST_EXPR
 
 Gets the percentage desire a town has for something (See Enums.h).
 
@@ -5658,7 +5717,7 @@ ___________________________________________
 No doc. Trivial.
 ___________________________________________
 
-12.49.7 variable CONSTANT_EXPRESSION
+12.49.7 variable CONST_EXPR
 
 Cast an int to float. This is required when a constant has to be assigned or compared to a variable,
 because constants are of type int and variables are of type float.
@@ -5685,7 +5744,7 @@ OldSacrificeValue = get WorshipSite sacrifice total		//#sacrifice.txt:201
 	POPF OldSacrificeValue
 ___________________________________________
 
-12.51 get spell icon CONSTANT_EXPR in OBJECT
+12.51 get spell icon CONST_EXPR in OBJECT
 
 ?
 

@@ -24,8 +24,8 @@ import java.nio.ByteOrder;
 import java.util.List;
 
 import it.ld.bw.chl.exceptions.ParseException;
-import it.ld.bw.chl.lexer.CHLLexer;
-import it.ld.bw.chl.lexer.Token;
+import it.ld.bw.chl.lang.CHLLexer;
+import it.ld.bw.chl.lang.Token;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection;
 import it.ld.bw.chl.model.GlobalVariables;
@@ -33,7 +33,7 @@ import it.ld.bw.chl.model.Header;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.Script;
 
-public class CHLParser {
+public class CHLCompiler {
 	private static final int INITIAL_BUFFER_SIZE = 16 * 1024;
 	private static final int MAX_BUFFER_SIZE = 2 * 1024 * 1024;
 	
@@ -48,11 +48,11 @@ public class CHLParser {
 	private List<Integer> autoStartScripts;
 	private DataSection dataSection;
 	
-	public CHLParser() {
+	public CHLCompiler() {
 		this(System.out);
 	}
 	
-	public CHLParser(PrintStream out) {
+	public CHLCompiler(PrintStream out) {
 		this.out = out;
 	}
 	
@@ -64,7 +64,7 @@ public class CHLParser {
 		this.firstScriptID = firstScriptID;
 	}
 	
-	public CHLFile parse(List<File> files) throws IOException, ParseException {
+	public CHLFile compile(List<File> files) throws IOException, ParseException {
 		chl = new CHLFile();
 		globalVariables = chl.getGlobalVariables();
 		dataBuffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);

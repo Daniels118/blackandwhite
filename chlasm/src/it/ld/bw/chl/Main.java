@@ -124,8 +124,8 @@ public class Main {
 		File out = mandatory(cmd.getArgFile("-o"), "-p");
 		//
 		System.out.println("Parsing CHL sources...");
-		CHLParser parser = new CHLParser();
-		CHLFile chl = parser.parse(inp);
+		CHLCompiler compiler = new CHLCompiler();
+		CHLFile chl = compiler.compile(inp);
 		System.out.println("Writing compiled CHL...");
 		//TODO chl.write(out);
 		System.out.println("Done.");
