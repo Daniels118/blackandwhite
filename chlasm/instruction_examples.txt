@@ -2928,7 +2928,7 @@ set camera properties distance 3 speed 0 angle 22.5 enable behind		//#followus.t
 	SYS CAMERA_PROPERTIES	//[4, 0] (float distance, float speed, float angle, bool enableBehind)
 ___________________________________________
 
-3.18.22 set camera to CONST_EXPR
+3.18.22 set camera to CONSTANT
 
 Instantly sets the camera to a camera position and focus defined in the camera editor.
 
@@ -2942,7 +2942,7 @@ set camera to T00_000		//#LearnInfluence.txt:19
 	SYS SET_CAMERA_FOCUS		//[3, 0] (Coord position)
 ___________________________________________
 
-3.18.23 move camera to CONST_EXPR time EXPRESSION
+3.18.23 move camera to CONSTANT time EXPRESSION
 
 Moves the camera to a camera position and focus defined in the camera editor in a define time.
 WARNING: this implementation looks bugged, the "time" should be pushed 2 times.
@@ -2959,7 +2959,7 @@ move camera to T00_000 time 3											// Cam look at dying brother		//#lostbro
 	SYS MOVE_CAMERA_FOCUS		//[4, 0] (Coord position, float time)
 ___________________________________________
 
-3.18.24 camera path CONST_EXPR
+3.18.24 camera path CONSTANT
 
 In the camera editor you can create camera paths. An enum in cameraposenum.h
 

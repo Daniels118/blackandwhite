@@ -41,7 +41,7 @@ import it.ld.bw.chl.model.ScriptType;
 import static it.ld.bw.chl.model.NativeFunction.*;
 
 public class CHLCompiler {
-	private static final int traceMaxStrLen = 50;
+	private static final String TMP1 = "__Tmp1";
 	
 	private File file;
 	private String sourceFilename;
@@ -49,6 +49,9 @@ public class CHLCompiler {
 	private ListIterator<SymbolInstance> it;
 	private int line;
 	private int col;
+	
+	private boolean optimizeAssignmentEnabled = false;
+	private boolean fixBugsEnabled = false;
 	
 	private PrintStream traceStream;
 	private PrintStream outStream;
@@ -67,8 +70,6 @@ public class CHLCompiler {
 	private Integer challengeId;
 	private int varOffset;
 	private int scriptId = 0;
-	//private LinkedList<Instruction> jmpStack = new LinkedList<>();
-	//private LinkedList<Instruction> exceptStack = new LinkedList<>();
 	
 	public CHLCompiler() {
 		this(System.out);
@@ -81,6 +82,22 @@ public class CHLCompiler {
 		/* This will help the disassembler when guessing string values, because it increases the pointer
 		 * of the first string (low values are too common and would lead to a lot of bad guessing) */
 		storeStringData("Compiled with CHL Compiler developed by Daniele Lombardi");
+	}
+	
+	public boolean isOptimizeAssignmentEnabled() {
+		return optimizeAssignmentEnabled;
+	}
+	
+	public void setOptimizeAssignmentEnabled(boolean optimizeAssignmentEnabled) {
+		this.optimizeAssignmentEnabled = optimizeAssignmentEnabled;
+	}
+	
+	public boolean isFixBugsEnabled() {
+		return fixBugsEnabled;
+	}
+	
+	public void setFixBugsEnabled(boolean fixBugsEnabled) {
+		this.fixBugsEnabled = fixBugsEnabled;
 	}
 	
 	public void setTraceStream(PrintStream traceStream) {
@@ -229,6 +246,9 @@ public class CHLCompiler {
 	
 	private SymbolInstance parseFile() throws ParseException {
 		final int start = it.nextIndex();
+		if (fixBugsEnabled) {
+			declareGlobalVar(TMP1);
+		}
 		while (it.hasNext()) {
 			SymbolInstance symbol = peek();
 			if (symbol.is("challenge")) {
@@ -249,8 +269,7 @@ public class CHLCompiler {
 		if (symbol != SymbolInstance.EOF) {
 			throw new ParseException("Unexpected token: "+symbol+". Expected: EOF", file, symbol.token.line, symbol.token.col);
 		}
-		SymbolInstance file = replace(start, "FILE");
-		return file;
+		return replace(start, "FILE");
 	}
 	
 	/**This is a custom statement that permits to compile from merged source files.
@@ -263,17 +282,24 @@ public class CHLCompiler {
 		SymbolInstance symbol = accept(TokenType.STRING);
 		sourceFilename = symbol.token.stringVal();
 		accept(TokenType.EOL);
-		SymbolInstance newInst = replace(start, "source STRING EOL");
 		outStream.println("Source filename set to: "+sourceFilename);
-		return newInst;
+		return replace(start, "source STRING EOL");
 	}
 	
 	private SymbolInstance parseChallenge() throws ParseException {
 		final int start = it.nextIndex();
-		SymbolInstance symbol = parse("challenge IDENTIFIER EOL");
+		SymbolInstance symbol = parse("challenge IDENTIFIER EOL")[1];
 		challengeId = getConstant(symbol);
-		SymbolInstance newInst = replace(start, "challenge IDENTIFIER EOL");
-		return newInst;
+		return replace(start, "challenge IDENTIFIER EOL");
+	}
+	
+	private void declareGlobalVar(String name) {
+		Integer varId = globalVars.get(name);
+		if (varId == null) {
+			varId = globalVars.size();
+			globalVars.put(name, varId);
+		}
+		varOffset = Math.max(varOffset, varId);
 	}
 	
 	private SymbolInstance parseGlobal() throws ParseException {
@@ -281,50 +307,43 @@ public class CHLCompiler {
 		accept("global");
 		SymbolInstance symbol = next();
 		if (symbol.is("constant")) {
+			//global constant IDENTIFIER = CONSTANT
 			symbol = accept(TokenType.IDENTIFIER);
 			String name = symbol.token.value;
 			accept("=");
 			symbol = next();
 			int val;
-			if (symbol.token.type == TokenType.IDENTIFIER) {
+			if (symbol.is(TokenType.NUMBER) || symbol.is(TokenType.IDENTIFIER)) {
 				val = getConstant(symbol);
-			} else if (symbol.token.type == TokenType.NUMBER) {
-				val = symbol.token.intVal();
 			} else {
-				throw new ParseException("Expected: IDENTIFIER|NUMBER", file, symbol.token.line, symbol.token.col);
+				throw new ParseException("Expected: CONSTANT", file, symbol.token.line, symbol.token.col);
 			}
 			accept(TokenType.EOL);
 			Integer oldVal = constants.put(name, val);
 			if (oldVal != null && oldVal != val) {
 				outStream.println("WARNING: redefinition of global constant: "+name+" at "+file+":"+symbol.token.line);
 			}
-			SymbolInstance newInst = replace(start, "GLOBAL_CONST_DECL");
-			return newInst;
+			return replace(start, "GLOBAL_CONST_DECL");
 		} else {
+			//global IDENTIFIER
 			verify(symbol, TokenType.IDENTIFIER);
 			String name = symbol.token.value;
-			Integer varId = globalVars.get(name);
-			if (varId == null) {
-				varId = globalVars.size();
-				globalVars.put(name, varId);
-			}
-			varOffset = Math.max(varOffset, varId);
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "GLOBAL_VAR_DECL");
-			return newInst;
+			declareGlobalVar(name);
+			return replace(start, "GLOBAL_VAR_DECL");
 		}
 	}
 	
 	private SymbolInstance parseAutorun() throws ParseException {
 		final int start = it.nextIndex();
-		SymbolInstance symbol = parse("run script IDENTIFIER EOL");
+		//run script IDENTIFIER
+		SymbolInstance symbol = parse("run script IDENTIFIER EOL")[2];
 		String name = symbol.token.value;
 		ScriptToResolve toResolve = new ScriptToResolve(file, line, null, name);
 		if (autoruns.put(name, toResolve) != null) {
 			throw new ParseException("Duplicate autorun definition: "+name, file, symbol.token.line, symbol.token.col);
 		}
-		SymbolInstance newInst = replace(start, "run script IDENTIFIER EOL");
-		return newInst;
+		return replace(start, "run script IDENTIFIER EOL");
 	}
 	
 	private SymbolInstance parseScript() throws ParseException {
@@ -367,6 +386,7 @@ public class CHLCompiler {
 			free();
 			script.setVarOffset(varOffset);
 			script.getVariables().addAll(localVars.keySet());
+			chl.getScriptsSection().getItems().add(script);
 			//STATEMENTS
 			parseStatements();
 			//EXCEPTIONS
@@ -393,14 +413,10 @@ public class CHLCompiler {
 				throw new ParseException("The script name at \"end script\" must match the one at \"begin script\"", file, symbol.token.line, symbol.token.col);
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "SCRIPT");
-			//
-			chl.getScriptsSection().getItems().add(script);
-			return newInst;
-		} catch (ParseException e) {
+			return replace(start, "SCRIPT");
+		} finally {
 			localVars.clear();
 			localConst.clear();
-			throw e;
 		}
 	}
 	
@@ -409,32 +425,26 @@ public class CHLCompiler {
 		SymbolInstance symbol = next();
 		if (symbol.is("help")) {
 			accept("script");
-			SymbolInstance newInst = replace(start, "help script");
-			return newInst;
+			return replace(start, "help script");
 		} else if (symbol.is("challenge")) {
 			parse("help script");
-			SymbolInstance newInst = replace(start, "challenge help script");
-			return newInst;
+			return replace(start, "challenge help script");
 		} else if (symbol.is("temple")) {
 			symbol = next();
 			if (symbol.is("help")) {
 				accept("script");
-				SymbolInstance newInst = replace(start, "temple help script");
-				return newInst;
+				return replace(start, "temple help script");
 			} else if (symbol.is("special")) {
 				accept("script");
-				SymbolInstance newInst = replace(start, "temple special script");
-				return newInst;
+				return replace(start, "temple special script");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("multiplayer")) {
 			parse("help script");
-			SymbolInstance newInst = replace(start, "multiplayer help script");
-			return newInst;
+			return replace(start, "multiplayer help script");
 		} else if (symbol.is("script")) {
-			SymbolInstance newInst = replace(start, "script");
-			return newInst;
+			return replace(start, "script");
 		} else {
 			throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 		}
@@ -493,8 +503,7 @@ public class CHLCompiler {
 			parseLocal();
 			symbol = peek();
 		}
-		SymbolInstance newInst = replace(start, "{LOCAL_DECL}");
-		return newInst;
+		return replace(start, "{LOCAL_DECL}");
 	}
 	
 	private void addLocalVar(String name) throws ParseException {
@@ -508,6 +517,7 @@ public class CHLCompiler {
 		final int start = it.nextIndex();
 		SymbolInstance symbol = next();
 		if (symbol.is(TokenType.IDENTIFIER)) {
+			//IDENTIFIER = EXPRESSION
 			String var = symbol.token.value;
 			accept("=");
 			symbol = parseExpression(false);
@@ -519,29 +529,25 @@ public class CHLCompiler {
 				}
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "LOCAL_DECL");
 			addLocalVar(var);
-			//ASSIGNMENT
 			popf(var);
-			return newInst;
+			return replace(start, "LOCAL_DECL");
 		} else if (symbol.is("constant")) {
+			//constant IDENTIFIER = CONSTANT
 			parse("IDENTIFIER =");
 			String constant = symbol.token.value;
 			if (localConst.containsKey(constant)) {
 				throw new ParseException("Duplicate constant: "+constant, file, symbol.token.line, symbol.token.col);
 			}
 			symbol = next();
-			if (symbol.token.type == TokenType.IDENTIFIER) {
+			if (symbol.is(TokenType.NUMBER) || symbol.is(TokenType.IDENTIFIER)) {
 				int val = getConstant(symbol);
 				localConst.put(constant, val);
-			} else if (symbol.token.type == TokenType.NUMBER) {
-				localConst.put(constant, symbol.token.intVal());
 			} else {
-				throw new ParseException("Expected: IDENTIFIER|NUMBER", file, symbol.token.line, symbol.token.col);
+				throw new ParseException("Expected: CONSTANT", file, symbol.token.line, symbol.token.col);
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "GLOBAL_CONST_DECL");
-			return newInst;
+			return replace(start, "CONST_DECL");
 		} else {
 			throw new ParseException("Expected: IDENTIFIER|constant", file, symbol.token.line, symbol.token.col);
 		}
@@ -553,8 +559,7 @@ public class CHLCompiler {
 		while (symbol != null) {
 			symbol = parseStatement();
 		}
-		SymbolInstance newInst = replace(start, "STATEMENTS");
-		return newInst;
+		return replace(start, "STATEMENTS");
 	}
 	
 	private SymbolInstance parseStatement() throws ParseException {
@@ -680,8 +685,7 @@ public class CHLCompiler {
 		sys(SET_SCRIPT_ULONG);
 		pushi(200);
 		sys(SET_SCRIPT_STATE);
-		SymbolInstance newInst = replace(start, "STATEMENT");
-		return newInst;
+		return replace(start, "STATEMENT");
 	}
 	
 	private SymbolInstance parseRemove() throws ParseException {
@@ -690,8 +694,7 @@ public class CHLCompiler {
 		//remove resource CONST_EXPR EXPRESSION from OBJECT
 		sys(REMOVE_RESOURCE);
 		popf();
-		SymbolInstance newInst = replace(start, "STATEMENT");
-		return newInst;
+		return replace(start, "STATEMENT");
 	}
 	
 	private SymbolInstance parseAdd() throws ParseException {
@@ -699,18 +702,16 @@ public class CHLCompiler {
 		accept("add");
 		SymbolInstance symbol = peek();
 		if (symbol.is("for")) {
-			parse("for building OBJECT to OBJECT EOL");
 			//add for building OBJECT to OBJECT
+			parse("for building OBJECT to OBJECT EOL");
 			throw new ParseException("Statement not implemented", file, line, col);
-			//SymbolInstance newInst = replace(start, "STATEMENT");
-			//return newInst;
+			//return replace(start, "STATEMENT");
 		} else if (symbol.is("resource")) {
-			parse("resource CONST_EXPR EXPRESSION from OBJECT EOL");
 			//add resource CONST_EXPR EXPRESSION from OBJECT
+			parse("resource CONST_EXPR EXPRESSION from OBJECT EOL");
 			sys(ADD_RESOURCE);
 			popf();
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else {
 			parse("OBJECT target");
 			symbol = next();
@@ -718,14 +719,12 @@ public class CHLCompiler {
 				parse("COORD_EXPR EOL");
 				//add OBJECT target at COORD_EXPR
 				sys(ADD_SPOT_VISUAL_TARGET_POS);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("on")) {
 				parse("OBJECT EOL");
 				//add OBJECT target on OBJECT
 				sys(ADD_SPOT_VISUAL_TARGET_OBJECT);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
@@ -742,20 +741,17 @@ public class CHLCompiler {
 			accept(TokenType.EOL);
 			//move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height]
 			sys(MOVE_COMPUTER_PLAYER_POSITION);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("game")) {
 			parse("game time EXPRESSION time EXPRESSION EOL");
 			//move game time EXPRESSION time EXPRESSION
 			sys(MOVE_GAME_TIME);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("music")) {
 			parse("music from OBJECT to OBJECT EOL");
 			//move music from OBJECT to OBJECT
 			throw new ParseException("Statement not implemented", file, line, col);
-			/*SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;*/
+			//return replace(start, "STATEMENT");
 		} else if (symbol.is("camera")) {
 			accept("camera");
 			symbol = peek();
@@ -766,20 +762,17 @@ public class CHLCompiler {
 					parse("to COORD_EXPR time EXPRESSION EOL");
 					//move camera position to COORD_EXPR time EXPRESSION
 					sys(MOVE_CAMERA_POSITION);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("follow")) {
 					parse("follow OBJECT EOL");
 					//move camera position follow OBJECT
 					sys(POSITION_FOLLOW);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else {
 					parse("COORD_EXPR docus COORD_EXPR lens EXPRESSION time EXPRESSION EOL");
 					//move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION
 					throw new ParseException("Statement not implemented", file, line, col);
-					/*SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;*/
+					//return replace(start, "STATEMENT");
 				}
 			} else if (symbol.is("focus")) {
 				accept("focus");
@@ -788,14 +781,12 @@ public class CHLCompiler {
 					parse("to COORD_EXPR time EXPRESSION EOL");
 					//move camera focus to COORD_EXPR time EXPRESSION
 					sys(MOVE_CAMERA_FOCUS);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("follow")) {
 					parse("follow OBJECT EOL");
 					//move camera focus follow OBJECT
 					sys(FOCUS_FOLLOW);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else {
 					throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 				}
@@ -806,37 +797,36 @@ public class CHLCompiler {
 					parse("face OBJECT distance EXPRESSION time EXPRESSION EOL");
 					//move camera to face OBJECT distance EXPRESSION time EXPRESSION
 					sys(MOVE_CAMERA_TO_FACE_OBJECT);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else {
-					//move camera to CONST_EXPR time EXPRESSION
-					//TODO bug? See notes in 3.18.23
-					symbol = accept(TokenType.IDENTIFIER);
-					String var = symbol.token.value;
-					int val = getConstant(var);
+					//move camera to CONSTANT time EXPRESSION
+					symbol = acceptAny(TokenType.NUMBER, TokenType.IDENTIFIER);
+					int val = getConstant(symbol);
 					pushi(val);
 					sys(CONVERT_CAMERA_FOCUS);
 					pushi(val);
 					sys(CONVERT_CAMERA_POSITION);
 					parse("time EXPRESSION EOL");
-					swapf(4);
+					if (fixBugsEnabled) {	//See notes in 3.18.23
+						popf(TMP1);
+						pushf(TMP1);
+						swapf(4);
+						pushf(TMP1);
+					} else {
+						swapf(4);
+					}
 					sys(MOVE_CAMERA_POSITION);
 					sys(MOVE_CAMERA_FOCUS);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				}
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else {
-			parseObject(true);
-			parse("position to COORD_EXPR");
-			parseExpression("radius", 0);
-			accept(TokenType.EOL);
+			parse("OBJECT position to COORD_EXPR [radius EXPRESSION] EOL");
 			//move OBJECT position to COORD_EXPR [radius EXPRESSION]
 			sys(MOVE_GAME_THING);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		}
 	}
 	
@@ -848,14 +838,12 @@ public class CHLCompiler {
 			parse("player_creature to OBJECT EOL");
 			//set player_creature to OBJECT
 			sys(CREATURE_SET_PLAYER);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("player")) {
 			parse("player EXPRESSION ally with player EXPRESSION percentage EXPRESSION EOL");
 			//set player EXPRESSION ally with player EXPRESSION percentage EXPRESSION
 			sys(SET_PLAYER_ALLY);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION");
 			symbol = peek();
@@ -864,32 +852,27 @@ public class CHLCompiler {
 				//set computer player EXPRESSION position to COORD_EXPR
 				pushb(false);
 				sys(SET_COMPUTER_PLAYER_POSITION);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("personality")) {
 				parse("personality STRING EXPRESSION EOL");
 				//set computer player EXPRESSION personality STRING EXPRESSION
 				sys(SET_COMPUTER_PLAYER_PERSONALITY);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("suppression")) {
 				parse("suppression STRING EXPRESSION EOL");
 				//set computer player EXPRESSION suppression STRING EXPRESSION
 				throw new ParseException("Statement not implemented", file, line, col);
-				/*SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;*/
+				//return replace(start, "STATEMENT");
 			} else if (symbol.is("speed")) {
 				parse("speed EXPRESSION EOL");
 				//set computer player EXPRESSION speed EXPRESSION
 				sys(SET_COMPUTER_PLAYER_SPEED);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("attitude")) {
 				parse("attitude to player EXPRESSION to EXPRESSION EOL");
 				//set computer player EXPRESSION attitude to player EXPRESSION to EXPRESSION
 				sys(SET_COMPUTER_PLAYER_ATTITUDE);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
@@ -903,21 +886,18 @@ public class CHLCompiler {
 					parse("properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION EOL");
 					//set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
 					throw new ParseException("Statement not implemented", file, line, col);
-					/*SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;*/
+					//return replace(start, "STATEMENT");
 				} else {
 					parse("EXPRESSION EOL");
 					//set game time EXPRESSION
 					sys(SET_GAME_TIME);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					return newInst;
+					return replace(start, "STATEMENT");
 				}
 			} else if (symbol.is("speed")) {
 				parse("speed to EXPRESSION EOL");
 				//set game speed to EXPRESSION
 				sys2(SET_GAMESPEED);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
@@ -925,8 +905,7 @@ public class CHLCompiler {
 			parse("interaction CONST_EXPR EOL");
 			//set interaction CONST_EXPR
 			sys2(SET_INTERFACE_INTERACTION);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("fade")) {
 			accept("fade");
 			symbol = peek();
@@ -934,14 +913,12 @@ public class CHLCompiler {
 				parse("red EXPRESSION green EXPRESSION blue EXPRESSION time EXPRESSION EOL");
 				//set fade red EXPRESSION green EXPRESSION blue EXPRESSION time EXPRESSION
 				sys(SET_FADE);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("in")) {
 				parse("in time EXPRESSION EOL");
 				//set fade in time EXPRESSION
 				sys(SET_FADE_IN);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				return newInst;
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
@@ -949,89 +926,79 @@ public class CHLCompiler {
 			parse("bookmark EXPRESSION to COORD_EXPR EOL");
 			//set bookmark EXPRESSION to COORD_EXPR
 			throw new ParseException("Statement not implemented", file, line, col);
-			/*SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;*/
+			//return replace(start, "STATEMENT");
 		} else if (symbol.is("draw")) {
 			parse("draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION EOL");
 			//set draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION
 			sys(SET_DRAW_TEXT_COLOUR);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("clipping")) {
 			parse("clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION EOL");
 			//set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION
 			sys(SET_CLIPPING_WINDOW);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("camera")) {
 			accept("camera");
 			symbol = peek();
 			if (symbol.is("zones")) {
 				parse("zones to STRING EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				//TODO set camera zones to STRING
-				return newInst;
+				//set camera zones to STRING
+				sys(SET_CAMERA_ZONE);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("lens")) {
-				parse("lens EXPRESSION");
-				symbol = peek();
-				if (symbol.is("time")) {
-					parse("time EXPRESSION");
-				} else {
-					//TODO default time=0
-				}
-				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				//TODO set camera lens EXPRESSION [time EXPRESSION]
-				return newInst;
+				parse("lens EXPRESSION [time EXPRESSION] EOL");
+				//set camera lens EXPRESSION [time EXPRESSION]
+				sys(MOVE_CAMERA_LENS);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("position")) {
 				accept("position");
 				symbol = peek();
 				if (symbol.is("to")) {
 					parse("to COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set camera position to COORD_EXPR
-					return newInst;
+					//set camera position to COORD_EXPR
+					sys(SET_CAMERA_POSITION);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("follow")) {
 					accept("follow");
 					symbol = peek();
 					if (symbol.is("computer")) {
 						parse("computer player EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set camera position follow computer player EXPRESSION
-						return newInst;
+						//set camera position follow computer player EXPRESSION
+						sys(SET_POSITION_FOLLOW_COMPUTER_PLAYER);
+						return replace(start, "STATEMENT");
 					} else {
 						parse("OBJECT EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set camera position follow OBJECT
-						return newInst;
+						//set camera position follow OBJECT
+						sys(SET_POSITION_FOLLOW);
+						return replace(start, "STATEMENT");
 					}
 				} else {
 					parse("COORD_EXPR focus COORD_EXPR lens EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION
-					return newInst;
+					//set camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "STATEMENT");
 				}
 			} else if (symbol.is("focus")) {
 				accept("focus");
 				symbol = peek();
 				if (symbol.is("to")) {
 					parse("to COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set camera focus to COORD_EXPR
-					return newInst;
+					//set camera focus to COORD_EXPR
+					sys(SET_CAMERA_FOCUS);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("follow")) {
 					accept("follow");
 					symbol = peek();
 					if (symbol.is("computer")) {
 						parse("computer player EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set camera focus follow computer player EXPRESSION
-						return newInst;
+						//set camera focus follow computer player EXPRESSION
+						sys(SET_FOCUS_FOLLOW_COMPUTER_PLAYER);
+						return replace(start, "STATEMENT");
 					} else {
 						parse("OBJECT EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set camera focus follow OBJECT
-						return newInst;
+						//set camera focus follow OBJECT
+						sys(SET_FOCUS_FOLLOW);
+						return replace(start, "STATEMENT");
 					}
 				} else {
 					throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
@@ -1041,296 +1008,263 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("face")) {
 					parse("face OBJECT distance EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set camera to face OBJECT distance EXPRESSION
-					return newInst;
+					//set camera to face OBJECT distance EXPRESSION
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "STATEMENT");
 				} else {
-					parse("CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set camera to CONST_EXPR
-					return newInst;
+					//set camera to CONSTANT
+					symbol = parse("CONSTANT EOL")[0];
+					int val = getConstant(symbol);
+					sys(CONVERT_CAMERA_FOCUS);
+					pushi(val);
+					sys(CONVERT_CAMERA_POSITION);
+					sys(SET_CAMERA_POSITION);
+					sys(SET_CAMERA_FOCUS);
+					return replace(start, "STATEMENT");
 				}
 			} else if (symbol.is("follow")) {
 				parse("follow OBJECT distance EXPRESSION EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				//TODO set camera follow OBJECT distance EXPRESSION
-				return newInst;
+				//set camera follow OBJECT distance EXPRESSION
+				sys(SET_FOCUS_AND_POSITION_FOLLOW);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("properties")) {
 				parse("properties distance EXPRESSION speed EXPRESSION angle EXPRESSION enable|disable behind EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
-				//TODO set camera properties distance EXPRESSION speed EXPRESSION angle EXPRESSION enable|disable behind
-				return newInst;
+				//set camera properties distance EXPRESSION speed EXPRESSION angle EXPRESSION enable|disable behind
+				sys(CAMERA_PROPERTIES);
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("dual")) {
 			parse("dual camera to OBJECT OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO set dual camera to OBJECT OBJECT
-			return newInst;
+			//set dual camera to OBJECT OBJECT
+			sys(UPDATE_DUAL_CAMERA);
+			return replace(start, "STATEMENT");
 		} else {
 			symbol = parseObject(false);
 			if (symbol != null) {
 				symbol = peek();
 				if (symbol.is("position")) {
 					parse("position to COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT position to COORD_EXPR
-					return newInst;
+					//set OBJECT position to COORD_EXPR
+					sys(SET_CAMERA_POSITION);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("disciple")) {
 					parse("disciple CONST_EXPR");
 					parseOption("with sound");
 					accept(TokenType.EOL);
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT disciple CONST_EXPR [with sound]
-					return newInst;
+					//set OBJECT disciple CONST_EXPR [with sound]
+					sys(SET_DISCIPLE);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("focus")) {
 					accept("focus");
 					symbol = peek();
 					if (symbol.is("to")) {
 						parse("to COORD_EXPR EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT focus to COORD_EXPR
-						return newInst;
+						//set OBJECT focus to COORD_EXPR
+						sys(SET_FOCUS);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("on")) {
 						parse("on OBJECT EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT focus on OBJECT
-						return newInst;
+						//set OBJECT focus on OBJECT
+						sys(SET_FOCUS_ON_OBJECT);
+						return replace(start, "STATEMENT");
 					} else {
 						throw new ParseException("Expected: to|on", file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("anim")) {
 					parse("anim CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT anim CONST_EXPR
-					return newInst;
+					//set OBJECT anim CONST_EXPR
+					sys(OVERRIDE_STATE_ANIMATION);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("properties")) {
 					accept("properties");
 					symbol = peek();
 					if (symbol.is("inner")) {
-						parse("inner EXPRESSION outer EXPRESSION");
-						symbol = peek();
-						if (symbol.is("calm")) {
-							parse("calm EXPRESSION");
-						} else {
-							//TODO default calm=0
-						}
-						accept(TokenType.EOL);
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties inner EXPRESSION outer EXPRESSION [calm EXPRESSION]
-						return newInst;
+						//set OBJECT properties inner EXPRESSION outer EXPRESSION [calm EXPRESSION]
+						parse("inner EXPRESSION outer EXPRESSION [calm EXPRESSION] EOL");
+						sys(CHANGE_INNER_OUTER_PROPERTIES);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("town")) {
 						parse("town OBJECT flock position COORD_EXPR distance EXPRESSION radius EXPRESSION flock OBJECT EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties town OBJECT flock position COORD_EXPR distance EXPRESSION radius EXPRESSION flock OBJECT
-						return newInst;
+						//set OBJECT properties town OBJECT flock position COORD_EXPR distance EXPRESSION radius EXPRESSION flock OBJECT
+						sys(VORTEX_PARAMETERS);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("degrees")) {
 						parse("degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
-						return newInst;
+						//set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
+						sys(CHANGE_WEATHER_PROPERTIES);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("time")) {
 						parse("time EXPRESSION fade EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties time EXPRESSION fade EXPRESSION
-						return newInst;
+						//set OBJECT properties time EXPRESSION fade EXPRESSION
+						sys(CHANGE_TIME_FADE_PROPERTIES);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("clouds")) {
 						parse("clouds EXPRESSION shade EXPRESSION height EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties clouds EXPRESSION shade EXPRESSION height EXPRESSION
-						return newInst;
+						//set OBJECT properties clouds EXPRESSION shade EXPRESSION height EXPRESSION
+						sys(CHANGE_CLOUD_PROPERTIES);
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("sheetmin")) {
 						parse("sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
-						//TODO set OBJECT properties sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION
-						return newInst;
+						//set OBJECT properties sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION
+						sys(CHANGE_LIGHTNING_PROPERTIES);
+						return replace(start, "STATEMENT");
 					} else {
 						throw new ParseException("Expected: inner|town|degrees|time|clouds|sheetmin", file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("text")) {
 					parse("text property text CONST_EXPR category CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT text property text CONST_EXPR category CONST_EXPR
-					return newInst;
+					//set OBJECT text property text CONST_EXPR category CONST_EXPR
+					sys(HIGHLIGHT_PROPERTIES);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("velocity")) {
 					parse("velocity heading COORD_EXPR speed EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT velocity heading COORD_EXPR speed EXPRESSION
-					return newInst;
+					//set OBJECT velocity heading COORD_EXPR speed EXPRESSION
+					sys(SET_HEADING_AND_SPEED);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("target")) {
 					parse("target COORD_EXPR time EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT target COORD_EXPR time EXPRESSION
-					return newInst;
+					//set OBJECT target COORD_EXPR time EXPRESSION
+					sys(SET_TARGET);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("time")) {
 					parse("set OBJECT time to EXPRESSION second|seconds EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT time to EXPRESSION second|seconds
-					return newInst;
+					//set OBJECT time to EXPRESSION second|seconds
+					sys(SET_TIMER_TIME);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("radius")) {
 					parse("radius EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT radius EXPRESSION
-					return newInst;
+					//set OBJECT radius EXPRESSION
+					sys(SET_MAGIC_RADIUS);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("mana")) {
 					parse("mana EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT mana EXPRESSION
-					return newInst;
+					//set OBJECT mana EXPRESSION
+					sys(GAME_SET_MANA);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("temperature")) {
 					parse("temperature EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT temperature EXPRESSION
-					return newInst;
+					//set OBJECT temperature EXPRESSION
+					sys(SET_TEMPERATURE);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("forward") || symbol.is("reverse")) {
 					parse("forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
-					//TODO set OBJECT forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION
-					return newInst;
+					//set OBJECT forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION
+					sys(WALK_PATH);
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("desire")) {
 					accept("desire");
 					symbol = peek();
 					if (symbol.is("maximum")) {
 						parse("maximum CONST_EXPR to EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT desire maximum CONST_EXPR to EXPRESSION
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("boost")) {
 						parse("boost TOWN_DESIRE_INFO EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT desire boost TOWN_DESIRE_INFO EXPRESSION
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else {
 						parseConstExpr(true);
 						symbol = peek();
 						if (symbol.is("to")) {
-							parseExpression(true);
-							accept(TokenType.EOL);
-							SymbolInstance newInst = replace(start, "STATEMENT");
+							parse("EXPRESSION EOL");
 							//TODO set OBJECT desire CONST_EXPR to EXPRESSION
-							return newInst;
+							return replace(start, "STATEMENT");
 						} else {
-							parseConstExpr(true);
-							accept(TokenType.EOL);
-							SymbolInstance newInst = replace(start, "STATEMENT");
+							parse("CONST_EXPR EOL");
 							//TODO set OBJECT desire CONST_EXPR CONST_EXPR
-							return newInst;
+							return replace(start, "STATEMENT");
 						}
 					}
 				} else if (symbol.is("only")) {
 					parse("only desire CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT only desire CONST_EXPR
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("disable")) {
 					parse("disable only desire EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT disable only desire
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("magic")) {
-					parse("set OBJECT magic properties MAGIC_TYPE");
-					symbol = peek();
-					if (symbol.is("time")) {
-						parse("time EXPRESSION");
-					} else {
-						//TODO default time=0
-					}
-					accept(TokenType.EOL);
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					parse("set OBJECT magic properties MAGIC_TYPE [time EXPRESSION] EOL");
 					//TODO set OBJECT magic properties MAGIC_TYPE [time EXPRESSION]
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("all")) {
 					parse("all desire CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT all desire CONST_EXPR
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("priority")) {
 					parse("priority EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT priority EXPRESSION
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("home")) {
 					parse("home position COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT home position COORD_EXPR
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("creed")) {
 					parse("creed properties hand HAND_GLOW scale EXPRESSION power EXPRESSION time EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT creed properties hand CONST_EXPR scale EXPRESSION power EXPRESSION time EXPRESSION
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("name")) {
 					parse("name CONST_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT name CONST_EXPRset OBJECT name CONST_EXPR
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("fade")) {
 					accept("fade");
 					symbol = peek();
 					if (symbol.is("start")) {
 						parse("start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT fade start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("in")) {
 						parse("in time EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT fade in time EXPRESSION
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else {
 						throw new ParseException("Expected: start|in", file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("belief")) {
 					parse("belief scale EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT belief scale EXPRESSION
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("player")) {
 					parseExpression(true);
 					symbol = peek();
 					if (symbol.is("relative")) {
 						parse("relative belief EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT player EXPRESSION relative belief
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else if (symbol.is("")) {
 						parse("belief EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
 						//TODO set OBJECT player EXPRESSION belief EXPRESSION
-						return newInst;
+						return replace(start, "STATEMENT");
 					} else {
 						throw new ParseException("Expected: start|in", file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("building")) {
 					parse("set OBJECT building properties ABODE_NUMBER size EXPRESSION EOL");
 					parseOption("destroys when placed");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT building properties ABODE_NUMBER size EXPRESSION [destroys when placed]
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("carrying")) {
 					parse("carrying CARRIED_OBJECT EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT carrying CARRIED_OBJECT
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else if (symbol.is("music")) {
 					parse("music position to COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set OBJECT music position to COORD_EXPR
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else {
 					parse("CONST_EXPR development EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO set OBJECT CONST_EXPR development
-					return newInst;
 				}
 			} else {
 				symbol = parseExpression(true);
 				if (symbol != null) {
 					parse("land balance EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
 					//TODO set EXPRESSION land balance EXPRESSION
-					return newInst;
+					return replace(start, "STATEMENT");
 				} else {
 					symbol = peek();
 					throw new ParseException("Expected: EXPRESSION|OBJECT", file, symbol.token.line, symbol.token.col);
@@ -1345,16 +1279,14 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("all")) {
 			parse("all weather at COORD_EXPR radius EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
 			//TODO delete all weather at COORD_EXPR radius EXPRESSION
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else {
 			parseObject(true);
 			parseOption("with fade");
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
 			//TODO delete OBJECT [with fade]
-			return newInst;
+			return replace(start, "STATEMENT");
 		}
 	}
 	
@@ -1364,14 +1296,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO release computer player EXPRESSION
-			return newInst;
 		} else {
 			parse("OBJECT focus EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO release OBJECT focus
-			return newInst;
 		}
 	}
 	
@@ -1384,14 +1314,12 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("on")) {
 				parse("on OBJECT EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable leash on OBJECT
-				return newInst;
 			} else if (symbol.is("draw")) {
 				accept("draw EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable leash draw
-				return newInst;
 			} else {
 				throw new ParseException("Expected: on|draw", file, symbol.token.line, symbol.token.col);
 			}
@@ -1400,258 +1328,213 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("wind")) {
 				parse("wind resistance EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable player EXPRESSION wind resistance
-				return newInst;
 			} else if (symbol.is("virtual")) {
 				parse("virtual influence EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable player EXPRESSION virtual influence
-				return newInst;
 			} else {
 				throw new ParseException("Expected: wind|virtual", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("fight")) {
 			parse("fight exit EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable fight exit
-			return newInst;
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable computer player EXPRESSION
-			return newInst;
 		} else if (symbol.is("game")) {
 			parse("game time EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable game time
-			return newInst;
 		} else if (symbol.is("help")) {
 			parse("help system EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable help system
-			return newInst;
 		} else if (symbol.is("creature")) {
 			accept("creature");
 			symbol = peek();
 			if (symbol.is("sound")) {
 				parse("sound EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable creature sound
-				return newInst;
 			} else if (symbol.is("in")) {
 				parse("in temple EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable creature in temple
-				return newInst;
 			} else {
 				throw new ParseException("Expected: sound|in", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("sound")) {
 			parse("sound effects EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable sound effects
-			return newInst;
 		} else if (symbol.is("constant")) {
 			parse("constant avi sequence EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable constant avi sequence
-			return newInst;
 		} else if (symbol.is("spell")) {
 			accept("spell");
 			symbol = peek();
 			if (symbol.is("constant")) {
 				parse("constant in OBJECT EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable spell constant in OBJECT
-				return newInst;
 			} else {
 				parse("CONST_EXPR for player EXPRESSION EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable spell CONST_EXPR for player EXPRESSION
-				return newInst;
 			}
 		} else if (symbol.is("angle")) {
 			parse("angle sound EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable angle sound
-			return newInst;
 		} else if (symbol.is("pitch")) {
 			parse("pitch sound EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable pitch sound
-			return newInst;
 		} else if (symbol.is("highlight")) {
 			parse("highlight draw EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable highlight draw
-			return newInst;
 		} else if (symbol.is("intro")) {
 			parse("intro building EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable intro building
-			return newInst;
 		} else if (symbol.is("temple")) {
 			parse("temple EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable temple
-			return newInst;
 		} else if (symbol.is("climate")) {
 			accept("climate");
 			symbol = peek();
 			if (symbol.is("weather")) {
 				parse("weather EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable climate weather
-				return newInst;
 			} else if (symbol.is("create")) {
 				parse("create storms EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO enable|disable climate create storms
-				return newInst;
 			} else {
 				throw new ParseException("Expected: weather|create", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("music")) {
 			parse("music on OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable music on OBJECT
-			return newInst;
 		} else if (symbol.is("alignment")) {
 			parse("alignment music EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable alignment music
-			return newInst;
 		} else if (symbol.is("clipping")) {
 			parse("clipping distance EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable clipping distance EXPRESSION
-			return newInst;
 		} else if (symbol.is("camera")) {
 			parse("camera fixed rotation at COORD_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable camera fixed rotation at COORD_EXPR
-			return newInst;
 		} else if (symbol.is("jc")) {
 			parse("jc special on OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO enable|disable jc special on OBJECT
-			return newInst;
 		} else {
 			symbol = parseObject(false);
 			if (symbol != null) {
 				symbol = peek();
 				if (symbol.is("active")) {
 					parse("active EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT active
-					return newInst;
 				} else if (symbol.is("attack")) {
 					parse("attack own town EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT attack own town
-					return newInst;
 				} else if (symbol.is("reaction")) {
 					parse("reaction EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT reaction
-					return newInst;
 				} else if (symbol.is("development")) {
 					parse("development script EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT development script
-					return newInst;
 				} else if (symbol.is("spell")) {
 					parse("spell reversion EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT spell reversion
-					return newInst;
 				} else if (symbol.is("anim")) {
 					parse("anim time modify EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT anim time modify
-					return newInst;
 				} else if (symbol.is("friends")) {
 					parse("friends with OBJECT EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT friends with OBJECT
-					return newInst;
 				} else if (symbol.is("auto")) {
 					accept("auto");
 					symbol = peek();
 					if (symbol.is("fighting")) {
 						parse("fighting EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
+						return replace(start, "STATEMENT");
 						//TODO enable|disable OBJECT auto fighting
-						return newInst;
 					} else if (symbol.is("scale")) {
 						parse("scale EXPRESSION EOL");
-						SymbolInstance newInst = replace(start, "STATEMENT");
+						return replace(start, "STATEMENT");
 						//TODO enable|disable OBJECT auto scale EXPRESSION
-						return newInst;
 					} else {
 						throw new ParseException("Expected: fighting|scale", file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("only")) {
 					parse("only for scripts EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT only for scripts
-					return newInst;
 				} else if (symbol.is("poisoned")) {
 					parse("poisoned EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT poisoned
-					return newInst;
 				} else if (symbol.is("build")) {
 					parse("build worship site EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT build worship site
-					return newInst;
 				} else if (symbol.is("skeleton")) {
 					parse("skeleton EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT skeleton
-					return newInst;
 				} else if (symbol.is("indestructible")) {
 					parse("indestructible EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT indestructible
-					return newInst;
 				} else if (symbol.is("hurt")) {
 					parse("hurt by fire EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT hurt by fire
-					return newInst;
 				} else if (symbol.is("set")) {
 					parse("set on fire EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT set on fire
-					return newInst;
 				} else if (symbol.is("on")) {
 					parse("on fire EXPRESSION EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT on fire EXPRESSION
-					return newInst;
 				} else if (symbol.is("moveable")) {
 					parse("moveable EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT moveable
-					return newInst;
 				} else if (symbol.is("pickup")) {
 					parse("pickup EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT pickup
-					return newInst;
 				} else if (symbol.is("high")) {
 					parse("high graphics|gfx detail EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT high graphics detail
-					return newInst;
 				} else if (symbol.is("affected")) {
 					parse("affected by wind EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable OBJECT affected by wind
-					return newInst;
 				} else {
 					throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 				}
@@ -1659,9 +1542,8 @@ public class CHLCompiler {
 				symbol = parseConstExpr(false);
 				if (symbol != null) {
 					parse("avi sequence EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO enable|disable CONST_EXPR avi sequence
-					return newInst;
 				} else {
 					symbol = peek();
 					throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
@@ -1674,14 +1556,12 @@ public class CHLCompiler {
 		final int start = it.nextIndex();
 		if (peek().is("close") && peek(1).is("dialogue")) {
 			parse("close dialogue EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO close dialogue
-			return newInst;
 		} else {
 			parse("open|close OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO open|close OBJECT
-			return newInst;
 		}
 	}
 	
@@ -1694,20 +1574,17 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("excluding")) {
 				parse("excluding CONST_EXPR EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO teach OBJECT all excluding CONST_EXPR
-				return newInst;
 			} else {
 				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO teach OBJECT all
-				return newInst;
 			}
 		} else {
 			parse("CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR
-			return newInst;
 		}
 	}
 	
@@ -1717,14 +1594,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("action")) {
 			parse("action OBJECT finish EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO force action OBJECT finish
-			return newInst;
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION action STRING OBJECT OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO force computer player EXPRESSION action STRING OBJECT OBJECT
-			return newInst;
 		} else {
 			parse("OBJECT CONST_EXPR OBJECT");
 			symbol = peek();
@@ -1734,18 +1609,16 @@ public class CHLCompiler {
 				//TODO default object: 0
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO force OBJECT CONST_EXPR OBJECT [with OBJECT]
-			return newInst;
 		}
 	}
 	
 	private SymbolInstance parseInitialise() throws ParseException {
 		final int start = it.nextIndex();
 		parse("initialise number of constant for OBJECT EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO initialise number of constant for OBJECT
-		return newInst;
 	}
 	
 	private SymbolInstance parseClear() throws ParseException {
@@ -1754,49 +1627,41 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("dropped")) {
 			parse("dropped by OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear dropped by OBJECT
-			return newInst;
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION actions EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear computer player EXPRESSION actions
-			return newInst;
 		} else if (symbol.is("clicked")) {
 			symbol = peek();
 			if (symbol.is("object")) {
 				parse("object EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO clear clicked object
-				return newInst;
 			} else if (symbol.is("position")) {
 				parse("position EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO clear clicked position
-				return newInst;
 			} else {
 				throw new ParseException("Expected: object|position", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("hit")) {
 			parse("hit object EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear hit object
-			return newInst;
 		} else if (symbol.is("player")) {
 			parse("player EXPRESSION spell charging EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear player EXPRESSION spell charging
-			return newInst;
 		} else if (symbol.is("dialogue")) {
 			parse("dialogue EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear dialogue
-			return newInst;
 		} else if (symbol.is("clipping")) {
 			parse("clipping window time EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO clear clipping window time EXPRESSION
-			return newInst;
 		} else {
 			throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 		}
@@ -1808,14 +1673,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("reaction")) {
 			parse("reaction OBJECT ENUM_REACTION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO attach reaction OBJECT ENUM_REACTION
-			return newInst;
 		} else if (symbol.is("music")) {
 			parse("music CONST_EXPR to OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO attach music CONST_EXPR to OBJECT
-			return newInst;
 		} else if (symbol.is("3d") || symbol.is("sound")) {
 			parseOption("3d");
 			parse("sound tag CONST_EXPR");
@@ -1826,9 +1689,8 @@ public class CHLCompiler {
 				parseConstExpr(true);
 			}
 			parse("to OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO attach [3d] sound tag CONST_EXPR [CONST_EXPR] to OBJECT
-			return newInst;
 		} else {
 			parseObject(true);
 			symbol = peek();
@@ -1837,30 +1699,26 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("hand")) {
 					parse("hand EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO attach OBJECT leash to hand
-					return newInst;
 				} else {
 					parse("OBJECT EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO attach OBJECT leash to OBJECT
-					return newInst;
 				}
 			} else if (symbol.is("to")) {
 				accept("to");
 				symbol = peek();
 				if (symbol.is("game")) {
 					parse("game OBJECT for PLAYING_SIDE team EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO attach OBJECT to game OBJECT for PLAYING_SIDE team
-					return newInst;
 				} else {
 					parseObject(true);
 					parseOption("as leader");
 					accept(TokenType.EOL);
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO attach OBJECT to OBJECT [as leader]
-					return newInst;
 				}
 			} else {
 				throw new ParseException("Expected: leash|to", file, symbol.token.line, symbol.token.col);
@@ -1871,9 +1729,8 @@ public class CHLCompiler {
 	private SymbolInstance parseToggle() throws ParseException {
 		final int start = it.nextIndex();
 		parse("toggle player EXPRESSION leash EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO toggle player EXPRESSION leash
-		return newInst;
 	}
 	
 	private SymbolInstance parseDetach() throws ParseException {
@@ -1882,9 +1739,8 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("player")) {
 			parse("player from OBJECT from PLAYING_SIDE team EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO detach player from OBJECT from PLAYING_SIDE team
-			return newInst;
 		} else if (symbol.is("sound")) {
 			parse("sound tag CONST_EXPR");
 			symbol = peek();
@@ -1894,43 +1750,36 @@ public class CHLCompiler {
 				parseConstExpr(true);
 			}
 			parse("from OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO detach sound tag CONST_EXPR [CONST_EXPR] from OBJECT
-			return newInst;
 		} else if (symbol.is("reaction")) {
 			parse("detach reaction OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO detach reaction OBJECT
-			return newInst;
 		} else if (symbol.is("music")) {
 			parse("music from OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO detach music from OBJECT
-			return newInst;
 		} else if (symbol.is("from")) {
 			//TODO default OBJECT
 			parse("from OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO detach [OBJECT] from OBJECT
-			return newInst;
 		} else {
 			parseObject(true);
 			symbol = peek();
 			if (symbol.is("leash")) {
 				parse("leash EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO detach OBJECT leash
-				return newInst;
 			} else if (symbol.is("in")) {
 				parse("in game OBJECT from PLAYING_SIDE team EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO detach OBJECT in game OBJECT from PLAYING_SIDE team
-				return newInst;
 			} else if (symbol.is("from")) {
 				parse("from OBJECT EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO detach [OBJECT] from OBJECT
-				return newInst;
 			} else {
 				throw new ParseException("Expected: leash|in|from", file, symbol.token.line, symbol.token.col);
 			}
@@ -1940,9 +1789,8 @@ public class CHLCompiler {
 	private SymbolInstance parseSwap() throws ParseException {
 		final int start = it.nextIndex();
 		parse("swap creature from OBJECT to OBJECT EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO swap creature from OBJECT to OBJECT
-		return newInst;
 	}
 	
 	private SymbolInstance parseQueue() throws ParseException {
@@ -1951,27 +1799,23 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION action STRING OBJECT OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO queue computer player EXPRESSION action STRING OBJECT OBJECT
-			return newInst;
 		} else {
 			parse("OBJECT fight");
 			symbol = peek();
 			if (symbol.is("move")) {
 				parse("move CONST_EXPR EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO queue OBJECT fight move FIGHT_MOVE
-				return newInst;
 			} else if (symbol.is("step")) {
 				parse("step CONST_EXPR EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO queue OBJECT fight step CONST_EXPR
-				return newInst;
 			} else if (symbol.is("spell")) {
 				parse("spell CONST_EXPR EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO queue OBJECT fight spell CONST_EXPR
-				return newInst;
 			} else {
 				throw new ParseException("Expected: move|step|spell", file, symbol.token.line, symbol.token.col);
 			}
@@ -1981,9 +1825,8 @@ public class CHLCompiler {
 	private SymbolInstance parsePauseUnpause() throws ParseException {
 		final int start = it.nextIndex();
 		parse("pause|unpause computer player EXPRESSION EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO pause|unpause computer player EXPRESSION
-		return newInst;
 	}
 	
 	private SymbolInstance parseLoad() throws ParseException {
@@ -1992,24 +1835,20 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION personality STRING EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO load computer player EXPRESSION personality STRING
-			return newInst;
 		} else if (symbol.is("map")) {
 			parse("map STRING EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO load map STRING
-			return newInst;
 		} else if (symbol.is("my_creature")) {
 			parse("my_creature at COORD_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO load my_creature at COORD_EXPR
-			return newInst;
 		} else if (symbol.is("creature")) {
 			parse("creature CONST_EXPR STRING player EXPRESSION at COORD_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO load creature CONST_EXPR STRING player EXPRESSION at COORD_EXPR
-			return newInst;
 		} else {
 			throw new ParseException("Expected: computer|map|my_creature|creature", file, symbol.token.line, symbol.token.col);
 		}
@@ -2021,14 +1860,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION personality STRING EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO save computer player EXPRESSION personality STRING
-			return newInst;
 		} else if (symbol.is("game")) {
 			parse("game in slot EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO save game in slot EXPRESSION
-			return newInst;
 		} else {
 			throw new ParseException("Expected: computer|game", file, symbol.token.line, symbol.token.col);
 		}
@@ -2043,49 +1880,42 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("games")) {
 				parse("games for OBJECT EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop all games for OBJECT
-				return newInst;
 			} else if (symbol.is("scripts")) {
 				parse("scripts excluding");
 				symbol = peek();
 				if (symbol.is("files")) {
 					parse("files STRING EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO stop all scripts excluding files STRING
-					return newInst;
 				} else {
 					parse("STRING EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO stop all scripts excluding STRING
-					return newInst;
 				}
 			} else if (symbol.is("immersion")) {
 				parse("immersion EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop all immersion
-				return newInst;
 			} else {
 				throw new ParseException("Expected: games|scripts|immersion", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("script")) {
 			parse("script STRING EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO stop script STRING
-			return newInst;
 		} else if (symbol.is("scripts")) {
 			parse("scripts in");
 			symbol = peek();
 			if (symbol.is("files")) {
 				parse("files STRING EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop scripts in files STRING
-				return newInst;
 			} else if (symbol.is("file")) {
 				parse("file STRING excluding STRING EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop scripts in file STRING excluding STRING
-				return newInst;
 			} else {
 				throw new ParseException("Expected: files|file", file, symbol.token.line, symbol.token.col);
 			}
@@ -2097,32 +1927,27 @@ public class CHLCompiler {
 			} else {
 				parseConstExpr(true);
 			}
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO stop sound CONST_EXPR [CONST_EXPR]
-			return newInst;
 		} else if (symbol.is("immersion")) {
 			parse("immersion CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO stop immersion IMMERSION_EFFECT_TYPE
-			return newInst;
 		} else if (symbol.is("music")) {
 			parse("music EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO stop music
-			return newInst;
 		} else {
 			parse("SPIRIT_TYPE spirit");
 			symbol = peek();
 			if (symbol.is("pointing")) {
 				parse("pointing EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop SPIRIT_TYPE spirit pointing
-				return newInst;
 			} else if (symbol.is("looking")) {
 				parse("looking EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO stop SPIRIT_TYPE spirit looking
-				return newInst;
 			} else {
 				throw new ParseException("Expected: pointing|looking", file, symbol.token.line, symbol.token.col);
 			}
@@ -2144,9 +1969,8 @@ public class CHLCompiler {
 				//TODO default position
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start say [extra] sound CONST_EXPR [at COORD_EXPR]
-			return newInst;
 		} else if (symbol.is("sound")) {
 			parse("sound CONST_EXPR");
 			symbol = peek();
@@ -2168,45 +1992,38 @@ public class CHLCompiler {
 				}
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start sound CONST_EXPR [CONST_EXPR] [at COORD_EXPR]
-			return newInst;
 		} else if (symbol.is("immersion")) {
 			parse("immersion CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start immersion IMMERSION_EFFECT_TYPE
-			return newInst;
 		} else if (symbol.is("music")) {
 			parse("music CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start music CONST_EXPR
-			return newInst;
 		} else if (symbol.is("hand")) {
 			parse("hand demo STRING");
 			parseOption("with pause");
 			parseOption("without hand modify");
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start hand demo STRING [with pause] [without hand modify]
-			return newInst;
 		} else if (symbol.is("jc")) {
 			parse("jc special CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO start jc special CONST_EXPR
-			return newInst;
 		} else {
 			parseObject(true);
 			symbol = peek();
 			if (symbol.is("with")) {
 				parse("with OBJECT as referee EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO start OBJECT with OBJECT as referee
-				return newInst;
 			} else if (symbol.is("fade")) {
 				parse("fade out EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO start OBJECT fade out
-				return newInst;
 			} else {
 				throw new ParseException("Expected: with|fade", file, symbol.token.line, symbol.token.col);
 			}
@@ -2216,9 +2033,8 @@ public class CHLCompiler {
 	private SymbolInstance parseDisband() throws ParseException {
 		final int start = it.nextIndex();
 		parse("disband OBJECT EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO disband OBJECT
-		return newInst;
 	}
 	
 	private SymbolInstance parsePopulate() throws ParseException {
@@ -2231,45 +2047,29 @@ public class CHLCompiler {
 			parseConstExpr(true);
 		}
 		accept(TokenType.EOL);
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO populate OBJECT with EXPRESSION CONST_EXPR [CONST_EXPR]
-		return newInst;
 	}
 	
 	private SymbolInstance parseAffect() throws ParseException {
 		final int start = it.nextIndex();
 		parse("affect alignment by EXPRESSION EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO affect alignment by EXPRESSION
-		return newInst;
 	}
 	
 	private SymbolInstance parseSnapshot() throws ParseException {
 		final int start = it.nextIndex();
-		parse("snapshot quest|challenge");
-		SymbolInstance symbol = peek();
-		if (symbol.is("success")) {
-			parse("success EXPRESSION");
-		} else {
-			//TODO default EXPRESSION
-		}
-		symbol = peek();
-		if (symbol.is("alignment")) {
-			parse("alignment EXPRESSION");
-		} else {
-			//TODO default EXPRESSION
-		}
-		SymbolInstance script = parse("CONST_EXPR IDENTIFIER");
+		SymbolInstance script = parse("snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR IDENTIFIER")[7];
 		String scriptName = script.token.value;
 		int argc = 0;
-		symbol = peek();
+		SymbolInstance symbol = peek();
 		if (symbol.is("(")) {
 			argc = parseParameters();
 		}
 		accept(TokenType.EOL);
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO snapshot quest|challenge [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
-		return newInst;
 	}
 	
 	private SymbolInstance parseUpdate() throws ParseException {
@@ -2277,39 +2077,13 @@ public class CHLCompiler {
 		parse("update snapshot");
 		SymbolInstance symbol = peek();
 		if (symbol.is("details")) {
-			accept("details");
-			symbol = peek();
-			if (symbol.is("success")) {
-				parse("success EXPRESSION");
-			} else {
-				//TODO default EXPRESSION
-			}
-			symbol = peek();
-			if (symbol.is("alignment")) {
-				parse("alignment EXPRESSION");
-			} else {
-				//TODO default EXPRESSION
-			}
-			parseConstExpr(true);
+			parse("details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR");
 			parseOption("taking picture");
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO update snapshot details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR [taking picture]
-			return newInst;
 		} else {
-			symbol = peek();
-			if (symbol.is("success")) {
-				parse("success EXPRESSION");
-			} else {
-				//TODO default EXPRESSION
-			}
-			symbol = peek();
-			if (symbol.is("alignment")) {
-				parse("alignment EXPRESSION");
-			} else {
-				//TODO default EXPRESSION
-			}
-			SymbolInstance script = parse("CONST_EXPR IDENTIFIER");
+			SymbolInstance script = parse("[success EXPRESSION] [alignment EXPRESSION] CONST_EXPR IDENTIFIER")[5];
 			String scriptName = script.token.value;
 			int argc = 0;
 			symbol = peek();
@@ -2317,18 +2091,16 @@ public class CHLCompiler {
 				argc = parseParameters();
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO update snapshot [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR SCRIPT[(PARAMETERS)]
-			return newInst;
 		}
 	}
 	
 	private SymbolInstance parseBuild() throws ParseException {
 		final int start = it.nextIndex();
 		parse("build building at COORD_EXPR desire EXPRESSION EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO build building at COORD_EXPR desire EXPRESSION
-		return newInst;
 	}
 	
 	private SymbolInstance parseRun() throws ParseException {
@@ -2336,7 +2108,7 @@ public class CHLCompiler {
 		accept("run");
 		SymbolInstance symbol = peek();
 		if (symbol.is("script")) {
-			SymbolInstance script = parse("script IDENTIFIER");
+			SymbolInstance script = parse("script IDENTIFIER")[1];
 			String scriptName = script.token.value;
 			int argc = 0;
 			symbol = peek();
@@ -2344,16 +2116,14 @@ public class CHLCompiler {
 				argc = parseParameters();
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO run script IDENTIFIER[(PARAMETERS)]
-			return newInst;
 		} else if (symbol.is("map")) {
 			parse("map script line STRING EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO run map script line STRING
-			return newInst;
 		} else if (symbol.is("background")) {
-			SymbolInstance script = parse("background script IDENTIFIER");
+			SymbolInstance script = parse("background script IDENTIFIER")[2];
 			String scriptName = script.token.value;
 			int argc = 0;
 			symbol = peek();
@@ -2361,14 +2131,12 @@ public class CHLCompiler {
 				argc = parseParameters();
 			}
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO run background script IDENTIFIER[(PARAMETERS)]
-			return newInst;
 		} else {
 			parse("CONST_EXPR developer function EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO run CONST_EXPR developer function
-			return newInst;
 		}
 	}
 	
@@ -2380,17 +2148,15 @@ public class CHLCompiler {
 			next();	//skip
 		}
 		parse("CONDITION EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO wait until CONDITION
-		return newInst;
 	}
 	
 	private SymbolInstance parseEnterExit() throws ParseException {
 		final int start = it.nextIndex();
 		parse("enter|exit temple EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO enter|exit temple
-		return newInst;
 	}
 	
 	private SymbolInstance parseRestart() throws ParseException {
@@ -2399,14 +2165,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("music")) {
 			parse("music on OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO restart music on OBJECT
-			return newInst;
 		} else {
 			parse("OBJECT EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO restart OBJECT
-			return newInst;
 		}
 	}
 	
@@ -2418,9 +2182,8 @@ public class CHLCompiler {
 		
 		parse("ulong EXPRESSION , EXPRESSION EOL");
 		
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
-		return newInst;
 	}
 	
 	private SymbolInstance parseMake() throws ParseException {
@@ -2436,54 +2199,40 @@ public class CHLCompiler {
 					parse("to OBJECT");
 					parseOption("in world");
 					accept(TokenType.EOL);
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO make SPIRIT_TYPE spirit point to OBJECT [in world]
-					return newInst;
 				} else if (symbol.is("at")) {
 					parse("at COORD_EXPR EOL");
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO make SPIRIT_TYPE spirit point at COORD_EXPR
-					return newInst;
 				} else {
 					throw new ParseException("Expected: to|at", file, symbol.token.line, symbol.token.col);
 				}
 			} else if (symbol.is("play")) {
-				parse("play across EXPRESSION down EXPRESSION CONST_EXPR");
-				symbol = peek();
-				if (symbol.is("speed")) {
-					parse("speed EXPRESSION");
-				} else {
-					//TODO default EXPRESSION
-				}
-				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				parse("play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION] EOL");
+				return replace(start, "STATEMENT");
 				//TODO make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
-				return newInst;
 			} else if (symbol.is("cling")) {
 				parse("cling across EXPRESSION down EXPRESSION EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO make SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
-				return newInst;
 			} else if (symbol.is("fly")) {
 				parse("fly across EXPRESSION down EXPRESSION EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO make SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
-				return newInst;
 			} else if (symbol.is("look")) {
 				parse("look at");
 				symbol = parseObject(false);
 				if (symbol != null) {
 					accept(TokenType.EOL);
-					SymbolInstance newInst = replace(start, "STATEMENT");
+					return replace(start, "STATEMENT");
 					//TODO make SPIRIT_TYPE spirit look at OBJECT
-					return newInst;
 				} else {
 					symbol = parseCoordExpr(false);
 					if (symbol != null) {
 						accept(TokenType.EOL);
-						SymbolInstance newInst = replace(start, "STATEMENT");
+						return replace(start, "STATEMENT");
 						//TODO make SPIRIT_TYPE spirit look at COORD_EXPR
-						return newInst;
 					} else {
 						symbol = peek();
 						throw new ParseException("Expected: OBJECT|COORD_EXPR", file, symbol.token.line, symbol.token.col);
@@ -2491,42 +2240,37 @@ public class CHLCompiler {
 				}
 			} else if (symbol.is("appear")) {
 				parse("appear EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO make SPIRIT_TYPE spirit appear
-				return newInst;
 			} else {
 				throw new ParseException("Expected: point|play|cling|fly|look|appear", file, symbol.token.line, symbol.token.col);
 			}
 		} else {
 			parse("OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
-			return newInst;
 		}
 	}
 	
 	private SymbolInstance parseEject() throws ParseException {
 		final int start = it.nextIndex();
 		parse("eject SPIRIT_TYPE spirit EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO eject SPIRIT_TYPE spirit
-		return newInst;
 	}
 	
 	private SymbolInstance parseDisappear() throws ParseException {
 		final int start = it.nextIndex();
 		parse("disappear SPIRIT_TYPE spirit EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO disappear SPIRIT_TYPE spirit
-		return newInst;
 	}
 	
 	private SymbolInstance parseSend() throws ParseException {
 		final int start = it.nextIndex();
 		parse("send SPIRIT_TYPE spirit home EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO send SPIRIT_TYPE spirit home
-		return newInst;
 	}
 	
 	private SymbolInstance parseSay() throws ParseException {
@@ -2536,14 +2280,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("sound")) {
 			parse("sound CONST_EXPR playing EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO say sound CONST_EXPR playing
-			return newInst;
 		} else if (symbol.is(TokenType.STRING) && peek(1).is("with") && peek(2).is("number")) {
 			parse("STRING with number EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO say STRING with number EXPRESSION
-			return newInst;
 		} else if (symbol.is("single")) {
 			parseOption("single line");
 			symbol = peek();
@@ -2551,39 +2293,34 @@ public class CHLCompiler {
 				parseString();
 				parseOption("with interaction");
 				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO say [single line] STRING [with interaction]
-				return newInst;
 			} else {
 				parseConstExpr(true);
 				parseOption("with interaction");
 				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO say [single line] CONST_EXPR [with interaction]
-				return newInst;
 			}
 		} else if (symbol.is(TokenType.STRING)) {
 			parseOption("single line");
 			parseString();
 			parseOption("with interaction");
 			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO say [single line] STRING [with interaction]
-			return newInst;
 		} else {
 			parseConstExpr(true);
 			if (peek().is("with") && peek(1).is("number")) {
 				parse("with number EXPRESSION EOL");
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO say CONST_EXPR with number EXPRESSION
-				return newInst;
 			} else {
 				//TODO push [single line]=false and swap it with previous CONST_EXPR
 				parseOption("with interaction");
 				accept(TokenType.EOL);
-				SymbolInstance newInst = replace(start, "STATEMENT");
+				return replace(start, "STATEMENT");
 				//TODO say [single line] CONST_EXPR [with interaction]
-				return newInst;
 			}
 		}
 	}
@@ -2594,14 +2331,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is(TokenType.STRING)) {
 			parse("STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds
-			return newInst;
 		} else {
 			parse("CONST_EXPR across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO draw text CONST_EXPR across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds
-			return newInst;
 		}
 	}
 	
@@ -2611,14 +2346,12 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("all")) {
 			parse("all draw text time EXPRESSION second|seconds EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO fade all draw text time EXPRESSION second|seconds
-			return newInst;
 		} else if (symbol.is("ready")) {
 			parse("ready EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO fade ready
-			return newInst;
 		} else {
 			throw new ParseException("Expected: all|ready", file, symbol.token.line, symbol.token.col);
 		}
@@ -2627,25 +2360,22 @@ public class CHLCompiler {
 	private SymbolInstance parseStore() throws ParseException {
 		final int start = it.nextIndex();
 		parse("store camera details EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO store camera details
-		return newInst;
 	}
 	
 	private SymbolInstance parseRestore() throws ParseException {
 		final int start = it.nextIndex();
 		parse("restore camera details EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO restore camera details
-		return newInst;
 	}
 	
 	private SymbolInstance parseReset() throws ParseException {
 		final int start = it.nextIndex();
 		parse("reset camera lens EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO reset camera lens
-		return newInst;
 	}
 	
 	private SymbolInstance parseCamera() throws ParseException {
@@ -2654,75 +2384,71 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("follow")) {
 			parse("follow OBJECT distance EXPRESSION EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera follow OBJECT distance EXPRESSION
-			return newInst;
 		} else if (symbol.is("path")) {
 			parse("path CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera path CONST_EXPR
-			return newInst;
 		} else if (symbol.is("ready")) {
 			parse("ready EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera ready
-			return newInst;
 		} else if (symbol.is("not")) {
 			parse("not ready EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera not ready
-			return newInst;
 		} else if (symbol.is("position")) {
 			parse("position EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera position
-			return newInst;
 		} else if (symbol.is("focus")) {
 			parse("focus EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera focus
-			return newInst;
 		} else {
 			parse("CONST_EXPR EOL");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO camera CONST_EXPR
-			return newInst;
 		}
 	}
 	
 	private SymbolInstance parseShake() throws ParseException {
 		final int start = it.nextIndex();
 		parse("shake camera at COORD_EXPR radius EXPRESSION amplitude EXPRESSION time EXPRESSION EOL");
-		SymbolInstance newInst = replace(start, "STATEMENT");
+		return replace(start, "STATEMENT");
 		//TODO shake camera at COORD_EXPR radius EXPRESSION amplitude EXPRESSION time EXPRESSION
-		return newInst;
 	}
 	
+	//TODO optimize assignments
 	private SymbolInstance parseAssignment() throws ParseException {
 		final int start = it.nextIndex();
 		SymbolInstance symbol = peek(1);
 		if (symbol.is("of")) {
-			symbol = parse("IDENTIFIER of");
-			String constantName = symbol.token.value;
-			symbol = parse("IDENTIFIER =");
-			String objVarName = symbol.token.value;
-			symbol = parseExpression(false);
-			if (symbol == null) {
-				symbol = parseObject(false);
-				if (symbol == null) {
-					symbol = peek();
-					throw new ParseException("Expected EXPRESSION or OBJECT", file, symbol.token.line, symbol.token.col);
-				}
+			//CONSTANT of OBJECT = EXPRESSION
+			SymbolInstance[] symbols = parse("CONSTANT of VARIABLE =");
+			int constant = getConstant(symbols[0]);
+			String var = symbols[2].token.value;
+			if (!optimizeAssignmentEnabled) {
+				pushi(constant);
+				pushf(var);
+				sys2(GET_PROPERTY);
+				popi();
 			}
-			accept(TokenType.EOL);
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO PROPERTY of OBJECT = EXPRESSION
-			return newInst;
+			parse("EXPRESSION EOL");
+			sys2(SET_PROPERTY);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("=")) {
-			symbol = parse("IDENTIFIER =");
-			String var = symbol.token.value;
-			pushf(var);
-			popi();
+			//IDENTIFIER = EXPRESSION
+			String var;
+			if (optimizeAssignmentEnabled) {
+				symbol = parse("IDENTIFIER =")[0];
+				var = symbol.token.value;
+			} else {
+				symbol = parse("VARIABLE =")[0];
+				var = symbol.token.value;
+				popi();
+			}
 			symbol = parseExpression(false);
 			if (symbol == null) {
 				symbol = parseObject(false);
@@ -2732,46 +2458,52 @@ public class CHLCompiler {
 				}
 			}
 			accept(TokenType.EOL);
-			//VARIABLE = EXPRESSION
-			SymbolInstance newInst = replace(start, "STATEMENT");
 			popf(var);
-			return newInst;
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("+=")) {
-			symbol = parse("IDENTIFIER += EXPRESSION EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE += EXPRESSION
-			return newInst;
+			//VARIABLE += EXPRESSION
+			symbol = parse("VARIABLE += EXPRESSION EOL")[0];
+			String var = symbol.token.value;
+			addf();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("-=")) {
-			symbol = parse("IDENTIFIER -= EXPRESSION EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE -= EXPRESSION
-			return newInst;
+			//VARIABLE -= EXPRESSION
+			symbol = parse("VARIABLE -= EXPRESSION EOL")[0];
+			String var = symbol.token.value;
+			subf();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("*=")) {
-			symbol = parse("IDENTIFIER *= EXPRESSION EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE *= EXPRESSION
-			return newInst;
+			//VARIABLE *= EXPRESSION
+			symbol = parse("VARIABLE *= EXPRESSION EOL")[0];
+			String var = symbol.token.value;
+			mul();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("/=")) {
-			symbol = parse("IDENTIFIER /= EXPRESSION EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE /= EXPRESSION
-			return newInst;
+			//VARIABLE /= EXPRESSION
+			symbol = parse("VARIABLE /= EXPRESSION EOL")[0];
+			String var = symbol.token.value;
+			div();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("++")) {
-			symbol = parse("IDENTIFIER ++ EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE++
-			return newInst;
+			//VARIABLE++
+			symbol = parse("VARIABLE ++ EOL")[0];
+			String var = symbol.token.value;
+			pushf(1);
+			addf();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("--")) {
-			symbol = parse("IDENTIFIER -- EOL");
-			String varName = symbol.token.value;
-			SymbolInstance newInst = replace(start, "STATEMENT");
-			//TODO VARIABLE--
-			return newInst;
+			//VARIABLE--
+			symbol = parse("VARIABLE -- EOL")[0];
+			String var = symbol.token.value;
+			pushf(1);
+			subf();
+			popf(var);
+			return replace(start, "STATEMENT");
 		} else {
 			throw new ParseException("Expected: =|+=|-=|*=|/=|++|--", file, symbol.token.line, symbol.token.col);
 		}
@@ -2805,8 +2537,7 @@ public class CHLCompiler {
 		for (Instruction jump : jumps_lblEndIf) {
 			jump.intVal = lblEndIf;
 		}
-		SymbolInstance newInst = replace(start, "IF_ELSIF_ELSE");
-		return newInst;
+		return replace(start, "IF_ELSIF_ELSE");
 	}
 	
 	private SymbolInstance parseWhile() throws ParseException {
@@ -2831,8 +2562,7 @@ public class CHLCompiler {
 		iterexcept();
 		int lblEndExcept = getIp();
 		jmp_lblEndExcept.intVal = lblEndExcept;
-		SymbolInstance newInst = replace(start, "WHILE");
-		return newInst;
+		return replace(start, "WHILE");
 	}
 	
 	private SymbolInstance parseBegin() throws ParseException {
@@ -2844,33 +2574,29 @@ public class CHLCompiler {
 			parseStatements();
 			parseExceptions();
 			parse("end loop EOL");
-			SymbolInstance newInst = replace(start, "LOOP");
+			return replace(start, "LOOP");
 			//TODO LOOP
-			return newInst;
 		} else if (symbol.is("cinema")) {
 			parse("cinema EOL");
 			parseStatements();
 			parseExceptions();
 			parse("end cinema EOL");
-			SymbolInstance newInst = replace(start, "begin cinema");
+			return replace(start, "begin cinema");
 			//TODO begin cinema STATEMENTS EXCEPTIONS end cinema
-			return newInst;
 		} else if (symbol.is("camera")) {
 			parse("camera EOL");
 			parseStatements();
 			parseExceptions();
 			parse("end camera EOL");
-			SymbolInstance newInst = replace(start, "begin camera");
+			return replace(start, "begin camera");
 			//TODO begin camera STATEMENTS EXCEPTIONS end camera
-			return newInst;
 		} else if (symbol.is("dialogue")) {
 			parse("dialogue EOL");
 			parseStatements();
 			parseExceptions();
 			parse("end dialogue EOL");
-			SymbolInstance newInst = replace(start, "begin dialogue");
+			return replace(start, "begin dialogue");
 			//TODO begin dialogue STATEMENTS EXCEPTIONS end dialogue
-			return newInst;
 		} else if (symbol.is("known")) {
 			symbol = peek();
 			if (symbol.is("dialogue")) {
@@ -2878,17 +2604,15 @@ public class CHLCompiler {
 				parseStatements();
 				parseExceptions();
 				parse("end dialogue EOL");
-				SymbolInstance newInst = replace(start, "begin known dialogue");
+				return replace(start, "begin known dialogue");
 				//TODO begin known dialogue STATEMENTS EXCEPTIONS end dialogue
-				return newInst;
 			} else if (symbol.is("cinema")) {
 				parse("cinema EOL");
 				parseStatements();
 				parseExceptions();
 				parse("end cinema EOL");
-				SymbolInstance newInst = replace(start, "begin known cinema");
+				return replace(start, "begin known cinema");
 				//TODO begin known cinema STATEMENTS EXCEPTIONS end cinema
-				return newInst;
 			} else {
 				throw new ParseException("Expected: dialogue|cinema", file, symbol.token.line, symbol.token.col);
 			}
@@ -2897,9 +2621,8 @@ public class CHLCompiler {
 			parseStatements();
 			parseExceptions();
 			parse("end dual camera EOL");
-			SymbolInstance newInst = replace(start, "begin dual camera");
+			return replace(start, "begin dual camera");
 			//TODO begin dual camera to OBJECT OBJECT EOL STATEMENTS EXCEPTIONS EOL end dual camera
-			return newInst;
 		} else {
 			throw new ParseException("Expected: loop|cinema|camera|dialogue|known|dual", file, symbol.token.line, symbol.token.col);
 		}
@@ -2912,9 +2635,8 @@ public class CHLCompiler {
 			parseException();
 			symbol = peek();
 		}
-		SymbolInstance newInst = replace(start, "EXCEPTIONS");
+		return replace(start, "EXCEPTIONS");
 		//TODO EXCEPTIONS
-		return newInst;
 	}
 	
 	private SymbolInstance parseException() throws ParseException {
@@ -2923,14 +2645,12 @@ public class CHLCompiler {
 		if (symbol.is("when")) {
 			parse("when CONDITION EOL");
 			parseStatements();
-			SymbolInstance newInst = replace(start, "WHEN");
+			return replace(start, "WHEN");
 			//TODO EXCEPTION
-			return newInst;
 		} else if (symbol.is("until")) {
 			parse("until CONDITION EOL");
-			SymbolInstance newInst = replace(start, "UNTIL");
+			return replace(start, "UNTIL");
 			//TODO EXCEPTION
-			return newInst;
 		} else {
 			throw new ParseException("Expected: when|until", file, symbol.token.line, symbol.token.col);
 		}
@@ -2970,61 +2690,48 @@ public class CHLCompiler {
 				parseExpression1();
 				//EXPRESSION * EXPRESSION
 				mul();
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is("/")) {
 				parseExpression1();
 				//EXPRESSION / EXPRESSION
 				div();
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is("%")) {
 				parseExpression1();
 				//EXPRESSION % EXPRESSION
 				mod();
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is("+")) {
 				parseExpression(true);
 				//EXPRESSION + EXPRESSION
 				addf();
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is("-")) {
 				parseExpression(true);
 				//EXPRESSION - EXPRESSION
 				subf();
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is(TokenType.EOL)) {
 				seek(start);
 				return peek();
 			}
 		} else if (symbol.is("remove")) {
 			parse("remove resource CONST_EXPR EXPRESSION from OBJECT");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO remove resource CONST_EXPR EXPRESSION from OBJECT
-			return newInst;
 		} else if (symbol.is("add")) {
 			parse("add resource CONST_EXPR EXPRESSION from OBJECT");
-			SymbolInstance newInst = replace(start, "STATEMENT");
+			return replace(start, "STATEMENT");
 			//TODO add resource CONST_EXPR EXPRESSION from OBJECT
-			return newInst;
 		} else if (symbol.is("alignment")) {
 			parse("alignment of player");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO alignment of player
-			return newInst;
 		} else if (symbol.is("raw") || symbol.is("influence")) {
 			parseOption("raw");
 			parse("influence at COORD_EXPR");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO [raw] influence at COORD_EXPR
-			return newInst;
 		} else if (symbol.is("get")) {
 			accept("get");
 			symbol = peek();
@@ -3033,127 +2740,104 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("influence")) {
 					parse("influence at COORD_EXPR");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get player EXPRESSION influence at COORD_EXPR
-					return newInst;
 				} else if (symbol.is("town")) {
 					parse("town total");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get player EXPRESSION town total
-					return newInst;
 				} else if (symbol.is("time")) {
 					parse("time since last spell cast");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get player EXPRESSION time since last spell cast
-					return newInst;
 				} else if (symbol.is("ally")) {
 					parse("ally percentage with player EXPRESSION");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get player EXPRESSION ally percentage with player EXPRESSION
-					return newInst;
 				}
 			} else if (symbol.is("time")) {
 				parse("time since");
 				symbol = peek();
 				if (symbol.is("player")) {
 					parse("player EXPRESSION attacked OBJECT");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get time since player EXPRESSION attacked OBJECT
-					return newInst;
 				} else {
 					parse("CONST_EXPR event");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get time since CONST_EXPR event
-					return newInst;
 				}
 			} else if (symbol.is("resource")) {
 				parse("resource CONST_EXPR in OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get resource CONST_EXPR in OBJECT
-				return newInst;
 			} else if (symbol.is("number")) {
 				parse("number of CONST_EXPR for OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get number of CONST_EXPR for OBJECT
-				return newInst;
 			} else if (symbol.is("inclusion")) {
 				parse("inclusion distance");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get inclusion distance
-				return newInst;
 			} else if (symbol.is("slowest")) {
 				parse("slowest speed in OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get slowest speed in OBJECT
-				return newInst;
 			} else if (symbol.is("distance")) {
 				parse("distance from COORD_EXPR to COORD_EXPR");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get distance from COORD_EXPR to COORD_EXPR
-				return newInst;
 			} else if (symbol.is("mana")) {
 				parse("mana for spell CONST_EXPR");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get mana for spell CONST_EXPR
-				return newInst;
 			} else if (symbol.is("building")) {
 				parse("building and villager health total in OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get building and villager health total in OBJECT
-				return newInst;
 			} else if (symbol.is("size")) {
 				parse("size of OBJECT PLAYING_SIDE team");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get size of OBJECT PLAYING_SIDE team
-				return newInst;
 			} else if (symbol.is("worship")) {
 				parse("worship deaths in OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get worship deaths in OBJECT
-				return newInst;
 			} else if (symbol.is("computer")) {
 				parse("computer player EXPRESSION attitude to player EXPRESSION");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get computer player EXPRESSION attitude to player EXPRESSION
-				return newInst;
 			} else if (symbol.is("moon")) {
 				parse("moon percentage");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get moon percentage
-				return newInst;
 			} else if (symbol.is("game")) {
 				parse("game time");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO get game time
-				return newInst;
 			} else if (symbol.is("real")) {
 				accept("real");
 				symbol = peek();
 				if (symbol.is("time")) {
 					accept("time");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get real time
-					return newInst;
 				} else if (symbol.is("day")) {
 					accept("day");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get real day
-					return newInst;
 				} else if (symbol.is("weekday")) {
 					accept("weekday");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get real weekday
-					return newInst;
 				} else if (symbol.is("month")) {
 					accept("month");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get real month
-					return newInst;
 				} else if (symbol.is("year")) {
 					accept("year");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO get real year
-					return newInst;
 				}
 			} else {
 				final int checkpoint = it.nextIndex();
@@ -3163,88 +2847,72 @@ public class CHLCompiler {
 					symbol = peek();
 					if (symbol.is("music")) {
 						parse("music distance");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT music distance
-						return newInst;
 					} else if (symbol.is("interaction")) {
 						parse("interaction magnitude");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT interaction magnitude
-						return newInst;
 					} else if (symbol.is("time")) {
 						accept("time");
 						symbol = peek();
 						if (symbol.is("remaining")) {
 							accept("remaining");
-							SymbolInstance newInst = replace(start, "EXPRESSION");
+							return replace(start, "EXPRESSION");
 							//TODO get OBJECT time remaining
-							return newInst;
 						} else if (symbol.is("since")) {
 							parse("since set");
-							SymbolInstance newInst = replace(start, "EXPRESSION");
+							return replace(start, "EXPRESSION");
 							//TODO get OBJECT time since set
-							return newInst;
 						}
 					} else if (symbol.is("fight")) {
 						parse("fight queue hits");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT fight queue hits
-						return newInst;
 					} else if (symbol.is("walk")) {
 						parse("walk path percentage");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT walk path percentage
-						return newInst;
 					} else if (symbol.is("mana")) {
 						parse("mana total");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT mana total
-						return newInst;
 					} else if (symbol.is("played")) {
 						parse("played percentage");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT played percentage
-						return newInst;
 					} else if (symbol.is("belief")) {
 						parse("belief for player EXPRESSION");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT belief for player EXPRESSION
-						return newInst;
 					} else if (symbol.is("help")) {
 						accept("help");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT help
-						return newInst;
 					} else if (symbol.is("first")) {
 						parse("first help");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT first help
-						return newInst;
 					} else if (symbol.is("last")) {
 						parse("last help");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT last help
-						return newInst;
 					} else if (symbol.is("fade")) {
 						accept("fade");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT fade
-						return newInst;
 					} else if (symbol.is("info")) {
 						parse("info bits");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT info bits
-						return newInst;
 					} else if (symbol.is("desire")) {
 						parse("desire CONST_EXPR");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT desire CONST_EXPR
-						return newInst;
 					} else if (symbol.is("sacrifice")) {
 						parse("sacrifice total");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get OBJECT sacrifice total
-						return newInst;
 					}
 					revert(checkpoint, checkpointIp);
 				}
@@ -3253,33 +2921,28 @@ public class CHLCompiler {
 					symbol = peek();
 					if (symbol.is("music")) {
 						parse("music distance");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get CONST_EXPR music distance
-						return newInst;
 					} else if (symbol.is("events")) {
 						parse("events per second");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get CONSTANT events per second
-						return newInst;
 					} else if (symbol.is("total")) {
 						parse("total events|events");
-						SymbolInstance newInst = replace(start, "EXPRESSION");
+						return replace(start, "EXPRESSION");
 						//TODO get CONSTANT total events|events
-						return newInst;
 					}
 					revert(checkpoint, checkpointIp);
 				}
 			}
 		} else if (symbol.is("land")) {
 			parse("land height at COORD_EXPR");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO land height at COORD_EXPR
-			return newInst;
 		} else if (symbol.is("time")) {
 			accept("time");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO time
-			return newInst;
 		} else if (symbol.is("number")) {
 			accept("number");
 			symbol = peek();
@@ -3287,100 +2950,85 @@ public class CHLCompiler {
 				parse("from EXPRESSION to EXPRESSION");
 				//number from EXPRESSION to EXPRESSION
 				sys(RANDOM);
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else if (symbol.is("of")) {
 				accept("of");
 				symbol = peek();
 				if (symbol.is("mouse")) {
 					parse("mouse buttons");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO number of mouse buttons
-					return newInst;
 				} else if (symbol.is("times")) {
 					parse("times action CONST_EXPR by OBJECT");
-					SymbolInstance newInst = replace(start, "EXPRESSION");
+					return replace(start, "EXPRESSION");
 					//TODO number of times action CONST_EXPR by OBJECT
-					return newInst;
 				}
 			}
 		} else if (symbol.is("size")) {
 			parse("size of OBJECT");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO size of OBJECT
-			return newInst;
 		} else if (symbol.is("adult")) {
 			accept("adult");
 			symbol = peek();
 			if (symbol.is("size")) {
 				parse("size of OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO adult size of OBJECT
-				return newInst;
 			} else if (symbol.is("capacity")) {
 				parse("capacity of OBJECT");
-				SymbolInstance newInst = replace(start, "EXPRESSION");
+				return replace(start, "EXPRESSION");
 				//TODO adult capacity of OBJECT
-				return newInst;
 			}
 		} else if (symbol.is("capacity")) {
 			parse("capacity of OBJECT");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO capacity of OBJECT
-			return newInst;
 		} else if (symbol.is("poisoned")) {
 			parse("poisoned size of OBJECT");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO poisoned size of OBJECT
-			return newInst;
 		} else if (symbol.is("square")) {
 			parse("square root EXPRESSION");
-			SymbolInstance newInst = replace(start, "EXPRESSION");
+			return replace(start, "EXPRESSION");
 			//TODO square root EXPRESSION
-			return newInst;
 		} else if (symbol.is("-")) {
 			parse("- EXPRESSION");
 			//-EXPRESSION
 			neg();
-			SymbolInstance newInst = replace(start, "EXPRESSION");
-			return newInst;
+			return replace(start, "EXPRESSION");
 		} else if (symbol.is("variable")) {
 			parse("variable CONST_EXPR");
 			//variable CONST_EXPR
 			castf();
-			SymbolInstance newInst = replace(start, "EXPRESSION");
-			return newInst;
+			return replace(start, "EXPRESSION");
 		} else if (symbol.is("(")) {
 			parse("( EXPRESSION )");
 			//(EXPRESSION)
-			SymbolInstance newInst = replace(start, "EXPRESSION");
-			return newInst;
+			return replace(start, "EXPRESSION");
 		} else if (symbol.is(TokenType.NUMBER)) {
 			symbol = accept(TokenType.NUMBER);
 			float val = symbol.token.floatVal();
 			//NUMBER
 			pushf(val);
-			SymbolInstance newInst = replace(start, "EXPRESSION");
-			return newInst;
+			return replace(start, "EXPRESSION");
 		} else if (symbol.is(TokenType.IDENTIFIER)) {
 			SymbolInstance id1 = accept(TokenType.IDENTIFIER);
 			symbol = peek();
 			if (symbol.is("of")) {
-				SymbolInstance id2 = parse("of IDENTIFIER");
+				SymbolInstance id2 = parse("of IDENTIFIER")[1];
 				//CONSTANT of OBJECT
 				int property = getConstant(id1.token.value);
 				String object = id2.token.value;
 				pushi(property);
 				pushf(object);
 				sys(GET_PROPERTY);
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				return newInst;
+				return replace(start, "EXPRESSION");
 			} else {
 				//IDENTIFIER
 				String var = id1.token.value;
 				pushf(var);
-				SymbolInstance newInst = replace(start, "EXPRESSION");
-				return newInst;
+				return replace(start, "EXPRESSION");
 			}
 		}
 		seek(start);
@@ -3421,175 +3069,145 @@ public class CHLCompiler {
 				parseCondition1();
 				//CONDITION and CONDITION
 				and();
-				SymbolInstance newInst = replace(start, "CONDITION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "CONDITION");
 			} else if (symbol.is("or")) {
 				parseCondition(true);
 				//CONDITION or CONDITION
 				or();
-				SymbolInstance newInst = replace(start, "CONDITION");
-				trace(newInst.toStringBlocks(), 0);
-				return newInst;
+				return replace(start, "CONDITION");
 			}
 		} else if (symbol.is("key")) {
 			parse("key CONST_EXPR down");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO key CONST_EXPR down
-			return newInst;
 		} else if (symbol.is("inside")) {
 			parse("inside temple");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO inside temple
-			return newInst;
 		} else if (symbol.is("within")) {
 			parse("within rotation");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO within rotation
-			return newInst;
 		} else if (symbol.is("hand")) {
 			parse("hand demo");
 			symbol = peek();
 			if (symbol.is("played")) {
 				accept("played");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO hand demo played
-				return newInst;
 			} else if (symbol.is("trigger")) {
 				accept("trigger");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO hand demo trigger
-				return newInst;
 			} else {
 				throw new ParseException("Expected: played|trigger", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("jc")) {
 			parse("jc special CONST_EXPR played");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO jc special CONST_EXPR played
-			return newInst;
 		} else if (symbol.is("fire")) {
 			parse("fire near COORD_EXPR radius EXPRESSION");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO fire near COORD_EXPR radius EXPRESSION
-			return newInst;
 		} else if (symbol.is("spell")) {
 			symbol = peek();
 			if (symbol.is("wind")) {
 				parse("wind near COORD_EXPR radius EXPRESSION");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO spell wind near COORD_EXPR radius EXPRESSION
-				return newInst;
 			} else if (symbol.is("charging")) {
 				accept("charging");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO spell charging
-				return newInst;
 			} else {
 				parse("CONST_EXPR for player EXPRESSION");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO spell CONST_EXPR for player EXPRESSION
-				return newInst;
 			}
 		} else if (symbol.is("camera")) {
 			parse("camera");
 			symbol = peek();
 			if (symbol.is("ready")) {
 				accept("ready");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO camera ready
-				return newInst;
 			} else if (symbol.is("not")) {
 				parse("not ready");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO camera not ready
-				return newInst;
 			} else if (symbol.is("position")) {
 				parse("position near COORD_EXPR radius EXPRESSION");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO camera position near COORD_EXPR radius EXPRESSION
-				return newInst;
 			} else {
 				throw new ParseException("Expected: ready|not", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("widescreen")) {
 			parse("widescreen ready");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO widescreen ready
-			return newInst;
 		} else if (symbol.is("fade")) {
 			parse("fade ready");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO fade ready
-			return newInst;
 		} else if (symbol.is("dialogue")) {
 			accept("dialogue");
 			symbol = peek();
 			if (symbol.is("ready")) {
 				accept("ready");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO dialogue ready
-				return newInst;
 			} else if (symbol.is("not")) {
 				parse("not ready");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO dialogue not ready
-				return newInst;
 			} else {
 				throw new ParseException("Expected: ready|not", file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION ready");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO computer player EXPRESSION ready
-			return newInst;
 		} else if (symbol.is("player")) {
 			accept("player");
 			symbol = peek();
 			if (symbol.is("has")) {
 				parse("has mouse wheel");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO player has mouse wheel
-				return newInst;
 			} else {
 				parse("EXPRESSION wind resistance");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO player EXPRESSION wind resistance
-				return newInst;
 			}
 		} else if (symbol.is("creature")) {
 			parse("creature CONST_EXPR is available");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO creature CONST_EXPR is available
-			return newInst;
 		} else if (symbol.is("get")) {
 			parse("get desire of OBJECT is CONST_EXPR");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO get desire of OBJECT is CONST_EXPR
-			return newInst;
 		} else if (symbol.is("read")) {
 			accept("read");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO read
-			return newInst;
 		} else if (symbol.is("help")) {
 			parse("help system on");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO help system on
-			return newInst;
 		} else if (symbol.is("immersion")) {
 			parse("immersion exists");
-			SymbolInstance newInst = replace(start, "CONDITION");
+			return replace(start, "CONDITION");
 			//TODO immersion exists
-			return newInst;
 		} else if (symbol.is("sound")) {
 			accept("sound");
 			symbol = peek();
 			if (symbol.is("exists")) {
 				accept("exists");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO sound exists
-				return newInst;
 			} else {
 				parseConstExpr(true);
 				symbol = peek();
@@ -3599,48 +3217,41 @@ public class CHLCompiler {
 					parseConstExpr(true);
 				}
 				accept("playing");
-				SymbolInstance newInst = replace(start, "CONDITION");
+				return replace(start, "CONDITION");
 				//TODO sound CONST_EXPR [CONST_EXPR] playing
-				return newInst;
 			}
 		} else if (symbol.is("specific")) {
 			parse("specific spell charging");
-			SymbolInstance newInst = replace(start, "CONDITION");
 			//TODO specific spell charging
-			return newInst;
+			return replace(start, "CONDITION");
 		} else if (symbol.is("music")) {
 			parse("music line EXPRESSION");
-			SymbolInstance newInst = replace(start, "CONDITION");
 			//TODO music line EXPRESSION
-			return newInst;
+			return replace(start, "CONDITION");
 		} else if (symbol.is("not")) {
 			parse("not CONDITION");
-			SymbolInstance newInst = replace(start, "CONDITION");
-			//TODO not CONDITION
-			return newInst;
+			//not CONDITION
+			not();
+			return replace(start, "CONDITION");
 		} else if (symbol.is("say")) {
 			parse("say sound CONST_EXPR playing");
-			SymbolInstance newInst = replace(start, "CONDITION");
 			//TODO say sound CONST_EXPR playing
-			return newInst;
+			return replace(start, "CONDITION");
 		} else if (symbol.is("(")) {
 			parse("( CONDITION )");
-			SymbolInstance newInst = replace(start, "CONDITION");
-			//TODO (CONDITION)
-			return newInst;
+			//(CONDITION)
+			return replace(start, "CONDITION");
 		} else if (peek(1).is("spirit")) {
 			parse("SPIRIT_TYPE spirit");
 			symbol = peek();
 			if (symbol.is("played")) {
 				accept("played");
-				SymbolInstance newInst = replace(start, "CONDITION");
 				//TODO SPIRIT_TYPE spirit played
-				return newInst;
+				return replace(start, "CONDITION");
 			} else if (symbol.is("speaks")) {
 				parse("speaks CONST_EXPR");
-				SymbolInstance newInst = replace(start, "CONDITION");
 				//TODO SPIRIT_TYPE spirit speaks CONST_EXPR
-				return newInst;
+				return replace(start, "CONDITION");
 			}
 		} else {
 			final int checkpoint = it.nextIndex();
@@ -3650,167 +3261,138 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("active")) {
 					accept("active");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT active
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("viewed")) {
 					accept("viewed");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT viewed
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("can")) {
 					parse("can view camera in EXPRESSION degrees");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT can view camera in EXPRESSION degrees
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("within")) {
 					parse("within flock distance");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT within flock distance
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("clicked")) {
 					accept("clicked");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT clicked
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("hit")) {
 					accept("hit");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT hit
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("locked")) {
 					parse("within locked interaction");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT locked interaction
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("not")) {
 					accept("not");
 					symbol = peek();
 					if (symbol.is("clicked")) {
 						accept("clicked");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT not clicked
-						return newInst;
+						return replace(start, "CONDITION");
 					} else if (symbol.is("viewed")) {
 						accept("viewed");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT not viewed
-						return newInst;
+						return replace(start, "CONDITION");
 					} else if (symbol.is("in")) {
 						parse("in OBJECT");
 						symbol = peek();
 						if (symbol.is("hand")) {
 							accept("hand");
-							SymbolInstance newInst = replace(start, "CONDITION");
 							//TODO OBJECT not in OBJECT hand
-							return newInst;
+							return replace(start, "CONDITION");
 						} else {
-							SymbolInstance newInst = replace(start, "CONDITION");
 							//TODO OBJECT not in OBJECT 
-							return newInst;
+							return replace(start, "CONDITION");
 						}
 					} else if (symbol.is("exists")) {
 						accept("exists");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT not exists
-						return newInst;
+						return replace(start, "CONDITION");
 					}
 				} else if (symbol.is("played")) {
 					accept("played");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT played
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("music")) {
 					parse("music played");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT music played
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("cast")) {
 					parse("cast by OBJECT");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT cast by OBJECT
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("poisoned")) {
 					accept("poisoned");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT poisoned
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("skeleton")) {
 					accept("skeleton");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT skeleton
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("type")) {
 					parse("type CONST_EXPR");
 					symbol = parseConstExpr(false);
 					if (symbol == null) {
 						//TODO default CONST_EXPR=SCRIPT_FIND_TYPE_ANY
 					}
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT type TYPE [CONST_EXPR]
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("on")) {
 					parse("on fire");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT on fire
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("in")) {
 					parse("in OBJECT");
 					symbol = peek();
 					if (symbol.is("hand")) {
 						accept("hand");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT in OBJECT hand
-						return newInst;
+						return replace(start, "CONDITION");
 					} else {
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT in OBJECT
-						return newInst;
+						return replace(start, "CONDITION");
 					}
 				} else if (symbol.is("interacting")) {
 					parse("interacting with OBJECT");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT interacting with OBJECT
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("is")) {
 					accept("is");
 					symbol = peek();
 					if (symbol.is("not")) {
 						parse("not CONST_EXPR");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT is not CONST_EXPR
-						return newInst;
+						return replace(start, "CONDITION");
 					} else {
 						parseConstExpr(true);
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO OBJECT is CONST_EXPR
-						return newInst;
+						return replace(start, "CONDITION");
 					}
 				} else if (symbol.is("exists")) {
 					accept("exists");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT exists
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("affected")) {
 					parse("affected by spell CONST_EXPR");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT affected by spell CONST_EXPR
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("leashed")) {
 					accept("leashed");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT leashed
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("fighting")) {
 					accept("fighting");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT fighting
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("male")) {
 					accept("male");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO OBJECT male
-					return newInst;
+					return replace(start, "CONDITION");
 				}
 				revert(checkpoint, checkpointIp);
 			}
@@ -3819,47 +3401,39 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("viewed")) {
 					accept("viewed");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO COORD_EXPR viewed
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("valid")) {
 					parse("valid for creature");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO COORD_EXPR valid for creature
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("clicked")) {
 					parse("clicked radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO COORD_EXPR clicked radius EXPRESSION
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("near")) {
 					parse("near COORD_EXPR radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO COORD_EXPR near COORD_EXPR radius EXPRESSION
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("at")) {
 					parse("at COORD_EXPR");
-					SymbolInstance newInst = replace(start, "CONDITION");
 					//TODO COORD_EXPR at COORD_EXPR
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("not")) {
 					accept("not");
 					symbol = peek();
 					if (symbol.is("viewed")) {
 						accept("viewed");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO COORD_EXPR not viewed
-						return newInst;
+						return replace(start, "CONDITION");
 					} else if (symbol.is("near")) {
 						parse("near COORD_EXPR radius EXPRESSION");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO COORD_EXPR not near COORD_EXPR radius EXPRESSION
-						return newInst;
+						return replace(start, "CONDITION");
 					} else if (symbol.is("at")) {
 						parse("at COORD_EXPR");
-						SymbolInstance newInst = replace(start, "CONDITION");
 						//TODO COORD_EXPR not at COORD_EXPR
-						return newInst;
+						return replace(start, "CONDITION");
 					}
 				}
 				revert(checkpoint, checkpointIp);
@@ -3869,45 +3443,39 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("second") || symbol.is("seconds")) {
 					parse("second|seconds");
-					SymbolInstance newInst = replace(start, "CONDITION");
-					//TODO EXPRESSION second|seconds
-					return newInst;
+					//EXPRESSION second|seconds
+					sleep();
+					return replace(start, "CONDITION");
 				} else if (symbol.is("==")) {
 					parse("== EXPRESSION");
 					//EXPRESSION == EXPRESSION
 					eq();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("!=")) {
 					parse("!= EXPRESSION");
 					//EXPRESSION != EXPRESSION
 					neq();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is(">=")) {
 					parse(">= EXPRESSION");
 					//EXPRESSION >= EXPRESSION
 					geq();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("<=")) {
 					parse("<= EXPRESSION");
 					//EXPRESSION <= EXPRESSION
 					leq();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is(">")) {
 					parse("> EXPRESSION");
 					//EXPRESSION > EXPRESSION
 					gt();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				} else if (symbol.is("<")) {
 					parse("< EXPRESSION");
 					//EXPRESSION < EXPRESSION
 					lt();
-					SymbolInstance newInst = replace(start, "CONDITION");
-					return newInst;
+					return replace(start, "CONDITION");
 				}
 				revert(checkpoint, checkpointIp);
 			}
@@ -3927,73 +3495,66 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("random")) {
 				parse("random villager of tribe CONST_EXPR at COORD_EXPR");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create random villager of tribe CONST_EXPR at COORD_EXPR
-				return newInst;
 			} else if (symbol.is("highlight")) {
 				parse("highlight CONST_EXPR at COORD_EXPR");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create highlight HIGHLIGHT_INFO at COORD_EXPR
-				return newInst;
 			} else if (symbol.is("mist")) {
 				parse("mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
-				return newInst;
 			} else if (symbol.is("with")) {
 				parse("with angle EXPRESSION and scale EXPRESSION CONST_EXPR CONST_EXPR at COORD_EXPR");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create with angle EXPRESSION and scale EXPRESSION CONST_EXPR CONST_EXPR at COORD_EXPR
-				return newInst;
 			} else if (symbol.is("timer")) {
 				parse("timer for EXPRESSION second|seconds");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create timer for EXPRESSION second|seconds
-				return newInst;
 			} else if (symbol.is("influence")) {
-				//TODO push 0 (not anti)
+				pushi(0);
 				accept("influence");
 				symbol = peek();
 				if (symbol.is("on")) {
 					parse("on OBJECT radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
-					//TODO create influence on OBJECT radius EXPRESSION
-					return newInst;
+					//create influence on OBJECT radius EXPRESSION
+					sys(INFLUENCE_OBJECT);
+					return replace(start, "OBJECT");
 				} else if (symbol.is("at")) {
 					parse("at COORD_EXPR radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
-					//TODO create influence at COORD_EXPR radius EXPRESSION
-					return newInst;
+					//create influence at COORD_EXPR radius EXPRESSION
+					sys(INFLUENCE_POSITION);
+					return replace(start, "OBJECT");
 				}
 			} else if (symbol.is("anti")) {
 				accept("anti");
-				//TODO push 1 (anti)
+				pushi(1);
 				accept("influence");
 				symbol = peek();
 				if (symbol.is("on")) {
 					parse("on OBJECT radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
-					//TODO create anti influence on OBJECT radius EXPRESSION
-					return newInst;
+					//create anti influence on OBJECT radius EXPRESSION
+					sys(INFLUENCE_OBJECT);
+					return replace(start, "OBJECT");
 				} else if (symbol.is("at")) {
 					parse("at position COORD_EXPR radius EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
-					//TODO create anti influence at COORD_EXPR radius EXPRESSION
-					return newInst;
+					//create anti influence at position COORD_EXPR radius EXPRESSION
+					sys(INFLUENCE_POSITION);
+					return replace(start, "OBJECT");
 				}
 			} else if (symbol.is("special")) {
 				parse("special effect CONST_EXPR");
 				symbol = peek();
 				if (symbol.is("at")) {
 					parse("at COORD_EXPR time EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
+					return replace(start, "OBJECT");
 					//TODO create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
-					return newInst;
 				} else if (symbol.is("to")) {
 					parse("to OBJECT time EXPRESSION");
-					SymbolInstance newInst = replace(start, "OBJECT");
+					return replace(start, "OBJECT");
 					//TODO create special effect CONST_EXPR to OBJECT time EXPRESSION
-					return newInst;
 				}
 			} else {
 				parseConstExpr(true);
@@ -4004,9 +3565,8 @@ public class CHLCompiler {
 					parseConstExpr(true);
 				}
 				parse("at COORD_EXPR");
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO create CONST_EXPR [CONST_EXPR] at COORD_EXPR
-				return newInst;
 			}
 		} else if (symbol.is("create_creature_from_creature")) {
 			throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
@@ -4015,15 +3575,13 @@ public class CHLCompiler {
 			parse("marker at");
 			symbol = parseCoordExpr(false);
 			if (symbol != null) {
-				SymbolInstance newInst = replace(start, "OBJECT");
+				return replace(start, "OBJECT");
 				//TODO marker at COORD_EXPR
-				return newInst;
 			} else {
 				symbol = parseConstExpr(false);
 				if (symbol != null) {
-					SymbolInstance newInst = replace(start, "OBJECT");
+					return replace(start, "OBJECT");
 					//TODO marker at CONST_EXPR
-					return newInst;
 				} else if (fail) {
 					symbol = peek();
 					throw new ParseException("Expected COORD_EXPR or CONST_EXPR", file, symbol.token.line, symbol.token.col);
@@ -4049,9 +3607,8 @@ public class CHLCompiler {
 			
 		} else if (symbol.is(TokenType.IDENTIFIER)) {
 			accept(TokenType.IDENTIFIER);
-			SymbolInstance newInst = replace(start, "OBJECT");
+			return replace(start, "OBJECT");
 			//TODO VARIABLE
-			return newInst;
 		}
 		if (fail) {
 			symbol = peek();
@@ -4070,65 +3627,55 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("from")) {
 				parse("from CONST_EXPR to CONST_EXPR");
-				SymbolInstance newInst = replace(start, "CONST_EXPR");
+				return replace(start, "CONST_EXPR");
 				//TODO constant from CONST_EXPR to CONST_EXPR
-				return newInst;
 			} else {
 				parseExpression(fail);
-				SymbolInstance newInst = replace(start, "CONST_EXPR");
+				return replace(start, "CONST_EXPR");
 				//TODO constant EXPRESSION
-				return newInst;
 			}
 		} else if (symbol.is("get")) {
 			accept("get");
 			symbol = peek();
 			if (symbol.is("action")) {
 				parse("action text for OBJECT");
-				SymbolInstance newInst = replace(start, "CONST_EXPR");
+				return replace(start, "CONST_EXPR");
 				//TODO get action text for OBJECT
-				return newInst;
 			} else if (symbol.is("hand")) {
 				parse("hand state");
-				SymbolInstance newInst = replace(start, "CONST_EXPR");
+				return replace(start, "CONST_EXPR");
 				//TODO get hand state
-				return newInst;
 			} else if (symbol.is("player")) {
 				parse("player EXPRESSION last spell cast");
-				SymbolInstance newInst = replace(start, "CONST_EXPR");
+				return replace(start, "CONST_EXPR");
 				//TODO get player EXPRESSION last spell cast
-				return newInst;
 			} else {
 				symbol = parseObject(false);
 				if (symbol != null) {
 					symbol = peek();
 					if (symbol.is("type")) {
 						accept("type");
-						SymbolInstance newInst = replace(start, "CONST_EXPR");
+						return replace(start, "CONST_EXPR");
 						//TODO get OBJECT type
-						return newInst;
 					} else if (symbol.is("sub")) {
 						parse("sub type");
-						SymbolInstance newInst = replace(start, "CONST_EXPR");
+						return replace(start, "CONST_EXPR");
 						//TODO get OBJECT sub type
-						return newInst;
 					} else if (symbol.is("leash")) {
 						parse("leash type");
-						SymbolInstance newInst = replace(start, "CONST_EXPR");
+						return replace(start, "CONST_EXPR");
 						//TODO get OBJECT leash type
-						return newInst;
 					} else if (symbol.is("fight")) {
 						parse("fight action");
-						SymbolInstance newInst = replace(start, "CONST_EXPR");
+						return replace(start, "CONST_EXPR");
 						//TODO get OBJECT fight action
-						return newInst;
 					}
 				} else {
 					symbol = parseConstExpr(false);
 					if (symbol != null) {
 						parse("opposite creature type");
-						SymbolInstance newInst = replace(start, "CONST_EXPR");
+						return replace(start, "CONST_EXPR");
 						//TODO get CONST_EXPR opposite creature type
-						return newInst;
 					} else if (fail) {
 						symbol = peek();
 						throw new ParseException("Expected: OBJECT|CONST_EXPR", file, symbol.token.line, symbol.token.col);
@@ -4137,24 +3684,16 @@ public class CHLCompiler {
 			}
 		} else if (symbol.is("variable")) {
 			parse("variable state of OBJECT");
-			SymbolInstance newInst = replace(start, "CONST_EXPR");
+			return replace(start, "CONST_EXPR");
 			//TODO variable state of OBJECT
-			return newInst;
 		} else if (symbol.is("(")) {
 			parse("( CONST_EXPR )");
-			SymbolInstance newInst = replace(start, "CONST_EXPR");
+			return replace(start, "CONST_EXPR");
 			//TODO (CONST_EXPR)
-			return newInst;
-		} else if (symbol.is(TokenType.NUMBER)) {
-			accept(TokenType.NUMBER);
-			SymbolInstance newInst = replace(start, "CONST_EXPR");
-			//TODO NUMBER
-			return newInst;
-		} else if (symbol.is(TokenType.IDENTIFIER)) {
-			accept(TokenType.IDENTIFIER);
-			SymbolInstance newInst = replace(start, "CONST_EXPR");
+		} else if (symbol.is(TokenType.NUMBER) || symbol.is(TokenType.IDENTIFIER)) {
+			acceptAny(TokenType.NUMBER, TokenType.IDENTIFIER);
+			return replace(start, "CONST_EXPR");
 			//TODO CONSTANT
-			return newInst;
 		}
 		if (fail) {
 			symbol = peek();
@@ -4197,20 +3736,21 @@ public class CHLCompiler {
 				next();
 				next();
 				parseExpression(true);
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
-				//TODO COORD_EXPR / EXPRESSION
-				return newInst;
+				//COORD_EXPR / EXPRESSION
+				throw new ParseException("Statement not implemented", file, line, col);
+				//return replace(start, "COORD_EXPR");
 			} else if (mode.is("+") || mode.is("-")) {
 				next();
 				next();
 				parseCoordExpr(true);
 				if (mode.is("+")) {
-					//TODO COORD_EXPR + COORD_EXPR
+					//COORD_EXPR + COORD_EXPR
+					addc();
 				} else if (mode.is("-")) {
-					//TODO COORD_EXPR - COORD_EXPR
+					//COORD_EXPR - COORD_EXPR
+					subc();
 				}
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
-				return newInst;
+				return replace(start, "COORD_EXPR");
 			} else {
 				return symbol;
 			}
@@ -4221,32 +3761,27 @@ public class CHLCompiler {
 			symbol = parseObject(false);
 			if (symbol != null) {
 				accept("]");
-				//[OBJECT]
 				sys(GET_POSITION);
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
-				return newInst;
+				//[OBJECT]
+				return replace(start, "COORD_EXPR");
 			} else {
 				parseExpression(true);
 				castc();
-				accept(",");
-				parseExpression(true);
+				parse(", EXPRESSION");
 				castc();
 				symbol = peek();
 				if (symbol.is(",")) {
-					accept(",");
-					parseExpression(true);
+					parse(", EXPRESSION");
 					castc();
 					accept("]");
-					SymbolInstance newInst = replace(start, "COORD_EXPR");
 					//[EXPRESSION, EXPRESSION, EXPRESSION]
-					return newInst;
+					return replace(start, "COORD_EXPR");
 				} else if (symbol.is("]")) {
 					accept("]");
 					pushc(0);
 					swapi();
-					SymbolInstance newInst = replace(start, "COORD_EXPR");
 					//[EXPRESSION, EXPRESSION]
-					return newInst;
+					return replace(start, "COORD_EXPR");
 				} else {
 					throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 				}
@@ -4256,101 +3791,85 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("position")) {
 				accept("position");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
 				//TODO camera position
-				return newInst;
+				return replace(start, "COORD_EXPR");
 			} else if (symbol.is("focus")) {
 				accept("focus");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
 				//TODO camera focus
-				return newInst;
+				return replace(start, "COORD_EXPR");
 			} else {
 				parseConstExpr(true);
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
 				//TODO camera CONST_EXPR
-				return newInst;
+				return replace(start, "COORD_EXPR");
 			}
 		} else if (symbol.is("stored")) {
 			parse("stored camera");
 			symbol = peek();
 			if (symbol.is("position")) {
 				accept("position");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
+				return replace(start, "COORD_EXPR");
 				//TODO stored camera position
-				return newInst;
 			} else if (symbol.is("focus")) {
 				accept("focus");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
+				return replace(start, "COORD_EXPR");
 				//TODO stored camera focus
-				return newInst;
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("hand")) {
 			parse("hand position");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO hand position
-			return newInst;
 		} else if (symbol.is("facing")) {
 			parse("facing camera position distance EXPRESSION");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO facing camera position distance EXPRESSION
-			return newInst;
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION position");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO computer player EXPRESSION position
-			return newInst;
 		} else if (symbol.is("last")) {
 			parse("last player EXPRESSION spell cast position");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO last player EXPRESSION spell cast position
-			return newInst;
 		} else if (symbol.is("get")) {
 			parse("get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION
-			return newInst;
 		} else if (symbol.is("arse")) {
 			parse("arse position of OBJECT");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO arse position of OBJECT
-			return newInst;
 		} else if (symbol.is("belly")) {
 			parse("belly position of OBJECT");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO belly position of OBJECT
-			return newInst;
 		} else if (symbol.is("destination")) {
 			parse("destination of OBJECT");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
+			return replace(start, "COORD_EXPR");
 			//TODO destination of OBJECT
-			return newInst;
 		} else if (symbol.is("player")) {
 			parse("player EXPRESSION temple");
 			if (symbol.is("position")) {
 				accept("position");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
+				return replace(start, "COORD_EXPR");
 				//TODO player EXPRESSION temple position
-				return newInst;
 			} else if (symbol.is("entrance")) {
 				parse("entrance position radius EXPRESSION height EXPRESSION");
-				SymbolInstance newInst = replace(start, "COORD_EXPR");
+				return replace(start, "COORD_EXPR");
 				//TODO player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
-				return newInst;
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("-")) {
 			parse("- COORD_EXPR");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
-			//TODO -COORD_EXPR
-			return newInst;
+			//-COORD_EXPR
+			throw new ParseException("Statement not implemented", file, line, col);
+			//return replace(start, "COORD_EXPR");
 		} else if (symbol.is("(")) {
 			parse("( COORD_EXPR )");
-			SymbolInstance newInst = replace(start, "COORD_EXPR");
-			//TODO (COORD_EXPR)
-			return newInst;
+			//(COORD_EXPR)
+			return replace(start, "COORD_EXPR");
 		} else {
 			final int checkpoint = it.nextIndex();
 			final int checkpointIp = getIp();
@@ -4359,9 +3878,9 @@ public class CHLCompiler {
 				SymbolInstance mode = next();
 				if (mode.is("*")) {
 					parseCoordExpr(true);
-					SymbolInstance newInst = replace(start, "COORD_EXPR");
-					//TODO EXPRESSION * COORD_EXPR
-					return newInst;
+					//EXPRESSION * COORD_EXPR
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "COORD_EXPR");
 				}
 				revert(checkpoint, checkpointIp);
 			}
@@ -4486,11 +4005,28 @@ public class CHLCompiler {
 		//return symbol;
 	}
 	
+	/**If the given symbol is a number then returns its value; if the symbol is an identifier then
+	 * returns the value of the constant with the given name.
+	 * @param symbol
+	 * @return
+	 * @throws ParseException
+	 */
 	private int getConstant(SymbolInstance symbol) throws ParseException {
-		String name = symbol.token.value;
-		return getConstant(name);
+		if (symbol.is(TokenType.IDENTIFIER)) {
+			String name = symbol.token.value;
+			return getConstant(name);
+		} else if (symbol.is(TokenType.NUMBER)) {
+			return symbol.token.intVal();
+		} else {
+			throw new ParseException(symbol + " is not a valid constant", file, symbol.token.line, symbol.token.col);
+		}
 	}
 	
+	/**Returns the value of the given constant.
+	 * @param name
+	 * @return
+	 * @throws ParseException
+	 */
 	private int getConstant(String name) throws ParseException {
 		Integer val = localConst.get(name);
 		if (val == null) {
@@ -4503,7 +4039,12 @@ public class CHLCompiler {
 		return val;
 	}
 	
-	private int getVar(String name) throws ParseException {
+	/**Returns the ID of the given variable.
+	 * @param name
+	 * @return
+	 * @throws ParseException
+	 */
+	private int getVarId(String name) throws ParseException {
 		Integer varId = localVars.get(name);
 		if (varId == null) {
 			varId = globalVars.get(name);
@@ -4565,15 +4106,6 @@ public class CHLCompiler {
 		peek();
 	}
 	
-	private SymbolInstance parseIdentifier() throws ParseException {
-		SymbolInstance sInst = next();
-		if (!sInst.is(TokenType.IDENTIFIER)) {
-			throw new ParseException("Expected: IDENTIFIER", file, sInst.token.line, sInst.token.col);
-		}
-		//TODO IDENTIFIER
-		return sInst;
-	}
-	
 	private int storeStringData(String value) {
 		Integer strptr = strings.get(value);
 		if (strptr == null) {
@@ -4584,7 +4116,7 @@ public class CHLCompiler {
 		return strptr;
 	}
 	
-	private int parseString() throws ParseException {
+	private SymbolInstance parseString() throws ParseException {
 		SymbolInstance sInst = next();
 		if (!sInst.is(TokenType.STRING)) {
 			throw new ParseException("Expected: STRING", file, sInst.token.line, sInst.token.col);
@@ -4593,102 +4125,134 @@ public class CHLCompiler {
 		int strptr = storeStringData(value);
 		//STRING
 		pushi(strptr);
-		return strptr;
+		return sInst;
 	}
 	
-	private void parseConstExpr(String keyword, int dflt) throws ParseException, IllegalArgumentException {
-		SymbolInstance sInst = peek();
-		if (sInst.is(keyword)) {
-			accept(keyword);
-			parseConstExpr(true);
-		} else {
-			pushi(dflt);
-		}
-	}
-	
-	private void parseExpression(String keyword, float dflt) throws ParseException, IllegalArgumentException {
-		SymbolInstance sInst = peek();
-		if (sInst.is(keyword)) {
-			accept(keyword);
-			parseExpression(true);
-		} else {
-			pushf(dflt);
-		}
-	}
-	
-	private SymbolInstance parse(String expression) throws ParseException {
-		SymbolInstance r = null;
+	private SymbolInstance[] parse(String expression) throws ParseException {
 		String[] symbols = expression.split(" ");
-		for (String symbol : symbols) {
+		SymbolInstance[] r = new SymbolInstance[symbols.length];
+		for (int i = 0; i < symbols.length; i++) {
+			String symbol = symbols[i];
 			if ("EXPRESSION".equals(symbol)) {
-				parseExpression(true);
+				r[i] = parseExpression(true);
 			} else if ("COORD_EXPR".equals(symbol)) {
-				parseCoordExpr(true);
+				r[i] = parseCoordExpr(true);
 			} else if ("CONST_EXPR".equals(symbol)) {
-				parseConstExpr(true);
+				r[i] = parseConstExpr(true);
 			} else if ("OBJECT".equals(symbol)) {
-				parseObject(true);
+				r[i] = parseObject(true);
 			} else if ("CONDITION".equals(symbol)) {
-				parseCondition(true);
+				r[i] = parseCondition(true);
 			} else if ("IDENTIFIER".equals(symbol)) {
-				r = parseIdentifier();
+				r[i] = accept(TokenType.IDENTIFIER);
+			} else if ("VARIABLE".equals(symbol)) {
+				r[i] = accept(TokenType.IDENTIFIER);
+				String name = r[i].token.value;
+				pushf(name);
+			} else if ("CONSTANT".equals(symbol)) {
+				r[i] = acceptAny(TokenType.NUMBER, TokenType.IDENTIFIER);
+				int val = getConstant(r[i]);
+				pushi(val);
 			} else if ("STRING".equals(symbol)) {
-				parseString();
+				r[i] = parseString();
 			} else if ("EOL".equals(symbol)) {
 				SymbolInstance sInst = next();
 				if (!sInst.is(TokenType.EOL)) {
 					throw new ParseException("Unexpected token: "+sInst+". Expected: EOL", file, sInst.token.line, sInst.token.col);
 				}
+				r[i] = sInst;
 			} else if ("SPIRIT_TYPE".equals(symbol)) {
-				parseSpiritType();
+				r[i] = parseSpiritType();
 			} else if ("PLAYING_SIDE".equals(symbol)) {
-				parsePlayingSide();
+				r[i] = parsePlayingSide();
 			} else if (symbol.indexOf("|") >= 0) {
 				if ("enable|disable".equals(symbol)) {
-					parseEnableDisableKeyword();
+					r[i] = parseEnableDisableKeyword();
 				} else if ("forward|reverse".equals(symbol)) {
-					parseForwardReverseKeyword();
+					r[i] = parseForwardReverseKeyword();
 				} else if ("open|close".equals(symbol)) {
-					parseOpenCloseKeyword();
+					r[i] = parseOpenCloseKeyword();
 				} else if ("pause|unpause".equals(symbol)) {
-					parsePauseUnpauseKeyword();
+					r[i] = parsePauseUnpauseKeyword();
 				} else if ("quest|challenge".equals(symbol)) {
-					parseQuestChallengeKeyword();
+					r[i] = parseQuestChallengeKeyword();
 				} else if ("enter|exit".equals(symbol)) {
-					parseEnterExitKeyword();
+					r[i] = parseEnterExitKeyword();
 				} else if ("second|seconds".equals(symbol)) {
 					SymbolInstance sInst = next();
 					if (!sInst.is("second") && !sInst.is("seconds")) {
 						throw new ParseException("Unexpected token: "+sInst+". Expected: second|seconds", file, sInst.token.line, sInst.token.col);
 					}
+					r[i] = sInst;
 				} else if ("event|events".equals(symbol)) {
 					SymbolInstance sInst = next();
 					if (!sInst.is("event") && !sInst.is("events")) {
 						throw new ParseException("Unexpected token: "+sInst+". Expected: event|events", file, sInst.token.line, sInst.token.col);
 					}
+					r[i] = sInst;
 				} else if ("graphics|gfx".equals(symbol)) {
 					SymbolInstance sInst = next();
 					if (!sInst.is("graphics") && sInst.is("gfx")) {
 						throw new ParseException("Unexpected token: "+sInst+". Expected: graphics|gfx", file, sInst.token.line, sInst.token.col);
 					}
+					r[i] = sInst;
 				} else {
 					throw new IllegalArgumentException("Unknown symbol: "+symbol);
 				}
+			} else if (symbol.startsWith("[")) {
+				String keyword = symbols[i].substring(1);
+				String expr = symbols[i + 1];
+				if (!expr.endsWith("]")) {
+					throw new IllegalArgumentException("Invalid optional symbol in \""+expression+"\"");
+				}
+				expr = expr.substring(0, expr.length() - 1);
+				if ("EXPRESSION".equals(expr)) {
+					SymbolInstance sInst = peek();
+					if (sInst.is(keyword)) {
+						r[i] = accept(keyword);
+						r[i + 1] = parseExpression(true);
+					} else {
+						pushf(0);
+					}
+				} else if ("CONST_EXPR".equals(expr)) {
+					SymbolInstance sInst = peek();
+					if (sInst.is(keyword)) {
+						r[i] = accept(keyword);
+						r[i + 1] = parseConstExpr(true);
+					} else {
+						pushf(0);
+					}
+				} else {
+					throw new IllegalArgumentException("Invalid optional symbol in \""+expression+"\"");
+				}
+				i++;
 			} else {
 				SymbolInstance sInst = next();
 				if (!sInst.is(symbol)) {
 					throw new ParseException("Unexpected token "+sInst+". Expected: "+symbol, file, sInst.token.line, sInst.token.col);
 				}
+				r[i] = sInst;
 			}
 		}
 		return r;
 	}
 	
-	private void accept(String keyword) throws ParseException {
+	private SymbolInstance accept(String keyword) throws ParseException {
 		SymbolInstance symbol = next();
 		if (!symbol.is(keyword)) {
 			throw new ParseException("Expected: "+keyword, file, symbol.token.line, symbol.token.col);
 		}
+		return symbol;
+	}
+	
+	private SymbolInstance acceptAny(TokenType...types) throws ParseException {
+		SymbolInstance symbol = next();
+		for (TokenType type : types) {
+			if (symbol.token.type == type) {
+				return symbol;
+			}
+		}
+		throw new ParseException("Expected: "+join("|", types), file, symbol.token.line, symbol.token.col);
 	}
 	
 	private SymbolInstance accept(TokenType type) throws ParseException {
@@ -4772,7 +4336,6 @@ public class CHLCompiler {
 		instruction.flags = OPCodeFlag.FORWARD;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		//jmpStack.add(instruction);
 		return instruction;
 	}
 	
@@ -4822,7 +4385,7 @@ public class CHLCompiler {
 	private void pushf(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHF");
 		instruction.flags = OPCodeFlag.REF;
-		instruction.intVal = getVar(variable);
+		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -4830,7 +4393,7 @@ public class CHLCompiler {
 	private void pusho(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHO");
 		instruction.flags = OPCodeFlag.REF;
-		instruction.intVal = getVar(variable);
+		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -4868,13 +4431,7 @@ public class CHLCompiler {
 	private void popf(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("POPF");
 		instruction.flags = OPCodeFlag.REF;
-		instruction.intVal = getVar(variable);
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
-	private void addi() {
-		Instruction instruction = Instruction.fromKeyword("ADDI");
+		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -4901,12 +4458,6 @@ public class CHLCompiler {
 	private void sys2(NativeFunction func) {
 		Instruction instruction = Instruction.fromKeyword("SYS2");
 		instruction.intVal = func.ordinal();
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
-	private void subi() {
-		Instruction instruction = Instruction.fromKeyword("SUBI");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -5013,7 +4564,6 @@ public class CHLCompiler {
 		instruction.flags = OPCodeFlag.FORWARD;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		//jmpStack.add(instruction);
 		return instruction;
 	}
 	
@@ -5023,18 +4573,10 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private void except(int ip) {
-		Instruction instruction = Instruction.fromKeyword("EXCEPT");
-		instruction.intVal = ip;
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
 	private Instruction except() {
 		Instruction instruction = Instruction.fromKeyword("EXCEPT");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		//exceptStack.add(instruction);
 		return instruction;
 	}
 	
@@ -5102,12 +4644,6 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private void retexcept() {
-		Instruction instruction = Instruction.fromKeyword("RETEXCEPT");
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
 	private void iterexcept() {
 		Instruction instruction = Instruction.fromKeyword("ITEREXCEPT");
 		instruction.lineNumber = line;
@@ -5146,33 +4682,11 @@ public class CHLCompiler {
 		return instructions.size();
 	}
 	
-	private static String join(String sep, Symbol[] items) {
+	private static String join(String sep, Object[] items) {
 		if (items.length == 0) return "";
-		String r = items[0].keyword;
+		String r = String.valueOf(items[0]);
 		for (int i = 1; i < items.length; i++) {
-			r += sep + items[i].keyword;
-		}
-		return r;
-	}
-	
-	private static String join(String sep, String[] items) {
-		if (items.length == 0) return "";
-		String r = items[0];
-		for (int i = 1; i < items.length; i++) {
-			r += sep + items[i];
-		}
-		return r;
-	}
-	
-	private static String shortify(Object r) {
-		return shortify(String.valueOf(r));
-	}
-	
-	private static String shortify(String r) {
-		if (r.length() > traceMaxStrLen) {
-			final int prefixLen = (int) (0.75 * traceMaxStrLen);
-			final int suffixLen = traceMaxStrLen - prefixLen;
-			r = r.substring(0, prefixLen) + "..." + r.substring(r.length() - suffixLen);
+			r += sep + String.valueOf(items[i]);
 		}
 		return r;
 	}
@@ -5189,86 +4703,6 @@ public class CHLCompiler {
 			this.line = line;
 			this.instr = instr;
 			this.name = name;
-		}
-	}
-	
-	
-	private static class SymbolInstance {
-		public static final SymbolInstance EOF = new SymbolInstance(Syntax.EOF, null);
-		
-		public Symbol symbol;
-		public final Token token;
-		public final List<SymbolInstance> expression;
-		
-		public SymbolInstance(Symbol symbol) {
-			this.symbol = symbol;
-			this.token = null;
-			this.expression = new LinkedList<>();
-		}
-		
-		public SymbolInstance(Symbol symbol, Token token) {
-			this.symbol = symbol;
-			this.token = token;
-			this.expression = null;
-		}
-		
-		public boolean is(TokenType type) {
-			return token != null && token.type == type;
-		}
-		
-		public boolean is(String keyword) {
-			return token != null && token.type == TokenType.KEYWORD && keyword.equals(token.value);
-		}
-		
-		@Override
-		public String toString() {
-			if (token != null) {
-				return token.value;
-			} else if (expression.isEmpty()) {
-				return "<not initialized>";
-			} else {
-				String r = expression.get(0).toString();
-				for (int i = 1; i < expression.size(); i++) {
-					r += " " + expression.get(i).toString();
-				}
-				return r;
-			}
-		}
-		
-		public String toStringBlocks() {
-			if (token != null) {
-				return token.value;
-			} else if (expression.isEmpty()) {
-				return "<not initialized>";
-			} else if (expression.size() == 1) {
-				return expression.get(0).toString();
-			} else {
-				String r = "{" + expression.get(0).toStringBlocks1() + "}";
-				for (int i = 1; i < expression.size(); i++) {
-					if (expression.get(i).is(TokenType.KEYWORD)) {
-						r += " " + expression.get(i).toStringBlocks1();
-					} else {
-						r += " {" + expression.get(i).toStringBlocks1() + "}";
-					}
-				}
-				return r;
-			}
-		}
-		
-		private String toStringBlocks1() {
-			if (token != null) {
-				return token.value;
-			} else if (expression.isEmpty()) {
-				return "<not initialized>";
-			} else if (expression.size() == 1) {
-				return expression.get(0).toString();
-			} else {
-				String r = expression.get(0).toStringBlocks1();
-				for (int i = 1; i < expression.size(); i++) {
-					r += " " + expression.get(i).toStringBlocks1();
-				}
-				return r;
-			}
 		}
 	}
 }

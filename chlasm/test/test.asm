@@ -135,7 +135,14 @@ begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
 	FREE
 
 //@	AGE of Boy = 11		//#test.chl:31
+	PUSHI 17
+	PUSHF [Boy]
+	PUSHI 17
+	PUSHF [Boy]
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
+	POPI
 	PUSHF 11.0
+	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 //@	Random = number from 1 to 4		//#test.chl:32
 	PUSHF [Random]
 	POPI
@@ -156,6 +163,7 @@ begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
 //@	set Boy focus to [LookAt]		//#test.chl:35
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //
 	EXCEPT lbl8
 
@@ -178,6 +186,11 @@ lblF:
 	PUSHF 1.0
 	EQ
 	JZ lblB
+//@				BaywatchSwimmingCounter--		//#test.chl:41
+	PUSHF [BaywatchHomeCounter]
+	PUSHF 1.0
+	SUBF
+	POPF BaywatchHomeCounter
 lblB:
 //@			InWater=0		//#test.chl:43
 	PUSHF [InWater]
@@ -214,7 +227,14 @@ lblB:
 	PUSHB true
 	PUSHB false
 //@					SPEED of Boy = 0.5		//#test.chl:56
+	PUSHI 12
+	PUSHF [Boy]
+	PUSHI 12
+	PUSHF [Boy]
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
+	POPI
 	PUSHF 0.5
+	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 
 //@					move Boy position to [VillagerHutPos]		//#test.chl:58
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
@@ -230,6 +250,7 @@ lblC:
 	JZ lblA
 //@					set Boy position to [Boy]		//#test.chl:61
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					Boy play ANM_P_SWIM2 loop -1		//#test.chl:62
 	PUSHF [Boy]
 	PUSHO [Boy]
@@ -239,6 +260,11 @@ lblC:
 	SYS SET_SCRIPT_ULONG	//[3, 0] (ObjectObj object, int animation, int loop)
 	PUSHI 200
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
+//@					BaywatchSwimmingCounter++		//#test.chl:63
+	PUSHF [BaywatchHomeCounter]
+	PUSHF 1.0
+	ADDF
+	POPF BaywatchHomeCounter
 //@					InWater=1		//#test.chl:64
 	PUSHF [InWater]
 	POPI
@@ -268,6 +294,12 @@ lblA:
 //@					say HELP_TEXT_BAYWATCH_32		//#test.chl:77
 	PUSHB false
 lblE:
+
+//@			BaywatchMurder ++		//#test.chl:83
+	PUSHF [BaywatchSwimmingCounter]
+	PUSHF 1.0
+	ADDF
+	POPF BaywatchSwimmingCounter
 //@			Murdered = 1		//#test.chl:84
 	PUSHF [Murdered]
 	POPI
@@ -278,6 +310,11 @@ lblE:
 	PUSHF 1.0
 	EQ
 	JZ lblD
+//@				BaywatchSwimmingCounter--		//#test.chl:86
+	PUSHF [BaywatchHomeCounter]
+	PUSHF 1.0
+	SUBF
+	POPF BaywatchHomeCounter
 lblD:
 
 //@	end while		//#test.chl:90
@@ -294,6 +331,11 @@ lbl10:
 	PUSHF 0.0
 	EQ
 	JZ lbl11
+//@		BaywatchHomeCounter ++		//#test.chl:93
+	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF 1.0
+	ADDF
+	POPF help_text_retake_aztec_village_quest_reminder_02
 lbl11:
 
 //@end script BaywatchSwimmingBoy		//#test.chl:96
@@ -565,7 +607,14 @@ begin script BaywatchMain
 	SYS MOVE_CAMERA_FOCUS	//[4, 0] (Coord position, float time)
 
 //@		SPEED of Mother = 0.5		//#test.chl:161
+	PUSHI 12
+	PUSHF [Mother]
+	PUSHI 12
+	PUSHF [Mother]
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
+	POPI
 	PUSHF 0.5
+	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 //@		move Mother position to [SoapBox]		//#test.chl:162
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
@@ -614,6 +663,7 @@ begin script BaywatchMain
 	CASTC
 	PUSHF 3114.4829
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@		set camera focus to [2958.053, 3.424, 3097.387] 		//#test.chl:180
 	PUSHF 2958.053
 	CASTC
@@ -621,6 +671,7 @@ begin script BaywatchMain
 	CASTC
 	PUSHF 3097.387
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@		snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:182
 	PUSHB false
@@ -661,6 +712,7 @@ begin script BaywatchMain
 	CASTC
 	PUSHF 3069.1379
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@		set camera focus to [2783.190, 50.229, 3058.410]		//#test.chl:195
 	PUSHF 2783.1899
 	CASTC
@@ -668,9 +720,17 @@ begin script BaywatchMain
 	CASTC
 	PUSHF 3058.4099
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@		SPEED of Mother = 0.2		//#test.chl:197
+	PUSHI 12
+	PUSHF [Mother]
+	PUSHI 12
+	PUSHF [Mother]
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
+	POPI
 	PUSHF 0.2
+	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 
 //@		move camera position to [2772.9670, 69.8213, 3093.4985]	time 4		//#test.chl:199
 	PUSHF 2772.967
@@ -731,6 +791,7 @@ lbl28:
 	CASTC
 	PUSHF 3067.1104
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@				set camera focus to [2784.4382, 51.3200, 3054.3350]		//#test.chl:220
 	PUSHF 2784.4382
 	CASTC
@@ -738,6 +799,7 @@ lbl28:
 	CASTC
 	PUSHF 3054.335
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 //@				say single line HELP_TEXT_BAYWATCH_27		//#test.chl:221
 	PUSHB true
 	PUSHB false
@@ -798,6 +860,7 @@ lbl16:
 	CASTC
 	PUSHF 3067.1104
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@				set camera focus to [2784.4382, 51.3200, 3054.3350]		//#test.chl:237
 	PUSHF 2784.4382
 	CASTC
@@ -805,6 +868,7 @@ lbl16:
 	CASTC
 	PUSHF 3054.335
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 //@				update snapshot success 1 alignment -0.2 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:238
 	PUSHF 1.0
 	PUSHF 0.2
@@ -840,6 +904,7 @@ lbl18:
 	CASTC
 	PUSHF 3067.1104
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@				set camera focus to [2784.4382, 51.3200, 3054.3350]		//#test.chl:249
 	PUSHF 2784.4382
 	CASTC
@@ -847,6 +912,7 @@ lbl18:
 	CASTC
 	PUSHF 3054.335
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@				update snapshot success 1 alignment -0.6 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:251
 	PUSHF 1.0
@@ -935,6 +1001,7 @@ lbl1A:
 	CASTC
 	PUSHF 3067.1104
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@				set camera focus to [2784.4382, 51.3200, 3054.3350]		//#test.chl:286
 	PUSHF 2784.4382
 	CASTC
@@ -942,6 +1009,7 @@ lbl1A:
 	CASTC
 	PUSHF 3054.335
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@				update snapshot success 1 alignment -0.8 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:288
 	PUSHF 1.0
@@ -1013,6 +1081,7 @@ lbl1B:
 	CASTC
 	PUSHF 3055.2534
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					set camera focus to [2962.0737, 0.8419, 3081.0688]		//#test.chl:321
 	PUSHF 2962.0737
 	CASTC
@@ -1020,6 +1089,7 @@ lbl1B:
 	CASTC
 	PUSHF 3081.0688
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@					say single line HELP_TEXT_BAYWATCH_26		//#test.chl:323
 	PUSHB true
@@ -1034,6 +1104,7 @@ lbl1B:
 
 //@					set Mother position to [SoapBox]		//#test.chl:329
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 
 //@					if HEALTH of Boy1 > 0		//#test.chl:331
 	PUSHI 1
@@ -1050,6 +1121,7 @@ lbl1B:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy1 play ANM_P_AMBIENT1 loop -1		//#test.chl:333
 	PUSHF [Boy1]
 	PUSHO [Boy1]
@@ -1076,6 +1148,7 @@ lbl1E:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy2 play ANM_P_AMBIENT2 loop -1		//#test.chl:338
 	PUSHF [Boy2]
 	PUSHO [Boy2]
@@ -1102,6 +1175,7 @@ lbl1F:
 	CASTC
 	PUSHF 0.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy3 play ANM_P_AMBIENT1 loop -1		//#test.chl:343
 	PUSHF [Boy3]
 	PUSHO [Boy3]
@@ -1129,6 +1203,7 @@ lbl20:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy4 play ANM_P_CROWD_LOST loop -1		//#test.chl:348
 	PUSHF [Boy4]
 	PUSHO [Boy4]
@@ -1156,6 +1231,7 @@ lbl21:
 	CASTC
 	PUSHF 0.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy5 play ANM_P_CROWD_UNIMPRESSED_1 loop -1		//#test.chl:353
 	PUSHF [Boy5]
 	PUSHO [Boy5]
@@ -1174,6 +1250,7 @@ lbl22:
 	CASTC
 	PUSHF 3066.667
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					set camera focus to [2786.7651, 51.4744, 3064.1111]		//#test.chl:357
 	PUSHF 2786.7651
 	CASTC
@@ -1181,6 +1258,10 @@ lbl22:
 	CASTC
 	PUSHF 3064.1111
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
+
+//@					set Mother focus to camera position		//#test.chl:359
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 
 //@					set fade in time 2		//#test.chl:361
 	PUSHF 2.0
@@ -1240,6 +1321,7 @@ lbl1D:
 	CASTC
 	PUSHF 3055.2534
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					set camera focus to [2962.0737, 0.8419, 3081.0688]		//#test.chl:386
 	PUSHF 2962.0737
 	CASTC
@@ -1247,6 +1329,7 @@ lbl1D:
 	CASTC
 	PUSHF 3081.0688
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 					//"AAaahhh !!!!"
 //@					say single line HELP_TEXT_BAYWATCH_35		//#test.chl:389
@@ -1262,6 +1345,7 @@ lbl1D:
 
 //@					set Mother position to [SoapBox]		//#test.chl:395
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					Mother play ANM_P_DEAD1 loop -1		//#test.chl:396
 	PUSHF [Mother]
 	PUSHO [Mother]
@@ -1287,8 +1371,10 @@ lbl1D:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy1 focus to [Mother]		//#test.chl:400
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy1 play ANM_P_INSPECT_OBJECT_1 loop -1		//#test.chl:401
 	PUSHF [Boy1]
 	PUSHO [Boy1]
@@ -1316,8 +1402,10 @@ lbl23:
 	PUSHF 1.0
 	NEG
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy2 focus to [Mother]		//#test.chl:406
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy2 play ANM_P_INSPECT_OBJECT_2 loop -1		//#test.chl:407
 	PUSHF [Boy2]
 	PUSHO [Boy2]
@@ -1346,8 +1434,10 @@ lbl24:
 	PUSHF 1.0
 	NEG
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy3 focus to [Mother]		//#test.chl:412
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy3 play ANM_P_MOURNING loop -1		//#test.chl:413
 	PUSHF [Boy3]
 	PUSHO [Boy3]
@@ -1375,8 +1465,10 @@ lbl25:
 	PUSHF 1.0
 	NEG
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy4 focus to [Mother]		//#test.chl:418
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy4 play ANM_P_OVERWORKED1 loop -1		//#test.chl:419
 	PUSHF [Boy4]
 	PUSHO [Boy4]
@@ -1403,8 +1495,10 @@ lbl26:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy5 focus to [Mother]		//#test.chl:424
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy5 play ANM_P_SCARED_STIFF loop -1		//#test.chl:425
 	PUSHF [Boy5]
 	PUSHO [Boy5]
@@ -1423,6 +1517,7 @@ lbl27:
 	CASTC
 	PUSHF 3066.667
 	CASTC
+	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					set camera focus to [2786.7651, 51.4744, 3064.1111]		//#test.chl:429
 	PUSHF 2786.7651
 	CASTC
@@ -1430,6 +1525,7 @@ lbl27:
 	CASTC
 	PUSHF 3064.1111
 	CASTC
+	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@					set fade in time 2		//#test.chl:431
 	PUSHF 2.0
