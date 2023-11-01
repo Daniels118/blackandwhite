@@ -977,21 +977,21 @@ Stops all the games associated with an object, currently only applicable to foot
 Never found (STOP_ALL_GAMES)
 ___________________________________________
 
-3.4.2 attach OBJECT to game OBJECT for playing_side team
+3.4.2 attach OBJECT to game OBJECT for PLAYING_SIDE team
 
 Attaches a player to the game for a specified side, the side is defined by either the word 'home' or 'away'.
 
 Never found (ATTACH_TO_GAME)
 ___________________________________________
 
-3.4.3 detach OBJECT in game OBJECT from playing_side team
+3.4.3 detach OBJECT in game OBJECT from PLAYING_SIDE team
 
 Detaches a player from the football game.
 
 Never found (DETACH_FROM_GAME)
 ___________________________________________
 
-3.4.4 detach player from OBJECT from playing_side team
+3.4.4 detach player from OBJECT from PLAYING_SIDE team
 
 Detaches a player from the football game.
 
@@ -1671,7 +1671,7 @@ start Vortex fade out		//#VortexEntry.txt:32
 	SYS VORTEX_FADE_OUT	//[1, 0] (Object vortex)
 ___________________________________________
 
-3.8.50 enable|disable OBJECT high graphics detail
+3.8.50 enable|disable OBJECT high graphics|gfx detail
 
 Sets the objects graphics detail.
 
@@ -1866,7 +1866,7 @@ set Scaffold1 building properties ABODE_NUMBER_TOWN_CENTRE size 5		//#beginland2
 	SYS SET_SCAFFOLD_PROPERTIES	//[4, 0] (Object object, ABODE_NUMBER type, float size, bool destroy)
 ___________________________________________
 
-3.8.67 set OBJECT fade in opt_time_2
+3.8.67 set OBJECT fade in time EXPRESSION
 
 Sets an object to fade in, if it is the creature you can pass an optional time value - not doing so defaults
 in two seconds.
@@ -1997,7 +1997,7 @@ detach reaction Guide REACTION_FLEE_FROM_OBJECT		//#CreatureGuide.txt:1856
 	SYS REMOVE_REACTION_OF_TYPE	//[2, 0] (Object object, ENUM_REACTION reaction)
 ___________________________________________
 
-3.10.1 run script IDENTIFIER
+3.10.1 run script IDENTIFIER[(PARAMETERS)]
 
 Runs a script, and does not return control to the script which calls this statement until the called script
 is finished.
@@ -2007,7 +2007,7 @@ run script SetupLand3
 	CALL SetupLand3
 ___________________________________________
 
-3.10.2 run background script IDENTIFIER
+3.10.2 run background script IDENTIFIER[(PARAMETERS)]
 
 Runs a script as a background task, and continues running the script which called it.
 
@@ -2398,21 +2398,21 @@ ___________________________________________
 I guess this was for "known" version of the block.
 ___________________________________________
 
-3.16.1.1 make SPIRIT_TYPE spirit point to OBJECT [in world]
+3.16.1.1 make HELP_SPIRIT_TYPE spirit point to OBJECT [in world]
 
 When dealing with spirits, it is often not desirable to create objects to refer to them. You can
-refer to a spirit directly by using its SPIRIT_TYPE. This command makes the specified spirit appear,
+refer to a spirit directly by using its HELP_SPIRIT_TYPE. This command makes the specified spirit appear,
 if necessary, and then point to the target object.
 
 make good spirit point to Object in world		//#HelpSystem.txt:136
 
-	PUSHI 1						//SPIRIT_TYPE
+	PUSHI 1						//HELP_SPIRIT_TYPE
 	PUSHF [Object]				//target
 	PUSHB true					//inWorld
 	SYS SPIRIT_POINT_GAME_THING	//[3, 0] (HELP_SPIRIT_TYPE spirit, Object target, bool inWorld)
 ___________________________________________
 
-3.16.1.2 make SPIRIT_TYPE spirit point at COORD_EXPR
+3.16.1.2 make HELP_SPIRIT_TYPE spirit point at COORD_EXPR
 
 Occasionally you might want to make an object (usually a help spirit) point to another object. You can
 do this via the make command.
@@ -2426,7 +2426,7 @@ make evil spirit point at [Highlight] in world		//#SwapCreatures.txt:63
 	SYS SPIRIT_POINT_POS	//[5, 0] (HELP_SPIRIT_TYPE spirit, Coord position, bool inWorld)
 ___________________________________________
 
-3.16.1.3 make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
+3.16.1.3 make HELP_SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
 
 The specified spirit type will play an animation at the set position, (percentage x across the screen,
 and percentage y down the screen) at an optionally defined speed percentage
@@ -2434,7 +2434,7 @@ and percentage y down the screen) at an optionally defined speed percentage
 Never found (PLAY_SPIRIT_ANIM)
 ___________________________________________
 
-3.16.1.4 make SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
+3.16.1.4 make HELP_SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
 
 The specified spirit type will cling to the edge of the screen, closest to the (percentage x across
 the screen, and percentage y down the screen) position given. This works when they have not been ejected,
@@ -2449,7 +2449,7 @@ make evil spirit cling across 0.2 down 1		//#CreatureGuide.txt:576
 	SYS CLING_SPIRIT	//[3, 0] (HELP_SPIRIT_TYPE spirit, float xPercent, float yPercent)
 ___________________________________________
 
-3.16.1.5 make SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
+3.16.1.5 make HELP_SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
 
 The specified spirit type will fly to the position on the screen, (percentage x across the screen, and
 percentage y down the screen)
@@ -2462,12 +2462,12 @@ make good spirit fly across 0.8 down 0.75		//#followus.txt:718
 	SYS FLY_SPIRIT	//[3, 0] (HELP_SPIRIT_TYPE spirit, float xPercent, float yPercent)
 ___________________________________________
 
-3.16.1.6 make SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
+3.16.1.6 make HELP_SPIRIT_TYPE spirit fly across EXPRESSION down EXPRESSION
 
 Identical to 3.15.1.5
 ___________________________________________
 
-3.16.1.7 stop SPIRIT_TYPE spirit pointing
+3.16.1.7 stop HELP_SPIRIT_TYPE spirit pointing
 
 Stops the spirit pointing, irrespective of if it is.
 
@@ -2477,7 +2477,7 @@ stop evil spirit pointing		//#Reward.txt:232
 	SYS STOP_POINTING	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.8 make SPIRIT_TYPE spirit look at COORD_EXPR
+3.16.1.8 make HELP_SPIRIT_TYPE spirit look at COORD_EXPR
 
 The specified spirit type will look to the set position.
 
@@ -2489,7 +2489,7 @@ make good spirit look at [StartPath]		//#followus.txt:785
 	SYS LOOK_AT_POSITION	//[4, 0] (HELP_SPIRIT_TYPE spirit, Coord position)
 ___________________________________________
 
-3.16.1.9 make SPIRIT_TYPE spirit look at OBJECT
+3.16.1.9 make HELP_SPIRIT_TYPE spirit look at OBJECT
 
 The specified spirit type will look at the target object.
 
@@ -2500,7 +2500,7 @@ make good spirit look at MyCreature		//#CreatureHelp.txt:108
 	SYS LOOK_GAME_THING	//[2, 0] (HELP_SPIRIT_TYPE spirit, Object target)
 ___________________________________________
 
-3.16.1.10 stop SPIRIT_TYPE spirit looking
+3.16.1.10 stop HELP_SPIRIT_TYPE spirit looking
 
 Stops the spirit looking, irrespective of if it is.
 
@@ -2510,7 +2510,7 @@ stop good spirit looking		//#followus.txt:821
 	SYS STOP_LOOKING	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.11 eject SPIRIT_TYPE spirit
+3.16.1.11 eject HELP_SPIRIT_TYPE spirit
 
 eject evil spirit
 
@@ -2518,7 +2518,7 @@ eject evil spirit
 	SYS SPIRIT_EJECT	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.12 make SPIRIT_TYPE spirit appear
+3.16.1.12 make HELP_SPIRIT_TYPE spirit appear
 
 Make the spirit type Appear in front of the player in a puff of smoke. Irrespective of the script type.
 
@@ -2527,7 +2527,7 @@ make good spirit appear		//#CreatureDevelopment.txt:1648
 	SYS SPIRIT_APPEAR	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.13 disappear SPIRIT_TYPE spirit
+3.16.1.13 disappear HELP_SPIRIT_TYPE spirit
 
 Make the spirit type disappear in front of the player in a puff of smoke. Irrespective of the script type.
 
@@ -2537,7 +2537,7 @@ make good spirit disappear		//#CreatureDevelopment.txt:1653
 	SYS SPIRIT_DISAPPEAR	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.14 send SPIRIT_TYPE spirit home
+3.16.1.14 send HELP_SPIRIT_TYPE spirit home
 
 The specified spirit type will move off the screen.
 
@@ -3375,9 +3375,9 @@ Never found
 	SYS OBJECT_CAST_BY_OBJECT	//[2, 1] (Object spell, Object caster) returns (bool)
 ___________________________________________
 
-6.22 SPIRIT_TYPE spirit played
+6.22 HELP_SPIRIT_TYPE spirit played
 
-A check on if a SPIRIT_TYPE has finished playing it's animation.
+A check on if a HELP_SPIRIT_TYPE has finished playing it's animation.
 
 Never found
 
@@ -3385,9 +3385,9 @@ Never found
 	SYS SPIRIT_PLAYED	//[1, 1] (HELP_SPIRIT_TYPE spirit) returns (bool)
 ___________________________________________
 
-6.23 SPIRIT_TYPE spirit speaks CONST_EXPR
+6.23 HELP_SPIRIT_TYPE spirit speaks CONST_EXPR
 
-A check on if a SPIRIT_TYPE speaks the text?
+A check on if a HELP_SPIRIT_TYPE speaks the text?
 
 good spirit speaks constant AdvisorSpeak		//#StandardReminder.txt:8
 
@@ -4034,6 +4034,20 @@ say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_01 playing //Check previous line is 
 	SYS SAY_SOUND_EFFECT_PLAYING	//[2, 1] (bool alwaysFalse, int sound) returns (bool)
 ___________________________________________
 
+6.74 camera position near COORD_EXPR radius EXPRESSION
+
+?
+
+camera position near [Leader] radius 10		//#piedpiper.txt:49
+
+	SYS GET_CAMERA_POSITION	//[0, 3] () returns (Coord)
+	PUSHF [Leader]
+	SYS GET_POSITION		//[1, 3] (Object object) returns (Coord)
+	SYS GET_DISTANCE		//[6, 1] (Coord p0, Coord p1) returns (float)
+	PUSHF 10.0
+	LT
+___________________________________________
+
 7 remove resource CONST_EXPR EXPRESSION from OBJECT
 
 Removes an amount of resource from an object, and returns the amount removed. If the amount asked for
@@ -4360,7 +4374,7 @@ SoditTimer = create timer for 30 seconds
 	POPF SoditTimer
 ___________________________________________
 
-9.21 marker at position
+9.21 marker at COORD_EXPR
 
 Creates a position marker.
 
@@ -4456,7 +4470,7 @@ WelcomeDance = make DanceDependant dance DANCE_INFO_NEW_DANCE_AROUND_PERSON arou
 	POPF WelcomeDance
 ___________________________________________
 
-9.27 create [anti] influence on OBJECT radius EXPRESSION
+9.27 create influence on OBJECT radius EXPRESSION
 
 No doc.
 
@@ -4470,7 +4484,7 @@ QuarryInfluence = create influence on QuarryPos radius 30		//#setupland1.txt:101
 	POPF QuarryInfluence
 ___________________________________________
 
-9.28 create [anti] influence at COORD_EXPR radius EXPRESSION
+9.28 create influence at COORD_EXPR radius EXPRESSION
 
 Creates an influence at a position.
 
@@ -4491,12 +4505,35 @@ ___________________________________________
 
 9.29 create anti influence on OBJECT radius EXPRESSION
 
-Merged with 9.27
+No doc.
+
+CreedInfluence = create anti influence on CreedL4 radius 30		//#land4meteorites.txt:2342
+
+	PUSHF [CreedL4]			//OBJECT
+	PUSHF 30.0				//radius
+	PUSHI 0
+	PUSHI 1					//anti (1=anti, zero=normal)
+	SYS INFLUENCE_OBJECT	//[4, 1] (Object target, float radius, int zero, int anti) returns (Object)
+	POPF CreedInfluence
 ___________________________________________
 
 9.30 create anti influence at position COORD_EXPR radius EXPRESSION
 
-Merged with 9.28
+No doc.
+
+RockInfl = create anti influence at position [2042.9100, 14.9250, 2325.1699] radius 20		//#setupland1.txt:112
+
+	PUSHF 2042.91
+	CASTC
+	PUSHF 14.925
+	CASTC
+	PUSHF 2325.1699
+	CASTC
+	PUSHF 20.0				//radius
+	PUSHI 0
+	PUSHI 1					//anti (1=anti, zero=normal)
+	SYS INFLUENCE_POSITION	//[6, 1] (Coord position, float radius, int zero, int anti) returns (Object)
+	POPF RockInfl
 ___________________________________________
 
 9.31 get held by OBJECT
@@ -4747,6 +4784,41 @@ DeletedWolf = detach from WolfPack
 	PUSHF [WolfPack]	//flock
 	SYS FLOCK_DETACH	//[2, 1] (Object obj, Object flock) returns (Object)
 	POPF DeletedWolf
+___________________________________________
+
+9.48 get spell icon CONST_EXPR in OBJECT
+
+?
+
+SpellIcon=get spell icon MAGIC_TYPE_WOOD in Citadel		//#LearnGestures.txt:241
+
+	PUSHI 21						//spell
+	PUSHF [Citadel]					//temple
+	SYS GET_SPELL_ICON_IN_TEMPLE	//[2, 1] (MAGIC_TYPE spell, Object temple) returns (Object)
+	POPF SpellIcon
+___________________________________________
+
+9.49 get first in OBJECT
+
+Gets the first object in a container (flock).
+
+Slaver=get first in SlaverPosse		//#theslavers.txt:626
+
+	PUSHF [SlaverPosse]			//container
+	SYS GET_FIRST_IN_CONTAINER	//[1, 1] (Object container) returns (Object)
+	POPF Slaver
+___________________________________________
+
+9.50 get next in OBJECT after OBJECT
+
+Gets the next object in a container (flock) after the given object.
+
+Slaver=get next in SlaverPosse after Slaver		//#theslavers.txt:629
+
+	PUSHF [SlaverPosse]			//container
+	PUSHF [Slaver]				//after
+	SYS GET_NEXT_IN_CONTAINER	//[2, 1] (Object container, Object after) returns (Object)
+	POPF Slaver
 ___________________________________________
 
 ### 10 Constants
@@ -5122,6 +5194,18 @@ camera T00_000
 	SYS CONVERT_CAMERA_FOCUS	//[1, 3] (int camera_enum) returns (Coord)
 ___________________________________________
 
+11.9 player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
+
+?
+
+player 1 temple entrance position radius 90 height 40		//#GameOver.txt:11
+
+	PUSHF 1.0							//player
+	PUSHF 90.0							//radius
+	PUSHF 40.0							//height
+	SYS GET_TEMPLE_ENTRANCE_POSITION	//[3, 3] (float player, float radius, float height) returns (Coord)
+___________________________________________
+
 ### 12 Expressions
 ___________________________________________
 
@@ -5448,7 +5532,7 @@ Gets the number of mouse buttons.
 Never found (NUM_MOUSE_BUTTONS)
 ___________________________________________
 
-12.33 get size of OBJECT playing_side team
+12.33 get size of OBJECT PLAYING_SIDE team
 
 Gets the number of players in a game in a specific team.
 
@@ -5744,52 +5828,24 @@ OldSacrificeValue = get WorshipSite sacrifice total		//#sacrifice.txt:201
 	POPF OldSacrificeValue
 ___________________________________________
 
-12.51 get spell icon CONST_EXPR in OBJECT
+12.51
 
-?
-
-SpellIcon=get spell icon MAGIC_TYPE_WOOD in Citadel		//#LearnGestures.txt:241
-
-	PUSHI 21						//spell
-	PUSHF [Citadel]					//temple
-	SYS GET_SPELL_ICON_IN_TEMPLE	//[2, 1] (MAGIC_TYPE spell, Object temple) returns (Object)
-	POPF SpellIcon
+Was an OBJECT statement. Moved to 9.48
 ___________________________________________
 
-12.52 get first in OBJECT
+12.52
 
-Gets the first object in a container (flock).
-
-Slaver=get first in SlaverPosse		//#theslavers.txt:626
-
-	PUSHF [SlaverPosse]			//container
-	SYS GET_FIRST_IN_CONTAINER	//[1, 1] (Object container) returns (Object)
-	POPF Slaver
+Was an OBJECT statement. Moved to 9.49
 ___________________________________________
 
-12.53 get next in OBJECT after OBJECT
+12.53
 
-Gets the next object in a container (flock) after the given object.
-
-Slaver=get next in SlaverPosse after Slaver		//#theslavers.txt:629
-
-	PUSHF [SlaverPosse]			//container
-	PUSHF [Slaver]				//after
-	SYS GET_NEXT_IN_CONTAINER	//[2, 1] (Object container, Object after) returns (Object)
-	POPF Slaver
+Was an OBJECT statement. Moved to 9.50
 ___________________________________________
 
-12.54 player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
+12.54
 
-?
-
-player 1 temple entrance position radius 90 height 40		//#GameOver.txt:11
-
-	PUSHF 1.0							//player
-	PUSHF 90.0							//radius
-	PUSHF 40.0							//height
-	SYS GET_TEMPLE_ENTRANCE_POSITION	//[3, 3] (float player, float radius, float height) returns (Coord)
+Was a COORD_EXPR statement. Moved to 11.9
 ___________________________________________
-
 
 

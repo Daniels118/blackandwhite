@@ -84,7 +84,7 @@ lblStartWhile:
 		ADD
 		POPF Repeat
 	//end while
-	JMP lbllblStartWhile
+	JMP lblStartWhile
 lblEndWhile:
 	ENDEXCEPT
 	JMP lblEndExcept
@@ -155,7 +155,7 @@ lblStartWhile:
 		ADD
 		POPF Repeat
 	//end while
-	JMP lbllblStartWhile
+	JMP lblStartWhile
 lblEndWhile:
 	ENDEXCEPT
 	JMP lblEndExcept

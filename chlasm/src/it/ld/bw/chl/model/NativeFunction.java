@@ -223,7 +223,7 @@ public enum NativeFunction {
 /*174*/	SET_TEMPERATURE("Object obj, float temperature"),
 /*175*/	SET_ON_FIRE("bool enable, Object object, float burnSpeed"),
 /*176*/	SET_TARGET("Object obj, Coord position, float time"),
-/*177*/	WALK_PATH("Object object, bool forward, CAMERA_ENUM camera_enum, float valFrom, float valTo"),
+/*177*/	WALK_PATH("Object object, bool forward, int camera_enum, float valFrom, float valTo"),
 /*178*/	FOCUS_AND_POSITION_FOLLOW(2),						//Never found
 /*179*/	GET_WALK_PATH_PERCENTAGE("Object object", "float"),	//Never found
 /*180*/	CAMERA_PROPERTIES("float distance, float speed, float angle, bool enableBehind"),
@@ -744,7 +744,7 @@ public enum NativeFunction {
 		DETAIL_ANIM_TYPES(),			//defined in info1.txt (alias of ANIM_LIST in AllMeshes.h)
 		HELP_EVENT_TYPE(),				//see enums.txt
 		HAND_GLOW(),					//see enums.txt
-		FIGHT_MOVE();					//see enums.txt
+		FIGHT_MOVE();					//defined in HitRegions.h
 		
 		private static final Map<String, ArgType> map = new HashMap<>();
 		

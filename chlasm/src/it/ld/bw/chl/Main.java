@@ -24,6 +24,9 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
+import it.ld.bw.chl.lang.ASMParser;
+import it.ld.bw.chl.lang.ASMWriter;
+import it.ld.bw.chl.lang.CHLCompiler;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.NativeFunction;
 import it.ld.utils.CmdLine;
@@ -127,7 +130,7 @@ public class Main {
 		CHLCompiler compiler = new CHLCompiler();
 		CHLFile chl = compiler.compile(inp);
 		System.out.println("Writing compiled CHL...");
-		//TODO chl.write(out);
+		chl.write(out);
 		System.out.println("Done.");
 	}
 	

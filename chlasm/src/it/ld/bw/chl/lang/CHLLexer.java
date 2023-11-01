@@ -25,13 +25,25 @@ import java.util.List;
 
 import it.ld.bw.chl.exceptions.ParseException;
 
-/* Although this works very well, I'm going to replace it with ANTLR generated classes,
- * because using ANTLR it should be more easy to generate a parser too. 
- */
-
 public class CHLLexer {
 	private enum Status {
 		DEFAULT, IDENTIFIER, NUMBER, STRING, COMMENT, BLOCK_COMMENT, BLANK
+	}
+	
+	private int tabSize = 4;
+	
+	public int getTabSize() {
+		return tabSize;
+	}
+	
+	public void setTabSize(int tabSize) {
+		this.tabSize = tabSize;
+	}
+	
+	private void add(List<Token> tokens, Token token) {
+		//if (token.type.important) {
+			tokens.add(token);
+		//}
 	}
 	
 	public List<Token> tokenize(File file) throws FileNotFoundException, IOException, ParseException {
@@ -42,15 +54,16 @@ public class CHLLexer {
 		int depth = 0;
 		int numDots = 0;
 		int line = 1;
-		int col = 1;
+		int col = 0;
 		Token token = null;
 		try (PushbackReader str = new PushbackReader(new FileReader(file));) {
 			char c = (char) str.read();
+			col++;
 			while (c != 0xFFFF) {
 				switch (status) {
 					case DEFAULT:
 						if (c == '\n') {
-							tokens.add(new Token(line, col, TokenType.EOL, System.lineSeparator()));
+							add(tokens, new Token(line, col, TokenType.EOL, System.lineSeparator()));
 							line++;
 							col = 0;
 						} else if (c == '"') {
@@ -60,40 +73,40 @@ public class CHLLexer {
 						} else if (c == '+') {
 							char c2 = (char) str.read();
 							if (c2 == '+') {
-								tokens.add(new Token(line, col, TokenType.OPERATOR, "++"));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "++"));
 								col++;
 							} else if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.INC_ASSIGN, "+="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "+="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '-') {
 							char c2 = (char) str.read();
 							if (c2 == '-') {
-								tokens.add(new Token(line, col, TokenType.OPERATOR, "--"));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "--"));
 								col++;
 							} else if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.DEC_ASSIGN, "-="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "-="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '*') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.MUL_ASSIGN, "*="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "*="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '/') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.DIV_ASSIGN, "/="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "/="));
 								col++;
 							} else if (c2 == '/') {
 								col++;
@@ -107,57 +120,57 @@ public class CHLLexer {
 								buffer.append("/*");
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '%') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.MOD_ASSIGN, "%="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "%="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.OPERATOR, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '=') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.COMPARE, "=="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "=="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.ASSIGN, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '<' || c == '>') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.COMPARE, c+"="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c+"="));
 								col++;
 							} else {
 								str.unread(c2);
-								tokens.add(new Token(line, col, TokenType.COMPARE, c));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							}
 						} else if (c == '!') {
 							char c2 = (char) str.read();
 							if (c2 == '=') {
-								tokens.add(new Token(line, col, TokenType.COMPARE, c+"="));
+								add(tokens, new Token(line, col, TokenType.KEYWORD, c+"="));
 								col++;
 							} else {
-								throw new ParseException("Expected '=' after '!'", file, line);
+								throw new ParseException("Expected '=' after '!'", file, line, col);
 							}
 						} else if (c == ',') {
-							tokens.add(new Token(line, col, TokenType.COMMA, c));
+							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
 						} else if (c == '(') {
-							tokens.add(new Token(line, col, TokenType.POPEN, c));
+							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
 						} else if (c == ')') {
-							tokens.add(new Token(line, col, TokenType.PCLOSED, c));
+							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
 						} else if (c == '[') {
-							tokens.add(new Token(line, col, TokenType.SQOPEN, c));
+							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
 						} else if (c == ']') {
-							tokens.add(new Token(line, col, TokenType.SQCLOSED, c));
+							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
 						} else if (Character.isJavaIdentifierStart(c)) {
 							status = Status.IDENTIFIER;
@@ -168,22 +181,27 @@ public class CHLLexer {
 							token = new Token(line, col, TokenType.NUMBER);
 							numDots = 0;
 							buffer.append(c);
-						} else if (c == ' ' || c == '\t') {
+						} else if (c == ' ') {
 							status = Status.BLANK;
 							token = new Token(line, col, TokenType.BLANK);
 							buffer.append(c);
+						} else if (c == '\t') {
+							status = Status.BLANK;
+							token = new Token(line, col, TokenType.BLANK);
+							buffer.append(c);
+							col = (int)Math.ceil((double)col / tabSize) * tabSize;
 						} else if (c == '\r') {
 							//NOP
 						} else {
-							throw new ParseException("Unexpected "+((int)c)+" character", file, line);
+							throw new ParseException("Unexpected "+((int)c)+" character", file, line, col);
 						}
 						break;
 					case COMMENT:
 						if (c == '\n') {
-							tokens.add(token.setValue(buffer.toString()));
+							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
 							status = Status.DEFAULT;
-							tokens.add(new Token(line, col, TokenType.EOL, System.lineSeparator()));
+							add(tokens, new Token(line, col, TokenType.EOL, System.lineSeparator()));
 							line++;
 							col = 0;
 						} else {
@@ -209,7 +227,7 @@ public class CHLLexer {
 							if (c2 == '/') {
 								depth--;
 								if (depth == 0) {
-									tokens.add(token.setValue(buffer.toString()));
+									add(tokens, token.setValue(buffer.toString()));
 									buffer.setLength(0);
 									status = Status.DEFAULT;
 								}
@@ -223,7 +241,9 @@ public class CHLLexer {
 							buffer.append(c);
 						} else {
 							str.unread(c);
-							tokens.add(token.setValue(buffer.toString()));
+							col--;
+							add(tokens, token.setValue(buffer.toString()));
+							if (Syntax.isKeyword(token.value)) token.type = TokenType.KEYWORD;
 							buffer.setLength(0);
 							status = Status.DEFAULT;
 						}
@@ -232,12 +252,16 @@ public class CHLLexer {
 						if (Character.isDigit(c) || c == '.') {
 							if (c == '.') {
 								numDots++;
-								if (numDots > 1) throw new ParseException("Invalid number", file, line);
+								if (numDots > 1) throw new ParseException("Invalid number", file, line, col);
 							}
+							buffer.append(c);
+						} else if (Character.isJavaIdentifierPart(c)) {	//This is required to handle keywords starting with numbers such as "3d"
+							token.type = TokenType.IDENTIFIER;
 							buffer.append(c);
 						} else {
 							str.unread(c);
-							tokens.add(token.setValue(buffer.toString()));
+							col--;
+							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
 							status = Status.DEFAULT;
 						}
@@ -251,7 +275,7 @@ public class CHLLexer {
 							buffer.append(c);
 						} else if (c == '"') {
 							buffer.append(c);
-							tokens.add(token.setValue(buffer.toString()));
+							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
 							status = Status.DEFAULT;
 						} else {
@@ -263,7 +287,8 @@ public class CHLLexer {
 							buffer.append(c);
 						} else {
 							str.unread(c);
-							tokens.add(token.setValue(buffer.toString()));
+							col--;
+							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
 							status = Status.DEFAULT;
 						}
@@ -274,7 +299,7 @@ public class CHLLexer {
 			}
 		}
 		if (status != Status.DEFAULT) {
-			throw new ParseException("Unexpected end of file", file, line);
+			throw new ParseException("Unexpected end of file", file, line, col);
 		}
 		return tokens;
 	}
