@@ -234,7 +234,7 @@ public class ASMWriter {
 	
 	private void writeScripts(CHLFile chl, FileWriter str, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		str.write("SCRIPTS\r\n");
-		str.write(String.format("//0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
+		//str.write(String.format("//0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
 		String prevSourceFilename = "";
 		List<Script> scripts = chl.getScriptsSection().getItems();
 		for (int i = 0; i < scripts.size(); i++) {
@@ -390,8 +390,11 @@ public class ASMWriter {
 					str.write("\t\t//#" + script.getSourceFilename() + ":" + instr.lineNumber);
 					prevSrcLine = instr.lineNumber;
 				}
+				if (instr.opcode == OPCode.END) {
+					endFound = true;
+					str.write("\t//"+script.getName());
+				}
 				str.write("\r\n");
-				endFound |= instr.opcode == OPCode.END;
 				index++;
 			} catch (Exception e) {
 				throw new CompileException(script.getName(), index, e);

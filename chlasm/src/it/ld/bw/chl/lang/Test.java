@@ -18,6 +18,7 @@ public class Test {
 		files.add(new File("test/test.chl"));
 		//files.add(new File("test/test_expr.chl"));
 		CHLCompiler compiler = new CHLCompiler();
+		compiler.setIgnoreMissingScriptsEnabled(true);
 		compiler.loadHeader(new File("test/AllMeshes.h"));
 		compiler.loadHeader(new File("test/AudioMusic.h"));
 		compiler.loadHeader(new File("test/AudioSFX.h"));

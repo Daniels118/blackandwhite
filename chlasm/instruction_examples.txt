@@ -4128,7 +4128,7 @@ GranaryStorage = get HOUSE at [1826.7900, 28.1400, 2641.3601]		//#CreatureDevelo
 	POPF GranaryStorage
 ___________________________________________
 
-9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [radius EXPRESSION] [excluding scripted]
+9.2 get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR radius EXPRESSION [excluding scripted]
 
 Gets an object of a type, and an optional sub_type, within a given radius.
 
@@ -4424,13 +4424,7 @@ ___________________________________________
 
 No doc.
 
-BeginPos = marker at camera position		//#CreatureDevelopment.txt:675
-
-	PUSHI 1					//fixed SCRIPT_OBJECT_TYPE_MARKER
-	PUSHI 0					//fixed 0
-	SYS GET_CAMERA_POSITION	//position
-	SYS CREATE				//[5, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position) returns (Object)
-	POPF BeginPos
+Never found
 ___________________________________________
 
 9.23 reward CONST_EXPR at COORD_EXPR [from sky]

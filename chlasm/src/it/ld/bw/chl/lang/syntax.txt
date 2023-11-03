@@ -476,7 +476,7 @@ CONDITION: {
 ### 9 Objects
 OBJECT: {
 	get CONST_EXPR [CONST_EXPR] at COORD_EXPR [excluding scripted]
-	get CONST_EXPR [CONST_EXPR] at COORD_EXPR [radius EXPRESSION] [excluding scripted]
+	get CONST_EXPR [CONST_EXPR] at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] in state CONST_EXPR at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] in OBJECT not near COORD_EXPR radius EXPRESSION [excluding scripted]
@@ -484,7 +484,6 @@ OBJECT: {
 	get building CONST_EXPR in OBJECT [excluding scripted]
 	get poisoned CONST_EXPR [CONST_EXPR] in OBJECT
 	get not poisoned CONST_EXPR [CONST_EXPR] in OBJECT [excluding scripted]
-	get CONST_EXPR [CONST_EXPR] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] flying at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get totem statue in OBJECT
 	get player EXPRESSION creature

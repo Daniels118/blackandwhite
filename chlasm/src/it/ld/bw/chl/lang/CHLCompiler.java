@@ -55,6 +55,7 @@ public class CHLCompiler {
 	
 	private boolean optimizeAssignmentEnabled = false;
 	private boolean fixBugsEnabled = false;
+	private boolean ignoreMissingScriptsEnabled = false;
 	
 	private PrintStream traceStream;
 	private PrintStream outStream;
@@ -73,6 +74,8 @@ public class CHLCompiler {
 	private Integer challengeId;
 	private int varOffset;
 	private int scriptId = 0;
+	
+	private List<Integer> strptrInstructions = new LinkedList<>();
 	
 	public CHLCompiler() {
 		this(System.out);
@@ -101,6 +104,14 @@ public class CHLCompiler {
 	
 	public void setFixBugsEnabled(boolean fixBugsEnabled) {
 		this.fixBugsEnabled = fixBugsEnabled;
+	}
+	
+	public boolean isIgnoreMissingScriptsEnabled() {
+		return ignoreMissingScriptsEnabled;
+	}
+	
+	public void setIgnoreMissingScriptsEnabled(boolean ignoreMissingScriptsEnabled) {
+		this.ignoreMissingScriptsEnabled = ignoreMissingScriptsEnabled;
 	}
 	
 	public void setTraceStream(PrintStream traceStream) {
@@ -149,9 +160,14 @@ public class CHLCompiler {
 			for (ScriptToResolve call : calls) {
 				Script script = scriptMap.get(call.name);
 				if (script == null) {
-					throw new ParseException("Script not found: "+call.name, call.file, call.line, 1);
+					if (ignoreMissingScriptsEnabled) {
+						outStream.println("ERROR: script not found: "+call.name+" at "+call.file+":"+call.line);
+					} else {
+						throw new ParseException("Script not found: "+call.name, call.file, call.line, 1);
+					}
+				} else {
+					call.instr.intVal = script.getScriptID();
 				}
-				call.instr.intVal = script.getScriptID();
 			}
 			//Auto start scripts
 			trace("resolving autorun scripts...", 0);
@@ -340,7 +356,7 @@ public class CHLCompiler {
 		//run script IDENTIFIER
 		SymbolInstance symbol = parse("run script IDENTIFIER EOL")[2];
 		String name = symbol.token.value;
-		ScriptToResolve toResolve = new ScriptToResolve(file, line, null, name);
+		ScriptToResolve toResolve = new ScriptToResolve(file, line, -1, null, name);
 		if (autoruns.put(name, toResolve) != null) {
 			throw new ParseException("Duplicate autorun definition: "+name, file, symbol.token.line, symbol.token.col);
 		}
@@ -651,7 +667,7 @@ public class CHLCompiler {
 		} else if (symbol.is("reset")) {
 			return parseReset();
 		} else if (symbol.is("camera")) {
-			return parseCamera();
+			return parseStatementCamera();
 		} else if (symbol.is("shake")) {
 			return parseShake();
 		} else if (symbol.is("if")) {
@@ -2174,6 +2190,7 @@ public class CHLCompiler {
 		SymbolInstance script = parse("[success EXPRESSION] [alignment EXPRESSION] CONST_EXPR IDENTIFIER")[5];
 		String scriptName = script.token.value;
 		int strptr = storeStringData(scriptName);
+		strptrInstructions.add(getIp());
 		pushi(strptr);
 		int argc = 0;
 		SymbolInstance symbol = peek();
@@ -2202,6 +2219,7 @@ public class CHLCompiler {
 			SymbolInstance script = parse("[success EXPRESSION] [alignment EXPRESSION] CONST_EXPR IDENTIFIER")[5];
 			String scriptName = script.token.value;
 			int strptr = storeStringData(scriptName);
+			strptrInstructions.add(getIp());
 			pushi(strptr);
 			int argc = 0;
 			symbol = peek();
@@ -2520,7 +2538,7 @@ public class CHLCompiler {
 		return replace(start, "STATEMENT");
 	}
 	
-	private SymbolInstance parseCamera() throws ParseException {
+	private SymbolInstance parseStatementCamera() throws ParseException {
 		final int start = it.nextIndex();
 		accept("camera");
 		SymbolInstance symbol = peek();
@@ -2534,32 +2552,8 @@ public class CHLCompiler {
 			//camera path CONSTANT
 			sys(RUN_CAMERA_PATH);
 			return replace(start, "STATEMENT");
-		} else if (symbol.is("ready")) {
-			parse("ready EOL");
-			//camera ready
-			sys(HAS_CAMERA_ARRIVED);
-			return replace(start, "STATEMENT");
-		} else if (symbol.is("not")) {
-			parse("not ready EOL");
-			//camera not ready
-			sys(HAS_CAMERA_ARRIVED);
-			not();
-			return replace(start, "STATEMENT");
-		} else if (symbol.is("position")) {
-			parse("position EOL");
-			//camera position
-			sys(GET_CAMERA_POSITION);
-			return replace(start, "STATEMENT");
-		} else if (symbol.is("focus")) {
-			parse("focus EOL");
-			//camera focus
-			sys(GET_CAMERA_FOCUS);
-			return replace(start, "STATEMENT");
 		} else {
-			parse("CONST_EXPR EOL");
-			//camera CONSTANT
-			sys(CONVERT_CAMERA_FOCUS);
-			return replace(start, "STATEMENT");
+			throw new ParseException("Expected: follow|path", file, symbol.token.line, symbol.token.col);
 		}
 	}
 	
@@ -3613,55 +3607,70 @@ public class CHLCompiler {
 						return replace(start, "CONDITION");
 					} else if (symbol.is("viewed")) {
 						accept("viewed");
-						//TODO OBJECT not viewed
+						//OBJECT not viewed
+						sys(GAME_THING_FIELD_OF_VIEW);
+						not();
 						return replace(start, "CONDITION");
 					} else if (symbol.is("in")) {
 						parse("in OBJECT");
 						symbol = peek();
 						if (symbol.is("hand")) {
 							accept("hand");
-							//TODO OBJECT not in OBJECT hand
+							//OBJECT not in OBJECT hand
+							sys(IN_CREATURE_HAND);
+							not();
 							return replace(start, "CONDITION");
 						} else {
-							//TODO OBJECT not in OBJECT 
+							//OBJECT not in OBJECT 
+							sys(FLOCK_MEMBER);
+							not();
 							return replace(start, "CONDITION");
 						}
 					} else if (symbol.is("exists")) {
 						accept("exists");
-						//TODO OBJECT not exists
+						//OBJECT not exists
+						sys(THING_VALID);
+						not();
 						return replace(start, "CONDITION");
 					}
 				} else if (symbol.is("played")) {
 					accept("played");
-					//TODO OBJECT played
+					//OBJECT played
+					sys(PLAYED);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("music")) {
 					parse("music played");
-					//TODO OBJECT music played
-					return replace(start, "CONDITION");
+					//OBJECT music played
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "CONDITION");
 				} else if (symbol.is("cast")) {
 					parse("cast by OBJECT");
-					//TODO OBJECT cast by OBJECT
+					//OBJECT cast by OBJECT
+					sys(OBJECT_CAST_BY_OBJECT);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("poisoned")) {
 					accept("poisoned");
-					//TODO OBJECT poisoned
+					//OBJECT poisoned
+					sys(IS_POISONED);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("skeleton")) {
 					accept("skeleton");
-					//TODO OBJECT skeleton
+					//OBJECT skeleton
+					sys(IS_SKELETON);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("type")) {
 					parse("type CONST_EXPR");
 					symbol = parseConstExpr(false);
 					if (symbol == null) {
-						//TODO default CONST_EXPR=SCRIPT_FIND_TYPE_ANY
+						pushi(DEFAULT_SUBTYPE_NAME);
 					}
-					//TODO OBJECT type TYPE [CONST_EXPR]
+					//OBJECT type TYPE [CONST_EXPR]
+					sys(IS_OF_TYPE);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("on")) {
 					parse("on fire");
-					//TODO OBJECT on fire
+					//OBJECT on fire
+					sys(IS_ON_FIRE);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("in")) {
 					parse("in OBJECT");
@@ -3678,14 +3687,19 @@ public class CHLCompiler {
 					}
 				} else if (symbol.is("interacting")) {
 					parse("interacting with OBJECT");
-					//TODO OBJECT interacting with OBJECT
-					return replace(start, "CONDITION");
+					//OBJECT interacting with OBJECT
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "CONDITION");
 				} else if (symbol.is("is")) {
 					accept("is");
 					symbol = peek();
 					if (symbol.is("not")) {
 						parse("not CONST_EXPR");
-						//TODO OBJECT is not CONST_EXPR
+						//OBJECT is not CONST_EXPR
+						swapi();
+						sys2(GET_PROPERTY);
+						castb();
+						not();
 						return replace(start, "CONDITION");
 					} else {
 						parseConstExpr(true);
@@ -3697,23 +3711,29 @@ public class CHLCompiler {
 					}
 				} else if (symbol.is("exists")) {
 					accept("exists");
-					//TODO OBJECT exists
+					//OBJECT exists
+					casto();
+					sys(THING_VALID);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("affected")) {
 					parse("affected by spell CONST_EXPR");
-					//TODO OBJECT affected by spell CONST_EXPR
+					//OBJECT affected by spell CONST_EXPR
+					sys(IS_AFFECTED_BY_SPELL);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("leashed")) {
 					accept("leashed");
-					//TODO OBJECT leashed
+					//OBJECT leashed
+					sys(IS_LEASHED);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("fighting")) {
 					accept("fighting");
-					//TODO OBJECT fighting
+					//OBJECT fighting
+					sys(IS_FIGHTING);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("male")) {
 					accept("male");
-					//TODO OBJECT male
+					//OBJECT male
+					sys(SEX_IS_MALE);
 					return replace(start, "CONDITION");
 				}
 				revert(checkpoint, checkpointIp);
@@ -3723,30 +3743,41 @@ public class CHLCompiler {
 				symbol = peek();
 				if (symbol.is("viewed")) {
 					accept("viewed");
-					//TODO COORD_EXPR viewed
+					//COORD_EXPR viewed
+					sys(POS_FIELD_OF_VIEW);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("valid")) {
 					parse("valid for creature");
-					//TODO COORD_EXPR valid for creature
+					//COORD_EXPR valid for creature
+					sys(POS_VALID_FOR_CREATURE);
 					return replace(start, "CONDITION");
 				} else if (symbol.is("clicked")) {
 					parse("clicked radius EXPRESSION");
-					//TODO COORD_EXPR clicked radius EXPRESSION
-					return replace(start, "CONDITION");
+					//COORD_EXPR clicked radius EXPRESSION
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "CONDITION");
 				} else if (symbol.is("near")) {
-					parse("near COORD_EXPR radius EXPRESSION");
-					//TODO COORD_EXPR near COORD_EXPR radius EXPRESSION
+					//COORD_EXPR near COORD_EXPR radius EXPRESSION
+					parse("near COORD_EXPR");
+					sys(GET_DISTANCE);
+					parse("radius EXPRESSION");
+					lt();
 					return replace(start, "CONDITION");
 				} else if (symbol.is("at")) {
+					//COORD_EXPR at COORD_EXPR
 					parse("at COORD_EXPR");
-					//TODO COORD_EXPR at COORD_EXPR
+					sys(GET_DISTANCE);
+					pushf(0);
+					lt();
 					return replace(start, "CONDITION");
 				} else if (symbol.is("not")) {
 					accept("not");
 					symbol = peek();
 					if (symbol.is("viewed")) {
 						accept("viewed");
-						//TODO COORD_EXPR not viewed
+						//COORD_EXPR not viewed
+						sys(POS_FIELD_OF_VIEW);
+						not();
 						return replace(start, "CONDITION");
 					} else if (symbol.is("near")) {
 						//COORD_EXPR not near COORD_EXPR radius EXPRESSION
@@ -3758,7 +3789,11 @@ public class CHLCompiler {
 						return replace(start, "CONDITION");
 					} else if (symbol.is("at")) {
 						parse("at COORD_EXPR");
-						//TODO COORD_EXPR not at COORD_EXPR
+						//COORD_EXPR not at COORD_EXPR
+						sys(GET_DISTANCE);
+						pushf(0);
+						eq();
+						not();
 						return replace(start, "CONDITION");
 					}
 				}
@@ -3816,32 +3851,236 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		try {
 			if (symbol.is("get")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-				
-				//TODO
-				
+				accept("get");
+				symbol = peek();
+				if (symbol.is("building")) {
+					//get building TYPE in OBJECT [excluding scripted]
+					parse("building CONST_EXPR in OBJECT [excluding scripted]");
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "OBJECT");
+				} else if (symbol.is("poisoned")) {
+					//get poisoned TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
+					parse("poisoned CONST_EXPR");
+					symbol = peek();
+					if (symbol.is("in")) {
+						pushi(DEFAULT_SUBTYPE_NAME);
+					} else {
+						parseConstExpr(true);
+					}
+					parse("in OBJECT");
+					sys(CALL_POISONED_IN);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("not")) {
+					//get not poisoned SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+					parse("not poisoned CONST_EXPR");
+					symbol = peek();
+					if (symbol.is("in")) {
+						pushi(DEFAULT_SUBTYPE_NAME);
+					} else {
+						parseConstExpr(true);
+					}
+					parse("in OBJECT [excluding scripted]");
+					sys(CALL_NOT_POISONED_IN);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("totem")) {
+					parse("totem statue in OBJECT");
+					//get totem statue in OBJECT
+					sys(GET_TOTEM_STATUE);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("player")) {
+					parse("player EXPRESSION creature");
+					//get player EXPRESSION creature
+					sys(CALL_PLAYER_CREATURE);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("computer")) {
+					parse("computer player EXPRESSION");
+					//get computer player EXPRESSION
+					sys(CALL_COMPUTER_PLAYER);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("held")) {
+					parse("held by OBJECT");
+					//get held by OBJECT
+					sys(GET_OBJECT_HELD2);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("dropped")) {
+					parse("dropped by OBJECT");
+					//get dropped by OBJECT
+					sys(GET_OBJECT_DROPPED);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("nearest")) {
+					parse("nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION");
+					//get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "OBJECT");
+				} else if (symbol.is("town")) {
+					parse("town with id EXPRESSION");
+					//get town with id EXPRESSION
+					sys(GET_TOWN_WITH_ID);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("target")) {
+					parse("target object for OBJECT");
+					//get target object for OBJECT
+					sys(GET_TARGET_OBJECT);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("arena")) {
+					parse("arena at COORD_EXPR radius EXPRESSION");
+					//get arena at COORD_EXPR radius EXPRESSION
+					throw new ParseException("Statement not implemented", file, line, col);
+					//return replace(start, "OBJECT");
+				} else if (symbol.is("hit")) {
+					parse("hit object");
+					//get hit object
+					sys(GET_HIT_OBJECT);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("object")) {
+					parse("object which hit");
+					//get object which hit
+					sys(GET_OBJECT_WHICH_HIT);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("football")) {
+					parse("football pitch in OBJECT");
+					//get football pitch in OBJECT
+					sys(GET_FOOTBALL_PITCH);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("spell")) {
+					accept("spell");
+					symbol = peek();
+					if (symbol.is("icon")) {
+						//get spell icon CONST_EXPR in OBJECT
+						parse("icon CONST_EXPR in OBJECT");
+						sys(GET_SPELL_ICON_IN_TEMPLE);
+						return replace(start, "OBJECT");
+					} else {
+						//get spell CONST_EXPR at COORD_EXPR radius EXPRESSION
+						parse("CONST_EXPR at COORD_EXPR radius EXPRESSION");
+						sys(SPELL_AT_POINT);
+						return replace(start, "OBJECT");
+					}
+				} else if (symbol.is("first")) {
+					parse("first in OBJECT");
+					//get first in OBJECT
+					sys(GET_FIRST_IN_CONTAINER);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("next")) {
+					parse("next in OBJECT after OBJECT");
+					//get next in OBJECT after OBJECT
+					sys(GET_NEXT_IN_CONTAINER);
+					return replace(start, "OBJECT");
+				} else {
+					final int checkpoint = it.nextIndex();
+					final int checkpointIp = getIp();
+					symbol = parseConstExpr(false);
+					if (symbol != null) {
+						symbol = peek();
+						if (symbol.is("at") || symbol.is("in") || symbol.is("flying")) {
+							pushi(DEFAULT_SUBTYPE_NAME);
+						} else {
+							parseConstExpr(true);
+						}
+						if (symbol.is("at")) {
+							parse("at COORD_EXPR");
+							symbol = peek();
+							if (symbol.is("radius")) {
+								//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR radius EXPRESSION [excluding scripted]
+								parse("radius EXPRESSION [excluding scripted]");
+								sys(CALL_NEAR);
+								return replace(start, "OBJECT");
+							} else {
+								//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR [excluding scripted]
+								parse("[excluding scripted]");
+								sys(CALL);
+								return replace(start, "OBJECT");
+							}
+						} else if (symbol.is("in")) {
+							accept("in");
+							symbol = peek();
+							if (symbol.is("state")) {
+								//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in state CONST_EXPR at COORD_EXPR radius EXPRESSION [excluding scripted]
+								parse("state CONST_EXPR at COORD_EXPR radius EXPRESSION [excluding scripted]");
+								sys(CALL_NEAR_IN_STATE);
+								return replace(start, "OBJECT");
+							} else {
+								parseObject(true);
+								symbol = peek();
+								if (symbol.is("at")) {
+									//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
+									parse("at COORD_EXPR radius EXPRESSION [excluding scripted]");
+									sys(CALL_IN_NEAR);
+									return replace(start, "OBJECT");
+								} else if (symbol.is("not")) {
+									//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT not near COORD_EXPR radius EXPRESSION [excluding scripted]
+									parse("not near COORD_EXPR radius EXPRESSION [excluding scripted]");
+									sys(CALL_IN_NOT_NEAR);
+									return replace(start, "OBJECT");
+								} else {
+									//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+									parse("[excluding scripted]");
+									sys(CALL_IN);
+									return replace(start, "OBJECT");
+								}
+							}
+						} else if (symbol.is("flying")) {
+							parse("flying at COORD_EXPR radius EXPRESSION [excluding scripted]");
+							//get SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] flying at COORD_EXPR radius EXPRESSION [excluding scripted]
+							sys(CALL_FLYING);
+							return replace(start, "OBJECT");
+						}
+						revert(checkpoint, checkpointIp);
+					}
+					symbol = parseObject(false);
+					if (symbol != null) {
+						symbol = peek();
+						if (symbol.is("hand")) {
+							parse("hand is over");
+							//get OBJECT clicked
+							sys(GET_OBJECT_HAND_IS_OVER);
+							return replace(start, "OBJECT");
+						} else if (symbol.is("clicked")) {
+							accept("clicked");
+							//get OBJECT clicked
+							sys(GET_OBJECT_CLICKED);
+							return replace(start, "OBJECT");
+						} else if (symbol.is("flock")) {
+							accept("flock");
+							//get OBJECT flock
+							sys(GET_OBJECT_FLOCK);
+							return replace(start, "OBJECT");
+						} else if (symbol.is("held")) {
+							accept("held");
+							//get OBJECT held
+							sys(GET_OBJECT_HELD1);
+							return replace(start, "OBJECT");
+						}
+						revert(checkpoint, checkpointIp);
+					}
+				}
 			} else if (symbol.is("create")) {
 				accept("create");
 				symbol = peek();
 				if (symbol.is("random")) {
 					parse("random villager of tribe CONST_EXPR at COORD_EXPR");
-					//TODO create random villager of tribe CONST_EXPR at COORD_EXPR
+					//create random villager of tribe CONST_EXPR at COORD_EXPR
+					sys(CREATE_RANDOM_VILLAGER_OF_TRIBE);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("highlight")) {
 					parse("highlight CONST_EXPR at COORD_EXPR");
-					//TODO create highlight HIGHLIGHT_INFO at COORD_EXPR
+					//create highlight HIGHLIGHT_INFO at COORD_EXPR
+					sys(CREATE_HIGHLIGHT);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("mist")) {
 					parse("mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION");
-					//TODO create mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
+					//create mist at COORD_EXPR scale EXPRESSION red EXPRESSION green EXPRESSION blue EXPRESSION transparency EXPRESSION height ratio EXPRESSION
+					sys(CREATE_MIST);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("with")) {
 					parse("with angle EXPRESSION and scale EXPRESSION CONST_EXPR CONST_EXPR at COORD_EXPR");
-					//TODO create with angle EXPRESSION and scale EXPRESSION CONST_EXPR CONST_EXPR at COORD_EXPR
+					//create with angle EXPRESSION and scale EXPRESSION CONST_EXPR CONST_EXPR at COORD_EXPR
+					sys(CREATE_WITH_ANGLE_AND_SCALE);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("timer")) {
 					parse("timer for EXPRESSION second|seconds");
-					//TODO create timer for EXPRESSION second|seconds
+					//create timer for EXPRESSION second|seconds
+					sys(CREATE_TIMER);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("influence")) {
 					pushi(0);
@@ -3879,76 +4118,101 @@ public class CHLCompiler {
 					symbol = peek();
 					if (symbol.is("at")) {
 						parse("at COORD_EXPR time EXPRESSION");
-						//TODO create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
+						//create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
+						sys(SPECIAL_EFFECT_POSITION);
 						return replace(start, "OBJECT");
 					} else if (symbol.is("to")) {
 						parse("to OBJECT time EXPRESSION");
-						//TODO create special effect CONST_EXPR to OBJECT time EXPRESSION
+						//create special effect CONST_EXPR to OBJECT time EXPRESSION
+						sys(SPECIAL_EFFECT_OBJECT);
 						return replace(start, "OBJECT");
 					}
 				} else {
 					parseConstExpr(true);
 					symbol = peek();
 					if (symbol.is("at")) {
-						//TODO default CONST_EXPR
+						pushi(DEFAULT_SUBTYPE_NAME);
 					} else {
 						parseConstExpr(true);
 					}
 					parse("at COORD_EXPR");
-					//TODO create CONST_EXPR [CONST_EXPR] at COORD_EXPR
+					//create SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] at COORD_EXPR
+					sys(CREATE);
 					return replace(start, "OBJECT");
 				}
 			} else if (symbol.is("create_creature_from_creature")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-				
-				//TODO
-				
+				parse("create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONST_EXPR");
+				//create_creature_from_creature OBJECT EXPRESSION at COORD_EXPR CONST_EXPR
+				sys(CREATURE_CREATE_RELATIVE_TO_CREATURE);
+				return replace(start, "OBJECT");
 			} else if (symbol.is("marker")) {
 				parse("marker at");
+				pushi("SCRIPT_OBJECT_TYPE_MARKER");
+				pushi(0);
 				symbol = parseCoordExpr(false);
 				if (symbol != null) {
-					//TODO marker at COORD_EXPR
+					//marker at COORD_EXPR
+					sys(CREATE);
 					return replace(start, "OBJECT");
 				} else {
 					symbol = parseConstExpr(false);
 					if (symbol != null) {
-						//TODO marker at CONST_EXPR
-						return replace(start, "OBJECT");
+						//marker at CONST_EXPR
+						throw new ParseException("Statement not implemented", file, line, col);
+						//return replace(start, "OBJECT");
 					} else if (fail) {
 						symbol = peek();
-						throw new ParseException("Expected COORD_EXPR or CONST_EXPR", file, symbol.token.line, symbol.token.col);
+						throw new ParseException("Expected: COORD_EXPR|CONST_EXPR", file, symbol.token.line, symbol.token.col);
 					}
 				}
 			} else if (symbol.is("reward")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-	
-				//TODO
-				
+				parse("reward CONST_EXPR");
+				symbol = peek();
+				if (symbol.is("at")) {
+					parse("at COORD_EXPR [from sky]");
+					//reward CONST_EXPR at COORD_EXPR [from sky]
+					sys(CREATE_REWARD);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("in")) {
+					parse("in OBJECT at COORD_EXPR [from sky]");
+					//reward CONST_EXPR in OBJECT at COORD_EXPR [from sky]
+					sys(CREATE_REWARD_IN_TOWN);
+					return replace(start, "OBJECT");
+				}
 			} else if (symbol.is("flock")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-	
-				//TODO
-				
+				parse("flock at COORD_EXPR");
+				//flock at COORD_EXPR
+				sys(FLOCK_CREATE);
+				return replace(start, "OBJECT");
 			} else if (symbol.is("make")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-	
-				//TODO
-				
+				parse("make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION");
+				//make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
+				sys(DANCE_CREATE);
+				return replace(start, "OBJECT");
 			} else if (symbol.is("cast")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-	
-				//TODO
-				
+				parse("cast CONST_EXPR spell");
+				symbol = peek();
+				if (symbol.is("on")) {
+					parse("on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION");
+					//cast CONST_EXPR spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+					sys(SPELL_AT_THING);
+					return replace(start, "OBJECT");
+				} else if (symbol.is("at")) {
+					parse("at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION");
+					//cast CONST_EXPR spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
+					sys(SPELL_AT_POS);
+					return replace(start, "OBJECT");
+				}
 			} else if (symbol.is("attach")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-	
-				//TODO
-				
+				parse("attach OBJECT to OBJECT [as leader]");
+				//attach OBJECT to OBJECT [as leader]
+				sys(FLOCK_ATTACH);
+				return replace(start, "OBJECT");
 			} else if (symbol.is("detach")) {
-				throw new IllegalStateException("Parsing of \""+symbol+"\" not implemented yet");
-				
-				//TODO
-				
+				parse("detach [OBJECT] from OBJECT");
+				//detach [OBJECT] from OBJECT
+				sys(FLOCK_DETACH);
+				return replace(start, "OBJECT");
 			} else if (symbol.is(TokenType.IDENTIFIER)) {
 				parse("VARIABLE");
 				//VARIABLE
@@ -4153,15 +4417,18 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("position")) {
 				accept("position");
-				//TODO camera position
+				//camera position
+				sys(GET_CAMERA_POSITION);
 				return replace(start, "COORD_EXPR");
 			} else if (symbol.is("focus")) {
 				accept("focus");
-				//TODO camera focus
+				//camera focus
+				sys(GET_CAMERA_FOCUS);
 				return replace(start, "COORD_EXPR");
 			} else {
 				parseConstExpr(true);
-				//TODO camera CONST_EXPR
+				//camera CONST_EXPR
+				sys(CONVERT_CAMERA_FOCUS);
 				return replace(start, "COORD_EXPR");
 			}
 		} else if (symbol.is("stored")) {
@@ -4169,56 +4436,68 @@ public class CHLCompiler {
 			symbol = peek();
 			if (symbol.is("position")) {
 				accept("position");
-				//TODO stored camera position
+				//stored camera position
+				sys(GET_STORED_CAMERA_POSITION);
 				return replace(start, "COORD_EXPR");
 			} else if (symbol.is("focus")) {
 				accept("focus");
-				//TODO stored camera focus
+				//stored camera focus
+				sys(GET_STORED_CAMERA_FOCUS);
 				return replace(start, "COORD_EXPR");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("hand")) {
 			parse("hand position");
-			//TODO hand position
+			//hand position
+			sys(GET_HAND_POSITION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("facing")) {
 			parse("facing camera position distance EXPRESSION");
-			//TODO facing camera position distance EXPRESSION
+			//facing camera position distance EXPRESSION
+			sys(GET_FACING_CAMERA_POSITION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("computer")) {
 			parse("computer player EXPRESSION position");
-			//TODO computer player EXPRESSION position
+			//computer player EXPRESSION position
+			sys(GET_COMPUTER_PLAYER_POSITION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("last")) {
 			parse("last player EXPRESSION spell cast position");
-			//TODO last player EXPRESSION spell cast position
+			//last player EXPRESSION spell cast position
+			sys(GET_LAST_SPELL_CAST_POS);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("get")) {
 			parse("get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION");
-			//TODO get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION
+			//get target from COORD_EXPR to COORD_EXPR distance EXPRESSION angle EXPRESSION
+			sys(GET_TARGET_RELATIVE_POS);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("arse")) {
 			parse("arse position of OBJECT");
-			//TODO arse position of OBJECT
+			//arse position of OBJECT
+			sys(GET_ARSE_POSITION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("belly")) {
 			parse("belly position of OBJECT");
-			//TODO belly position of OBJECT
+			//belly position of OBJECT
+			sys(GET_BELLY_POSITION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("destination")) {
 			parse("destination of OBJECT");
-			//TODO destination of OBJECT
+			//destination of OBJECT
+			sys(GET_OBJECT_DESTINATION);
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("player")) {
 			parse("player EXPRESSION temple");
 			if (symbol.is("position")) {
 				accept("position");
-				//TODO player EXPRESSION temple position
+				//player EXPRESSION temple position
+				sys(GET_TEMPLE_POSITION);
 				return replace(start, "COORD_EXPR");
 			} else if (symbol.is("entrance")) {
 				parse("entrance position radius EXPRESSION height EXPRESSION");
-				//TODO player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
+				//player EXPRESSION temple entrance position radius EXPRESSION height EXPRESSION
+				sys(GET_TEMPLE_ENTRANCE_POSITION);
 				return replace(start, "COORD_EXPR");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
@@ -4529,6 +4808,7 @@ public class CHLCompiler {
 		String value = sInst.token.stringVal();
 		int strptr = storeStringData(value);
 		//STRING
+		strptrInstructions.add(getIp());
 		pushi(strptr);
 		return sInst;
 	}
@@ -4840,20 +5120,8 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private void popc() {
-		Instruction instruction = Instruction.fromKeyword("POPC");
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
 	private void popo() {
 		Instruction instruction = Instruction.fromKeyword("POPO");
-		instruction.lineNumber = line;
-		instructions.add(instruction);
-	}
-	
-	private void popb() {
-		Instruction instruction = Instruction.fromKeyword("POPB");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -5049,18 +5317,20 @@ public class CHLCompiler {
 	}
 	
 	private void call(String scriptname) {
+		final int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("CALL");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		ScriptToResolve call = new ScriptToResolve(file, line, instruction, scriptname);
+		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname);
 		calls.add(call);
 	}
 	
 	private void start(String scriptname) {
+		final int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("START");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		ScriptToResolve call = new ScriptToResolve(file, line, instruction, scriptname);
+		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname);
 		calls.add(call);
 	}
 	
@@ -5099,10 +5369,6 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private void swapf() {
-		swapf(0);
-	}
-	
 	private void swapf(int offset) {
 		Instruction instruction = Instruction.fromKeyword("SWAPF");
 		instruction.intVal = offset;
@@ -5127,12 +5393,14 @@ public class CHLCompiler {
 	private static class ScriptToResolve {
 		public final File file;
 		public final int line;
+		public final int ip;
 		public final Instruction instr;
 		public final String name;
 		
-		public ScriptToResolve(File file, int line, Instruction instr, String name) {
+		public ScriptToResolve(File file, int line, int ip, Instruction instr, String name) {
 			this.file = file;
 			this.line = line;
+			this.ip = ip;
 			this.instr = instr;
 			this.name = name;
 		}
