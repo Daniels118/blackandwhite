@@ -44,7 +44,7 @@ SCRIPTS
 
 source test.chl
 
-global BaywatchSwimmingCounter
+global BaywatchMurder
 
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ begin script BaywatchSwimmingLaugh(SwimPos)
 	EXCEPT lbl1
 //@	while BaywatchSwimmingCounter >= 1		//#test.chl:12
 lbl4:
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 1.0
 	GEQ
 	JZ lbl2
@@ -70,7 +70,7 @@ lbl4:
 	PUSHF [Amount]
 	POPI
 	PUSHF 250.0
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	DIV
 	POPF Amount
 //@		if number from 0 to Amount == 0		//#test.chl:14
@@ -81,7 +81,14 @@ lbl4:
 	EQ
 	JZ lbl3
 //@			start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SwimPos]		//#test.chl:15
+	PUSHI 31
+	PUSHI 37
+	SYS2 RANDOM_ULONG	//[2, 1] (int min, int max) returns (int)
+	PUSHI 5
+	PUSHF [SwimPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	PUSHB true
+	SYS PLAY_SOUND_EFFECT	//[6, 0] (int sound, AUDIO_SFX_BANK_TYPE soundbank, Coord position, bool withPosition)
 lbl3:
 //@	end while		//#test.chl:17
 	JMP lbl4
@@ -99,7 +106,7 @@ lbl0:
 lbl6:
 	END
 
-global BaywatchSwimmingCounter
+global BaywatchMurder
 
 
 
@@ -152,9 +159,11 @@ begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
 	POPF Random
 //@	wait Random seconds		//#test.chl:33
 	PUSHF [Random]
+	SLEEP
 //@	Boy play ANM_P_SWIM2 loop -1		//#test.chl:34
 	PUSHF [Boy]
 	PUSHO [Boy]
+	PUSHI 420
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -162,6 +171,8 @@ begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
 	PUSHI 200
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
 //@	set Boy focus to [LookAt]		//#test.chl:35
+	PUSHF [Boy]
+	PUSHF [LookAt]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //
@@ -169,9 +180,14 @@ begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
 
 //@	while [Boy] not near [VillagerHutPos] radius 5 and Murdered == 0		//#test.chl:37
 lblF:
+	PUSHF [Boy]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	PUSHF [VillagerHutPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
 	PUSHF 5.0
+	LT
+	NOT
 	PUSHF [Murdered]
 	PUSHF 0.0
 	EQ
@@ -179,6 +195,14 @@ lblF:
 	JZ lbl9
 
 //@		if Boy is HELD or Boy in MyCreature hand		//#test.chl:39
+	PUSHF [Boy]
+	PUSHI 9
+	SWAPI
+	SYS2 GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
+	CASTB
+	PUSHF [Boy]
+	PUSHF [MyCreature]
+	SYS IN_CREATURE_HAND	//[2, 1] (Object obj, Object creature) returns (bool)
 	OR
 	JZ lblA
 //@			if InWater == 1		//#test.chl:40
@@ -187,10 +211,10 @@ lblF:
 	EQ
 	JZ lblB
 //@				BaywatchSwimmingCounter--		//#test.chl:41
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 1.0
 	SUBF
-	POPF BaywatchHomeCounter
+	POPF BaywatchSwimmingCounter
 lblB:
 //@			InWater=0		//#test.chl:43
 	PUSHF [InWater]
@@ -198,7 +222,15 @@ lblB:
 	PUSHF 0.0
 	POPF InWater
 //@			wait until (Boy is not HELD and not Boy in MyCreature hand) and Boy is not FLYING		//#test.chl:44
+	PUSHF [Boy]
+	PUSHI 9
+	PUSHF [Boy]
+	PUSHF [MyCreature]
+	SYS IN_CREATURE_HAND	//[2, 1] (Object obj, Object creature) returns (bool)
+	NOT
 	AND
+	PUSHF [Boy]
+	PUSHI 5
 	AND
 
 //@			if HEALTH of Boy > 0 and (Boy is not HELD and not Boy in MyCreature hand)		//#test.chl:46
@@ -207,10 +239,17 @@ lblB:
 	SYS GET_PROPERTY	//[2, 1] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object) returns (int|float)
 	PUSHF 0.0
 	GT
+	PUSHF [Boy]
+	PUSHI 9
+	PUSHF [Boy]
+	PUSHF [MyCreature]
+	SYS IN_CREATURE_HAND	//[2, 1] (Object obj, Object creature) returns (bool)
+	NOT
 	AND
 	AND
 	JZ lblA
 //@				if land height at [Boy] > 0			//#test.chl:47
+	PUSHF [Boy]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	GT
@@ -218,6 +257,7 @@ lblB:
 //@					Boy play ANM_P_CROWD_LOST_2 loop 1		//#test.chl:48
 	PUSHF [Boy]
 	PUSHO [Boy]
+	PUSHI 260
 	PUSHF 1.0
 	CASTI
 	SYS SET_SCRIPT_ULONG	//[3, 0] (ObjectObj object, int animation, int loop)
@@ -225,7 +265,12 @@ lblB:
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
 //@						say single line HELP_TEXT_BAYWATCH_25		//#test.chl:51
 	PUSHB true
+	PUSHI 1595
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
+
+//@					wait until Boy played		//#test.chl:55
+	PUSHF [Boy]
 //@					SPEED of Boy = 0.5		//#test.chl:56
 	PUSHI 12
 	PUSHF [Boy]
@@ -237,6 +282,8 @@ lblB:
 	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 
 //@					move Boy position to [VillagerHutPos]		//#test.chl:58
+	PUSHF [Boy]
+	PUSHF [VillagerHutPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	SYS MOVE_GAME_THING	//[5, 0] (Object object, Coord position, float radius)
@@ -244,16 +291,20 @@ lblB:
 //@				elsif land height at [Boy] <= 0		//#test.chl:60
 	JMP lblA
 lblC:
+	PUSHF [Boy]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	LEQ
 	JZ lblA
 //@					set Boy position to [Boy]		//#test.chl:61
+	PUSHF [Boy]
+	PUSHF [Boy]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					Boy play ANM_P_SWIM2 loop -1		//#test.chl:62
 	PUSHF [Boy]
 	PUSHO [Boy]
+	PUSHI 420
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -261,10 +312,10 @@ lblC:
 	PUSHI 200
 	SYS SET_SCRIPT_STATE	//[2, 0] (Object object, VILLAGER_STATES state)
 //@					BaywatchSwimmingCounter++		//#test.chl:63
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 1.0
 	ADDF
-	POPF BaywatchHomeCounter
+	POPF BaywatchSwimmingCounter
 //@					InWater=1		//#test.chl:64
 	PUSHF [InWater]
 	POPI
@@ -280,7 +331,7 @@ lblA:
 	LEQ
 	JZ lblD
 //@			if BaywatchMurder == 0		//#test.chl:70
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 0.0
 	EQ
 	JZ lblE
@@ -288,18 +339,24 @@ lblA:
 	PUSHI 2
 //@					say HELP_TEXT_BAYWATCH_31		//#test.chl:73
 	PUSHB false
+	PUSHI 1601
+	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@					eject good spirit		//#test.chl:76
 	PUSHI 1
 //@					say HELP_TEXT_BAYWATCH_32		//#test.chl:77
 	PUSHB false
+	PUSHI 1602
+	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 lblE:
 
 //@			BaywatchMurder ++		//#test.chl:83
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 1.0
 	ADDF
-	POPF BaywatchSwimmingCounter
+	POPF BaywatchMurder
 //@			Murdered = 1		//#test.chl:84
 	PUSHF [Murdered]
 	POPI
@@ -311,10 +368,10 @@ lblE:
 	EQ
 	JZ lblD
 //@				BaywatchSwimmingCounter--		//#test.chl:86
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 1.0
 	SUBF
-	POPF BaywatchHomeCounter
+	POPF BaywatchSwimmingCounter
 lblD:
 
 //@	end while		//#test.chl:90
@@ -332,10 +389,10 @@ lbl10:
 	EQ
 	JZ lbl11
 //@		BaywatchHomeCounter ++		//#test.chl:93
-	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF [BaywatchHomeCounter]
 	PUSHF 1.0
 	ADDF
-	POPF help_text_retake_aztec_village_quest_reminder_02
+	POPF BaywatchHomeCounter
 lbl11:
 
 //@end script BaywatchSwimmingBoy		//#test.chl:96
@@ -346,7 +403,7 @@ lbl7:
 lbl12:
 	END
 
-global BaywatchSwimmingCounter
+global BaywatchMurder
 
 
 //------------------------------------------------------------------------------------------------------------------------
@@ -506,64 +563,89 @@ begin script BaywatchMain
 //@start		//#test.chl:129
 	FREE
 //@	BaywatchSwimmingCounter=5		//#test.chl:130
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	POPI
 	PUSHF 5.0
-	POPF BaywatchHomeCounter
+	POPF BaywatchSwimmingCounter
 
 //@	Influence=create anti influence at position [SwimPos] radius 30		//#test.chl:132
 	PUSHF [Influence]
 	POPI
+	PUSHI 1
+	PUSHF [SwimPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 30.0
+	SYS INFLUENCE_POSITION	//[6, 1] (Coord position, float radius, int zero, int anti) returns (Object)
 	POPF Influence
 
 //@	Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]		//#test.chl:134
 	PUSHF [Highlight]
 	POPI
+	PUSHI 1
+	PUSHF [VillagerHutPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Highlight
 //@	run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)		//#test.chl:135
 	PUSHF [Highlight]
 	PUSHF [VillagerHutPos]
+	PUSHI 2
 	CASTF
+	PUSHI 2700
 	CASTF
 
 //@	Mother = create VILLAGER VILLAGER_INFO_INDIAN_HOUSEWIFE_FEMALE at [VillagerHutPos]		//#test.chl:137
 	PUSHF [Mother]
 	POPI
+	PUSHI 4
+	PUSHI 28
+	PUSHF [VillagerHutPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Mother
 
 //@	BaywatchHomeCounter = 0		//#test.chl:139
-	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF [BaywatchHomeCounter]
 	POPI
 	PUSHF 0.0
-	POPF help_text_retake_aztec_village_quest_reminder_02
+	POPF BaywatchHomeCounter
 
 //@	Boy1 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos]		//#test.chl:141
 	PUSHF [Boy1]
 	POPI
+	PUSHI 4
+	PUSHI 31
+	PUSHF [SwimPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Boy1
 //@	Boy2 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos2]		//#test.chl:142
 	PUSHF [Boy2]
 	POPI
+	PUSHI 4
+	PUSHI 31
+	PUSHF [SwimPos2]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Boy2
 //@	Boy3 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos3]		//#test.chl:143
 	PUSHF [Boy3]
 	POPI
+	PUSHI 4
+	PUSHI 31
+	PUSHF [SwimPos3]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Boy3
 //@	Boy4 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos4]		//#test.chl:144
 	PUSHF [Boy4]
 	POPI
+	PUSHI 4
+	PUSHI 31
+	PUSHF [SwimPos4]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Boy4
 //@	Boy5 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos5]		//#test.chl:145
 	PUSHF [Boy5]
 	POPI
+	PUSHI 4
+	PUSHI 31
+	PUSHF [SwimPos5]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	POPF Boy5
 
@@ -584,8 +666,12 @@ begin script BaywatchMain
 	PUSHF [VillagerHutPos]
 //@	run background script BaywatchSwimmingLaugh(SwimPos)		//#test.chl:152
 	PUSHF [SwimPos]
+//@		start music MUSIC_TYPE_SCRIPT_GENERIC_03		//#test.chl:155
+	PUSHI 59
 //@		enable Mother high gfx detail		//#test.chl:156
 	PUSHB true
+	PUSHF [Mother]
+	SYS SET_HIGH_GRAPHICS_DETAIL	//[2, 0] (bool enable, Object object)
 
 //@		move camera position to [2790.691, 53.522, 3069.138] time 3		//#test.chl:158
 	PUSHF 2790.6909
@@ -616,6 +702,8 @@ begin script BaywatchMain
 	PUSHF 0.5
 	SYS2 SET_PROPERTY	//[3, 0] (SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val)
 //@		move Mother position to [SoapBox]		//#test.chl:162
+	PUSHF [Mother]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	SYS MOVE_GAME_THING	//[5, 0] (Object object, Coord position, float radius)
@@ -623,6 +711,7 @@ begin script BaywatchMain
 //@		Mother play ANM_P_LOOKING_FOR_SOMETHING loop 1		//#test.chl:166
 	PUSHF [Mother]
 	PUSHO [Mother]
+	PUSHI 340
 	PUSHF 1.0
 	CASTI
 	SYS SET_SCRIPT_ULONG	//[3, 0] (ObjectObj object, int animation, int loop)
@@ -650,9 +739,15 @@ begin script BaywatchMain
 
 //@		say single line HELP_TEXT_BAYWATCH_22		//#test.chl:171
 	PUSHB true
+	PUSHI 1592
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
+
+//@		close dialogue		//#test.chl:174
+	SYS GAME_CLOSE_DIALOGUE	//[0, 0] ()
 //@		wait 0.1 seconds		//#test.chl:175
 	PUSHF 0.1
+	SLEEP
 
 		// Cut to children swimming
 
@@ -677,11 +772,15 @@ begin script BaywatchMain
 	PUSHB false
 	PUSHF 0.0
 	PUSHF 0.0
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@		say single line HELP_TEXT_BAYWATCH_23		//#test.chl:184
 	PUSHB true
+	PUSHI 1593
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 		
 //@		move camera position to [2965.097, 2.745, 3092.632] time 6		//#test.chl:186
 	PUSHF 2965.0969
@@ -753,7 +852,14 @@ begin script BaywatchMain
 
 //@		disable Mother high gfx detail		//#test.chl:204
 	PUSHB false
+	PUSHF [Mother]
+	SYS SET_HIGH_GRAPHICS_DETAIL	//[2, 0] (bool enable, Object object)
+
+//@	state Mother WANDER_AROUND		//#test.chl:208
+	PUSHF [Mother]
+	PUSHI 199
 //@		position [SoapBox]		//#test.chl:209
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 //@		float 6		//#test.chl:210
 	PUSHF 6.0
@@ -763,6 +869,7 @@ begin script BaywatchMain
 
 //@	wait 5 seconds		//#test.chl:213
 	PUSHF 5.0
+	SLEEP
 //
 	EXCEPT lbl14
 
@@ -774,7 +881,7 @@ lbl28:
 	JZ lbl15
 
 //@		if BaywatchHomeCounter == 5	and HEALTH of Mother > 0		//#test.chl:217
-	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF [BaywatchHomeCounter]
 	PUSHF 5.0
 	EQ
 	PUSHI 1
@@ -802,7 +909,11 @@ lbl28:
 	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 //@				say single line HELP_TEXT_BAYWATCH_27		//#test.chl:221
 	PUSHB true
+	PUSHI 1597
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
+//@				close dialogue		//#test.chl:223
+	SYS GAME_CLOSE_DIALOGUE	//[0, 0] ()
 //@				BaywatchFinished = 1		//#test.chl:224
 	PUSHF [BaywatchFinished]
 	POPI
@@ -812,15 +923,18 @@ lbl28:
 				// Reward - Big Spell Dispenser
 //@				run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_CREATURE_SPELL_BIG, 180, 1, 0)		//#test.chl:227
 	PUSHF [RewardPos]
+	PUSHI 28
 	CASTF
 	PUSHF 180.0
 	PUSHF 1.0
 	PUSHF 0.0
 //@				move camera position to [RewardCameraPos] time 5		//#test.chl:228
+	PUSHF [RewardCameraPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 5.0
 	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
 //@				move camera focus to [RewardCameraFoc] time 2		//#test.chl:229
+	PUSHF [RewardCameraFoc]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 2.0
 	SYS MOVE_CAMERA_FOCUS	//[4, 0] (Coord position, float time)
@@ -828,21 +942,23 @@ lbl28:
 	PUSHB false
 	PUSHF 1.0
 	PUSHF 1.0
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@		elsif BaywatchSwimmingCounter == 0 and BaywatchMurder < 5 and BaywatchHomeCounter == 5 - BaywatchMurder and HEALTH of Mother > 0		//#test.chl:234
 	JMP lbl17
 lbl16:
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 0.0
 	EQ
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 5.0
 	LT
 	AND
-	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF [BaywatchHomeCounter]
 	PUSHF 5.0
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	SUBF
 	EQ
 	AND
@@ -873,10 +989,14 @@ lbl16:
 	PUSHF 1.0
 	PUSHF 0.2
 	NEG
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 //@				say single line HELP_TEXT_BAYWATCH_28		//#test.chl:239
 	PUSHB true
+	PUSHI 1598
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				BaywatchFinished = 3		//#test.chl:242
 	PUSHF [BaywatchFinished]
@@ -887,7 +1007,7 @@ lbl16:
 //@		elsif BaywatchMurder == 5 and HEALTH of Mother > 0		//#test.chl:245
 	JMP lbl17
 lbl18:
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 5.0
 	EQ
 	PUSHI 1
@@ -918,17 +1038,23 @@ lbl18:
 	PUSHF 1.0
 	PUSHF 0.6
 	NEG
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@				say	single line HELP_TEXT_BAYWATCH_29		//#test.chl:253
 	PUSHB true
+	PUSHI 1599
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				eject evil spirit		//#test.chl:256
 	PUSHI 2
 //@				say single line HELP_TEXT_BAYWATCH_30		//#test.chl:257
 	PUSHB true
+	PUSHI 1600
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				BaywatchFinished = 2		//#test.chl:260
 	PUSHF [BaywatchFinished]
@@ -939,7 +1065,7 @@ lbl18:
 //@		elsif BaywatchMurder == 5 and HEALTH of Mother <= 0		//#test.chl:264
 	JMP lbl17
 lbl19:
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 5.0
 	EQ
 	PUSHI 1
@@ -956,13 +1082,18 @@ lbl19:
 				//"A whole family slaughtered, nice going!"
 //@				say single line HELP_TEXT_BAYWATCH_33		//#test.chl:271
 	PUSHB true
+	PUSHI 1603
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				update snapshot details success 1 alignment -1 HELP_TEXT_TITLE_01 		//#test.chl:273
 	PUSHF 1.0
 	PUSHF 1.0
 	NEG
+	PUSHI 2427
 	PUSHB false
+	PUSHI 9
+	SYS UPDATE_SNAPSHOT_PICTURE	//[11, 0] (Coord position, Coord focus, float success, float alignment, int titleStrID, bool takingPicture, int challengeID)
 
 //@				BaywatchFinished = 3		//#test.chl:277
 	PUSHF [BaywatchFinished]
@@ -973,16 +1104,16 @@ lbl19:
 //@		elsif BaywatchSwimmingCounter == 0 and BaywatchMurder < 5 and BaywatchHomeCounter == 5 - BaywatchMurder and HEALTH of Mother <= 0		//#test.chl:281
 	JMP lbl17
 lbl1A:
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 0.0
 	EQ
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	PUSHF 5.0
 	LT
 	AND
-	PUSHF [help_text_retake_aztec_village_quest_reminder_02]
+	PUSHF [BaywatchHomeCounter]
 	PUSHF 5.0
-	PUSHF [BaywatchSwimmingCounter]
+	PUSHF [BaywatchMurder]
 	SUBF
 	EQ
 	AND
@@ -1015,6 +1146,8 @@ lbl1A:
 	PUSHF 1.0
 	PUSHF 0.8
 	NEG
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@				eject good spirit		//#test.chl:290
@@ -1023,7 +1156,9 @@ lbl1A:
 				//"Oh how terrible.. orphans."
 //@				say single line HELP_TEXT_BAYWATCH_34		//#test.chl:293
 	PUSHB true
+	PUSHI 1604
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				BaywatchFinished = 4		//#test.chl:296
 	PUSHF [BaywatchFinished]
@@ -1034,8 +1169,10 @@ lbl17:
 
 
 //@		if camera position near [SwimPos] radius 20 and SwimPos viewed and Fun == 0		//#test.chl:302
+	PUSHF [SwimPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 20.0
+	PUSHF [SwimPos]
 	AND
 	PUSHF [Fun]
 	PUSHF 0.0
@@ -1045,7 +1182,9 @@ lbl17:
 
 //@				say single line HELP_TEXT_BAYWATCH_24		//#test.chl:306
 	PUSHB true
+	PUSHI 1594
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@				Fun = 1		//#test.chl:309
 	PUSHF [Fun]
@@ -1055,14 +1194,22 @@ lbl17:
 lbl1B:
 
 //@		if BaywatchSwimmingCounter == 5 and [Mother] near [SwimPos] radius 40 and Mother is not HELD and not Mother in MyCreature hand		//#test.chl:314
-	PUSHF [BaywatchHomeCounter]
+	PUSHF [BaywatchSwimmingCounter]
 	PUSHF 5.0
 	EQ
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	PUSHF [SwimPos]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 40.0
 	AND
+	PUSHF [Mother]
+	PUSHI 9
 	AND
+	PUSHF [Mother]
+	PUSHF [MyCreature]
+	SYS IN_CREATURE_HAND	//[2, 1] (Object obj, Object creature) returns (bool)
+	NOT
 	AND
 	JZ lbl1C
 
@@ -1093,7 +1240,9 @@ lbl1B:
 
 //@					say single line HELP_TEXT_BAYWATCH_26		//#test.chl:323
 	PUSHB true
+	PUSHI 1596
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@					set fade red 0 green 0 blue 0 time 2		//#test.chl:326
 	PUSHF 0.0
@@ -1103,6 +1252,8 @@ lbl1B:
 	SYS SET_FADE	//[4, 0] (float red, float green, float blue, float time)
 
 //@					set Mother position to [SoapBox]		//#test.chl:329
+	PUSHF [Mother]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 
@@ -1114,6 +1265,8 @@ lbl1B:
 	GT
 	JZ lbl1E
 //@						set Boy1 position to [SoapBox] + [0,0,1]		//#test.chl:332
+	PUSHF [Boy1]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	CASTC
@@ -1121,10 +1274,12 @@ lbl1B:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy1 play ANM_P_AMBIENT1 loop -1		//#test.chl:333
 	PUSHF [Boy1]
 	PUSHO [Boy1]
+	PUSHI 228
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1141,6 +1296,8 @@ lbl1E:
 	GT
 	JZ lbl1F
 //@						set Boy2 position to [SoapBox] + [1,0,1]		//#test.chl:337
+	PUSHF [Boy2]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	CASTC
@@ -1148,10 +1305,12 @@ lbl1E:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy2 play ANM_P_AMBIENT2 loop -1		//#test.chl:338
 	PUSHF [Boy2]
 	PUSHO [Boy2]
+	PUSHI 229
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1168,6 +1327,8 @@ lbl1F:
 	GT
 	JZ lbl20
 //@						set Boy3 position to [SoapBox] + [1,0,0]		//#test.chl:342
+	PUSHF [Boy3]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	CASTC
@@ -1175,10 +1336,12 @@ lbl1F:
 	CASTC
 	PUSHF 0.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy3 play ANM_P_AMBIENT1 loop -1		//#test.chl:343
 	PUSHF [Boy3]
 	PUSHO [Boy3]
+	PUSHI 228
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1195,6 +1358,8 @@ lbl20:
 	GT
 	JZ lbl21
 //@						set Boy4 position to [SoapBox] + [-1,0,1]		//#test.chl:347
+	PUSHF [Boy4]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	NEG
@@ -1203,10 +1368,12 @@ lbl20:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy4 play ANM_P_CROWD_LOST loop -1		//#test.chl:348
 	PUSHF [Boy4]
 	PUSHO [Boy4]
+	PUSHI 259
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1223,6 +1390,8 @@ lbl21:
 	GT
 	JZ lbl22
 //@						set Boy5 position to [SoapBox] + [-1,0,0]		//#test.chl:352
+	PUSHF [Boy5]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	NEG
@@ -1231,10 +1400,12 @@ lbl21:
 	CASTC
 	PUSHF 0.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						Boy5 play ANM_P_CROWD_UNIMPRESSED_1 loop -1		//#test.chl:353
 	PUSHF [Boy5]
 	PUSHO [Boy5]
+	PUSHI 262
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1261,6 +1432,7 @@ lbl22:
 	SYS SET_CAMERA_FOCUS	//[3, 0] (Coord position)
 
 //@					set Mother focus to camera position		//#test.chl:359
+	PUSHF [Mother]
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 
 //@					set fade in time 2		//#test.chl:361
@@ -1269,14 +1441,22 @@ lbl22:
 
 //@					say single line HELP_TEXT_BAYWATCH_27		//#test.chl:364
 	PUSHB true
+	PUSHI 1597
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
+
+//@					close dialogue		//#test.chl:367
+	SYS GAME_CLOSE_DIALOGUE	//[0, 0] ()
 //@					wait 0.1 seconds		//#test.chl:368
 	PUSHF 0.1
+	SLEEP
 
 //@					snapshot challenge success 1 alignment 0.8 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:370
 	PUSHB false
 	PUSHF 1.0
 	PUSHF 0.8
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@					move camera position to [2803.6526, 68.4681, 3074.7102] time 4		//#test.chl:372
@@ -1334,7 +1514,9 @@ lbl1D:
 					//"AAaahhh !!!!"
 //@					say single line HELP_TEXT_BAYWATCH_35		//#test.chl:389
 	PUSHB true
+	PUSHI 1605
 	PUSHB false
+	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 
 //@					set fade red 0 green 0 blue 0 time 2		//#test.chl:392
 	PUSHF 0.0
@@ -1344,11 +1526,14 @@ lbl1D:
 	SYS SET_FADE	//[4, 0] (float red, float green, float blue, float time)
 
 //@					set Mother position to [SoapBox]		//#test.chl:395
+	PUSHF [Mother]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@					Mother play ANM_P_DEAD1 loop -1		//#test.chl:396
 	PUSHF [Mother]
 	PUSHO [Mother]
+	PUSHI 273
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1364,6 +1549,8 @@ lbl1D:
 	GT
 	JZ lbl23
 //@						set Boy1 position to [SoapBox] + [0,0,1]		//#test.chl:399
+	PUSHF [Boy1]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	CASTC
@@ -1371,13 +1558,17 @@ lbl1D:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy1 focus to [Mother]		//#test.chl:400
+	PUSHF [Boy1]
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy1 play ANM_P_INSPECT_OBJECT_1 loop -1		//#test.chl:401
 	PUSHF [Boy1]
 	PUSHO [Boy1]
+	PUSHI 310
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1394,6 +1585,8 @@ lbl23:
 	GT
 	JZ lbl24
 //@						set Boy2 position to [SoapBox] + [0,0,-1]		//#test.chl:405
+	PUSHF [Boy2]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 0.0
 	CASTC
@@ -1402,13 +1595,17 @@ lbl23:
 	PUSHF 1.0
 	NEG
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy2 focus to [Mother]		//#test.chl:406
+	PUSHF [Boy2]
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy2 play ANM_P_INSPECT_OBJECT_2 loop -1		//#test.chl:407
 	PUSHF [Boy2]
 	PUSHO [Boy2]
+	PUSHI 311
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1425,6 +1622,8 @@ lbl24:
 	GT
 	JZ lbl25
 //@						set Boy3 position to [SoapBox] + [-1,0,-1]		//#test.chl:411
+	PUSHF [Boy3]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	NEG
@@ -1434,13 +1633,17 @@ lbl24:
 	PUSHF 1.0
 	NEG
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy3 focus to [Mother]		//#test.chl:412
+	PUSHF [Boy3]
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy3 play ANM_P_MOURNING loop -1		//#test.chl:413
 	PUSHF [Boy3]
 	PUSHO [Boy3]
+	PUSHI 343
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1457,6 +1660,8 @@ lbl25:
 	GT
 	JZ lbl26
 //@						set Boy4 position to [SoapBox] + [1,0,-1]		//#test.chl:417
+	PUSHF [Boy4]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	CASTC
@@ -1465,13 +1670,17 @@ lbl25:
 	PUSHF 1.0
 	NEG
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy4 focus to [Mother]		//#test.chl:418
+	PUSHF [Boy4]
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy4 play ANM_P_OVERWORKED1 loop -1		//#test.chl:419
 	PUSHF [Boy4]
 	PUSHO [Boy4]
+	PUSHI 362
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1488,6 +1697,8 @@ lbl26:
 	GT
 	JZ lbl27
 //@						set Boy5 position to [SoapBox] + [1,0,1]		//#test.chl:423
+	PUSHF [Boy5]
+	PUSHF [SoapBox]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	PUSHF 1.0
 	CASTC
@@ -1495,13 +1706,17 @@ lbl26:
 	CASTC
 	PUSHF 1.0
 	CASTC
+	ADDC
 	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
 //@						set Boy5 focus to [Mother]		//#test.chl:424
+	PUSHF [Boy5]
+	PUSHF [Mother]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS SET_FOCUS	//[4, 0] (Object object, Coord position)
 //@						Boy5 play ANM_P_SCARED_STIFF loop -1		//#test.chl:425
 	PUSHF [Boy5]
 	PUSHO [Boy5]
+	PUSHI 385
 	PUSHF 1.0
 	NEG
 	CASTI
@@ -1530,14 +1745,20 @@ lbl27:
 //@					set fade in time 2		//#test.chl:431
 	PUSHF 2.0
 	SYS SET_FADE_IN	//[1, 0] (float duration)
+
+//@					close dialogue		//#test.chl:434
+	SYS GAME_CLOSE_DIALOGUE	//[0, 0] ()
 //@					wait 0.1 seconds		//#test.chl:435
 	PUSHF 0.1
+	SLEEP
 
 //@					snapshot challenge success 1 alignment -0.5 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)		//#test.chl:437
 	PUSHB false
 	PUSHF 1.0
 	PUSHF 0.5
 	NEG
+	PUSHI 2427
+	PUSHI 1606
 	CASTF
 
 //@					move camera position to [2803.6526, 68.4681, 3074.7102]	time 4		//#test.chl:439

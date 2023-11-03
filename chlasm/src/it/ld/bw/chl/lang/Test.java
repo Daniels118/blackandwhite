@@ -18,11 +18,14 @@ public class Test {
 		files.add(new File("test/test.chl"));
 		//files.add(new File("test/test_expr.chl"));
 		CHLCompiler compiler = new CHLCompiler();
+		compiler.loadHeader(new File("test/AllMeshes.h"));
+		compiler.loadHeader(new File("test/AudioMusic.h"));
 		compiler.loadHeader(new File("test/AudioSFX.h"));
 		compiler.loadHeader(new File("test/CreatureEnum.h"));
 		compiler.loadHeader(new File("test/CreatureSpec.h"));
 		compiler.loadHeader(new File("test/Enum.h"));
 		compiler.loadHeader(new File("test/GStates.h"));
+		compiler.loadHeader(new File("test/HelpTextEnums.h"));
 		compiler.loadHeader(new File("test/HitRegions.h"));
 		compiler.loadHeader(new File("test/ScriptEnums.h"));
 		//compiler.setTraceStream(System.out);

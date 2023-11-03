@@ -182,7 +182,17 @@ public class ASMWriter {
 			if (instr.opcode.isIP) {
 				Label label = labels.get(instr.intVal);
 				if (label == null) {
-					String name = String.format("lbl%1$X", labels.size());
+					String pfx = "lbl";
+					if (instr.opcode == OPCode.EXCEPT) {
+						pfx = "exception_handler";
+					} else {
+						if (instr.isForward()) {
+							pfx = "skip";	//for: if, elsif, while
+						} else {
+							pfx = "loop";	//for: loop, end while
+						}
+					}
+					String name = pfx + "_" + labels.size();
 					label = new Label(name, instr.intVal > index);
 					labels.put(instr.intVal, label);
 				}

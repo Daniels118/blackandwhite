@@ -84,7 +84,10 @@ STATEMENT: {
 	VARIABLE++ EOL
 	VARIABLE-- EOL
 	
-	STATEMENT_WITH_RETURN EOL
+	CONSTANT of OBJECT = EXPRESSION EOL
+	
+	remove resource CONST_EXPR EXPRESSION from OBJECT EOL
+	add resource CONST_EXPR EXPRESSION from OBJECT EOL
 	
 	move OBJECT position to COORD_EXPR [radius EXPRESSION] EOL
 	set OBJECT position to COORD_EXPR EOL
@@ -173,6 +176,8 @@ STATEMENT: {
 	set OBJECT fade start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION EOL
 	disband OBJECT EOL
 	populate OBJECT with EXPRESSION CONST_EXPR [CONST_EXPR] EOL
+	detach [OBJECT] from OBJECT
+	make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
 	set game time EXPRESSION EOL
 	set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION EOL
 	set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION EOL
@@ -209,7 +214,6 @@ STATEMENT: {
 	clear clicked position EOL
 	clear hit object EOL
 	enable|disable CONST_EXPR avi sequence EOL
-	enable|disable constant avi sequence EOL
 	run CONST_EXPR developer function EOL
 	run map script line STRING EOL
 	set fade red EXPRESSION green EXPRESSION blue EXPRESSION time EXPRESSION EOL
@@ -468,10 +472,6 @@ CONDITION: {
 
 ### 7
 ### 8
-STATEMENT_WITH_RETURN: {
-	remove resource CONST_EXPR EXPRESSION from OBJECT
-	add resource CONST_EXPR EXPRESSION from OBJECT
-}
 
 ### 9 Objects
 OBJECT: {
@@ -536,7 +536,7 @@ OBJECT: {
 CONST_EXPR: {
 	constant from CONST_EXPR to CONST_EXPR
 	get action text for OBJECT
-	variable state of OBJECT
+	state of OBJECT
 	get hand state
 	constant EXPRESSION
 	get OBJECT type
@@ -579,8 +579,11 @@ COORD_EXPR: {
 ### 12 Expressions
 EXPRESSION: {
 	VARIABLE
+	CONSTANT of OBJECT
 	NUMBER
-	STATEMENT_WITH_RETURN
+	
+	remove resource CONST_EXPR EXPRESSION from OBJECT
+	add resource CONST_EXPR EXPRESSION from OBJECT
 	
 	alignment of player
 	[raw] influence at COORD_EXPR
@@ -634,7 +637,7 @@ EXPRESSION: {
 	get OBJECT desire CONST_EXPR
 	get CONST_EXPR events per second
 	get time since CONST_EXPR event
-	get CONST_EXPR total events|events
+	get CONSTANT total event|events
 	square root EXPRESSION
 	EXPRESSION *|/|% EXPRESSION
 	EXPRESSION +|- EXPRESSION
@@ -661,5 +664,4 @@ CONSTANT: {
 
 VARIABLE: {
 	IDENTIFIER
-	CONSTANT of OBJECT
 }

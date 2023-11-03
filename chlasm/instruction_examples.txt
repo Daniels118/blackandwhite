@@ -671,7 +671,7 @@ disable leash on MyCreature
 	SYS SET_LEASH_WORKS	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
-3.2.30 toggles player EXPRESSION leash
+3.2.30 toggle player EXPRESSION leash
 
 Toggles the players leash on/off.
 
@@ -1051,6 +1051,33 @@ populate Seagull with 20 ANIMAL ANIMAL_INFO_DOVE
 	PUSHI 6					//type
 	PUSHI 12				//subtype
 	SYS POPULATE_CONTAINER	//[4, 0] (Object obj, float quantity, SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype)
+___________________________________________
+
+3.6.3 detach [OBJECT] from OBJECT
+
+Detach a specific object or random thing from the container, or group.
+
+detach Cow from Children		//#greedyfarmer.txt:139
+
+	PUSHF [Cow]
+	PUSHF [Children]
+	SYS FLOCK_DETACH	//[2, 1] (Object obj, Object flock) returns (Object)
+	POPO
+___________________________________________
+
+3.6.4 make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
+
+No doc.
+
+make DanceDependant dance DANCE_INFO_NEW_DANCE_AROUND_PERSON around [CrowdPosition] time 30
+
+	PUSHF [DanceDependant]	//object
+	PUSHI 14				//type
+	PUSHF [CrowdPosition]
+	SYS GET_POSITION		//position
+	PUSHF 30.0				//duration
+	SYS DANCE_CREATE		//[6, 1] (Object obj, DANCE_INFO type, Coord position, float duration) returns (Object)
+	POPO
 ___________________________________________
 
 3.7.1 set game time EXPRESSION
@@ -1488,7 +1515,7 @@ enable SCRIPT_AVI_SEQUENCE_INTRO avi sequence		//#followus.txt:540
 	SYS SET_AVI_SEQUENCE	//[2, 0] (bool enable, int aviSequence)
 ___________________________________________
 
-3.8.32 enable|disable constant avi sequence
+3.8.32 enable|disable CONST_EXPR avi sequence
 
 Identical to 3.8.31
 ___________________________________________
@@ -2235,9 +2262,9 @@ ulong 4, 20
 	SYS SET_SCRIPT_STATE		//[2, 0] (Object object, VILLAGER_STATES state)
 	
 Equivalent SYS calls:
-	SET_SCRIPT_STATE_POS(GET_POSITION(SoapBox))
+	SET_SCRIPT_STATE_POS(Mother, GET_POSITION(SoapBox))
 	SET_SCRIPT_FLOAT(Mother, 6.0)
-	SET_SCRIPT_ULONG(Mother, (int) 4, (int) 20.0)
+	SET_SCRIPT_ULONG(Mother, (int) 4.0, (int) 20.0)
 	SET_SCRIPT_STATE(Mother, WANDER_AROUND)
 ___________________________________________
 
@@ -2278,7 +2305,7 @@ JMP lbl158B
 	lbl1589:
 ___________________________________________
 
-3.15.3 begin loop STATEMENTS end loop
+3.15.3 begin loop STATEMENTS EXCEPTIONS end loop
 
 Statements in this block loop forever unless an exception is true. See exceptions.txt
 
@@ -2304,6 +2331,7 @@ If you don't want the spririts to go home and wish to keep dialogue control then
 
 begin cinema		//#SwapCreatures.txt:156
 
+lbl39:
 	SYS START_CAMERA_CONTROL	//[0, 1] () returns (bool)
 	JZ lbl39
 lbl3A:
@@ -4845,7 +4873,7 @@ get action text for MyCreature		//#CreatureHelp.txt:13
 	SYS GET_ACTION_TEXT_FOR_OBJECT	//[1, 1] (Object obj) returns (int)
 ___________________________________________
 
-10.4 variable state of OBJECT
+10.4 state of OBJECT
 
 Returns the constant for the final state of an object. So if an object is moving to a position it
 returns the destination state not the current moving state. This also works for puzzle objects.
@@ -5287,8 +5315,8 @@ Gets the distance some music can be heard from a music thing.
 
 Never found
 
-	PUSHF [object]			//source
-	GET_MUSIC_OBJ_DISTANCE	//[1, 1] (Object source) returns (float)
+	PUSHF [object]				//source
+	SYS GET_MUSIC_OBJ_DISTANCE	//[1, 1] (Object source) returns (float)
 ___________________________________________
 
 12.10 get OBJECT interaction magnitude

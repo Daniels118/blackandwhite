@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import it.ld.bw.chl.exceptions.InvalidChlException;
 import it.ld.bw.chl.exceptions.UnknownVersionException;
+import it.ld.bw.chl.exceptions.UnsupportedVersionException;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
@@ -35,7 +36,7 @@ public class Header extends Section {
 	}
 	
 	public void setMagic(String magic) throws InvalidChlException {
-		if (!("LHVM".equals(magic))) throw new InvalidChlException("Invalid magic string: " + magic);
+		if (!("LHVM".equals(magic))) throw new InvalidChlException("Invalid CHL file (wrong magic string)");
 		this.magic = magic;
 	}
 	
@@ -43,9 +44,16 @@ public class Header extends Section {
 		return version;
 	}
 	
-	public void setVersion(int version) throws UnknownVersionException {
-		if (version != BW1) throw new UnknownVersionException(version);
-		this.version = version;
+	public void setVersion(int version) throws UnknownVersionException, UnsupportedVersionException {
+		if (version == BW1) {
+			this.version = version;
+		} else if (version == BWCI) {
+			throw new UnsupportedVersionException("Creature Isle", version);
+		} else if (version == BW2) {
+			throw new UnsupportedVersionException("Black & White 2", version);
+		} else {
+			throw new UnknownVersionException(version);
+		}
 	}
 	
 	@Override
