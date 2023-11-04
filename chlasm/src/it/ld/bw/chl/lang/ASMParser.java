@@ -19,6 +19,7 @@ import static it.ld.bw.chl.model.OPCodeFlag.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -49,7 +50,6 @@ public class ASMParser {
 	private static final int INITIAL_BUFFER_SIZE = 16 * 1024;
 	private static final int MAX_BUFFER_SIZE = 2 * 1024 * 1024;
 	
-	private int firstScriptID = 0;
 	private PrintStream out;
 	
 	private CHLFile chl;
@@ -76,17 +76,7 @@ public class ASMParser {
 	
 	public ASMParser(PrintStream out) {
 		this.out = out;
-	}
-	
-	public int getFirstScriptID() {
-		return firstScriptID;
-	}
-	
-	public void setFirstScriptID(int firstScriptID) {
-		this.firstScriptID = firstScriptID;
-	}
-	
-	private void reset() {
+		//
 		chl = new CHLFile();
 		globalVariables = chl.getGlobalVariables();
 		dataBuffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);
@@ -109,8 +99,36 @@ public class ASMParser {
 		globalVariables.setOffset(chl.getHeader().getLength());
 	}
 	
+	public void defineConstant(String name, Object value) {
+		SourceConst newConst = new SourceConst(name, value);
+		SourceConst oldConst = globalConstants.get(name);
+		if (oldConst == null) {
+			globalConstants.put(newConst.name, newConst);
+		} else if (!(oldConst.value.equals(newConst.value))) {
+			out.println("WARNING: redefinition of global constant "+name);
+			globalConstants.put(newConst.name, newConst);
+		}
+	}
+	
+	public void loadHeader(File headerFile) throws FileNotFoundException, IOException, ParseException {
+		out.println("loading "+headerFile.getName()+"...");
+		CHeaderParser parser = new CHeaderParser();
+		Map<String, Integer> hconst = parser.parse(headerFile);
+		for (Entry<String, Integer> e : hconst.entrySet()) {
+			defineConstant(e.getKey(), e.getValue());
+		}
+	}
+	
+	public void loadInfo(File infoFile) throws FileNotFoundException, IOException, ParseException {
+		out.println("loading "+infoFile.getName()+"...");
+		InfoParser2 parser = new InfoParser2();
+		Map<String, Integer> hconst = parser.parse(infoFile);
+		for (Entry<String, Integer> e : hconst.entrySet()) {
+			defineConstant(e.getKey(), e.getValue());
+		}
+	}
+	
 	public CHLFile parse(List<File> files) throws IOException, ParseException {
-		reset();
 		for (File file : files) {
 			char section = 'H';	// H=header, D=data, G=global, S=script, A=autorun
 			try (BufferedReader str = new BufferedReader(new FileReader(file));) {
@@ -208,7 +226,7 @@ public class ASMParser {
 											throw new ParseException("Expected script type after 'begin'", file, lineno);
 										}
 										script = new Script();
-										script.setScriptID(firstScriptID + scripts.size());
+										script.setScriptID(scripts.size() + 1);	//Script IDs must start from 1
 										script.setSourceFilename(sourceFilename);
 										script.setVarOffset(maxGlobal);
 										script.setInstructionAddress(instructions.size());
@@ -389,7 +407,7 @@ public class ASMParser {
 											throw new ParseException("Script does not exist", file, lineno);
 										}
 										autoStartScripts.add(scriptID);
-										scriptsUsageCount[scriptID]++;
+										scriptsUsageCount[scriptID - 1]++;
 									} else {
 										throw new ParseException("Expected 'run script' command", file, lineno);
 									}
@@ -512,7 +530,7 @@ public class ASMParser {
 				throw new ParseException("Undefined script '"+script.name+"'", script.file, script.instr.lineNumber);
 			}
 			script.instr.intVal = scriptID;
-			scriptsUsageCount[scriptID]++;
+			scriptsUsageCount[scriptID - 1]++;	//Script IDs must start from 1
 		}
 		//Store data
 		dataBuffer.flip();

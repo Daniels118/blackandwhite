@@ -1,0 +1,7 @@
+Print information about a chl file
+
+Syntax
+chlasm -info -i filename
+
+Arguments
+  -i input CHL file

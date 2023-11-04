@@ -65,7 +65,9 @@ public class AutoStartScripts extends Section {
 	public void validate(CHLFile chl) throws InvalidScriptIdException, InvalidAutorunScriptException {
 		for (int scriptID : scripts) {
 			Script script = chl.getScriptsSection().getScript(scriptID);
-			if (script.getParameterCount() != 0) {
+			if (script == null) {
+				throw new InvalidScriptIdException(scriptID);
+			} else if (script.getParameterCount() != 0) {
 				String msg = "Script " + script.getName() + " expects some arguments, cannot be used as autorun script";
 				throw new InvalidAutorunScriptException(msg, script);
 			} else if ("LandControlAll".equals(script.getName())) {

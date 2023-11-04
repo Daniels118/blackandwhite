@@ -221,8 +221,16 @@ public class CHLCompiler {
 	}
 	
 	public void loadHeader(File headerFile) throws FileNotFoundException, IOException, ParseException {
+		outStream.println("loading "+headerFile.getName()+"...");
 		CHeaderParser parser = new CHeaderParser();
 		Map<String, Integer> hconst = parser.parse(headerFile);
+		constants.putAll(hconst);
+	}
+	
+	public void loadInfo(File infoFile) throws FileNotFoundException, IOException, ParseException {
+		outStream.println("loading "+infoFile.getName()+"...");
+		InfoParser2 parser = new InfoParser2();
+		Map<String, Integer> hconst = parser.parse(infoFile);
 		constants.putAll(hconst);
 	}
 	
@@ -369,7 +377,7 @@ public class CHLCompiler {
 		localConst.clear();
 		try {
 			Script script = new Script();
-			script.setScriptID(scriptId++);
+			script.setScriptID(++scriptId);	//Script IDs must start from 1
 			script.setSourceFilename(sourceFilename);
 			script.setInstructionAddress(getIp());
 			accept("begin");
@@ -1058,7 +1066,7 @@ public class CHLCompiler {
 				if (symbol.is("position")) {
 					parse("position to COORD_EXPR EOL");
 					//set OBJECT position to COORD_EXPR
-					sys(SET_CAMERA_POSITION);
+					sys(SET_POSITION);
 					return replace(start, "STATEMENT");
 				} else if (symbol.is("disciple")) {
 					parse("disciple CONST_EXPR [with sound] EOL");
@@ -2210,6 +2218,8 @@ public class CHLCompiler {
 		SymbolInstance symbol = peek();
 		if (symbol.is("details")) {
 			//update snapshot details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR [taking picture]
+			sys(GET_CAMERA_POSITION);
+			sys(GET_CAMERA_FOCUS);
 			parse("details [success EXPRESSION] [alignment EXPRESSION] CONST_EXPR [taking picture] EOL");
 			pushi(challengeId);
 			sys(UPDATE_SNAPSHOT_PICTURE);
@@ -2325,14 +2335,17 @@ public class CHLCompiler {
 		//state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
 		SymbolInstance symbol = parse("state VARIABLE CONST_EXPR EOL")[1];
 		String object = symbol.token.value;
-		int varId = getVarId(object);
-		pushi(varId);
-		parse("position COORD_EXPR EOL");
-		pushi(varId);
-		parse("float EXPRESSION EOL");
+		accept("position");
+		pushiVar(object);
+		parse("COORD_EXPR EOL");
+		sys(SET_SCRIPT_STATE_POS);
+		accept("float");
+		pushiVar(object);
+		parse("EXPRESSION EOL");
 		sys(SET_SCRIPT_FLOAT);
-		pushi(varId);
-		parse("ulong EXPRESSION");
+		accept("ulong");
+		pushiVar(object);
+		parseExpression(true);
 		casti();
 		parse(", EXPRESSION EOL");
 		casti();
@@ -2456,8 +2469,8 @@ public class CHLCompiler {
 			parse("[single line]");
 			symbol = peek();
 			if (symbol.is(TokenType.STRING)) {
-				parse("STRING [with interaction] EOL");
 				//say [single line] STRING [with interaction]
+				parse("STRING [with interaction] EOL");
 				sys(TEMP_TEXT);
 				return replace(start, "STATEMENT");
 			} else {
@@ -2468,8 +2481,8 @@ public class CHLCompiler {
 					sys(RUN_TEXT_WITH_NUMBER);
 					return replace(start, "STATEMENT");
 				} else {
-					parse("[with interaction] EOL");
 					//say [single line] CONST_EXPR [with interaction]
+					parse("[with interaction] EOL");
 					sys(RUN_TEXT);
 					return replace(start, "STATEMENT");
 				}
@@ -2656,31 +2669,33 @@ public class CHLCompiler {
 	private SymbolInstance parseIf() throws ParseException {
 		final int start = it.nextIndex();
 		//IF_ELSIF_ELSE
-		List<Instruction> jumps_lblEndIf = new LinkedList<>();
 		parse("if CONDITION EOL");
 		Instruction jz_lblNextCond = jz();
 		parseStatements();
+		Instruction jump_lblEndBlock = jmp();
 		SymbolInstance symbol = peek();
 		while (symbol.is("elsif")) {
-			jumps_lblEndIf.add(jmp());
 			jz_lblNextCond.intVal = getIp();
 			parse("elsif CONDITION EOL");
 			jz_lblNextCond = jz();
 			parseStatements();
+			int lblEndBlock = getIp();
+			jump_lblEndBlock.intVal = lblEndBlock;
+			jump_lblEndBlock = jmp();
 			symbol = peek();
 		}
 		if (symbol.is("else")) {
-			jumps_lblEndIf.add(jmp());
 			jz_lblNextCond.intVal = getIp();
 			parse("else EOL");
 			parseStatements();
+			int lblEndBlock = getIp();
+			jump_lblEndBlock.intVal = lblEndBlock;
+			jump_lblEndBlock = jmp();
 		}
 		parse("end if EOL");
-		int lblEndIf = getIp();
-		jz_lblNextCond.intVal = lblEndIf;
-		for (Instruction jump : jumps_lblEndIf) {
-			jump.intVal = lblEndIf;
-		}
+		int lblEndBlock = getIp();
+		jz_lblNextCond.intVal = lblEndBlock;
+		jump_lblEndBlock.intVal = lblEndBlock;
 		return replace(start, "IF_ELSIF_ELSE");
 	}
 	
@@ -4065,6 +4080,7 @@ public class CHLCompiler {
 				} else if (symbol.is("highlight")) {
 					parse("highlight CONST_EXPR at COORD_EXPR");
 					//create highlight HIGHLIGHT_INFO at COORD_EXPR
+					pushi(challengeId);
 					sys(CREATE_HIGHLIGHT);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("mist")) {
@@ -4083,33 +4099,38 @@ public class CHLCompiler {
 					sys(CREATE_TIMER);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("influence")) {
-					pushi(0);
 					accept("influence");
 					symbol = peek();
 					if (symbol.is("on")) {
 						parse("on OBJECT radius EXPRESSION");
 						//create influence on OBJECT radius EXPRESSION
+						pushi(0);	//fixed 0
+						pushi(0);	//0 = no anti
 						sys(INFLUENCE_OBJECT);
 						return replace(start, "OBJECT");
 					} else if (symbol.is("at")) {
 						parse("at COORD_EXPR radius EXPRESSION");
 						//create influence at COORD_EXPR radius EXPRESSION
+						pushi(0);	//fixed 0
+						pushi(0);	//0 = no anti
 						sys(INFLUENCE_POSITION);
 						return replace(start, "OBJECT");
 					}
 				} else if (symbol.is("anti")) {
-					accept("anti");
-					pushi(1);
-					accept("influence");
+					parse("anti influence");
 					symbol = peek();
 					if (symbol.is("on")) {
 						parse("on OBJECT radius EXPRESSION");
 						//create anti influence on OBJECT radius EXPRESSION
+						pushi(0);	//fixed 0
+						pushi(1);	//1 = anti
 						sys(INFLUENCE_OBJECT);
 						return replace(start, "OBJECT");
 					} else if (symbol.is("at")) {
 						parse("at position COORD_EXPR radius EXPRESSION");
 						//create anti influence at position COORD_EXPR radius EXPRESSION
+						pushi(0);	//fixed 0
+						pushi(1);	//1 = anti
 						sys(INFLUENCE_POSITION);
 						return replace(start, "OBJECT");
 					}
@@ -4889,12 +4910,14 @@ public class CHLCompiler {
 				boolean match = true;
 				boolean flag = true;	//Tells if this optional expression must generate a boolean value (the other case is a default value)
 				symbols[i] = symbols[i].substring(1);
+				String option = "";
 				for (int start = i; i < symbols.length && !ended; i++) {
 					String expr = symbols[i];
 					if (expr.endsWith("]")) {
 						expr = expr.substring(0, expr.length() - 1);
 						ended = true;
 					}
+					option += " " + expr;
 					if ("EXPRESSION".equals(expr)) {
 						flag = false;
 						if (match) {
@@ -4940,7 +4963,11 @@ public class CHLCompiler {
 				}
 				i--;
 				if (flag) {
-					pushb(match);
+					if (" with interaction".equals(option)) {
+						pushi(match ? 1 : 0);
+					} else {
+						pushb(match);
+					}
 				}
 			} else {
 				SymbolInstance sInst = next();
@@ -5035,8 +5062,11 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private void jz(int ip) {
+	private void jz(int dstIp) {
+		int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("JZ");
+		if (dstIp > ip) instruction.flags = OPCodeFlag.FORWARD;
+		instruction.intVal = dstIp;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -5086,8 +5116,15 @@ public class CHLCompiler {
 	
 	private void pushi(String constant) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHI");
-		instruction.flags = OPCodeFlag.REF;
 		instruction.intVal = getConstant(constant);
+		instruction.lineNumber = line;
+		instructions.add(instruction);
+	}
+	
+	private void pushiVar(String variable) throws ParseException {
+		Instruction instruction = Instruction.fromKeyword("PUSHI");
+		instruction.flags = OPCodeFlag.REF;
+		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 	}
@@ -5250,9 +5287,11 @@ public class CHLCompiler {
 		instructions.add(instruction);
 	}
 	
-	private Instruction jmp(int ip) {
+	private Instruction jmp(int dstIp) {
+		int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("JMP");
-		instruction.intVal = ip;
+		if (dstIp > ip) instruction.flags = OPCodeFlag.FORWARD;
+		instruction.intVal = dstIp;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 		return instruction;

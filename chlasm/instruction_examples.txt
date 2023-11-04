@@ -89,15 +89,12 @@ ___________________________________________
 
 This make the object position change.
 
-set camera position to [1891.039, 31.693, 2520.674]
+set Boy position to [Boy]		//#baywatch.txt:61
 
-	PUSHF 1891.039
-	CASTC
-	PUSHF 31.693
-	CASTC
-	PUSHF 2520.674
-	CASTC
-	SYS SET_CAMERA_POSITION	//[3, 0] (Coord position)
+	PUSHF [Boy]			//object
+	PUSHF [Boy]
+	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	SYS SET_POSITION	//[4, 0] (Object object, Coord position)
 ___________________________________________
 
 3.1.3 set OBJECT disciple CONST_EXPR [with sound]

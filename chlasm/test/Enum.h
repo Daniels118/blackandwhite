@@ -1158,17 +1158,17 @@ enum     SPOOKY_ENUM
 //*****************************************************************************
 enum     HIGHLIGHT_INFO
 {
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_BRONZE             =  0 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER             =  1 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_GOLD               =  2 ,
-    SCRIPT_HIGHLIGHT_INFO_SCOREBOARD                =  3 ,
-    SCRIPT_HIGHLIGHT_INFO_SCOREBOARD_BIG            =  4 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER_CANCEL      =  5 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_GOLD_CANCEL        =  6 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SWAP_CREATURE      =  7 ,
-    SCRIPT_HIGHLIGHT_INFO_SCRIPT_FIGHT_CREATURE     =  8 ,
-    SCRIPT_HIGHLIGHT_INFO_BROTHERHOOD               =  9 ,
-    SCRIPT_HIGHLIGHT_INFO_LAST                      =  10 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_BRONZE             =  1 ,	//<-- added 1, was 0 in CI
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER             =  2 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_GOLD               =  3 ,
+    SCRIPT_HIGHLIGHT_INFO_SCOREBOARD                =  4 ,
+    SCRIPT_HIGHLIGHT_INFO_SCOREBOARD_BIG            =  5 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SILVER_CANCEL      =  6 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_GOLD_CANCEL        =  7 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_SWAP_CREATURE      =  8 ,
+    SCRIPT_HIGHLIGHT_INFO_SCRIPT_FIGHT_CREATURE     =  9 ,
+    SCRIPT_HIGHLIGHT_INFO_BROTHERHOOD               =  10 ,
+    SCRIPT_HIGHLIGHT_INFO_LAST                      =  11 ,
 };
 
 //*****************************************************************************

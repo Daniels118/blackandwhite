@@ -6,6 +6,12 @@ public class CompileException extends Exception {
 	private final String script;
 	private final int instructionAddress;
 	
+	public CompileException(String msg) {
+		super(msg);
+		this.script = null;
+		this.instructionAddress = 0;
+	}
+	
 	public CompileException(Exception cause) {
 		super(cause.getMessage(), cause);
 		this.script = null;

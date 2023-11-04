@@ -195,6 +195,29 @@ public class DataSection extends Section {
 		}
 		
 		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof Const)) return false;
+			Const other = (Const) obj;
+			if (this.type != other.type) return false;
+			switch (type) {
+				case BYTE:
+					return this.getByte() == other.getByte();
+				case BYTEARRAY:
+					return this.getByteArray().equals(other.getByteArray());
+				case FLOAT:
+					return this.getFloat() == other.getFloat();
+				case INT:
+					return this.getInt() == other.getInt();
+				case STRING:
+					return this.getString().equals(other.getString());
+				case VEC3:
+					return this.getVec3().equals(other.getVec3());
+				default:
+					throw new RuntimeException("Unsupported constant type: "+type);
+			}
+		}
+		
+		@Override
 		public String toString() {
 			switch (type) {
 				case BYTE:

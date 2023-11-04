@@ -5,7 +5,8 @@ Developer by Daniele Lombardi (alias Daniels118)
 Syntax
   chlasm -chlasm <parameters>
   chlasm -asmchl <parameters>
-//  chlasm -compile <parameters>
+  chlasm -compile <parameters>
+  chlasm -info <parameters>
   chlasm -cmp <parameters>
   chlasm -prref <parameters>
   chlasm -prnatfn
@@ -14,7 +15,8 @@ Syntax
 Arguments
   -chlasm  convert chl file to asm
   -asmchl  convert asm file to chl
-//  -compile compile source files into asm file
+  -compile compile source files into asm file
+  -info    print information about a chl file
   -cmp     compare chl files ignoring line numbers
   -prref   analyze the instructions in a chl file and print a table summary
   -prnatfn prints the list of native functions

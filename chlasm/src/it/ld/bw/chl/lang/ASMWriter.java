@@ -120,15 +120,15 @@ public class ASMWriter {
 		out.println("Writing _project.txt");
 		File prjFile = path.resolve("_project.txt").toFile();
 		try (FileWriter str = new FileWriter(prjFile);) {
-			str.write("_data.txt\r\n");
-			str.write("_globals.txt\r\n");
+			str.write("source _data.txt\r\n");
+			str.write("source _globals.txt\r\n");
 			for (String sourceFilename : sources) {
-				str.write(sourceFilename + "\r\n");
+				str.write("source " + sourceFilename + "\r\n");
 				if (!isValidFilename(sourceFilename)) {
 					throw new RuntimeException("Invalid source filename: " + sourceFilename);
 				}
 			}
-			str.write("_autorun.txt\r\n");
+			str.write("source _autorun.txt\r\n");
 		}
 		//
 		out.println("Writing _data.txt");
@@ -412,9 +412,9 @@ public class ASMWriter {
 				Script script = chl.getScriptsSection().getScript(scriptID);
 				str.write("run script "+script.getName()+"\r\n");
 			} catch (InvalidScriptIdException e) {
-				String msg = "ERROR: " + e.getMessage() + "\r\n";
-				str.write("//" + msg);
-				throw new CompileException(e);
+				String msg = "Invalid autorun script id: " + scriptID;
+				str.write("//" + msg + "\r\n");
+				throw new CompileException(msg);
 			}
 		}
 		str.write("\r\n");

@@ -146,7 +146,11 @@ public class Script extends Section {
 	
 	public String getLocalVar(int varId) throws InvalidVariableIdException {
 		if (!isLocalVar(varId)) throw new InvalidVariableIdException(varId);
-		return variables.get(varId - varOffset - 1);
+		int index = varId - varOffset - 1;
+		if (index < 0 || index >= variables.size()) {
+			throw new InvalidVariableIdException(varId);
+		}
+		return variables.get(index);
 	}
 	
 	public String getGlobalVar(CHLFile chl, int varId) {

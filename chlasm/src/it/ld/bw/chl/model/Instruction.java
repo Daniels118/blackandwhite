@@ -31,7 +31,6 @@ import static it.ld.bw.chl.model.OPCodeFlag.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -221,16 +220,23 @@ public class Instruction extends Struct {
 					s += intVal;
 				}
 			} else if (opcode == OPCode.CALL && chl != null) {
-				List<Script> scripts = chl.getScriptsSection().getItems();
-				if (intVal >= 0 && intVal < scripts.size()) {
-					s += scripts.get(intVal).getName();
-				} else {
+				try {
+					Script calledScript = chl.getScriptsSection().getScript(intVal);
+					s += calledScript.getName();
+				} catch (InvalidScriptIdException e) {
 					s += intVal;
 				}
 			} else if (opcode.isIP) {
 				Object label = null;
 				if (labels != null) label = labels.get(intVal);
-				s += (label != null) ? label : String.format("0x%1$08X", intVal);
+				if (label != null) {
+					s += label;
+				} else if (script != null) {
+					int relIp = intVal - script.getInstructionAddress();
+					s += script.getInstructionAddress() + "+" + relIp;
+				} else {
+					s += intVal;
+				}
 			} else if (isReference()) {
 				if (chl != null && script != null) {
 					String varName;
@@ -246,9 +252,9 @@ public class Instruction extends Struct {
 					}
 				} else {
 					if (opcode == OPCode.POP) {
-						s += String.format("0x%1$08X", intVal);
+						s += intVal;
 					} else {
-						s += String.format("[0x%1$08X]", intVal);
+						s += "[" + intVal + "]";
 					}
 				}
 			} else if (opcode.forceInt) {

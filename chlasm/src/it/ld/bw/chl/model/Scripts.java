@@ -16,6 +16,7 @@
 package it.ld.bw.chl.model;
 
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
+import it.ld.bw.chl.exceptions.ScriptNotFoundException;
 
 public class Scripts extends StructArray<Script> {
 	@Override
@@ -28,6 +29,13 @@ public class Scripts extends StructArray<Script> {
 			if (script.getScriptID() == scriptID) return script;
 		}
 		throw new InvalidScriptIdException(scriptID);
+	}
+	
+	public Script getScript(String scriptName) throws ScriptNotFoundException {
+		for (Script script : items) {
+			if (scriptName.equals(script.getName())) return script;
+		}
+		throw new ScriptNotFoundException(scriptName);
 	}
 	
 	@Override
