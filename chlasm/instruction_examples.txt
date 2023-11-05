@@ -134,9 +134,9 @@ set MyCreature focus on Guide
 	SYS SET_FOCUS_ON_OBJECT	//[2, 0] (Object object, Object target)
 ___________________________________________
 
-3.1.6 OBJECT play CONST_EXPR loop EXPRESSION
+3.1.6 OBJECT play CONST_EXPR [loop EXPRESSION]
 
-Set an object to play an animation for a number of times.
+Set an object to play an animation for a number of times (default 1).
 
 Boy play ANM_P_SWIM2 loop -1
 
@@ -2552,7 +2552,7 @@ make good spirit appear		//#CreatureDevelopment.txt:1648
 	SYS SPIRIT_APPEAR	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.1.13 disappear HELP_SPIRIT_TYPE spirit
+3.16.1.13 make HELP_SPIRIT_TYPE spirit disappear
 
 Make the spirit type disappear in front of the player in a puff of smoke. Irrespective of the script type.
 
@@ -4623,7 +4623,7 @@ Never found
 	SYS GET_OBJECT_FLOCK	//[1, 1] (Object member) returns (Object)
 ___________________________________________
 
-9.38 get OBJECT held
+9.38 get object held
 
 Gets the object held by the hand.
 
@@ -4752,9 +4752,9 @@ CPShield = get spell SPELL_PHYSICAL_SHIELD at [HutPos] radius 5		//#Land2ShieldC
 	POPF CPShield
 ___________________________________________
 
-9.45.1 create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
+9.45.1 create special effect CONST_EXPR at COORD_EXPR [time EXPRESSION]
 
-Creates an in game special effect at a position with a duration.
+Creates an in game special effect at a position with a duration (default 1).
 
 S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]		//#SwapCreatures.txt:164
 
@@ -4766,9 +4766,9 @@ S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]		/
 	POPF S1Effect
 ___________________________________________
 
-9.45.2 create special effect CONST_EXPR to OBJECT time EXPRESSION
+9.45.2 create special effect CONST_EXPR to OBJECT [time EXPRESSION]
 
-Creates an in game special effect on an object with a duration.
+Creates an in game special effect on an object with a duration (default 1).
 
 SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1		//#protectgatekeys.txt:24
 
@@ -5228,7 +5228,7 @@ ___________________________________________
 ### 12 Expressions
 ___________________________________________
 
-12.3 CONSTANT of OBJECT
+12.3 [get] CONSTANT of OBJECT
 
 Game objects have properties, and you can use the values of these properties in expressions.
 

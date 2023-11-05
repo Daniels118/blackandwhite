@@ -1,1 +1,0 @@
-Prints the list of native functions

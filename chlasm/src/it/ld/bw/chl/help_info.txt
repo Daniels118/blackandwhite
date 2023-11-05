@@ -1,7 +1,10 @@
-Print information about a chl file
+Prints information about CHL language and runtime
 
 Syntax
-chlasm -info -i filename
+  chlasm -info arg
 
 Arguments
-  -i input CHL file
+  keywords
+  syntax
+  syntax_tree
+  native_functions

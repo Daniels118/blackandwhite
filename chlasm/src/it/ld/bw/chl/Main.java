@@ -20,12 +20,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import it.ld.bw.chl.lang.ASMParser;
+import it.ld.bw.chl.lang.ASMCompiler;
 import it.ld.bw.chl.lang.ASMWriter;
 import it.ld.bw.chl.lang.CHLCompiler;
+import it.ld.bw.chl.lang.Syntax;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.NativeFunction;
 import it.ld.utils.CmdLine;
@@ -39,21 +39,21 @@ public class Main {
 			asmToChl(cmd);
 		} else if (cmd.getArgFlag("-compile")) {
 			compile(cmd);
-		} else if (cmd.getArgFlag("-info")) {
-			info(cmd);
+		} else if (cmd.getArgFlag("-chlinfo")) {
+			chlinfo(cmd);
 		} else if (cmd.getArgFlag("-cmp")) {
 			compare(cmd);
 		} else if (cmd.getArgFlag("-prref")) {
 			printInstructionReference(cmd);
-		} else if (cmd.getArgFlag("-prnatfn")) {
-			printNatives(cmd);
+		} else if (cmd.getArgFlag("-info")) {
+			printInfo(cmd);
 		} else {
 			String topic = cmd.getArgVal("-help");
 			if (topic == null) {
 				printHelp("help.txt");
 			} else {
 				if (topic.startsWith("-")) topic = topic.substring(1);
-				if (in(topic, "chlasm", "asmchl", "compile", "info", "cmp", "prref", "prnatfn")) {
+				if (in(topic, "chlasm", "asmchl", "compile", "chlinfo", "cmp", "prref", "info")) {
 					printHelp("help_" + topic + ".txt");
 				} else {
 					System.out.println("Unknown option: " + topic);
@@ -98,26 +98,23 @@ public class Main {
 	}
 	
 	private static void asmToChl(CmdLine cmd) throws Exception {
-		ASMParser parser = new ASMParser();
+		ASMCompiler parser = new ASMCompiler();
 		File prj = cmd.getArgFile("-p");
-		List<File> inp = cmd.getArgFiles("-i");
+		Project project;
 		if (prj == null) {
-			if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+			project = new Project();
+			project.sources = cmd.getArgFiles("-i");
+			project.cHeaders = cmd.getArgFiles("-h");
+			project.infoFiles = cmd.getArgFiles("-ih");
+			if (project.sources.isEmpty()) throw new Exception("Please specify either -i or -p");
 		} else {
-			if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-			Project project = Project.load(prj);
-			inp = project.sources;
-			for (File file : project.cHeaders) {
-				parser.loadHeader(file);
-			}
-			for (File file : project.infoFiles) {
-				parser.loadInfo(file);
-			}
+			if (cmd.getArgFlag("-i")) throw new Exception("Please specify either -i or -p");
+			project = Project.load(prj);
 		}
 		File out = mandatory(cmd.getArgFile("-o"), "-o");
 		//
 		System.out.println("Parsing ASM sources...");
-		CHLFile chl = parser.parse(inp);
+		CHLFile chl = parser.compile(project);
 		System.out.println("Writing compiled CHL...");
 		chl.write(out);
 		System.out.println("Done.");
@@ -126,30 +123,26 @@ public class Main {
 	private static void compile(CmdLine cmd) throws Exception {
 		CHLCompiler compiler = new CHLCompiler();
 		File prj = cmd.getArgFile("-p");
-		List<File> inp = cmd.getArgFiles("-i");
+		Project project;
 		if (prj == null) {
-			if (inp.isEmpty()) throw new Exception("Please specify either -i or -p");
+			project = new Project();
+			project.sources = cmd.getArgFiles("-i");
+			project.cHeaders = cmd.getArgFiles("-h");
+			project.infoFiles = cmd.getArgFiles("-ih");
+			if (project.sources.isEmpty()) throw new Exception("Please specify either -i or -p");
 		} else {
-			if (!inp.isEmpty()) throw new Exception("Please specify either -i or -p");
-			Project project = Project.load(prj);
-			inp = project.sources;
-			for (File file : project.cHeaders) {
-				compiler.loadHeader(file);
-			}
-			for (File file : project.infoFiles) {
-				compiler.loadInfo(file);
-			}
+			if (cmd.getArgFlag("-i")) throw new Exception("Please specify either -i or -p");
+			project = Project.load(prj);
 		}
 		File out = mandatory(cmd.getArgFile("-o"), "-p");
 		//
-		System.out.println("Parsing CHL sources...");
-		CHLFile chl = compiler.compile(inp);
+		CHLFile chl = compiler.compile(project);
 		System.out.println("Writing compiled CHL...");
 		chl.write(out);
 		System.out.println("Done.");
 	}
 	
-	private static void info(CmdLine cmd) throws Exception {
+	private static void chlinfo(CmdLine cmd) throws Exception {
 		File f1 = mandatory(cmd.getArgFile("-i"), "-i");
 		//
 		System.out.println("Loading "+f1.getName()+"...");
@@ -186,9 +179,20 @@ public class Main {
 		chl.printInstructionReference(System.out);
 	}
 	
-	private static void printNatives(CmdLine cmd) throws Exception {
-		for (NativeFunction f : NativeFunction.values()) {
-			System.out.println(f.getCStyleSignature());
+	private static void printInfo(CmdLine cmd) {
+		String arg = mandatory(cmd.getArgVal("-info"), "-info");
+		if ("keywords".equals(arg)) {
+			Syntax.printKeywords();
+		} else if ("syntax".equals(arg)) {
+			Syntax.printSymbols();
+		} else if ("syntax_tree".equals(arg)) {
+			Syntax.printTree();
+		} else if ("native_functions".equals(arg)) {
+			for (NativeFunction f : NativeFunction.values()) {
+				System.out.println(f.getCStyleSignature());
+			}
+		} else {
+			throw new RuntimeException("Invalid arg: " + arg);
 		}
 	}
 	

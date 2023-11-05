@@ -32,8 +32,10 @@ class SymbolInstance {
 	
 	@Override
 	public String toString() {
-		if (token != null) {
-			return token.value;
+		if (this == EOF) {
+			return "EOF";
+		} else if (token != null) {
+			return token.type == TokenType.EOL ? "EOL" : token.value;
 		} else if (expression.isEmpty()) {
 			return "<not initialized>";
 		} else {

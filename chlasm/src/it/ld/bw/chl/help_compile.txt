@@ -1,9 +1,12 @@
-Compile source files into asm file
+Compile CHL source files into CHL binary file
 
 Syntax
-  chlasm -compile -i files|-p filename -o filename
+  chlasm -compile -p filename -o filename
+  chlasm -compile -i files [-h files] [-hi files] -o filename
 
 Arguments
-  -i input source files; order matters
-  -p input source folder
-  -o output CHL file
+  -p  project file
+  -i  input source files; order matters
+  -h  input c header files
+  -hi input info files
+  -o  output CHL file

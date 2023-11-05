@@ -137,7 +137,7 @@ public class Script extends Section {
 	}
 	
 	public boolean isGlobalVar(int varId) {
-		return varId >= 0 && varId <= varOffset;
+		return varId >= 1 && varId <= varOffset;
 	}
 	
 	public boolean isLocalVar(int varId) {

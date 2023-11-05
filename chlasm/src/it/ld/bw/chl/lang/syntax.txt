@@ -22,6 +22,7 @@ GLOBAL_DECL: {
 	CHALLENGE_DECL
 	GLOBAL_VAR_DECL
 	GLOBAL_CONST_DECL
+	DEFINE
 	AUTORUN
 	SCRIPT
 }
@@ -31,6 +32,8 @@ CHALLENGE_DECL: challenge IDENTIFIER EOL
 GLOBAL_VAR_DECL: global IDENTIFIER EOL
 
 GLOBAL_CONST_DECL: global constant IDENTIFIER = CONSTANT EOL
+
+DEFINE: define SCRIPT_TYPE IDENTIFIER[([ARGS])] EOL
 
 AUTORUN: run script IDENTIFIER EOL
 
@@ -284,7 +287,8 @@ STATEMENT: {
 	WHILE EOL
 	LOOP EOL
 	
-	begin cinema STATEMENTS EXCEPTIONS end cinema EOL
+	CINEMA
+	
 	begin camera STATEMENTS EXCEPTIONS end camera EOL
 	begin dialogue STATEMENTS EXCEPTIONS end dialogue EOL
 	begin known dialogue STATEMENTS end dialogue EOL
@@ -303,7 +307,7 @@ STATEMENT: {
 	stop SPIRIT_TYPE spirit looking EOL
 	eject SPIRIT_TYPE spirit EOL
 	make SPIRIT_TYPE spirit appear EOL
-	disappear SPIRIT_TYPE spirit EOL
+	make SPIRIT_TYPE spirit disappear EOL
 	send SPIRIT_TYPE spirit home EOL
 	say [single line] STRING [with interaction] EOL
 	say STRING with number EXPRESSION EOL
@@ -372,6 +376,13 @@ IF_ELSIF_ELSE:
 	[else EOL
 		STATEMENTS]
 	end if
+
+CINEMA:
+	begin cinema
+		STATEMENTS
+	end cinema [with dialogue
+		STATEMENTS
+	end dialogue]
 
 ### 4 Exceptions
 EXCEPTIONS: {EXCEPTION}
@@ -512,7 +523,7 @@ OBJECT: {
 	get OBJECT hand is over
 	get OBJECT clicked
 	get OBJECT flock
-	get OBJECT held
+	get object held
 	get target object for OBJECT
 	get arena at COORD_EXPR radius EXPRESSION
 	get hit object
@@ -579,6 +590,7 @@ COORD_EXPR: {
 EXPRESSION: {
 	VARIABLE
 	CONSTANT of OBJECT
+	get CONSTANT of OBJECT
 	NUMBER
 	
 	remove resource CONST_EXPR EXPRESSION from OBJECT

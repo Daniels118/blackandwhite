@@ -99,106 +99,109 @@ public class CHLComparator {
 			}
 			try {
 				Script script2 = b.getScriptsSection().getScript(name);
-				if (script1.getScriptID() != script2.getScriptID()) {
-					out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
-					res = false;
-				}
 				if (script1.getParameterCount() != script2.getParameterCount()) {
 					out.println("Script "+name+" parameterCount: "+script1.getParameterCount()+" -> "+script2.getParameterCount());
 					out.println(script1.getSignature());
 					out.println(script2.getSignature());
+					out.println();
 					res = false;
-					break;
-				}
-				if (script1.getVarOffset() != script2.getVarOffset()) {
-					out.println("Script "+name+" varOffset: "+script1.getVarOffset()+" -> "+script2.getVarOffset());
-					res = false;
-				}
-				if (!script1.getVariables().equals(script2.getVariables())) {
+				} else if (!script1.getVariables().equals(script2.getVariables())) {
 					out.println("Script "+name+" variables: "+script1.getVariables()+" -> "+script2.getVariables());
+					out.println();
 					res = false;
-				}
-				//Code
-				int locMaxLen = Math.max(script1.getSourceFilename().length(), script2.getSourceFilename().length()) + 8;
-				String locFmt = "%-"+locMaxLen+"s";
-				boolean stop = false;
-				final int offset1 = script1.getInstructionAddress();
-				final int offset2 = script2.getInstructionAddress();
-				ListIterator<Instruction> it1 = instructions1.listIterator(offset1);
-				ListIterator<Instruction> it2 = instructions2.listIterator(offset2);
-				while (it1.hasNext()) {
-					Instruction instr1 = it1.next();
-					Instruction instr2 = it2.next();
-					if (instr2 == null) {
-						out.println("Unexpected end of file 2 while comparing script "+name);
+				} else {
+					/*if (script1.getScriptID() != script2.getScriptID()) {
+						out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
 						res = false;
-						break;
 					}
-					//
-					boolean eq = true;
-					if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
-							|| instr1.dataType != instr2.dataType
-							|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal) {
-						eq = false;
-						stop = true;
-					} else if (instr1.intVal != instr2.intVal) {
-						if (instr1.opcode.isIP) {
-							int relDst1 = instr1.intVal - offset1;
-							int relDst2 = instr2.intVal - offset2;
-							if (relDst1 != relDst2) {
-								eq = false;
-							}
-						} else if (instr1.opcode.isScript) {
-							try {
-								Script targetScript1 = scriptsSection1.getScript(instr1.intVal);
+					if (script1.getVarOffset() != script2.getVarOffset()) {
+						out.println("Script "+name+" varOffset: "+script1.getVarOffset()+" -> "+script2.getVarOffset());
+						res = false;
+					}*/
+					//Code
+					int locMaxLen = Math.max(script1.getSourceFilename().length(), script2.getSourceFilename().length()) + 8;
+					String locFmt = "%-"+locMaxLen+"s";
+					boolean stop = false;
+					final int offset1 = script1.getInstructionAddress();
+					final int offset2 = script2.getInstructionAddress();
+					ListIterator<Instruction> it1 = instructions1.listIterator(offset1);
+					ListIterator<Instruction> it2 = instructions2.listIterator(offset2);
+					while (it1.hasNext()) {
+						Instruction instr1 = it1.next();
+						Instruction instr2 = it2.next();
+						if (instr2 == null) {
+							out.println("Unexpected end of file 2 while comparing script "+name);
+							out.println();
+							res = false;
+							break;
+						}
+						//
+						boolean eq = true;
+						if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
+								|| instr1.dataType != instr2.dataType
+								|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal) {
+							eq = false;
+							stop = true;
+						} else if (instr1.intVal != instr2.intVal) {
+							if (instr1.opcode.isIP) {
+								int relDst1 = instr1.intVal - offset1;
+								int relDst2 = instr2.intVal - offset2;
+								if (relDst1 != relDst2) {
+									eq = false;
+								}
+							} else if (instr1.opcode.isScript) {
 								try {
-									Script targetScript2 = scriptsSection2.getScript(instr2.intVal);
-									if (!targetScript1.getName().equals(targetScript2.getName())) {
+									Script targetScript1 = scriptsSection1.getScript(instr1.intVal);
+									try {
+										Script targetScript2 = scriptsSection2.getScript(instr2.intVal);
+										if (!targetScript1.getName().equals(targetScript2.getName())) {
+											eq = false;
+										}
+									} catch (InvalidScriptIdException e) {
+										out.println(e.getMessage() + " in file 1");
 										eq = false;
 									}
 								} catch (InvalidScriptIdException e) {
-									out.println(e.getMessage() + " in file 1");
+									out.println(e.getMessage() + " in file 2");
 									eq = false;
 								}
-							} catch (InvalidScriptIdException e) {
-								out.println(e.getMessage() + " in file 2");
-								eq = false;
-							}
-						} else if (instr1.isReference()) {
-							String name1 = script1.getVar(a, instr1.intVal);
-							String name2 = script2.getVar(b, instr2.intVal);
-							if (!name1.equals(name2)) {
-								eq = false;
-							}
-						} else {
-							Const dc1 = data1.get(instr1.intVal);
-							Const dc2 = data2.get(instr2.intVal);
-							if (dc1 == null || dc2 == null || !dc1.equals(dc2)) {
-								eq = false;
+							} else if (instr1.isReference()) {
+								String name1 = script1.getVar(a, instr1.intVal);
+								String name2 = script2.getVar(b, instr2.intVal);
+								if (!name1.equals(name2)) {
+									eq = false;
+								}
+							} else {
+								Const dc1 = data1.get(instr1.intVal);
+								Const dc2 = data2.get(instr2.intVal);
+								if (dc1 == null || dc2 == null || !dc1.equals(dc2)) {
+									eq = false;
+								}
 							}
 						}
-					}
-					if (instr1.opcode == OPCode.END && instr2.opcode == OPCode.END) {
-						break;
-					} else if (instr1.opcode == OPCode.END || instr2.opcode == OPCode.END) {
-						eq = false;
-						stop = true;
-					}
-					if (!eq) {
-						String loc1 = String.format(locFmt, script1.getSourceFilename()+":"+instr1.lineNumber+": ");
-						String loc2 = String.format(locFmt, script2.getSourceFilename()+":"+instr2.lineNumber+": ");
-						out.println("Instruction mismatch for script " + name + ":\r\n"
-							+ loc1 + instr1.toString(a, script1, null) + "\r\n"
-							+ loc2 + instr2.toString(b, script2, null));
-						res = false;
-						if (stop) break;
+						if (instr1.opcode == OPCode.END && instr2.opcode == OPCode.END) {
+							break;
+						} else if (instr1.opcode == OPCode.END || instr2.opcode == OPCode.END) {
+							eq = false;
+							stop = true;
+						}
+						if (!eq) {
+							String loc1 = String.format(locFmt, script1.getSourceFilename()+":"+instr1.lineNumber+": ");
+							String loc2 = String.format(locFmt, script2.getSourceFilename()+":"+instr2.lineNumber+": ");
+							out.println("Instruction mismatch for script " + name + ":\r\n"
+								+ loc1 + instr1.toString(a, script1, null) + "\r\n"
+								+ loc2 + instr2.toString(b, script2, null));
+							out.println();
+							res = false;
+							if (stop) break;
+						}
 					}
 				}
 			} catch (ScriptNotFoundException e) {
 				out.println("Script "+script1.getName()+" not found in file 2");
+				out.println();
 				res = false;
 			}
-			out.println();
 		}
 		//Autostart scripts count
 		List<Integer> autostart1 = a.getAutoStartScripts().getScripts();

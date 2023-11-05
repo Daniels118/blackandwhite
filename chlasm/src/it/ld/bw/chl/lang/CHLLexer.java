@@ -113,11 +113,13 @@ public class CHLLexer {
 								status = Status.COMMENT;
 								token = new Token(line, col, TokenType.COMMENT);
 								buffer.append("//");
-							} else if (c == '*') {
+							} else if (c2 == '*') {
 								status = Status.BLOCK_COMMENT;
+								depth++;
 								token = new Token(line, col, TokenType.BLOCK_COMMENT);
 								col++;
 								buffer.append("/*");
+								//System.out.println(">BLOCK_COMMENT at "+line+":"+(col-1));
 							} else {
 								str.unread(c2);
 								add(tokens, new Token(line, col, TokenType.KEYWORD, c));
@@ -189,11 +191,11 @@ public class CHLLexer {
 							status = Status.BLANK;
 							token = new Token(line, col, TokenType.BLANK);
 							buffer.append(c);
-							col = (int)Math.ceil((double)col / tabSize) * tabSize;
+							col += tabSize - (col - 1) % tabSize - 1;
 						} else if (c == '\r') {
 							//NOP
 						} else {
-							throw new ParseException("Unexpected "+((int)c)+" character", file, line, col);
+							throw new ParseException("Unexpected '"+String.valueOf(c)+"' character", file, line, col);
 						}
 						break;
 					case COMMENT:
@@ -217,20 +219,23 @@ public class CHLLexer {
 							buffer.append(c);
 							char c2 = (char) str.read();
 							col++;
-							buffer.append(c);
+							buffer.append(c2);
 							if (c2 == '*') depth++;
 						} else if (c == '*') {
 							buffer.append(c);
 							char c2 = (char) str.read();
-							col++;
-							buffer.append(c);
 							if (c2 == '/') {
+								col++;
+								buffer.append(c2);
 								depth--;
 								if (depth == 0) {
 									add(tokens, token.setValue(buffer.toString()));
 									buffer.setLength(0);
 									status = Status.DEFAULT;
+									//System.out.println("<BLOCK_COMMENT at "+line+":"+(col-1));
 								}
+							} else {
+								str.unread(c2);
 							}
 						} else {
 							buffer.append(c);
@@ -285,6 +290,9 @@ public class CHLLexer {
 					case BLANK:
 						if (c == ' ' || c == '\t') {
 							buffer.append(c);
+							if (c == '\t') {
+								col += tabSize - (col - 1) % tabSize - 1;
+							}
 						} else {
 							str.unread(c);
 							col--;

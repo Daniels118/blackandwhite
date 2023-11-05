@@ -330,14 +330,14 @@ public class Instruction extends Struct {
 	 * @return
 	 */
 	public boolean isReference() {
-		return (flags & REF) == REF;
+		return (opcode == OPCode.PUSH || opcode == OPCode.POP || opcode == OPCode.CAST) && (flags & REF) == REF;
 	}
 	
 	/**For a jump instruction, tells if the target address is greater than the current address.
 	 * @return
 	 */
 	public boolean isForward() {
-		return (flags & FORWARD) == FORWARD;
+		return opcode.isJump && (flags & FORWARD) == FORWARD;
 	}
 	
 	/**Tells if this is a START instruction. This is a shorthand to test if the opcode is CALL and

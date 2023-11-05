@@ -41,8 +41,8 @@ public class InfoParser2 {
 				if (line.isEmpty() || line.startsWith("#")) continue;
 				
 				String[] tokens = line.split("\\s+");
-				if (tokens.length != 2) {
-					throw new ParseException("Invalid number of columns", file, lineno, 1);
+				if (tokens.length < 2) {
+					continue;
 				}
 				if ("value".equalsIgnoreCase(tokens[1])) {
 					continue;
