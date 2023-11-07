@@ -129,7 +129,7 @@ STATEMENT: {
 	set OBJECT desire maximum CONST_EXPR to EXPRESSION EOL
 	set OBJECT priority EXPRESSION EOL
 	set player_creature to OBJECT EOL
-	teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR EOL
+	teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR EOL
 	teach OBJECT all EOL
 	teach OBJECT all excluding CONST_EXPR EOL
 	force OBJECT CONST_EXPR OBJECT [with OBJECT] EOL
@@ -155,7 +155,8 @@ STATEMENT: {
 	queue OBJECT fight step CONST_EXPR EOL
 	queue OBJECT fight spell CONST_EXPR EOL
 	set OBJECT name CONST_EXPR EOL
-	enable|disable OBJECT auto scale EXPRESSION EOL
+	enable OBJECT auto scale EXPRESSION EOL
+	disable OBJECT auto scale EOL
 	set computer player EXPRESSION position to COORD_EXPR EOL
 	move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height] EOL
 	enable|disable computer player EXPRESSION EOL
@@ -262,7 +263,7 @@ STATEMENT: {
 	set OBJECT carrying CONST_EXPR EOL
 	attach reaction OBJECT CONST_EXPR EOL
 	detach reaction OBJECT EOL
-	detach CONST_EXPR reaction OBJECT EOL
+	detach reaction OBJECT CONST_EXPR EOL
 	run script IDENTIFIER[(PARAMETERS)] EOL
 	run background script IDENTIFIER[(PARAMETERS)] EOL
 	wait until CONDITION EOL
@@ -276,7 +277,7 @@ STATEMENT: {
 	restart music on OBJECT EOL
 	set OBJECT music position to COORD_EXPR EOL
 	enable|disable alignment music EOL
-	set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION EOL
+	set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION fallspeed EXPRESSION EOL
 	set OBJECT properties time EXPRESSION fade EXPRESSION EOL
 	set OBJECT properties clouds EXPRESSION shade EXPRESSION height EXPRESSION EOL
 	set OBJECT properties sheetmin EXPRESSION sheetmax EXPRESSION forkmin EXPRESSION forkmax EXPRESSION EOL
@@ -350,7 +351,7 @@ STATEMENT: {
 	set dual camera to OBJECT OBJECT EOL
 	start hand demo STRING [with pause] [without hand modify] EOL
 	start jc special CONST_EXPR EOL
-	enable|disable jc special on OBJECT EOL
+	enable|disable jc special CONST_EXPR on OBJECT EOL
 	set camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION EOL
 	move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION EOL
 }
@@ -434,7 +435,7 @@ CONDITION: {
 	dialogue not ready
 	computer player EXPRESSION ready
 	player EXPRESSION wind resistance
-	COORD_EXPR near COORD_EXPR radius EXPRESSION
+	COORD_EXPR near COORD_EXPR [radius EXPRESSION]
 	COORD_EXPR at COORD_EXPR
 	OBJECT in OBJECT
 	COORD_EXPR not viewed
@@ -467,6 +468,10 @@ CONDITION: {
 	spell charging
 	specific spell charging
 	music line EXPRESSION
+	can skip tutorial
+	can skip creature training
+	is keeping old creature
+	current profile has creature
 	not CONDITION
 	CONDITION and CONDITION
 	CONDITION or CONDITION
@@ -532,8 +537,8 @@ OBJECT: {
 	cast CONST_EXPR spell on OBJECT from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 	cast CONST_EXPR spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 	get spell CONST_EXPR at COORD_EXPR radius EXPRESSION
-	create special effect CONST_EXPR at COORD_EXPR time EXPRESSION
-	create special effect CONST_EXPR to OBJECT time EXPRESSION
+	create special effect CONST_EXPR at COORD_EXPR [time EXPRESSION]
+	create special effect CONST_EXPR on OBJECT [time EXPRESSION]
 	attach OBJECT to OBJECT [as leader]
 	detach [OBJECT] from OBJECT
 	get spell icon CONST_EXPR in OBJECT

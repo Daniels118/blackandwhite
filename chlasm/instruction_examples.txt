@@ -394,7 +394,7 @@ set MyCreature only desire CREATURE_DESIRE_SADNESS
 
 	PUSHF [MyCreature]				//creature
 	PUSHI 27						//desire
-	PUSHF 86400.0					//value
+	PUSHF 86400.0					//fixed value
 	SYS SET_CREATURE_ONLY_DESIRE	//[3, 0] (Object creature, CREATURE_DESIRES desire, float value)
 ___________________________________________
 
@@ -537,7 +537,7 @@ set player_creature to CreatureCow
 	SYS CREATURE_SET_PLAYER	//[1, 0] (Object creature)
 ___________________________________________
 
-3.2.16 teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR
+3.2.16 teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR
 
 Teach creature a specific lesson. First argument is type of action: INTELLECTUAL, PHYSICAL or MAGIC.
 Second argument is which action, eg: CREATURE_INTELLECTUAL_ACTION_KNOWN_ABOUT_FISH (in Enum.h).
@@ -798,7 +798,7 @@ set ComputerCreature name HELP_TEXT_KHAZAR_CREATURE_NAME_01
 	SYS SET_CREATURE_NAME		//[2, 0] (Object creature, int textID)
 ___________________________________________
 
-3.2.43 enable|disable OBJECT auto scale EXPRESSION
+3.2.43 enable OBJECT auto scale EXPRESSION
 
 ?
 
@@ -808,6 +808,18 @@ enable ComputerCreature auto scale CreatureSize		//#SetupComputerCreatures.txt:4
 	PUSHF [ComputerCreature]	//creature
 	PUSHF [CreatureSize]		//size
 	SYS CREATURE_AUTOSCALE		//[3, 0] (bool enable, Object creature, float size)
+___________________________________________
+
+3.2.44 disable OBJECT auto scale
+
+?
+
+disable Guide auto scale		//#CreatureGuide.txt:1182
+
+	PUSHB false				//disable
+	PUSHF [Guide]			//object
+	PUSHF 0.0				//fixed 0
+	SYS CREATURE_AUTOSCALE	//[3, 0] (bool enable, Object creature, float size)
 ___________________________________________
 
 3.3.1 set computer player EXPRESSION position to COORD_EXPR
@@ -2010,7 +2022,7 @@ Never found
 	SYS REMOVE_REACTION	//[1, 0] (Object object)
 ___________________________________________
 
-3.9.3 detach CONST_EXPR reaction OBJECT
+3.9.3 detach reaction OBJECT CONST_EXPR
 
 Removes all reactions of the type associated with this object
 
@@ -2147,7 +2159,7 @@ disable alignment music		//#followus.txt:304
 	SYS ENABLE_DISABLE_ALIGNMENT_MUSIC	//[1, 0] (bool enable)
 ___________________________________________
 
-3.13.1 set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
+3.13.1 set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION fallspeed EXPRESSION
 
 You are going to have to experiment with the results to be honest, but here is a guide:
 degrees in c (used for the game to decide if people think it's warm enough to go outside etc)
@@ -2155,7 +2167,7 @@ rainfall 0->1 (0=no rain 1=Lots of rain)
 snowfall -1->1 (-1 is full melt on snow, 1=snow storm. It is suggested rain storms melt the snow a little,
 for snow snows it is advised to be agressive with the value!)
 overcast (0->1 Visibility)
-speed (Multiplier of normal. ie. 1 = Normal 0 = No fall speed! 2 = Double Speed 0.5 = Half speed)
+fallspeed (Multiplier of normal. ie. 1 = Normal 0 = No fall speed! 2 = Double Speed 0.5 = Half speed)
 
 set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1		//#singingstonecircle.txt:731
 
@@ -2230,7 +2242,7 @@ disable Storm affected by wind		//#singingstonecircle.txt:790
 	SYS SET_AFFECTED_BY_WIND	//[2, 0] (bool enable, Object object)
 ___________________________________________
 
-3.14 state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
+3.14 state OBJECT CONST_EXPR [position COORD_EXPR] [float EXPRESSION] [ulong EXPRESSION, EXPRESSION]
 
 This is a dangerous feature, where you can set the object in a state. Do not set them into a simulation
 state as it may go mad! States have data which needs to be set up for the specific state, the float,
@@ -2400,7 +2412,7 @@ ___________________________________________
 Occasionally you need to be able to be in a function which is already in Dialogue control from the
 calling function Using this block means you can use the cinema control you already have.
 
-Never found. I guess this is just a construct to suppress in-block-checks at compile time.
+No code. I guess this is just a construct to suppress in-block-checks at compile time.
 ___________________________________________
 
 3.15.9 begin dual camera to OBJECT OBJECT STATEMENTS end dual camera
@@ -2618,7 +2630,7 @@ say constant StatText with number Need		//#HelpSystem.txt:108
 	PUSHF [StatText]			//string
 	CASTI						//
 	PUSHF [Need]				//number
-	PUSHI 0						//
+	PUSHI 0						//fixed 0
 	SYS RUN_TEXT_WITH_NUMBER	//[4, 0] (bool alwaysFalse, int string, float number, int alwaysZero)
 ___________________________________________
 
@@ -3026,7 +3038,7 @@ Never found
 	SYS UPDATE_DUAL_CAMERA	//[2, 0] (Object obj1, Object obj2)
 ___________________________________________
 
-3.18.28 start hand demo STRING [with pause] [without hand modify]
+3.18.28 start hand demo STRING [with pause on trigger] [without hand modify]
 
 Play hand demo of a prerecorded hand movement.
 
@@ -3048,7 +3060,7 @@ start jc special SJC_SWITCH_OFF_BOOKMARK		//#followus.txt:293
 	SYS PLAY_JC_SPECIAL	//[1, 0] (int feature)
 ___________________________________________
 
-3.18.30 enable|disable jc special on OBJECT
+3.18.30 enable|disable jc special CONST_EXPR on OBJECT
 
 Starts one of JC's predefined special features on an object.
 
@@ -3556,9 +3568,9 @@ This test whether the wind resistance flag is on (the default).
 Never found
 ___________________________________________
 
-6.38 COORD_EXPR near COORD_EXPR radius EXPRESSION
+6.38 COORD_EXPR near COORD_EXPR [radius EXPRESSION]
 
-Tells if 2 positions are within the given distance.
+Tells if 2 positions are within the given distance (default 1).
 
 [NewCreature] near [MyCreature] radius 50		//#SwapCreatures.txt:76
 
@@ -4071,6 +4083,42 @@ camera position near [Leader] radius 10		//#piedpiper.txt:49
 	SYS GET_DISTANCE		//[6, 1] (Coord p0, Coord p1) returns (float)
 	PUSHF 10.0
 	LT
+___________________________________________
+
+6.75 can skip tutorial
+
+?
+
+can skip tutorial		//#setupland1.txt:73
+
+	SYS CAN_SKIP_TUTORIAL	//[0, 1] () returns (bool)
+___________________________________________
+
+6.76 can skip creature training
+
+?
+
+can skip creature training		//#setupland1.txt:79
+
+	SYS CAN_SKIP_CREATURE_TRAINING	//[0, 1] () returns (bool)
+___________________________________________
+
+6.77 is keeping old creature
+
+?
+
+is keeping old creature		//#setupland1.txt:85
+
+	SYS IS_KEEPING_OLD_CREATURE	//[0, 1] () returns (bool)
+___________________________________________
+
+6.78 current profile has creature
+
+?
+
+current profile has creature		//#setupland1.txt:85
+
+	SYS CURRENT_PROFILE_HAS_CREATURE	//[0, 1] () returns (bool)
 ___________________________________________
 
 7 remove resource CONST_EXPR EXPRESSION from OBJECT
@@ -4766,7 +4814,7 @@ S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]		/
 	POPF S1Effect
 ___________________________________________
 
-9.45.2 create special effect CONST_EXPR to OBJECT [time EXPRESSION]
+9.45.2 create special effect CONST_EXPR on OBJECT [time EXPRESSION]
 
 Creates an in game special effect on an object with a duration (default 1).
 

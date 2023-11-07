@@ -115,7 +115,7 @@ public class ASMWriter {
 		List<Const> constants = chl.getDataSection().analyze();
 		Map<Integer, Const> constMap = mapConstants(constants);
 		List<String> sources = chl.getSourceFilenames();
-		Map<Integer, Label> labels = getLabels(chl.getCode().getItems());
+		Map<Integer, Label> labels = getLabels(chl);
 		//
 		out.println("Writing _project.txt");
 		File prjFile = path.resolve("_project.txt").toFile();
@@ -165,7 +165,7 @@ public class ASMWriter {
 	public void writeMerged(CHLFile chl, File file) throws IOException, CompileException {
 		List<Const> constants = chl.getDataSection().analyze();
 		Map<Integer, Const> constMap = mapConstants(constants);
-		Map<Integer, Label> labels = getLabels(chl.getCode().getItems());
+		Map<Integer, Label> labels = getLabels(chl);
 		try (FileWriter str = new FileWriter(file);) {
 			writeHeader(chl, str);
 			writeData(chl, str, constants);
@@ -175,29 +175,41 @@ public class ASMWriter {
 		}
 	}
 	
-	private Map<Integer, Label> getLabels(List<Instruction> instructions) {
+	private Map<Integer, Label> getLabels(CHLFile chl) {
 		Map<Integer, Label> labels = new HashMap<>();
-		int index = 0;
-		for (Instruction instr : instructions) {
-			if (instr.opcode.isIP) {
-				Label label = labels.get(instr.intVal);
-				if (label == null) {
-					String pfx = "lbl";
-					if (instr.opcode == OPCode.EXCEPT) {
-						pfx = "exception_handler";
-					} else {
-						if (instr.isForward()) {
-							pfx = "skip";	//for: if, elsif, while
+		List<Script> scripts = chl.getScriptsSection().getItems();
+		List<Instruction> instructions = chl.getCode().getItems();
+		for (Script script : scripts) {
+			int labelCount = 0;
+			String scriptName = script.getName();
+			int ip = script.getInstructionAddress();
+			ListIterator<Instruction> it = instructions.listIterator(ip);
+			while (it.hasNext()) {
+				Instruction instr = it.next();
+				if (instr.opcode.isIP) {
+					Label label = labels.get(instr.intVal);
+					if (label == null) {
+						String pfx = "lbl";
+						if (instr.opcode == OPCode.EXCEPT) {
+							pfx = "exception_handler";
 						} else {
-							pfx = "loop";	//for: loop, end while
+							if (instr.isForward()) {
+								pfx = "skip";	//for: if, elsif, while
+							} else {
+								pfx = "loop";	//for: loop, end while
+							}
 						}
+						String name = scriptName + "_" + pfx + "_" + labelCount;
+						label = new Label(name, instr.intVal > ip);
+						labels.put(instr.intVal, label);
+						labelCount++;
 					}
-					String name = pfx + "_" + labels.size();
-					label = new Label(name, instr.intVal > index);
-					labels.put(instr.intVal, label);
 				}
+				if (instr.opcode == OPCode.END) {
+					break;
+				}
+				ip++;
 			}
-			index++;
 		}
 		return labels;
 	}

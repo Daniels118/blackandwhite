@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.lang.ASMCompiler;
 import it.ld.bw.chl.lang.ASMWriter;
 import it.ld.bw.chl.lang.CHLCompiler;
@@ -129,17 +130,35 @@ public class Main {
 			project.sources = cmd.getArgFiles("-i");
 			project.cHeaders = cmd.getArgFiles("-h");
 			project.infoFiles = cmd.getArgFiles("-ih");
+			project.sourcePath = project.sources.get(0).getParentFile().toPath();
 			if (project.sources.isEmpty()) throw new Exception("Please specify either -i or -p");
 		} else {
 			if (cmd.getArgFlag("-i")) throw new Exception("Please specify either -i or -p");
 			project = Project.load(prj);
 		}
 		File out = mandatory(cmd.getArgFile("-o"), "-p");
+		File outAsm = cmd.getArgFile("-oasm");
 		//
-		CHLFile chl = compiler.compile(project);
-		System.out.println("Writing compiled CHL...");
-		chl.write(out);
-		System.out.println("Done.");
+		try {
+			CHLFile chl = compiler.compile(project);
+			System.out.println("Writing compiled CHL...");
+			chl.write(out);
+			if (outAsm != null) {
+				System.out.println("Writing ASM sources...");
+				ASMWriter writer = new ASMWriter();
+				writer.setPrintSourceLinenoEnabled(true);
+				if (project.sourcePath != null) {
+					writer.setSourcePath(project.sourcePath);
+					writer.setPrintSourceLineEnabled(true);
+					writer.setPrintSourceCommentsEnabled(true);
+				}
+				writer.writeMerged(chl, outAsm);
+			}
+			System.out.println("Done.");
+		} catch (ParseException e) {
+			ParseException root = getCause(e);
+			root.printStackTrace();
+		}
 	}
 	
 	private static void chlinfo(CmdLine cmd) throws Exception {
@@ -219,5 +238,15 @@ public class Main {
 	private static <T> T mandatory(T value, String name) {
 		if (value == null) throw new RuntimeException(name + " is mandatory");
 		return value;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> T getCause(T e) {
+		Throwable cause = e.getCause();
+		while (cause != null && cause != e && cause.getClass().isAssignableFrom(e.getClass())) {
+			e = (T)e.getCause();
+			cause = e.getCause();
+		}
+		return e;
 	}
 }

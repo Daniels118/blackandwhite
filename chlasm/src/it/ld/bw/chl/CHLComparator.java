@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
+import it.ld.bw.chl.exceptions.InvalidVariableIdException;
 import it.ld.bw.chl.exceptions.ScriptNotFoundException;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection.Const;
@@ -110,11 +111,11 @@ public class CHLComparator {
 					out.println();
 					res = false;
 				} else {
-					/*if (script1.getScriptID() != script2.getScriptID()) {
+					if (script1.getScriptID() != script2.getScriptID()) {
 						out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
 						res = false;
 					}
-					if (script1.getVarOffset() != script2.getVarOffset()) {
+					/*if (script1.getVarOffset() != script2.getVarOffset()) {
 						out.println("Script "+name+" varOffset: "+script1.getVarOffset()+" -> "+script2.getVarOffset());
 						res = false;
 					}*/
@@ -166,9 +167,21 @@ public class CHLComparator {
 									eq = false;
 								}
 							} else if (instr1.isReference()) {
-								String name1 = script1.getVar(a, instr1.intVal);
-								String name2 = script2.getVar(b, instr2.intVal);
-								if (!name1.equals(name2)) {
+								try {
+									String name1 = script1.getVar(a, instr1.intVal);
+									try {
+										String name2 = script2.getVar(b, instr2.intVal);
+										if (!name1.equals(name2)) {
+											eq = false;
+										}
+									} catch (InvalidVariableIdException e) {
+										System.err.println("Invalid variable in "+script2.getSourceFilename()+":"+instr2.lineNumber);
+										e.printStackTrace();
+										eq = false;
+									}
+								} catch (InvalidVariableIdException e) {
+									System.err.println("Invalid variable in "+script1.getSourceFilename()+":"+instr1.lineNumber);
+									e.printStackTrace();
 									eq = false;
 								}
 							} else {

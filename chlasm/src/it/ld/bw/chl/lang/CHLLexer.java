@@ -306,7 +306,9 @@ public class CHLLexer {
 				col++;
 			}
 		}
-		if (status != Status.DEFAULT) {
+		if (status == Status.BLANK || status == Status.COMMENT) {
+			add(tokens, token.setValue(buffer.toString()));
+		} else if (status != Status.DEFAULT) {
 			throw new ParseException("Unexpected end of file", file, line, col);
 		}
 		return tokens;

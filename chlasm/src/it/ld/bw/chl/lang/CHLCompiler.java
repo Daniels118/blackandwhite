@@ -46,6 +46,8 @@ public class CHLCompiler implements Compiler {
 	private static final String DEFAULT_SOUNDBANK_NAME = "AUDIO_SFX_BANK_TYPE_IN_GAME";
 	private static final String DEFAULT_SUBTYPE_NAME = "SCRIPT_FIND_TYPE_ANY";
 	
+	private static final Object SKIP = new Object();
+	
 	private File file;
 	private String sourceFilename;
 	private LinkedList<SymbolInstance> symbols;
@@ -69,6 +71,7 @@ public class CHLCompiler implements Compiler {
 	private LinkedHashMap<String, Integer> localVars = new LinkedHashMap<>();
 	private Map<String, Integer> localConst = new HashMap<>();
 	private LinkedHashMap<String, Integer> globalVars = new LinkedHashMap<>();
+	private Map<String, Script> scriptDefinitions = new HashMap<>();
 	private LinkedHashMap<String, ScriptToResolve> autoruns = new LinkedHashMap<>();
 	private List<ScriptToResolve> calls = new LinkedList<>();
 	private String challengeName;
@@ -169,6 +172,9 @@ public class CHLCompiler implements Compiler {
 						throw new ParseException("Script not found: "+call.name, call.file, call.line, 1);
 					}
 				} else {
+					if (script.getParameterCount() != call.argc) {
+						throw new ParseException("Parameters count doesn't match script declaration", call.file, call.line, 1);
+					}
 					call.instr.intVal = script.getScriptID();
 				}
 			}
@@ -220,6 +226,9 @@ public class CHLCompiler implements Compiler {
 					prevType = token.type;
 				}
 			}
+		}
+		if (prevType != TokenType.EOL) {
+			symbols.add(new SymbolInstance(Syntax.getSymbol("EOL"), new Token(0, 0, TokenType.EOL)));
 		}
 		symbols.add(SymbolInstance.EOF);
 	}
@@ -275,6 +284,7 @@ public class CHLCompiler implements Compiler {
 			throw new IllegalStateException("CHL file already sealed");
 		}
 		convertToNodes(tokens);
+		challengeName = null;
 		challengeId = null;
 		highestGlobal = 0;
 		line = 0;
@@ -319,7 +329,7 @@ public class CHLCompiler implements Compiler {
 		for (int i = startIp; i < instructions.size(); i++) {
 			Instruction instr = instructions.get(i);
 			if (instr.isReference() && instr.intVal < 0) {
-				instr.intVal = highestGlobal + 1 - instr.intVal;
+				instr.intVal = highestGlobal - instr.intVal;
 			}
 		}
 		return replace(start, "FILE");
@@ -343,7 +353,7 @@ public class CHLCompiler implements Compiler {
 		final int start = it.nextIndex();
 		SymbolInstance symbol = parse("challenge IDENTIFIER EOL")[1];
 		challengeName = symbol.token.value;
-		challengeId = getConstant(symbol);
+		challengeId = getConstant("CHALLENGE_" + challengeName);
 		if (challengeId == -1) {
 			out.println("NOTICE: challenge id "+challengeName+" is dummy, snapshot and highlight statements "
 					+ "won't be available. At "+file.getName()+":"+line+":"+col);
@@ -356,6 +366,8 @@ public class CHLCompiler implements Compiler {
 		if (varId == null) {
 			varId = globalVars.size() + 1;	//Global variables are indexed starting from 1
 			globalVars.put(name, varId);
+		} else {
+			out.println("NOTICE: redeclaration of global var "+name+" at "+file.getName()+":"+line+":"+col);
 		}
 		highestGlobal = Math.max(highestGlobal, varId);
 	}
@@ -385,13 +397,13 @@ public class CHLCompiler implements Compiler {
 			//global IDENTIFIER
 			accept(TokenType.IDENTIFIER);
 			String name = symbol.token.value;
-			symbol = peek();
+			symbol = peek(false);
 			if (symbol.is("=")) {
 				out.println("WARNING: global variable initialization is not supported, it will be ignored. "
 						+ "At "+file.getName()+":"+line+":"+col);
-				symbol = next();
+				symbol = next(false);
 				while (!symbol.is(TokenType.EOL)) {
-					symbol = next();
+					symbol = next(false);
 				}
 			} else {
 				accept(TokenType.EOL);
@@ -401,16 +413,36 @@ public class CHLCompiler implements Compiler {
 		}
 	}
 	
+	private void define(ScriptType type, String name, int parameterCount) {
+		Script def = scriptDefinitions.get(name);
+		if (def != null) {
+			if (def.getScriptType() != type || !def.getName().equals(name) || def.getParameterCount() != parameterCount) {
+				throw new ParseError("Redefinition of script "+name, file, line, col);
+			}
+		} else {
+			def = new Script();
+			def.setScriptType(type);
+			def.setName(name);
+			def.setParameterCount(parameterCount);
+			scriptDefinitions.put(name, def);
+		}
+	}
+	
 	private SymbolInstance parseDefine() throws ParseException {
 		final int start = it.nextIndex();
 		accept("define");
 		SymbolInstance symbol = parseScriptType();
+		ScriptType type = ScriptType.fromKeyword(symbol.toString());
 		symbol = accept(TokenType.IDENTIFIER);
+		String name = symbol.token.value;
 		symbol = peek();
+		int argc = 0;
 		if (symbol.is("(")) {
-			parseArguments();
+			argc = parseArguments();
 		}
 		accept(TokenType.EOL);
+		//define SCRIPT_TYPE IDENTIFIER[([ARGS])] EOL
+		define(type, name, argc);
 		return replace(start, "DEFINE");
 	}
 	
@@ -419,7 +451,7 @@ public class CHLCompiler implements Compiler {
 		//run script IDENTIFIER
 		SymbolInstance symbol = parse("run script IDENTIFIER EOL")[2];
 		String name = symbol.token.value;
-		ScriptToResolve toResolve = new ScriptToResolve(file, line, -1, null, name);
+		ScriptToResolve toResolve = new ScriptToResolve(file, line, -1, null, name, 0);
 		if (autoruns.put(name, toResolve) != null) {
 			throw new ParseException("Duplicate autorun definition: "+name, file, symbol.token.line, symbol.token.col);
 		}
@@ -447,8 +479,8 @@ public class CHLCompiler implements Compiler {
 			if (symbol.is("(")) {
 				argc = parseArguments();
 			}
-			accept(TokenType.EOL);
 			script.setParameterCount(argc);
+			define(scriptType, name, argc);
 			//Start the exception handler and load parameter values from the stack
 			Instruction except_lblExceptionHandler = except();
 			Iterator<String> lvars = localVars.keySet().iterator();
@@ -461,8 +493,7 @@ public class CHLCompiler implements Compiler {
 			if (!symbol.is("start")) {
 				parseLocals();
 			}
-			accept("start");
-			accept(TokenType.EOL);
+			parse("start EOL");
 			free();
 			script.getVariables().addAll(localVars.keySet());
 			chl.getScriptsSection().getItems().add(script);
@@ -585,7 +616,7 @@ public class CHLCompiler implements Compiler {
 		if (localVars.containsKey(name)) {
 			throw new ParseException("Duplicate local variable: "+name, file, line, col);
 		}
-		int varId = -localVars.size();	//the real id will be calculated later
+		int varId = -1 - localVars.size();	//the real id will be calculated later
 		localVars.put(name, varId);
 	}
 	
@@ -871,8 +902,9 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "STATEMENT");
 				} else {
 					//move camera to CONSTANT time EXPRESSION
-					symbol = acceptAny(TokenType.NUMBER, TokenType.IDENTIFIER);
-					int constVal = getConstant(symbol);
+					symbol = accept(TokenType.IDENTIFIER);
+					String camEnum = challengeName + symbol.token.value;
+					int constVal = getConstant(camEnum);
 					pushi(constVal);
 					sys(CONVERT_CAMERA_FOCUS);
 					pushi(constVal);
@@ -1094,10 +1126,11 @@ public class CHLCompiler implements Compiler {
 					//return replace(start, "STATEMENT");
 				} else {
 					//set camera to CONSTANT
-					symbol = parse("CONSTANT EOL")[0];
-					int val = getConstant(symbol);
+					symbol = parse("IDENTIFIER EOL")[0];
+					String camEnum = challengeName + symbol.token.value;
+					int constVal = getConstant(camEnum);
 					sys(CONVERT_CAMERA_FOCUS);
-					pushi(val);
+					pushi(constVal);
 					sys(CONVERT_CAMERA_POSITION);
 					sys(SET_CAMERA_POSITION);
 					sys(SET_CAMERA_FOCUS);
@@ -1170,8 +1203,8 @@ public class CHLCompiler implements Compiler {
 						sys(VORTEX_PARAMETERS);
 						return replace(start, "STATEMENT");
 					} else if (symbol.is("degrees")) {
-						parse("degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION EOL");
-						//set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION speed EXPRESSION
+						parse("degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION fallspeed EXPRESSION EOL");
+						//set OBJECT properties degrees EXPRESSION rainfall EXPRESSION snowfall EXPRESSION overcast EXPRESSION fallspeed EXPRESSION
 						sys(CHANGE_WEATHER_PROPERTIES);
 						return replace(start, "STATEMENT");
 					} else if (symbol.is("time")) {
@@ -1228,8 +1261,12 @@ public class CHLCompiler implements Compiler {
 					sys(SET_TEMPERATURE);
 					return replace(start, "STATEMENT");
 				} else if (symbol.is("forward") || symbol.is("reverse")) {
-					parse("forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION EOL");
 					//set OBJECT forward|reverse walk path CONST_EXPR from EXPRESSION to EXPRESSION
+					symbol = parse("forward|reverse walk path IDENTIFIER")[3];
+					String pathEnum = challengeName + symbol.token.value;
+					int constVal = getConstant(pathEnum);
+					pushi(constVal);
+					parse("from EXPRESSION to EXPRESSION EOL");
 					sys(WALK_PATH);
 					return replace(start, "STATEMENT");
 				} else if (symbol.is("desire")) {
@@ -1241,7 +1278,7 @@ public class CHLCompiler implements Compiler {
 						sys(CREATURE_SET_DESIRE_MAXIMUM);
 						return replace(start, "STATEMENT");
 					} else if (symbol.is("boost")) {
-						parse("boost TOWN_DESIRE_INFO EXPRESSION EOL");
+						parse("boost CONST_EXPR EXPRESSION EOL");
 						//set OBJECT desire boost TOWN_DESIRE_INFO EXPRESSION
 						sys(SET_TOWN_DESIRE_BOOST);
 						return replace(start, "STATEMENT");
@@ -1263,6 +1300,7 @@ public class CHLCompiler implements Compiler {
 				} else if (symbol.is("only")) {
 					parse("only desire CONST_EXPR EOL");
 					//set OBJECT only desire CONST_EXPR
+					pushf(86400);
 					sys(SET_CREATURE_ONLY_DESIRE);
 					return replace(start, "STATEMENT");
 				} else if (symbol.is("disable")) {
@@ -1322,20 +1360,20 @@ public class CHLCompiler implements Compiler {
 					throw new ParseException("Statement not implemented", file, line, col);
 					//return replace(start, "STATEMENT");
 				} else if (symbol.is("player")) {
-					parseExpression(true);
+					parse("player EXPRESSION");
 					symbol = peek();
 					if (symbol.is("relative")) {
 						parse("relative belief EOL");
 						//set OBJECT player EXPRESSION relative belief
 						sys(OBJECT_RELATIVE_BELIEF);
 						return replace(start, "STATEMENT");
-					} else if (symbol.is("")) {
+					} else if (symbol.is("belief")) {
 						parse("belief EXPRESSION EOL");
 						//set OBJECT player EXPRESSION belief EXPRESSION
 						sys(SET_PLAYER_BELIEF);
 						return replace(start, "STATEMENT");
 					} else {
-						throw new ParseException("Expected: start|in", lastParseException, file, symbol.token.line, symbol.token.col);
+						throw new ParseException("Expected: relative|belief", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("building")) {
 					parse("set OBJECT building properties ABODE_NUMBER size EXPRESSION [destroys when placed] EOL");
@@ -1378,16 +1416,14 @@ public class CHLCompiler implements Compiler {
 		accept("delete");
 		SymbolInstance symbol = peek();
 		if (symbol.is("all")) {
-			parse("all weather at COORD_EXPR radius EXPRESSION EOL");
 			//delete all weather at COORD_EXPR radius EXPRESSION
+			parse("all weather at COORD_EXPR radius EXPRESSION EOL");
 			sys(KILL_STORMS_IN_AREA);
 			return replace(start, "STATEMENT");
 		} else {
-			symbol = parse("VARIABLE")[0];
-			String var = symbol.token.value;
-			parseOption("with fade", true);
-			accept(TokenType.EOL);
 			//delete OBJECT [with fade]
+			symbol = parse("VARIABLE [with fade] EOL", 1)[0];
+			String var = symbol.token.value;
 			sys(OBJECT_DELETE);
 			zero(var);
 			return replace(start, "STATEMENT");
@@ -1422,7 +1458,7 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseEnableDisable() throws ParseException {
 		final int start = it.nextIndex();
-		parseEnableDisableKeyword();
+		SymbolInstance action = parseEnableDisableKeyword();
 		SymbolInstance symbol = peek();
 		if (symbol.is("leash")) {
 			accept("leash");
@@ -1573,8 +1609,8 @@ public class CHLCompiler implements Compiler {
 			throw new ParseException("Statement not implemented", file, line, col);
 			//return replace(start, "STATEMENT");
 		} else if (symbol.is("jc")) {
-			parse("jc special on OBJECT EOL");
-			//enable|disable jc special on OBJECT
+			parse("jc special CONST_EXPR on OBJECT EOL");
+			//enable|disable jc special CONST_EXPR on OBJECT
 			sys(THING_JC_SPECIAL);
 			return replace(start, "STATEMENT");
 		} else {
@@ -1625,8 +1661,15 @@ public class CHLCompiler implements Compiler {
 						sys(SET_CREATURE_AUTO_FIGHTING);
 						return replace(start, "STATEMENT");
 					} else if (symbol.is("scale")) {
-						parse("scale EXPRESSION EOL");
-						//enable|disable OBJECT auto scale EXPRESSION
+						accept("scale");
+						if (action.is("enable")) {
+							//enable OBJECT auto scale EXPRESSION
+							parseExpression(true);
+						} else {
+							//disable OBJECT auto scale
+							pushf(0);
+						}
+						accept(TokenType.EOL);
 						sys(CREATURE_AUTOSCALE);
 						return replace(start, "STATEMENT");
 					} else {
@@ -1744,8 +1787,8 @@ public class CHLCompiler implements Compiler {
 				//return replace(start, "STATEMENT");
 			}
 		} else {
-			parse("CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR EOL");
-			//teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR CONST_EXPR
+			parse("CONST_EXPR CONST_EXPR CONST_EXPR EOL");
+			//teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR
 			sys(CREATURE_SET_KNOWS_ACTION);
 			return replace(start, "STATEMENT");
 		}
@@ -1841,7 +1884,7 @@ public class CHLCompiler implements Compiler {
 		accept("attach");
 		SymbolInstance symbol = peek();
 		if (symbol.is("reaction")) {
-			parse("reaction OBJECT ENUM_REACTION EOL");
+			parse("reaction OBJECT CONST_EXPR EOL");
 			//attach reaction OBJECT ENUM_REACTION
 			sys(CREATE_REACTION);
 			return replace(start, "STATEMENT");
@@ -1930,10 +1973,19 @@ public class CHLCompiler implements Compiler {
 			sys(DETACH_SOUND_TAG);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("reaction")) {
-			parse("detach reaction OBJECT EOL");
-			//detach reaction OBJECT
-			sys(REMOVE_REACTION);
-			return replace(start, "STATEMENT");
+			parse("reaction OBJECT");
+			symbol = peek(false);
+			if (symbol.is(TokenType.EOL)) {
+				accept(TokenType.EOL);
+				//detach reaction OBJECT
+				sys(REMOVE_REACTION);
+				return replace(start, "STATEMENT");
+			} else {
+				parse("CONST_EXPR EOL");
+				//detach reaction OBJECT CONST_EXPR
+				sys(REMOVE_REACTION_OF_TYPE);
+				return replace(start, "STATEMENT");
+			}
 		} else if (symbol.is("music")) {
 			parse("music from OBJECT EOL");
 			//detach music from OBJECT
@@ -2125,7 +2177,7 @@ public class CHLCompiler implements Compiler {
 			}
 		} else if (symbol.is("sound")) {
 			parse("stop sound CONST_EXPR");
-			symbol = peek();
+			symbol = peek(false);
 			if (symbol.is(TokenType.EOL)) {
 				pushi(DEFAULT_SOUNDBANK_NAME);
 			} else {
@@ -2174,7 +2226,7 @@ public class CHLCompiler implements Compiler {
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("sound")) {
 			parse("sound CONST_EXPR");
-			symbol = peek();
+			symbol = peek(false);
 			if (symbol.is(TokenType.EOL)) {
 				pushi(DEFAULT_SOUNDBANK_NAME);
 				pushc(0);
@@ -2202,8 +2254,8 @@ public class CHLCompiler implements Compiler {
 			sys(START_MUSIC);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("hand")) {
-			parse("hand demo STRING [with pause] [without hand modify] EOL");
-			//start hand demo STRING [with pause] [without hand modify]
+			parse("hand demo STRING [with pause on trigger] [without hand modify] EOL");
+			//start hand demo STRING [with pause on trigger] [without hand modify]
 			sys(PLAY_HAND_DEMO);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("jc")) {
@@ -2241,7 +2293,7 @@ public class CHLCompiler implements Compiler {
 	private SymbolInstance parsePopulate() throws ParseException {
 		final int start = it.nextIndex();
 		parse("populate OBJECT with EXPRESSION CONST_EXPR");
-		SymbolInstance symbol = peek();
+		SymbolInstance symbol = peek(false);
 		if (symbol.is(TokenType.EOL)) {
 			pushi(DEFAULT_SUBTYPE_NAME);
 		} else {
@@ -2332,12 +2384,13 @@ public class CHLCompiler implements Compiler {
 			SymbolInstance script = parse("script IDENTIFIER")[1];
 			String scriptName = script.token.value;
 			symbol = peek();
+			int argc = 0;
 			if (symbol.is("(")) {
-				parseParameters();
+				argc = parseParameters();
 			}
 			accept(TokenType.EOL);
 			//run script IDENTIFIER[(PARAMETERS)]
-			call(scriptName);
+			call(scriptName, argc);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("map")) {
 			parse("map script line STRING EOL");
@@ -2348,12 +2401,13 @@ public class CHLCompiler implements Compiler {
 			SymbolInstance script = parse("background script IDENTIFIER")[2];
 			String scriptName = script.token.value;
 			symbol = peek();
+			int argc = 0;
 			if (symbol.is("(")) {
-				parseParameters();
+				argc = parseParameters();
 			}
 			accept(TokenType.EOL);
 			//run background script IDENTIFIER[(PARAMETERS)]
-			start(scriptName);
+			start(scriptName, argc);
 			return replace(start, "STATEMENT");
 		} else {
 			parse("CONST_EXPR developer function EOL");
@@ -2404,24 +2458,30 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseState() throws ParseException {
 		final int start = it.nextIndex();
-		//state OBJECT CONST_EXPR position COORD_EXPR float EXPRESSION ulong EXPRESSION, EXPRESSION
-		SymbolInstance symbol = parse("state VARIABLE CONST_EXPR EOL")[1];
+		//state OBJECT CONST_EXPR [position COORD_EXPR] [float EXPRESSION] [ulong EXPRESSION, EXPRESSION]
+		SymbolInstance symbol = parse("state VARIABLE CONST_EXPR")[1];
 		String object = symbol.token.value;
-		accept("position");
-		pushiVar(object);
-		parse("COORD_EXPR EOL");
-		sys(SET_SCRIPT_STATE_POS);
-		accept("float");
-		pushiVar(object);
-		parse("EXPRESSION EOL");
-		sys(SET_SCRIPT_FLOAT);
-		accept("ulong");
-		pushiVar(object);
-		parseExpression(true);
-		casti();
-		parse(", EXPRESSION EOL");
-		casti();
-		sys(SET_SCRIPT_ULONG);
+		if (peek().is("position")) {
+			accept("position");
+			pushiVar(object);
+			parse("COORD_EXPR");
+			sys(SET_SCRIPT_STATE_POS);
+		}
+		if (peek().is("float")) {
+			accept("float");
+			pushiVar(object);
+			parse("EXPRESSION");
+			sys(SET_SCRIPT_FLOAT);
+		}
+		if (peek().is("ulong")) {
+			accept("ulong");
+			pushiVar(object);
+			parseExpression(true);
+			casti();
+			parse(", EXPRESSION EOL");
+			casti();
+			sys(SET_SCRIPT_ULONG);
+		}
 		sys(SET_SCRIPT_STATE);
 		return replace(start, "STATEMENT");
 	}
@@ -2551,14 +2611,15 @@ public class CHLCompiler implements Compiler {
 				} else {
 					pushi(0);
 				}
-				accept(TokenType.EOL);
+				//accept(TokenType.EOL);
 				sys(TEMP_TEXT);
 				return replace(start, "STATEMENT");
 			} else {
 				parseConstExpr(true);
 				if (checkAhead("with number")) {
-					parse("with number EXPRESSION EOL");
 					//say CONST_EXPR with number EXPRESSION
+					parse("with number EXPRESSION EOL");
+					pushi(0);
 					sys(RUN_TEXT_WITH_NUMBER);
 					return replace(start, "STATEMENT");
 				} else {
@@ -2573,7 +2634,7 @@ public class CHLCompiler implements Compiler {
 					} else {
 						pushi(0);
 					}
-					accept(TokenType.EOL);
+					//accept(TokenType.EOL);
 					sys(RUN_TEXT);
 					return replace(start, "STATEMENT");
 				}
@@ -2652,8 +2713,11 @@ public class CHLCompiler implements Compiler {
 			sys(SET_FOCUS_AND_POSITION_FOLLOW);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("path")) {
-			parse("path CONSTANT EOL");
 			//camera path CONSTANT
+			symbol = parse("path IDENTIFIER EOL")[1];
+			String pathEnum = challengeName + symbol.token.value;
+			int constVal = getConstant(pathEnum);
+			pushi(constVal);
 			sys(RUN_CAMERA_PATH);
 			return replace(start, "STATEMENT");
 		} else {
@@ -2673,30 +2737,42 @@ public class CHLCompiler implements Compiler {
 		final int start = it.nextIndex();
 		SymbolInstance symbol = peek(1);
 		if (symbol.is("of")) {
-			//CONSTANT of OBJECT = EXPRESSION
-			SymbolInstance[] symbols = parse("CONSTANT of VARIABLE =");
+			SymbolInstance[] symbols = parse("CONSTANT of VARIABLE");
 			int constant = getConstant(symbols[0]);
 			String var = symbols[2].token.value;
-			if (!optimizeAssignmentEnabled) {
-				pushi(constant);
-				pushf(var);
-				sys2(GET_PROPERTY);
+			pushi(constant);
+			pushf(var);
+			sys2(GET_PROPERTY);
+			//
+			symbol = next();
+			if (symbol.is("=")) {
 				popi();
 			}
 			parse("EXPRESSION EOL");
+			if (symbol.is("=")) {
+				//CONSTANT of OBJECT = EXPRESSION
+			} else if (symbol.is("+=")) {
+				//CONSTANT of OBJECT += EXPRESSION
+				addf();
+			} else if (symbol.is("-=")) {
+				//CONSTANT of OBJECT -= EXPRESSION
+				subf();
+			} else if (symbol.is("*=")) {
+				//CONSTANT of OBJECT *= EXPRESSION
+				mul();
+			} else if (symbol.is("/=")) {
+				//CONSTANT of OBJECT /= EXPRESSION
+				div();
+			} else {
+				throw new ParseException("Expected: =|+=|-=|*=|/=", lastParseException, file, symbol.token.line, symbol.token.col);
+			}
 			sys2(SET_PROPERTY);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("=")) {
 			//IDENTIFIER = EXPRESSION
-			String var;
-			if (optimizeAssignmentEnabled) {
-				symbol = parse("IDENTIFIER =")[0];
-				var = symbol.token.value;
-			} else {
-				symbol = parse("VARIABLE =")[0];
-				var = symbol.token.value;
-				popi();
-			}
+			symbol = parse("VARIABLE =")[0];
+			String var = symbol.token.value;
+			popi();
 			symbol = parseExpression(false);
 			if (symbol == null) {
 				symbol = parseObject(false);
@@ -2705,7 +2781,7 @@ public class CHLCompiler implements Compiler {
 					throw new ParseException("Expected: EXPRESSION|OBJECT", lastParseException, file, symbol.token.line, symbol.token.col);
 				}
 			}
-			accept(TokenType.EOL);
+			//accept(TokenType.EOL);
 			popf(var);
 			return replace(start, "STATEMENT");
 		} else if (symbol.is("+=")) {
@@ -2778,6 +2854,8 @@ public class CHLCompiler implements Compiler {
 		if (symbol.is("else")) {
 			jz_lblNextCond.intVal = getIp();
 			parse("else EOL");
+			pushb(true);			//omg...
+			jz_lblNextCond = jz();
 			parseStatements();
 			int lblEndBlock = getIp();
 			jump_lblEndBlock.intVal = lblEndBlock;
@@ -2835,6 +2913,19 @@ public class CHLCompiler implements Compiler {
 			parse("end loop EOL");
 			jmp_BeginLoop.lineNumber = line;
 			return replace(start, "LOOP");
+		} else if (symbol.is("known")) {
+			accept("known");
+			symbol = peek();
+			if (symbol.is("cinema")) {
+				parse("cinema EOL");
+				parseStatements();
+				parse("end known cinema EOL");
+				return replace(start, "KNOWN_CINEMA");
+			} else if (symbol.is("dialogue")) {
+				throw new ParseException("Statement not implemented", file, line, col);
+			} else {
+				throw new ParseException("Expected: dialogue|cinema", lastParseException, file, symbol.token.line, symbol.token.col);
+			}
 		} else if (symbol.is("cinema")) {
 			//begin cinema STATEMENTS end cinema
 			parse("cinema EOL");
@@ -2869,7 +2960,7 @@ public class CHLCompiler implements Compiler {
 				sys(END_CAMERA_CONTROL);
 				sys(END_DIALOGUE);
 			}
-			return replace(start, "begin cinema");
+			return replace(start, "CINEMA");
 		} else if (symbol.is("camera")) {
 			//begin camera STATEMENTS end camera
 			parse("camera EOL");
@@ -3014,8 +3105,8 @@ public class CHLCompiler implements Compiler {
 			SymbolInstance symbol = peek();
 			if ("EXPRESSION".equals(symbol.symbol.keyword)) {
 				next();
-				symbol = next();
-				if (symbol.is("*")) {
+				SymbolInstance operator = next();
+				if (operator.is("*")) {
 					symbol = parseExpression1();
 					if (symbol == null) {
 						throw new ParseException("Expected: EXPRESSION", lastParseException, file, line, col);
@@ -3023,7 +3114,7 @@ public class CHLCompiler implements Compiler {
 					//EXPRESSION * EXPRESSION
 					mul();
 					return replace(start, "EXPRESSION");
-				} else if (symbol.is("/")) {
+				} else if (operator.is("/")) {
 					symbol = parseExpression1();
 					if (symbol == null) {
 						throw new ParseException("Expected: EXPRESSION", lastParseException, file, line, col);
@@ -3031,7 +3122,7 @@ public class CHLCompiler implements Compiler {
 					//EXPRESSION / EXPRESSION
 					div();
 					return replace(start, "EXPRESSION");
-				} else if (symbol.is("%")) {
+				} else if (operator.is("%")) {
 					symbol = parseExpression1();
 					if (symbol == null) {
 						throw new ParseException("Expected: EXPRESSION", lastParseException, file, line, col);
@@ -3039,15 +3130,27 @@ public class CHLCompiler implements Compiler {
 					//EXPRESSION % EXPRESSION
 					mod();
 					return replace(start, "EXPRESSION");
-				} else if (symbol.is("+")) {
-					parseExpression(true);
-					//EXPRESSION + EXPRESSION
-					addf();
-					return replace(start, "EXPRESSION");
-				} else if (symbol.is("-")) {
-					parseExpression(true);
-					//EXPRESSION - EXPRESSION
-					subf();
+				} else if (operator.is("+") || operator.is("-")) {
+					//parseExpression(true);	<- good, but doesn't match the original compiler behavior
+					//> alternate method
+					symbol = parseExpression1();
+					if (symbol == null) {
+						symbol = peek();
+						throw new ParseException("Expected: EXPRESSION", lastParseException, file, line, col);
+					}
+					symbol = peek();
+					if (symbol.is("*") || symbol.is("/") || symbol.is("%")) {
+						it.previous();
+						parseExpression(true);
+					}
+					//< alternate method
+					if (operator.is("+")) {
+						//EXPRESSION + EXPRESSION
+						addf();
+					} else {
+						//EXPRESSION - EXPRESSION
+						subf();
+					}
 					return replace(start, "EXPRESSION");
 				} else {
 					seek(start);
@@ -3213,6 +3316,7 @@ public class CHLCompiler implements Compiler {
 				} else {
 					final int checkpoint = it.nextIndex();
 					final int checkpointIp = getIp();
+					SymbolInstance checkpointPreserve = peek();
 					symbol = parseObject(false);
 					if (symbol != null) {
 						symbol = peek();
@@ -3301,7 +3405,7 @@ public class CHLCompiler implements Compiler {
 							sys(GET_SACRIFICE_TOTAL);
 							return replace(start, "EXPRESSION");
 						}
-						revert(checkpoint, checkpointIp);
+						revert(checkpoint, checkpointIp, checkpointPreserve);
 					}
 					symbol = parseConstExpr(false);
 					if (symbol != null) {
@@ -3317,12 +3421,12 @@ public class CHLCompiler implements Compiler {
 							sys(GET_EVENTS_PER_SECOND);
 							return replace(start, "EXPRESSION");
 						} else if (symbol.is("total")) {
-							parse("total events|events");
+							parse("total event|events");
 							//get CONSTANT total event|events
 							sys(GET_TOTAL_EVENTS);
 							return replace(start, "EXPRESSION");
 						}
-						revert(checkpoint, checkpointIp);
+						revert(checkpoint, checkpointIp, checkpointPreserve);
 					}
 				}
 			} else if (symbol.is("land")) {
@@ -3467,6 +3571,7 @@ public class CHLCompiler implements Compiler {
 	private SymbolInstance parseCondition1() throws ParseException {
 		final int start = it.nextIndex();
 		final int startIp = getIp();
+		final SymbolInstance startPreserve = peek();
 		try {
 			SymbolInstance symbol = peek();
 			if ("CONDITION".equals(symbol.symbol.keyword)) {
@@ -3475,14 +3580,27 @@ public class CHLCompiler implements Compiler {
 				if (symbol.is("and")) {
 					symbol = parseCondition1();
 					if (symbol == null) {
+						symbol = peek();
 						throw new ParseException("Expected: CONDITION", lastParseException, file, line, col);
 					}
 					//CONDITION and CONDITION
 					and();
 					return replace(start, "CONDITION");
 				} else if (symbol.is("or")) {
-					parseCondition(true);
 					//CONDITION or CONDITION
+					//parseCondition(true);	<- good, but doesn't match the original compiler behavior
+					//> alternate method
+					symbol = parseCondition1();
+					if (symbol == null) {
+						symbol = peek();
+						throw new ParseException("Expected: CONDITION", lastParseException, file, line, col);
+					}
+					symbol = peek();
+					if (symbol.is("and")) {
+						it.previous();
+						parseCondition(true);
+					}
+					//< alternate method
 					or();
 					return replace(start, "CONDITION");
 				} else {
@@ -3531,6 +3649,7 @@ public class CHLCompiler implements Compiler {
 				sys(IS_FIRE_NEAR);
 				return replace(start, "CONDITION");
 			} else if (symbol.is("spell")) {
+				accept("spell");
 				symbol = peek();
 				if (symbol.is("wind")) {
 					parse("wind near COORD_EXPR radius EXPRESSION");
@@ -3545,11 +3664,11 @@ public class CHLCompiler implements Compiler {
 				} else {
 					parse("CONST_EXPR for player EXPRESSION");
 					//spell CONST_EXPR for player EXPRESSION
-					throw new ParseException("Statement not implemented", file, line, col);
-					//return replace(start, "CONDITION");
+					sys(HAS_PLAYER_MAGIC);
+					return replace(start, "CONDITION");
 				}
 			} else if (symbol.is("camera")) {
-				parse("camera");
+				accept("camera");
 				symbol = peek();
 				if (symbol.is("ready")) {
 					accept("ready");
@@ -3677,14 +3796,39 @@ public class CHLCompiler implements Compiler {
 				sys(LAST_MUSIC_LINE);
 				return replace(start, "CONDITION");
 			} else if (symbol.is("not")) {
-				parse("not CONDITION");
 				//not CONDITION
+				accept("not");
+				parseCondition1();	//<- important for precedence
 				not();
 				return replace(start, "CONDITION");
 			} else if (symbol.is("say")) {
 				parse("say sound CONST_EXPR playing");
 				//say sound CONST_EXPR playing
 				sys(SAY_SOUND_EFFECT_PLAYING);
+				return replace(start, "CONDITION");
+			} else if (symbol.is("can")) {
+				parse("can skip");
+				symbol = peek();
+				if (symbol.is("tutorial")) {
+					accept("tutorial");
+					//can skip tutorial
+					sys(CAN_SKIP_TUTORIAL);
+					return replace(start, "CONDITION");
+				} else if (symbol.is("creature")) {
+					parse("creature training");
+					//can skip creature training
+					sys(CAN_SKIP_CREATURE_TRAINING);
+					return replace(start, "CONDITION");
+				}
+			} else if (symbol.is("is")) {
+				parse("is keeping old creature");
+				//is keeping old creature
+				sys(IS_KEEPING_OLD_CREATURE);
+				return replace(start, "CONDITION");
+			} else if (symbol.is("current")) {
+				parse("current profile has creature");
+				//current profile has creature
+				sys(CURRENT_PROFILE_HAS_CREATURE);
 				return replace(start, "CONDITION");
 			} else if (symbol.is("(")) {
 				parse("( CONDITION )");
@@ -3708,7 +3852,7 @@ public class CHLCompiler implements Compiler {
 		} catch (ParseException e) {
 			lastParseException = e;
 		}
-		revert(start, startIp);
+		revert(start, startIp, startPreserve);
 		try {	
 			SymbolInstance symbol = parseObject(false);
 			if (symbol != null) {
@@ -3781,6 +3925,7 @@ public class CHLCompiler implements Compiler {
 					} else if (symbol.is("exists")) {
 						accept("exists");
 						//OBJECT not exists
+						casto();
 						sys(THING_VALID);
 						not();
 						return replace(start, "CONDITION");
@@ -3900,7 +4045,7 @@ public class CHLCompiler implements Compiler {
 		} catch (ParseException e) {
 			lastParseException = e;
 		}
-		revert(start, startIp);
+		revert(start, startIp, startPreserve);
 		try {
 			SymbolInstance symbol = parseCoordExpr(false);
 			if (symbol != null) {
@@ -3921,10 +4066,10 @@ public class CHLCompiler implements Compiler {
 					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 					//return replace(start, "CONDITION");
 				} else if (symbol.is("near")) {
-					//COORD_EXPR near COORD_EXPR radius EXPRESSION
+					//COORD_EXPR near COORD_EXPR [radius EXPRESSION]
 					parse("near COORD_EXPR");
 					sys(GET_DISTANCE);
-					parse("radius EXPRESSION");
+					parse("[radius EXPRESSION]", 1);
 					lt();
 					return replace(start, "CONDITION");
 				} else if (symbol.is("at")) {
@@ -3965,7 +4110,7 @@ public class CHLCompiler implements Compiler {
 		} catch (ParseException e) {
 			lastParseException = e;
 		}
-		revert(start, startIp);
+		revert(start, startIp, startPreserve);
 		try {
 			SymbolInstance symbol = parseExpression(false);
 			if (symbol != null) {
@@ -4010,7 +4155,7 @@ public class CHLCompiler implements Compiler {
 		} catch (ParseException e) {
 			lastParseException = e;
 		}
-		revert(start, startIp);
+		revert(start, startIp, startPreserve);
 		//seek(start);
 		return null;
 	}
@@ -4018,6 +4163,7 @@ public class CHLCompiler implements Compiler {
 	private SymbolInstance parseObject(boolean fail) throws ParseException {
 		final int start = it.nextIndex();
 		final int startIp = getIp();
+		final SymbolInstance startPreserve = peek();
 		SymbolInstance symbol = peek();
 		try {
 			if (symbol.is("get")) {
@@ -4115,6 +4261,8 @@ public class CHLCompiler implements Compiler {
 						//get object held
 						sys(GET_OBJECT_HELD1);
 						return replace(start, "OBJECT");
+					} else {
+						throw new ParseException("Expected: which|held", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("football")) {
 					parse("football pitch in OBJECT");
@@ -4148,6 +4296,7 @@ public class CHLCompiler implements Compiler {
 				} else {
 					final int checkpoint = it.nextIndex();
 					final int checkpointIp = getIp();
+					final SymbolInstance checkpointPreserve = peek();
 					symbol = parseConstExpr(false);
 					if (symbol != null) {
 						symbol = peek();
@@ -4205,7 +4354,7 @@ public class CHLCompiler implements Compiler {
 							sys(CALL_FLYING);
 							return replace(start, "OBJECT");
 						}
-						revert(checkpoint, checkpointIp);
+						revert(checkpoint, checkpointIp, checkpointPreserve);
 					}
 					symbol = parseObject(false);
 					if (symbol != null) {
@@ -4226,7 +4375,7 @@ public class CHLCompiler implements Compiler {
 							sys(GET_OBJECT_FLOCK);
 							return replace(start, "OBJECT");
 						}
-						revert(checkpoint, checkpointIp);
+						revert(checkpoint, checkpointIp, checkpointPreserve);
 					}
 				}
 			} else if (symbol.is("create")) {
@@ -4275,6 +4424,8 @@ public class CHLCompiler implements Compiler {
 						pushi(0);	//0 = no anti
 						sys(INFLUENCE_POSITION);
 						return replace(start, "OBJECT");
+					} else {
+						throw new ParseException("Expected: on|at", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("anti")) {
 					parse("anti influence");
@@ -4293,6 +4444,8 @@ public class CHLCompiler implements Compiler {
 						pushi(1);	//1 = anti
 						sys(INFLUENCE_POSITION);
 						return replace(start, "OBJECT");
+					} else {
+						throw new ParseException("Expected: on|at", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("special")) {
 					parse("special effect CONST_EXPR");
@@ -4302,11 +4455,13 @@ public class CHLCompiler implements Compiler {
 						parse("at COORD_EXPR [time EXPRESSION]", 1.0);
 						sys(SPECIAL_EFFECT_POSITION);
 						return replace(start, "OBJECT");
-					} else if (symbol.is("to")) {
-						//create special effect CONST_EXPR to OBJECT [time EXPRESSION]
-						parse("to OBJECT [time EXPRESSION]", 1.0);
+					} else if (symbol.is("on")) {
+						//create special effect CONST_EXPR on OBJECT [time EXPRESSION]
+						parse("on OBJECT [time EXPRESSION]", 1.0);
 						sys(SPECIAL_EFFECT_OBJECT);
 						return replace(start, "OBJECT");
+					} else {
+						throw new ParseException("Expected: at|on", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else {
 					parseConstExpr(true);
@@ -4341,7 +4496,7 @@ public class CHLCompiler implements Compiler {
 						//marker at CONST_EXPR
 						throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 						//return replace(start, "OBJECT");
-					} else if (fail) {
+					} else {
 						symbol = peek();
 						throw new ParseException("Expected: COORD_EXPR|CONST_EXPR", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
@@ -4359,6 +4514,8 @@ public class CHLCompiler implements Compiler {
 					//reward CONST_EXPR in OBJECT at COORD_EXPR [from sky]
 					sys(CREATE_REWARD_IN_TOWN);
 					return replace(start, "OBJECT");
+				} else {
+					throw new ParseException("Expected: at|in", lastParseException, file, symbol.token.line, symbol.token.col);
 				}
 			} else if (symbol.is("flock")) {
 				parse("flock at COORD_EXPR");
@@ -4383,6 +4540,8 @@ public class CHLCompiler implements Compiler {
 					//cast CONST_EXPR spell at COORD_EXPR from COORD_EXPR radius EXPRESSION time EXPRESSION curl EXPRESSION
 					sys(SPELL_AT_POS);
 					return replace(start, "OBJECT");
+				} else {
+					throw new ParseException("Expected: on|at", lastParseException, file, symbol.token.line, symbol.token.col);
 				}
 			} else if (symbol.is("attach")) {
 				parse("attach OBJECT to OBJECT [as leader]");
@@ -4400,6 +4559,7 @@ public class CHLCompiler implements Compiler {
 				return replace(start, "OBJECT");
 			}
 		} catch (ParseException e) {
+			lastParseException = e;
 			if (fail) throw e;
 		}
 		if (fail) {
@@ -4407,7 +4567,7 @@ public class CHLCompiler implements Compiler {
 			symbol = peek();
 			throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
 		} else {
-			revert(start, startIp);
+			revert(start, startIp, startPreserve);
 			return null;
 		}
 	}
@@ -4561,8 +4721,6 @@ public class CHLCompiler implements Compiler {
 				seek(start);
 				return peek();
 			}
-		} else if (symbol.token.type == TokenType.EOL) {
-			return null;
 		} else if (symbol.is("[")) {
 			accept("[");
 			symbol = parseObject(false);
@@ -4607,8 +4765,11 @@ public class CHLCompiler implements Compiler {
 				sys(GET_CAMERA_FOCUS);
 				return replace(start, "COORD_EXPR");
 			} else {
-				parseConstExpr(true);
 				//camera CONST_EXPR
+				symbol = accept(TokenType.IDENTIFIER);
+				String camEnum = challengeName + symbol.token.value;
+				int constVal = getConstant(camEnum);
+				pushi(constVal);
 				sys(CONVERT_CAMERA_FOCUS);
 				return replace(start, "COORD_EXPR");
 			}
@@ -4670,6 +4831,7 @@ public class CHLCompiler implements Compiler {
 			return replace(start, "COORD_EXPR");
 		} else if (symbol.is("player")) {
 			parse("player EXPRESSION temple");
+			symbol = peek();
 			if (symbol.is("position")) {
 				accept("position");
 				//player EXPRESSION temple position
@@ -4695,6 +4857,7 @@ public class CHLCompiler implements Compiler {
 		} else {
 			final int checkpoint = it.nextIndex();
 			final int checkpointIp = getIp();
+			final SymbolInstance checkpointPreserve = peek();
 			symbol = parseExpression(false);
 			if (symbol != null) {
 				SymbolInstance mode = next();
@@ -4704,43 +4867,11 @@ public class CHLCompiler implements Compiler {
 					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 					//return replace(start, "COORD_EXPR");
 				}
-				revert(checkpoint, checkpointIp);
+				revert(checkpoint, checkpointIp, checkpointPreserve);
 			}
 		}
 		seek(start);
 		return null;
-	}
-	
-	/*private boolean parseOption(String expression) throws ParseException {
-		return parseOption(expression, false);
-	}*/
-	
-	private boolean parseOption(String expression, boolean useInt) throws ParseException {
-		String[] symbols = expression.split(" ");
-		int c = 0;
-		for (String symbol : symbols) {
-			SymbolInstance sInst = next();
-			if (!sInst.is(symbol)) break;
-			c++;
-		}
-		if (c == symbols.length) {
-			if (useInt) {
-				pushi(1);
-			} else {
-				pushb(true);
-			}
-			return true;
-		} else {
-			for (; c >= 0; c--) {
-				it.previous();
-			}
-			if (useInt) {
-				pushi(0);
-			} else {
-				pushb(false);
-			}
-			return false;
-		}
 	}
 	
 	private SymbolInstance parseEnableDisableKeyword() throws ParseException {
@@ -4898,7 +5029,16 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private SymbolInstance next() {
+		return next(true);
+	}
+	
+	private SymbolInstance next(boolean skipEol) {
 		SymbolInstance r = it.next();
+		if (skipEol) {
+			while (r.is(TokenType.EOL)) {
+				r = it.next();
+			}
+		}
 		if (r.token != null) {
 			line = r.token.line;
 			col = r.token.col;
@@ -4907,66 +5047,69 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private boolean checkAhead(String expression) {
+		final int start = it.nextIndex();
 		String[] symbols = expression.split(" ");
 		boolean match = true;
-		int n = 0;
 		for (String symbol : symbols) {
-			SymbolInstance sInst = next();
-			n++;
 			if ("ANY".equals(symbol)) {
-				//NOP
+				next();
 			} else if ("IDENTIFIER".equals(symbol) || "NUMBER".equals(symbol) || "STRING".equals(symbol)) {
+				SymbolInstance sInst = next();
 				TokenType type = TokenType.valueOf(symbol);
 				if (!sInst.is(type)) {
 					match = false;
 					break;
 				}
 			} else if ("CONSTANT".equals(symbol)) {
+				SymbolInstance sInst = next();
 				if (!sInst.is(TokenType.IDENTIFIER) && !sInst.is(TokenType.NUMBER)) {
 					match = false;
 					break;
 				}
-			} else if (sInst.is(symbol)) {
-				//NOP
+			} else if ("EOL".equals(symbol)) {
+				SymbolInstance sInst = next(false);
+				if (!sInst.is(TokenType.EOL)) {
+					match = false;
+					break;
+				}
 			} else {
-				match = false;
-				break;
+				SymbolInstance sInst = next();
+				if (!sInst.is(symbol)) {
+					match = false;
+					break;
+				}
 			}
 		}
-		for (; n > 0; n--) {
+		while (it.nextIndex() > start) {
 			it.previous();
 		}
 		return match;
 	}
 	
 	private SymbolInstance peek() {
-		SymbolInstance r = it.next();
-		if (r.token != null) {
-			line = r.token.line;
-			col = r.token.col;
+		return peek(true);
+	}
+	
+	private SymbolInstance peek(boolean skipEol) {
+		final int start = it.nextIndex();
+		SymbolInstance r = next(skipEol);
+		while (it.nextIndex() > start) {
+			it.previous();
 		}
-		it.previous();
 		return r;
 	}
 	
 	private SymbolInstance peek(int forward) {
+		final int start = it.nextIndex();
+		if (forward < 0) {
+			throw new IllegalArgumentException("Invalid peek offset: "+forward);
+		}
 		for (int i = 0; i < forward; i++) {
-			it.next();
+			next();
 		}
-		for (int i = 0; i > forward; i--) {
+		SymbolInstance r = next();
+		while (it.nextIndex() > start) {
 			it.previous();
-		}
-		SymbolInstance r = it.next();
-		if (r.token != null) {
-			line = r.token.line;
-			col = r.token.col;
-		}
-		it.previous();
-		for (int i = 0; i < forward; i++) {
-			it.previous();
-		}
-		for (int i = 0; i > forward; i--) {
-			it.next();
 		}
 		return r;
 	}
@@ -5033,7 +5176,7 @@ public class CHLCompiler implements Compiler {
 			} else if ("STRING".equals(symbol)) {
 				r[i] = parseString();
 			} else if ("EOL".equals(symbol)) {
-				SymbolInstance sInst = next();
+				SymbolInstance sInst = next(false);
 				if (!sInst.is(TokenType.EOL)) {
 					lastParseException = new ParseException("Unexpected token: "+sInst+". Expected: EOL", lastParseException, file, sInst.token.line, sInst.token.col);
 					throw lastParseException;
@@ -5130,8 +5273,10 @@ public class CHLCompiler implements Compiler {
 						}
 						defaultIndex++;
 					} else if (match) {
-						SymbolInstance sInst = peek();
-						if (sInst.is(expr)) {
+						SymbolInstance sInst = peek(false);
+						if ("EOL".equals(expr) && sInst.is(TokenType.EOL)) {
+							accept(TokenType.EOL);
+						} else if (sInst.is(expr)) {
 							accept(expr);
 						} else if (i > start) {
 							lastParseException = new ParseException("Unexpected token: "+sInst+". Expected: "+expr, file, sInst.token.line, sInst.token.col);
@@ -5143,7 +5288,21 @@ public class CHLCompiler implements Compiler {
 				}
 				i--;
 				if (flag) {
-					pushb(match);
+					if (defaultIndex < defaults.length) {
+						Object def = defaults[defaultIndex];
+						if (def instanceof Boolean) {
+							boolean bDef = (Boolean)def;
+							pushb(match ? bDef : !bDef);
+						} else if (def instanceof Integer) {
+							int iDef = (Integer)def;
+							pushi(match ? iDef : (1 - iDef));
+						} else if (def != SKIP) {
+							throw new IllegalArgumentException("Invalid default: "+def.getClass());
+						}
+						defaultIndex++;
+					} else {
+						pushb(match);
+					}
 				}
 			} else {
 				SymbolInstance sInst = next();
@@ -5196,7 +5355,7 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private SymbolInstance accept(TokenType type) throws ParseException {
-		SymbolInstance symbol = next();
+		SymbolInstance symbol = next(type != TokenType.EOL);
 		if (symbol.token.type != type) {
 			throw new ParseException("Expected: "+type, file, symbol.token.line, symbol.token.col);
 		}
@@ -5214,10 +5373,10 @@ public class CHLCompiler implements Compiler {
 		return newInst;
 	}
 	
-	private void revert(final int index, final int instructionAddress) {
+	private void revert(final int index, final int instructionAddress, SymbolInstance preserve) {
 		while (it.nextIndex() > index) {
 			SymbolInstance sInst = it.previous();
-			if (sInst.expression != null) {
+			if (sInst != preserve && sInst.expression != null) {
 				it.remove();
 				for (SymbolInstance sym : sInst.expression) {
 					it.add(sym);
@@ -5564,21 +5723,21 @@ public class CHLCompiler implements Compiler {
 		instructions.add(instruction);
 	}
 	
-	private void call(String scriptname) {
+	private void call(String scriptname, int argc) {
 		final int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("CALL");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname);
+		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname, argc);
 		calls.add(call);
 	}
 	
-	private void start(String scriptname) {
+	private void start(String scriptname, int argc) {
 		final int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("START");
 		instruction.lineNumber = line;
 		instructions.add(instruction);
-		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname);
+		ScriptToResolve call = new ScriptToResolve(file, line, ip, instruction, scriptname, argc);
 		calls.add(call);
 	}
 	
@@ -5644,13 +5803,15 @@ public class CHLCompiler implements Compiler {
 		public final int ip;	//TODO use to compile to intermediate obj file
 		public final Instruction instr;
 		public final String name;
+		public final int argc;
 		
-		public ScriptToResolve(File file, int line, int ip, Instruction instr, String name) {
+		public ScriptToResolve(File file, int line, int ip, Instruction instr, String name, int argc) {
 			this.file = file;
 			this.line = line;
 			this.ip = ip;
 			this.instr = instr;
 			this.name = name;
+			this.argc = argc;
 		}
 	}
 }

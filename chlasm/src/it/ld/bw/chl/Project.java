@@ -27,15 +27,16 @@ import java.util.List;
 import it.ld.bw.chl.exceptions.ParseException;
 
 public class Project {
+	public Path sourcePath;
 	public List<File> sources = new LinkedList<>();
 	public List<File> cHeaders = new LinkedList<>();
 	public List<File> infoFiles = new LinkedList<>();
 	
 	public static Project load(File projectFile) throws ParseException, FileNotFoundException, IOException {
-		Project res = new Project();
+		Project project = new Project();
 		int lineno = 0;
 		Path prjPath = projectFile.getParentFile().toPath();
-		Path sourcePath = prjPath;
+		project.sourcePath = prjPath;
 		Path headersPath = prjPath;
 		Path infoPath = prjPath;
 		try (BufferedReader str = new BufferedReader(new FileReader(projectFile));) {
@@ -51,16 +52,16 @@ public class Project {
 					String type = parts[0];
 					String sFile = parts[1];
 					if ("source".equals(type)) {
-						File file = sourcePath.resolve(sFile).toFile();
-						res.sources.add(file);
+						File file = project.sourcePath.resolve(sFile).toFile();
+						project.sources.add(file);
 					} else if ("header".equals(type)) {
 						File file = headersPath.resolve(sFile).toFile();
-						res.cHeaders.add(file);
+						project.cHeaders.add(file);
 					} else if ("info".equals(type)) {
 						File file = infoPath.resolve(sFile).toFile();
-						res.infoFiles.add(file);
+						project.infoFiles.add(file);
 					} else if ("source_path".equals(type)) {
-						sourcePath = prjPath.resolve(sFile);
+						project.sourcePath = prjPath.resolve(sFile);
 					} else if ("headers_path".equals(type)) {
 						headersPath = prjPath.resolve(sFile);
 					} else if ("info_path".equals(type)) {
@@ -72,6 +73,6 @@ public class Project {
 				line = str.readLine();
 			}
 		}
-		return res;
+		return project;
 	}
 }
