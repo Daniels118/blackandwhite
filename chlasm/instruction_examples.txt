@@ -162,7 +162,7 @@ set Brother anim ANM_P_WALK_INJURED
 	SYS OVERRIDE_STATE_ANIMATION	//[2, 0] (Object obj, DETAIL_ANIM_TYPES animType)
 ___________________________________________
 
-3.1.8 delete OBJECT [with fade]
+3.1.8 delete OBJECT [with fade|with explosion|with temple explode]
 
 This deletes an object from the game. If you wish something to die before being deleted you should set
 it's health to 0.0. NB. Deleting an object which is a container will dispand the members of the container,
@@ -171,7 +171,7 @@ not delete them.
 delete Highlight
 
 	PUSHF [Highlight]	//object
-	PUSHI 0				//0=without fade
+	PUSHI 0				//
 	SYS OBJECT_DELETE	//[2, 0] (Object obj, int withFade)
 	ZERO [Highlight]
 
@@ -488,7 +488,7 @@ disable MyCreature anim time modify
 	SYS SET_ANIMATION_MODIFY	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
-3.2.12 set OBJECT all desire CONST_EXPR
+3.2.12 set OBJECT all desires CONST_EXPR
 
 Enable/Disable all the desires.
 
@@ -552,11 +552,14 @@ teach Guide MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
 	SYS CREATURE_SET_KNOWS_ACTION	//[4, 0] (Object creature, CREATURE_ACTION_TYPE typeOfAction, CREATURE_ACTION_SUBTYPE action, SCRIPT_BOOL knows)
 ___________________________________________
 
-3.2.17 teach OBJECT all
+3.2.17 teach OBJECT everything
 
 Teaches the creature every lesson.
 
-Never found
+teach NewCreature everything		//#thebigfight.txt:219
+
+	PUSHF [NewCreature]
+	SYS CREATURE_LEARN_EVERYTHING	//[1, 0] (Object creature)
 ___________________________________________
 
 3.2.18 teach OBJECT all excluding CONST_EXPR
@@ -822,7 +825,7 @@ disable Guide auto scale		//#CreatureGuide.txt:1182
 	SYS CREATURE_AUTOSCALE	//[3, 0] (bool enable, Object creature, float size)
 ___________________________________________
 
-3.3.1 set computer player EXPRESSION position to COORD_EXPR
+3.3.1 set computer player EXPRESSION position to COORD_EXPR [with fixed height]
 
 Sets the computer player position. Once the computer player gets to the position he will be paused until
 you enable the computer player in the script.
@@ -836,8 +839,8 @@ set computer player 2 position to [2508.825, 105.190, 1772.476]
 	CASTC								//
 	PUSHF 1772.476						//z
 	CASTC								//
-	PUSHB false							//alwaysFalse
-	SYS SET_COMPUTER_PLAYER_POSITION	//[5, 0] (float player, Coord position, bool alwaysFalse)
+	PUSHB false							//with fixed height
+	SYS SET_COMPUTER_PLAYER_POSITION	//[5, 0] (float player, Coord position, bool withFixedHeight)
 ___________________________________________
 
 3.3.2 move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height]
@@ -1465,7 +1468,7 @@ stop scripts in files "CreatureGuide.txt"
 	SYS STOP_SCRIPTS_IN_FILES	//[1, 0] (StrPtr sourceFilename)
 ___________________________________________
 
-3.8.26 stop scripts in file STRING excluding STRING
+3.8.26 stop scripts in files STRING excluding STRING
 
 Stops all the scripts in the file list passed excluding the list passed.
 
@@ -1629,7 +1632,7 @@ Sets the towns belief scaled by the number passed.
 Never found (SET_OBJECT_BELIEF_SCALE)
 ___________________________________________
 
-3.8.43 set OBJECT player EXPRESSION relative belief
+3.8.43 set OBJECT player EXPRESSION relative belief EXPRESSION
 
 Sets the towns relative belief to the highest belief in a player.
 
@@ -1738,7 +1741,7 @@ enable highlight draw		//#CitadelGuide.txt:150
 	SYS SET_DRAW_HIGHLIGHT	//[1, 0] (bool enable)
 ___________________________________________
 
-3.8.53 enable|disable spell constant in OBJECT
+3.8.53 enable|disable spell CONST_EXPR in OBJECT
 
 Sets the magic available within a town.
 
@@ -1831,7 +1834,7 @@ ___________________________________________
 
 ?
 
-attach 3d sound tag constant BlokeSample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to Bloke		//#throwthroughshield.txt:69
+attach [3d] sound tag constant BlokeSample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to Bloke		//#throwthroughshield.txt:69
 
 	PUSHB true				//threeD
 	PUSHF [BlokeSample]		//sound
@@ -2399,15 +2402,15 @@ end dialogue		//#StandardReminder.txt:16
 	SYS END_DIALOGUE	//[0, 0] ()
 ___________________________________________
 
-3.15.7 begin known dialogue STATEMENTS end dialogue
+3.15.7 begin known dialogue STATEMENTS end known dialogue
 
 Occasionally you need to be able to be in a function which is already in Dialogue control from the
 calling function. Using this block means you can use the dialogue control you already have.
 
-Never found. I guess this is just a construct to suppress in-block-checks at compile time.
+No code. I guess this is just a construct to suppress in-block-checks at compile time.
 ___________________________________________
 
-3.15.8 begin known cinema STATEMENTS end dialogue
+3.15.8 begin known cinema STATEMENTS end known dialogue
 
 Occasionally you need to be able to be in a function which is already in Dialogue control from the
 calling function Using this block means you can use the cinema control you already have.
@@ -2432,7 +2435,7 @@ ___________________________________________
 
 3.15.10 begin dual camera to OBJECT OBJECT
 
-I guess this was for "known" version of the block.
+Never found. I guess this is an error (begin without end).
 ___________________________________________
 
 3.16.1.1 make HELP_SPIRIT_TYPE spirit point to OBJECT [in world]
@@ -2584,7 +2587,7 @@ send good spirit home		//#CreatureDevelopment.txt:1747
 	SYS SPIRIT_HOME	//[1, 0] (HELP_SPIRIT_TYPE spirit)
 ___________________________________________
 
-3.16.2.1 say [single line] STRING [with interaction]
+3.16.2.1 say [single line] STRING [with interaction|without interaction]
 
 When developing a script it is useful to have a text out function to debug or put in temp text until
 the script has been scripted.
@@ -2606,7 +2609,7 @@ $d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 Never found (TEMP_TEXT_WITH_NUMBER)
 ___________________________________________
 
-3.16.2.3 say [single line] CONST_EXPR [with interaction]
+3.16.2.3 say [single line] CONST_EXPR [with interaction|without interaction]
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 
@@ -2708,7 +2711,7 @@ fade all draw text time 1 seconds							//#GameOver.txt:9
 	SYS FADE_ALL_DRAW_TEXT	//[1, 0] (float time)
 ___________________________________________
 
-3.17.5 set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION
+3.17.5 set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION time EXPRESSION
 
 This sets the window on screen that the game engine will display in.
 
@@ -3638,7 +3641,7 @@ Woman not viewed
 	NOT
 ___________________________________________
 
-6.43 COORD_EXPR not near COORD_EXPR radius EXPRESSION
+6.43 COORD_EXPR not near COORD_EXPR [radius EXPRESSION]
 
 No doc.
 
@@ -3649,7 +3652,7 @@ No doc.
 	PUSHF [OldPositionCreature]
 	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
 	SYS GET_DISTANCE	//[6, 1] (Coord p0, Coord p1) returns (float)
-	PUSHF 1.0
+	PUSHF 1.0			//radius (default: 1)
 	LT					//* why not replace with GEQ ?
 	NOT					//*
 
@@ -3858,7 +3861,7 @@ Never found
 	SYS IS_AUTO_FIGHTING	//[1, 1] (Object creature) returns (bool)
 ___________________________________________
 
-6.62 OBJECT male
+6.62 OBJECT is male
 
 Checks the sex of an object for if it's male.
 
@@ -4071,21 +4074,7 @@ say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_01 playing //Check previous line is 
 	SYS SAY_SOUND_EFFECT_PLAYING	//[2, 1] (bool alwaysFalse, int sound) returns (bool)
 ___________________________________________
 
-6.74 camera position near COORD_EXPR radius EXPRESSION
-
-?
-
-camera position near [Leader] radius 10		//#piedpiper.txt:49
-
-	SYS GET_CAMERA_POSITION	//[0, 3] () returns (Coord)
-	PUSHF [Leader]
-	SYS GET_POSITION		//[1, 3] (Object object) returns (Coord)
-	SYS GET_DISTANCE		//[6, 1] (Coord p0, Coord p1) returns (float)
-	PUSHF 10.0
-	LT
-___________________________________________
-
-6.75 can skip tutorial
+6.74 can skip tutorial
 
 ?
 
@@ -4094,7 +4083,7 @@ can skip tutorial		//#setupland1.txt:73
 	SYS CAN_SKIP_TUTORIAL	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.76 can skip creature training
+6.75 can skip creature training
 
 ?
 
@@ -4103,7 +4092,7 @@ can skip creature training		//#setupland1.txt:79
 	SYS CAN_SKIP_CREATURE_TRAINING	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.77 is keeping old creature
+6.76 is keeping old creature
 
 ?
 
@@ -4112,7 +4101,7 @@ is keeping old creature		//#setupland1.txt:85
 	SYS IS_KEEPING_OLD_CREATURE	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.78 current profile has creature
+6.77 current profile has creature
 
 ?
 
@@ -4135,7 +4124,7 @@ remove resource FOOD RemoveAmount from GranaryStorage		//#CreatureDevelopment.tx
 	POPF
 ___________________________________________
 
-8 add resource CONST_EXPR EXPRESSION from OBJECT
+8 add resource CONST_EXPR EXPRESSION to OBJECT
 
 Adds an amount of resource to an object, and returns the amount added. If the amount asked for is greater
 than the storage space left then the remaining space only will be filled.
@@ -4537,21 +4526,21 @@ WelcomeDance = make DanceDependant dance DANCE_INFO_NEW_DANCE_AROUND_PERSON arou
 	POPF WelcomeDance
 ___________________________________________
 
-9.27 create influence on OBJECT radius EXPRESSION
+9.27 create influence on OBJECT [radius EXPRESSION]
 
 No doc.
 
 QuarryInfluence = create influence on QuarryPos radius 30		//#setupland1.txt:101
 
 	PUSHF [QuarryPos]		//target
-	PUSHF 30.0				//radius
+	PUSHF 30.0				//radius (default: 1)
 	PUSHI 0					//zero
 	PUSHI 0					//anti (1=anti, 0=normal)
 	SYS INFLUENCE_OBJECT	//[4, 1] (Object target, float radius, int zero, int anti) returns (Object)
 	POPF QuarryInfluence
 ___________________________________________
 
-9.28 create influence at COORD_EXPR radius EXPRESSION
+9.28 create influence at COORD_EXPR [radius EXPRESSION]
 
 Creates an influence at a position.
 
@@ -4563,28 +4552,28 @@ Influence = create influence at [2185.616, 94.651, 2409.528] radius 1000		//#Lan
 	CASTC
 	PUSHF 2409.5281
 	CASTC
-	PUSHF 1000.0			//radius
+	PUSHF 1000.0			//radius (default: 1)
 	PUSHI 0
 	PUSHI 0					//anti (1=anti, zero=normal)
 	SYS INFLUENCE_POSITION	//[6, 1] (Coord position, float radius, int zero, int anti) returns (Object)
 	POPF Influence
 ___________________________________________
 
-9.29 create anti influence on OBJECT radius EXPRESSION
+9.29 create anti influence on OBJECT [radius EXPRESSION]
 
 No doc.
 
 CreedInfluence = create anti influence on CreedL4 radius 30		//#land4meteorites.txt:2342
 
 	PUSHF [CreedL4]			//OBJECT
-	PUSHF 30.0				//radius
+	PUSHF 30.0				//radius (default: 1)
 	PUSHI 0
 	PUSHI 1					//anti (1=anti, zero=normal)
 	SYS INFLUENCE_OBJECT	//[4, 1] (Object target, float radius, int zero, int anti) returns (Object)
 	POPF CreedInfluence
 ___________________________________________
 
-9.30 create anti influence at position COORD_EXPR radius EXPRESSION
+9.30 create anti influence at position COORD_EXPR [radius EXPRESSION]
 
 No doc.
 
@@ -4596,7 +4585,7 @@ RockInfl = create anti influence at position [2042.9100, 14.9250, 2325.1699] rad
 	CASTC
 	PUSHF 2325.1699
 	CASTC
-	PUSHF 20.0				//radius
+	PUSHF 20.0				//radius (default: 1)
 	PUSHI 0
 	PUSHI 1					//anti (1=anti, zero=normal)
 	SYS INFLUENCE_POSITION	//[6, 1] (Coord position, float radius, int zero, int anti) returns (Object)
@@ -4651,7 +4640,7 @@ Never found
 	SYS GET_OBJECT_HAND_IS_OVER	//[0, 1] () returns (Object)
 ___________________________________________
 
-9.36 get OBJECT clicked
+9.36 get object clicked
 
 Gets the object clicked.
 
@@ -4886,6 +4875,21 @@ Slaver=get next in SlaverPosse after Slaver		//#theslavers.txt:629
 	PUSHF [Slaver]				//after
 	SYS GET_NEXT_IN_CONTAINER	//[2, 1] (Object container, Object after) returns (Object)
 	POPF Slaver
+___________________________________________
+
+9.51 get dead at COORD_EXPR radius EXPRESSION
+
+?
+
+DeadThing=get dead at [CreatePos] radius 10		//#SingingStonesSongs.txt:169
+
+	PUSHF [DeadThing]
+	POPI
+	PUSHF [CreatePos]
+	SYS GET_POSITION	//[1, 3] (Object object) returns (Coord)
+	PUSHF 10.0
+	SYS GET_DEAD_LIVING	//[4, 1] (Coord position, float radius) returns (Object)
+	POPF DeadThing
 ___________________________________________
 
 ### 10 Constants
@@ -5312,9 +5316,10 @@ influence at [QuarryPos] == 0		//#protectgatekeys.txt:229
 	SYS GET_INFLUENCE	//[5, 1] (float player, bool raw, Coord position) returns (float)
 ___________________________________________
 
-12.6 get player EXPRESSION influence at COORD_EXPR
+12.6 get player EXPRESSION [raw] influence at COORD_EXPR
 
-You can find out the strength of the given player's influence at a particular position.
+You can find out the strength of the player's influence at a particular position. Influence can be
+'influence' or 'raw influence' the raw version means excluding the player allies influence.
 
 InfluenceP1 = get player 1 raw influence at camera position		//#land2ComputerAI.txt:206
 

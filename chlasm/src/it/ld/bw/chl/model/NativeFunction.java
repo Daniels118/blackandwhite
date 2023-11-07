@@ -359,7 +359,7 @@ public enum NativeFunction {
 /*310*/	MOVE_COMPUTER_PLAYER_POSITION("float player, Coord position, float speed, bool withFixedHeight"),
 /*311*/	ENABLE_DISABLE_COMPUTER_PLAYER1("bool enable, float player"),
 /*312*/	GET_COMPUTER_PLAYER_POSITION("float player", "Coord"),
-/*313*/	SET_COMPUTER_PLAYER_POSITION("float player, Coord position, bool alwaysFalse"),
+/*313*/	SET_COMPUTER_PLAYER_POSITION("float player, Coord position, bool withFixedHeight"),
 /*314*/	GET_STORED_CAMERA_POSITION("", "Coord"),			//Never found
 /*315*/	GET_STORED_CAMERA_FOCUS("", "Coord"),				//Never found
 /*316*/	CALL_NEAR_IN_STATE("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, int state, Coord position, float radius, bool excludingScripted", "Object"),

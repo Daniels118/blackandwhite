@@ -1,7 +1,7 @@
 ### My notes about how exception works ###
 
 Exceptions allow to execute some code whenever a condition meets, even if the script execution is locked in a loop.
-I guess the exception handler is executed on the same thread  of the script every N instructions.
+I guess the exception handler is executed on the same thread of the script every [N] instructions.
 An interesting aspect is that the exception handler code is embedded in the calling script, but it is skipped
 from normal execution by a fixed JMP instruction.
 Another notable thing is that the conditions are just normal test instructions within an infinite loop, so there
@@ -23,31 +23,22 @@ There are 2 types of exception which buildup the handler code: "when" and "until
 The "when" exceptions are similar to "if" statements: they check a condition and execute or skip the subsequent
 user defined statements.
 
-The "until" exceptions let the programmer specify just a condition. The subsequent statements depend only on the
-kind of the containing block. The complete statements are:
+The "until" exception is similar to "when", but if it matches, after the execution of the user defined code,
+instead of continuing the execution, it deactivates the exception handler and breaks the execution of the
+current block (script/while/loop). The implementation is as follow:
 	PUSHB false
 	SYS SET_WIDESCREEN
 	SYS END_GAME_SPEED
 	SYS END_DIALOGUE
 	SYS END_CAMERA_CONTROL
+		//user defined statements (optional)
 	BRKEXCEPT
 	JMP labelAfterITEREXCEPT
 
 They first clear any camera or dialogue sequence, the BRKEXCEPT stops the exception handler, and the JMP breaks
-the execution of the block in the main script (loop, camera, cinema or script). The SYS statements are added only
-when required.
+the execution of the block in the main script (script/while/loop).
 
-Exceptions can be defined at script level, in loops, camera blocks and cinema blocks.
-
-One weird thing is how to understand the end of a "when" block. I guess it ends whenever one of the following is found:
-- another "when" statement
-- a "until" statement
-- the statement that closes the current block
-
-This implies that you cannot insert normal code just after a "when" block, but you can do it after "until" statements.
-So, "when" blocks should appear at the end of the block, while "until" blocks may appear at any point.
-"when" blocks may also appear at any point if they are followed by an "until" statement, but I don't recommend it,
-doing so would produce a mess. Luckily I haven't found such cases in the original scripts.
+Exceptions can be defined at script level and within loops (while/loop), and must be placed after regular code.
 
 
 ## Examples ##
@@ -62,6 +53,7 @@ while Repeat < 100
 	when SomeVar == 3
 		Repeat += 3
 	until SomeVar == 4
+		Repeat += 4
 end while
 
 
@@ -121,6 +113,11 @@ lblUntil1:
 	SYS END_GAME_SPEED
 	SYS END_DIALOGUE
 	SYS END_CAMERA_CONTROL
+		//Repeat += 4
+		PUSHF [Repeat]
+		PUSHF 4.0
+		ADD
+		POPF Repeat
 	BRKEXCEPT
 	JMP lblEndExcept
 lblUntilNotMatched:

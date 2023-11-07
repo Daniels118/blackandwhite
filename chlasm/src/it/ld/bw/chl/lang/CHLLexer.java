@@ -26,6 +26,8 @@ import java.util.List;
 import it.ld.bw.chl.exceptions.ParseException;
 
 public class CHLLexer {
+	private static final char EOF = 0xFFFF;
+	
 	private enum Status {
 		DEFAULT, IDENTIFIER, NUMBER, STRING, COMMENT, BLOCK_COMMENT, BLANK
 	}
@@ -59,7 +61,7 @@ public class CHLLexer {
 		try (PushbackReader str = new PushbackReader(new FileReader(file));) {
 			char c = (char) str.read();
 			col++;
-			while (c != 0xFFFF) {
+			while (true) {
 				switch (status) {
 					case DEFAULT:
 						if (c == '\n') {
@@ -194,6 +196,8 @@ public class CHLLexer {
 							col += tabSize - (col - 1) % tabSize - 1;
 						} else if (c == '\r') {
 							//NOP
+						} else if (c == EOF) {
+							//NOP
 						} else {
 							throw new ParseException("Unexpected '"+String.valueOf(c)+"' character", file, line, col);
 						}
@@ -261,7 +265,7 @@ public class CHLLexer {
 							}
 							buffer.append(c);
 						} else if (Character.isJavaIdentifierPart(c)) {	//This is required to handle keywords starting with numbers such as "3d"
-							token.type = TokenType.IDENTIFIER;
+							token.type = TokenType.KEYWORD;
 							buffer.append(c);
 						} else {
 							str.unread(c);
@@ -302,6 +306,9 @@ public class CHLLexer {
 						}
 						break;
 				}
+				if (c == EOF) {
+					break;
+				}
 				c = (char) str.read();
 				col++;
 			}
@@ -309,7 +316,7 @@ public class CHLLexer {
 		if (status == Status.BLANK || status == Status.COMMENT) {
 			add(tokens, token.setValue(buffer.toString()));
 		} else if (status != Status.DEFAULT) {
-			throw new ParseException("Unexpected end of file", file, line, col);
+			throw new ParseException("Unexpected end of file while parsing "+status, file, line, col);
 		}
 		return tokens;
 	}

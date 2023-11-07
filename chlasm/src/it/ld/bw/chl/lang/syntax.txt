@@ -62,6 +62,7 @@ PARAMETERS: PARAMETER {, PARAMETER}
 
 PARAMETER: {
 	EXPRESSION
+	OBJECT
 	CONST_EXPR
 	CONDITION
 }
@@ -90,7 +91,7 @@ STATEMENT: {
 	CONSTANT of OBJECT = EXPRESSION EOL
 	
 	remove resource CONST_EXPR EXPRESSION from OBJECT EOL
-	add resource CONST_EXPR EXPRESSION from OBJECT EOL
+	add resource CONST_EXPR EXPRESSION to OBJECT EOL
 	
 	move OBJECT position to COORD_EXPR [radius EXPRESSION] EOL
 	set OBJECT position to COORD_EXPR EOL
@@ -99,7 +100,10 @@ STATEMENT: {
 	set OBJECT focus on OBJECT EOL
 	OBJECT play CONST_EXPR loop EXPRESSION EOL
 	set OBJECT anim CONST_EXPR EOL
-	delete OBJECT [with fade] EOL
+	delete OBJECT EOL
+	delete OBJECT with fade EOL
+	delete OBJECT with explosion EOL
+	delete OBJECT with temple explode EOL
 	set OBJECT properties inner EXPRESSION outer EXPRESSION [calm EXPRESSION] EOL
 	set OBJECT text property text CONST_EXPR category CONST_EXPR EOL
 	set OBJECT velocity heading COORD_EXPR speed EXPRESSION EOL
@@ -125,12 +129,12 @@ STATEMENT: {
 	enable|disable OBJECT development script EOL
 	enable|disable OBJECT spell reversion EOL
 	enable|disable OBJECT anim time modify EOL
-	set OBJECT all desire CONST_EXPR EOL
+	set OBJECT all desires CONST_EXPR EOL
 	set OBJECT desire maximum CONST_EXPR to EXPRESSION EOL
 	set OBJECT priority EXPRESSION EOL
 	set player_creature to OBJECT EOL
 	teach OBJECT CONST_EXPR CONST_EXPR CONST_EXPR EOL
-	teach OBJECT all EOL
+	teach OBJECT everything EOL
 	teach OBJECT all excluding CONST_EXPR EOL
 	force OBJECT CONST_EXPR OBJECT [with OBJECT] EOL
 	enable|disable OBJECT friends with OBJECT EOL
@@ -157,7 +161,7 @@ STATEMENT: {
 	set OBJECT name CONST_EXPR EOL
 	enable OBJECT auto scale EXPRESSION EOL
 	disable OBJECT auto scale EOL
-	set computer player EXPRESSION position to COORD_EXPR EOL
+	set computer player EXPRESSION position to COORD_EXPR [with fixed height] EOL
 	move computer player EXPRESSION to COORD_EXPR speed EXPRESSION [with fixed height] EOL
 	enable|disable computer player EXPRESSION EOL
 	pause|unpause computer player EXPRESSION EOL
@@ -212,7 +216,7 @@ STATEMENT: {
 	stop script STRING EOL
 	stop all scripts excluding STRING EOL
 	stop scripts in files STRING EOL
-	stop scripts in file STRING excluding STRING EOL
+	stop scripts in files STRING excluding STRING EOL
 	stop all scripts excluding files STRING EOL
 	clear clicked object EOL
 	clear clicked position EOL
@@ -228,7 +232,7 @@ STATEMENT: {
 	load creature CONST_EXPR STRING player EXPRESSION at COORD_EXPR EOL
 	set EXPRESSION land balance EXPRESSION EOL
 	set OBJECT belief scale EXPRESSION EOL
-	set OBJECT player EXPRESSION relative belief EOL
+	set OBJECT player EXPRESSION relative belief EXPRESSION EOL
 	set OBJECT player EXPRESSION belief EXPRESSION EOL
 	set OBJECT desire boost CONST_EXPR EXPRESSION EOL
 	enable|disable player EXPRESSION virtual influence EOL
@@ -238,7 +242,7 @@ STATEMENT: {
 	enable|disable OBJECT high graphics detail EOL
 	enable|disable leash draw EOL
 	enable|disable highlight draw EOL
-	enable|disable spell constant in OBJECT EOL
+	enable|disable spell CONST_EXPR in OBJECT EOL
 	add OBJECT target at COORD_EXPR EOL
 	add OBJECT target on OBJECT EOL
 	enable|disable intro building EOL
@@ -292,10 +296,9 @@ STATEMENT: {
 	
 	begin camera STATEMENTS EXCEPTIONS end camera EOL
 	begin dialogue STATEMENTS EXCEPTIONS end dialogue EOL
-	begin known dialogue STATEMENTS end dialogue EOL
-	begin known cinema STATEMENTS end dialogue EOL
+	begin known dialogue STATEMENTS end known dialogue EOL
+	begin known cinema STATEMENTS end known cinema EOL
 	begin dual camera to OBJECT OBJECT STATEMENTS end dual camera EOL
-	begin dual camera to OBJECT OBJECT EOL
 	make SPIRIT_TYPE spirit point to OBJECT [in world] EOL
 	make SPIRIT_TYPE spirit point at COORD_EXPR EOL
 	make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION] EOL
@@ -310,9 +313,13 @@ STATEMENT: {
 	make SPIRIT_TYPE spirit appear EOL
 	make SPIRIT_TYPE spirit disappear EOL
 	send SPIRIT_TYPE spirit home EOL
-	say [single line] STRING [with interaction] EOL
+	say [single line] STRING EOL
+	say [single line] STRING with interaction EOL
+	say [single line] STRING without interaction EOL
 	say STRING with number EXPRESSION EOL
-	say [single line] CONST_EXPR [with interaction] EOL
+	say [single line] CONST_EXPR EOL
+	say [single line] CONST_EXPR with interaction EOL
+	say [single line] CONST_EXPR without interaction EOL
 	say CONST_EXPR with number EXPRESSION EOL
 	clear dialogue EOL
 	close dialogue EOL
@@ -320,7 +327,7 @@ STATEMENT: {
 	draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds EOL
 	set draw text colour red EXPRESSION green EXPRESSION blue EXPRESSION EOL
 	fade all draw text time EXPRESSION second|seconds EOL
-	set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION EOL
+	set clipping window across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION time EXPRESSION EOL
 	clear clipping window time EXPRESSION EOL
 	set camera zones to STRING EOL
 	store camera details EOL
@@ -390,7 +397,7 @@ EXCEPTIONS: {EXCEPTION}
 
 EXCEPTION: {
 	when CONDITION EOL STATEMENTS
-	until CONDITION EOL
+	until CONDITION EOL STATEMENTS
 }
 
 ### 5 Variable Assigment
@@ -440,7 +447,7 @@ CONDITION: {
 	OBJECT in OBJECT
 	COORD_EXPR not viewed
 	OBJECT not viewed
-	COORD_EXPR not near COORD_EXPR radius EXPRESSION
+	COORD_EXPR not near COORD_EXPR [radius EXPRESSION]
 	COORD_EXPR not at COORD_EXPR
 	OBJECT not in OBJECT
 	OBJECT in OBJECT hand
@@ -517,10 +524,10 @@ OBJECT: {
 	reward CONST_EXPR in OBJECT at COORD_EXPR [from sky]
 	flock at COORD_EXPR
 	make OBJECT dance CONST_EXPR around COORD_EXPR time EXPRESSION
-	create influence on OBJECT radius EXPRESSION
-	create influence at COORD_EXPR radius EXPRESSION
-	create anti influence on OBJECT radius EXPRESSION
-	create anti influence at position COORD_EXPR radius EXPRESSION
+	create influence on OBJECT [radius EXPRESSION]
+	create influence at COORD_EXPR [radius EXPRESSION]
+	create anti influence on OBJECT [radius EXPRESSION]
+	create anti influence at position COORD_EXPR [radius EXPRESSION]
 	get held by OBJECT
 	get dropped by OBJECT
 	get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
@@ -544,6 +551,7 @@ OBJECT: {
 	get spell icon CONST_EXPR in OBJECT
 	get first in OBJECT
 	get next in OBJECT after OBJECT
+	get dead at COORD_EXPR radius EXPRESSION
 	IDENTIFIER
 }
 
@@ -599,11 +607,11 @@ EXPRESSION: {
 	NUMBER
 	
 	remove resource CONST_EXPR EXPRESSION from OBJECT
-	add resource CONST_EXPR EXPRESSION from OBJECT
+	add resource CONST_EXPR EXPRESSION to OBJECT
 	
 	alignment of player
 	[raw] influence at COORD_EXPR
-	get player EXPRESSION influence at COORD_EXPR
+	get player EXPRESSION [raw] influence at COORD_EXPR
 	get player EXPRESSION town total
 	get time since player EXPRESSION attacked OBJECT
 	get OBJECT music distance
