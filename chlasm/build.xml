@@ -53,8 +53,9 @@
   	    </jar>
   	</target>
 	
-	<target name="package" description="Package JAR, CMD, and license" depends="jar">
+	<target name="package" description="Package JAR, CMD, license and samples" depends="jar">
 	  	<mkdir dir="build/chlasm"/>
+		<mkdir dir="build/chlasm/samples/bw1_story"/>
 		
 		<copy includeemptydirs="false" todir="build/chlasm">
 			<fileset dir="build">
@@ -64,6 +65,12 @@
             	<include name="chlasm.cmd"/>
 	  			<include name="COPYING.TXT"/>
   	    		<include name="README.TXT"/>
+            </fileset>
+        </copy>
+		
+		<copy includeemptydirs="false" todir="build/chlasm/samples/bw1_story">
+			<fileset dir="samples/bw1_story">
+                <include name="_project.txt"/>
             </fileset>
         </copy>
 		

@@ -25,6 +25,8 @@ import java.util.List;
 
 import it.ld.bw.chl.exceptions.ParseException;
 
+/**This class can be used to split a CHL source file into individual tokens.
+ */
 public class CHLLexer {
 	private static final char EOF = 0xFFFF;
 	

@@ -1,19 +1,16 @@
 This file contains a sample of all the CHL statements along with their translation
 in assembler language. This will be used to implement the compiler.
 
-TODO: add missing samples
-
 ### Structure of this document ###
 Each statement is introduced by its chapter number and syntax taken from the
 "Lionhead Challenge Language Documentation" released for Creature Isle; in some cases the syntax
-has been fixed accordingly to real statements found in the original script files taken from B&W for Mac.
+has been fixed accordingly to real statements found in the original script files taken from B&W for Mac,
+and I have also added some missing statements.
 On the subsequent line there is the description of the statement taken from the same document.
 On the subsequent line there is a real statement extracted from the script files cited above. In some
 cases the statement has been simplified to focus on the relevant part.
 The subsequent lines are the equivalent assembler code decompiled using this tool and
-located with hard research work. Note that the current CHL has been patched by LH, while the scripts
-available to us are at the original version, so not all statements have an exact match with the
-decompiled code.
+located with hard research work.
 Statements are ordered by chapter number.
 Some complex statements may have additional info to help understand their implementation.
 
@@ -22,12 +19,25 @@ All SWAP instructions could be avoided by coding the arguments in the proper ord
 a chance for an optimization option. I think this was needed because the original parser gave no
 way of controlling the visit order of the AST.
 
-All variable assignment are preceded by a "PUSH [var], POPI", which I think this is useless.
+All variable assignment are preceded by a "PUSH [var], POPI", which I think is useless.
 The same happens with SET_PROPERTY. Removing these useless instructions could be a chance for an
 optimization. I think this was due to how the original parser worked.
 
 The implementation of 3.18.23 looks bugged.
 
+___________________________________________
+
+### 2.2 challenge IDENTIFIER
+
+At any point in a Challenge Language file, you may optionally specify the name of the challenge.
+This allows the game to identify which challenge the subsequent statements within the file correspond to.
+Various statements may use this information (i.e. snapshot, highlight, and camera paths).
+Be aware that the identifier needs to be defined in the header file ScriptChallengeEnums.h prefixed by
+"CHALLENGE_". Camera paths such as T00_000 must be defined with the challenge name as prefix.
+
+challenge ALLY_SPEAKS
+
+No code.
 ___________________________________________
 
 ### 2.5 Scripts

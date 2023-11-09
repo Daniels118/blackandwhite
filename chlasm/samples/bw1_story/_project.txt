@@ -1,0 +1,129 @@
+# Black & White 1 challenge project
+
+# How to use this file:
+# 1) copy into this folder all the source files taken from B&W1 for Mac;
+# 2) rename the file "ControlNemesisBattleStrate_.txt" to "ControlNemesisBattleStrategy.txt";
+# 3) open a command prompt, cd into this directory, and run the following command:
+#    chlasm -compile -p _project.txt -o _challenge.chl
+
+headers_path ../../headers
+header AudioMusic.h
+header AudioSFX.h
+header CameraPosEnum.h
+header CreatureEnum.h
+header CreatureSpec.h
+header GStates.h
+header HitRegions.h
+header LHSample.h
+header ScriptChallengeEnums.h
+header ScriptEnums.h
+header ScriptEnumstwo.h
+
+info_path ../../headers
+info info1.txt
+info info2.txt
+info InfoScript1.txt
+info _constants.txt
+
+source_path .
+
+### Source files ###
+source Headers.txt
+source StandardReminder.txt
+source VortexEntry.txt
+source SwapCreatures.txt
+source ChallengeNotify.txt
+source DidYouKnow.txt
+source HelpSystem.txt
+source Reward.txt
+source Citadelhelp.txt
+source CreatureHelp.txt
+source CreatureDevelopment.txt
+source HandDemos.txt
+source SetupComputerCreatures.txt
+source CreatureBreeder.txt
+source LandControlT.txt
+source GameOver.txt
+source setupland1.txt
+source CreatureGuide.txt
+source CitadelGuide.txt
+source protectgatekeys.txt
+source lostbrother.txt
+source thesculptor.txt
+source chooseyourcreature.txt
+source creatureguardian.txt
+source creaturesavingpeople.txt
+source followus.txt
+source leavethroughvortexl1.txt
+source piedpiper.txt
+source singingstonecircle.txt
+source takeovervillagesl1.txt
+source thehermit.txt
+source thelostflock.txt
+source TheMissionaries.txt
+source throwingstones.txt
+source MagicMushroom.txt
+source LandControl1.txt
+source setupland2.txt
+source SlaversWarning.txt
+source sacrifice.txt
+source baywatch.txt
+source Land2ShieldChallenge.txt
+source Land2FireballChallenge.txt
+source land2ComputerAI.txt
+source beginland2.txt
+source LearnWorshipping.txt
+source greedyfarmer.txt
+source idolpyre.txt
+source killkhazar.txt
+source leavethroughvortexl2.txt
+source lethysvortex.txt
+source losttreasure.txt
+source SingingStonesSongs.txt
+source plague.txt
+source spiritualhealer.txt
+source theslavers.txt
+source theworkshop.txt
+source HanoiFlood.txt
+source TreePuzzleOne.txt
+source LearnGestures.txt
+source LearnInfluence.txt
+source FinalGoldScroll.txt
+source landcontrol2.txt
+source SetupLand3.txt
+source Shaolin.txt
+source LeaveThroughVortexL3.txt
+source FreeTheCreature.txt
+source GetThroughVortexL2.txt
+source SwapToApe.txt
+source TreePuzzleTwo.txt
+source throwbloke.txt
+source LandControl3.txt
+source setupland4.txt
+source land4meteorites.txt
+source land4ogre.txt
+source beginland4.txt
+source leavethroughvortexl4.txt
+source FishPuzzle.txt
+source BlindWoman.txt
+source swaptocow.txt
+source takeovervillagesl4.txt
+source ThesiusPuzzleLand4.txt
+source landcontrol4.txt
+source beginland5.txt
+source creaturemirrorfight.txt
+source fireonhigh.txt
+source lionpuzzle.txt
+source missionariesreturned.txt
+source swaptobrownbear.txt
+source thebigfight.txt
+source throwthroughshield.txt
+source volcano.txt
+source finalcreaturesequence.txt
+source JapaneseTraitor.txt
+source SetupLand5.txt
+source CreatureCurse.txt
+source ControlNemesisBattleStrategy.txt
+source Crusaders.txt
+source landcontrol5.txt
+source LandControlAll.txt

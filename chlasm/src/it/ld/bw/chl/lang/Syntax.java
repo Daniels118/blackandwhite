@@ -64,9 +64,6 @@ public class Syntax {
 	
 	private static final Set<String> keywords = new HashSet<>();
 	
-	/**Maps each symbol to the possible patterns that may follow it.*/
-	private static final Map<Symbol, Node> tree = new LinkedHashMap<>();
-	
 	static {
 		EOF = addSymbol("EOF", TerminalType.EOF, true, true);
 		EOL = addSymbol("EOL", TerminalType.EOL, true, true);
@@ -78,10 +75,6 @@ public class Syntax {
 	
 	public static Symbol getSymbol(String keyword) {
 		return symbols.get(keyword);
-	}
-	
-	public static Node getPattern(Symbol symbol) {
-		return tree.get(symbol);
 	}
 	
 	public static void printSymbols() {
@@ -100,6 +93,40 @@ public class Syntax {
 	}
 	
 	public static void printTree() {
+		Map<Symbol, Node> tree = new LinkedHashMap<>();
+		for (Symbol sym : symbols.values()) {
+			if (sym.alternatives != null) {
+				for (Symbol alt : sym.alternatives) {
+					Node node = tree.get(alt);
+					if (node == null) {
+						node = new Node(null, alt);
+						tree.put(alt, node);
+					}
+					node.targets.add(sym);
+				}
+			} else if (sym.expression != null) {
+				Symbol t = sym.expression[0];
+				Node node = tree.get(t);
+				if (node == null) {
+					node = new Node(null, t);
+					tree.put(t, node);
+				}
+				for (int i = 1; i < sym.expression.length; i++) {
+					t = sym.expression[i];
+					Node next = node.branches.get(t);
+					if (next == null) {
+						next = new Node(node, t);
+						node.branches.put(t, next);
+						node.hasNonTerminal |= !t.terminal;
+					}
+					node = next;
+				}
+				node.targets.add(sym);
+				/*if (node.targets.size() > 1) {
+					System.err.println("WARNING: path \"" + node.getStringPath() + "\" leads to more than one symbol: " + node.targets);
+				}*/
+			}
+		}
 		for (Node node : tree.values()) {
 			System.out.println(node.toString());
 			System.out.println();
@@ -198,38 +225,6 @@ public class Syntax {
 					}
 				} else if (sym.expression == null && sym.alternatives == null) {
 					throw new RuntimeException("Non-terminal symbol \""+sym.keyword+"\" hasn't been defined");
-				}
-				//Pattern tree
-				if (sym.alternatives != null) {
-					for (Symbol alt : sym.alternatives) {
-						Node node = tree.get(alt);
-						if (node == null) {
-							node = new Node(null, alt);
-							tree.put(alt, node);
-						}
-						node.targets.add(sym);
-					}
-				} else if (sym.expression != null) {
-					Symbol t = sym.expression[0];
-					Node node = tree.get(t);
-					if (node == null) {
-						node = new Node(null, t);
-						tree.put(t, node);
-					}
-					for (int i = 1; i < sym.expression.length; i++) {
-						t = sym.expression[i];
-						Node next = node.branches.get(t);
-						if (next == null) {
-							next = new Node(node, t);
-							node.branches.put(t, next);
-							node.hasNonTerminal |= !t.terminal;
-						}
-						node = next;
-					}
-					node.targets.add(sym);
-					/*if (node.targets.size() > 1) {
-						System.err.println("WARNING: path \"" + node.getStringPath() + "\" leads to more than one symbol: " + node.targets);
-					}*/
 				}
 			}
 		} catch (Exception e) {
@@ -385,58 +380,6 @@ public class Syntax {
 		Node(Node previous, Symbol symbol) {
 			this.previous = previous;
 			this.symbol = symbol;
-		}
-		
-		public Node match(Symbol symbol) {
-			return branches.get(symbol);
-		}
-		
-		public boolean hasNext() {
-			return !branches.isEmpty();
-		}
-		
-		public boolean canSkipNext() {
-			if (branches.size() != 1) return false;
-			Node next = branches.values().iterator().next();
-			return next.symbol.optional;
-		}
-		
-		public Node getNext() {
-			if (branches.size() != 1) throw new UnsupportedOperationException("This node has no or multiple branches");
-			return branches.values().iterator().next();
-		}
-		
-		public Node matchAny(Symbol[] symbols) {
-			for (Symbol symbol : symbols) {
-				Node node = branches.get(symbol);
-				if (node != null) return node;
-			}
-			return null;
-		}
-		
-		public int countPathsTo(Symbol symbol, boolean includeIndirect) {
-			Set<Node> visited = new HashSet<>();
-			return countPathsTo(symbol, includeIndirect, visited);
-		}
-		
-		private int countPathsTo(Symbol symbol, boolean includeIndirect, Set<Node> visited) {
-			if (visited.contains(this)) return 0;
-			visited.add(this);
-			if (this.symbol == symbol) return 1;
-			int n = 0;
-			for (Symbol target : targets) {
-				if (target == symbol) n++;
-				if (includeIndirect) {
-					Node node = Syntax.getPattern(target);
-					if (node != null) {
-						n += node.countPathsTo(symbol, includeIndirect, visited);
-					}
-				}
-			}
-			for (Node node : this.branches.values()) {
-				n += node.countPathsTo(symbol, includeIndirect, visited);
-			}
-			return n;
 		}
 		
 		@Override

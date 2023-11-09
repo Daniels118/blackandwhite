@@ -33,6 +33,11 @@ import it.ld.bw.chl.model.OPCode;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.Scripts;
 
+/**This class compares 2 CHL binary files and tells if they are functionally identical.
+ * By functionally identical we mean that they don't need to have exactly the same bytes in the same orders,
+ * but that the scripts that build up those files have the same arguments, the same sequence of instructions,
+ * and reference the same data.
+ */
 public class CHLComparator {
 	private PrintStream out;
 	
@@ -111,10 +116,10 @@ public class CHLComparator {
 					out.println();
 					res = false;
 				} else {
-					if (script1.getScriptID() != script2.getScriptID()) {
+					/*if (script1.getScriptID() != script2.getScriptID()) {
 						out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
 						res = false;
-					}
+					}*/
 					/*if (script1.getVarOffset() != script2.getVarOffset()) {
 						out.println("Script "+name+" varOffset: "+script1.getVarOffset()+" -> "+script2.getVarOffset());
 						res = false;
@@ -185,9 +190,12 @@ public class CHLComparator {
 									eq = false;
 								}
 							} else {
-								Const dc1 = data1.get(instr1.intVal);
-								Const dc2 = data2.get(instr2.intVal);
-								if (dc1 == null || dc2 == null || !dc1.equals(dc2)) {
+								/*If 2 instructions that are supposed to be functionally identical have different
+								 * operands, try to resolve those operands as data pointers and check if the referred
+								 * values are equal. */
+								Const const1 = data1.get(instr1.intVal);
+								Const const2 = data2.get(instr2.intVal);
+								if (const1 == null || const2 == null || !const1.equals(const2)) {
 									eq = false;
 								}
 							}
@@ -216,17 +224,16 @@ public class CHLComparator {
 				res = false;
 			}
 		}
-		//Autostart scripts count
+		//Autostart scripts
 		List<Integer> autostart1 = a.getAutoStartScripts().getScripts();
 		List<Integer> autostart2 = b.getAutoStartScripts().getScripts();
-		//Autostart scripts list
 		if (!autostart1.equals(autostart2)) {
 			out.println("Autostart scripts: "+autostart1+" -> "+autostart2);
 			res = false;
 		}
 		//
 		if (res) {
-			out.println("Files match!");
+			out.println("Files are functionally identical!");
 		} else {
 			out.println("Files don't match");
 		}
