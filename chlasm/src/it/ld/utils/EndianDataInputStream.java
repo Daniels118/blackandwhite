@@ -25,6 +25,7 @@ import java.nio.ByteOrder;
 public class EndianDataInputStream extends InputStream implements DataInput {
     DataInputStream dataIn;
     private ByteBuffer buffer = ByteBuffer.allocate(8);
+    private byte[] raw = new byte[8];
     
     public EndianDataInputStream(InputStream stream){
         dataIn = new DataInputStream(stream);
@@ -109,7 +110,8 @@ public class EndianDataInputStream extends InputStream implements DataInput {
     @Override
     public double readDouble() throws IOException {
     	buffer.clear();
-    	buffer.put(dataIn.readNBytes(8));
+    	dataIn.readNBytes(raw, 0, 8);
+    	buffer.put(raw, 0, 8);
     	buffer.flip();
         return buffer.getDouble();
     }
@@ -117,7 +119,8 @@ public class EndianDataInputStream extends InputStream implements DataInput {
     @Override
     public float readFloat() throws IOException {
     	buffer.clear();
-    	buffer.put(dataIn.readNBytes(4));
+    	dataIn.readNBytes(raw, 0, 4);
+    	buffer.put(raw, 0, 4);
     	buffer.flip();
         return buffer.getFloat();
     }
@@ -125,7 +128,8 @@ public class EndianDataInputStream extends InputStream implements DataInput {
     @Override
     public int readInt() throws IOException {
     	buffer.clear();
-    	buffer.put(dataIn.readNBytes(4));
+    	dataIn.readNBytes(raw, 0, 4);
+    	buffer.put(raw, 0, 4);
     	buffer.flip();
         return buffer.getInt();
     }
@@ -133,7 +137,8 @@ public class EndianDataInputStream extends InputStream implements DataInput {
     @Override
     public long readLong() throws IOException {
     	buffer.clear();
-    	buffer.put(dataIn.readNBytes(8));
+    	dataIn.readNBytes(raw, 0, 8);
+    	buffer.put(raw, 0, 8);
     	buffer.flip();
         return buffer.getLong();
     }
@@ -141,7 +146,8 @@ public class EndianDataInputStream extends InputStream implements DataInput {
     @Override
     public short readShort() throws IOException {
     	buffer.clear();
-    	buffer.put(dataIn.readNBytes(2));
+    	dataIn.readNBytes(raw, 0, 2);
+    	buffer.put(raw, 0, 2);
     	buffer.flip();
         return buffer.getShort();
     }

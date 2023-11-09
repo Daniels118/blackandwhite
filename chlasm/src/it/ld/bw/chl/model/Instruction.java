@@ -83,18 +83,26 @@ public class Instruction extends Struct {
 	
 	@Override
 	public void read(EndianDataInputStream str) throws Exception {
+		//# Profiler.start(ProfilerSections.PF_INSTR_OPCODE);
 		int v = str.readInt();
 		if (v < 0 || v >= OPCode.values().length) throw new InvalidOPCodeException(v);
 		opcode = OPCode.values()[v];
+		//# Profiler.end(ProfilerSections.PF_INSTR_OPCODE);
 		//
+		//# Profiler.start(ProfilerSections.PF_INSTR_FLAGS);
 		flags = str.readInt();
+		//# Profiler.end(ProfilerSections.PF_INSTR_FLAGS);
 		//
+		//# Profiler.start(ProfilerSections.PF_INSTR_DATATYPE);
 		v = str.readInt();
 		if (v < 0 || v >= DataType.values().length) throw new InvalidDataTypeException(v);
 		dataType = DataType.values()[v];
+		//# Profiler.end(ProfilerSections.PF_INSTR_DATATYPE);
 		//
+		//# Profiler.start(ProfilerSections.PF_INSTR_OPERAND);
 		if (isReference() || opcode.forceInt) {
-			intVal = str.readInt();	//Address of variables, system functions index and swap count are always int, regardless of the datatype
+			//Address of variables, system functions index and swap count are always int, regardless of the datatype
+			intVal = str.readInt();
 		} else {
 			switch (dataType) {
 				case FLOAT:
@@ -109,8 +117,11 @@ public class Instruction extends Struct {
 					intVal = str.readInt();
 			}
 		}
+		//# Profiler.end(ProfilerSections.PF_INSTR_OPERAND);
 		//
+		//# Profiler.start(ProfilerSections.PF_INSTR_LINENO);
 		lineNumber = str.readInt();
+		//# Profiler.end(ProfilerSections.PF_INSTR_LINENO);
 		//
 		if (opcode == OPCode.SYS) {
 			NativeFunction.fromCode(intVal);

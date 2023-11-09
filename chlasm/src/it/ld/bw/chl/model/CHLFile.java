@@ -85,68 +85,93 @@ public class CHLFile {
 	}
 	
 	public void read(File file) throws Exception {
+		//# Profiler.start();
 		try (EndianDataInputStream str = new EndianDataInputStream(new FileInputStream(file));) {
 			str.order(ByteOrder.LITTLE_ENDIAN);
 			int offset = 0;
-			header = new Header();
-			header.setOffset(offset);
+			//# Profiler.start(ProfilerSections.PF_HEADER);
 			header.read(str);
+			//# Profiler.end(ProfilerSections.PF_HEADER);
 			offset += header.getLength();
 			//
-			globalVariables = new GlobalVariables();
+			//# Profiler.start(ProfilerSections.PF_GLOBALS);
 			globalVariables.setOffset(offset);
 			globalVariables.read(str);
+			//# Profiler.end(ProfilerSections.PF_GLOBALS);
 			offset += globalVariables.getLength();
 			//
-			code = new Code();
+			//# Profiler.start(ProfilerSections.PF_CODE);
 			code.setOffset(offset);
 			code.read(str);
+			//# Profiler.end(ProfilerSections.PF_CODE);
 			offset += code.getLength();
 			//
-			autoStartScripts = new AutoStartScripts();
+			//# Profiler.start(ProfilerSections.PF_AUTOSTART);
 			autoStartScripts.setOffset(offset);
 			autoStartScripts.read(str);
+			//# Profiler.end(ProfilerSections.PF_AUTOSTART);
 			offset += autoStartScripts.getLength();
 			//
-			scriptsSection = new Scripts();
+			//# Profiler.start(ProfilerSections.PF_SCRIPTS);
 			scriptsSection.setOffset(offset);
 			scriptsSection.read(str);
+			//# Profiler.end(ProfilerSections.PF_SCRIPTS);
 			offset += scriptsSection.getLength();
 			//
-			data = new DataSection();
+			//# Profiler.start(ProfilerSections.PF_DATA);
 			data.setOffset(offset);
 			data.read(str);
+			//# Profiler.start(ProfilerSections.PF_DATA);
 			//
 			byte[] t = str.readAllBytes();
 			if (t.length > 0) throw new IOException("There are "+t.length+" bytes after the last section");
+		} finally {
+			//# Profiler.end();
+			//# Profiler.printReport();
 		}
 	}
 	
 	public void write(File file) throws Exception {
+		//# Profiler.start();
 		try (EndianDataOutputStream str = new EndianDataOutputStream(new FileOutputStream(file));) {
 			str.order(ByteOrder.LITTLE_ENDIAN);
 			int offset = 0;
+			//# Profiler.start(ProfilerSections.PF_HEADER);
 			header.write(str);
+			//# Profiler.end(ProfilerSections.PF_HEADER);
 			offset += header.getLength();
 			//
+			//# Profiler.start(ProfilerSections.PF_GLOBALS);
 			globalVariables.setOffset(offset);
 			globalVariables.write(str);
+			//# Profiler.end(ProfilerSections.PF_GLOBALS);
 			offset += globalVariables.getLength();
 			//
+			//# Profiler.start(ProfilerSections.PF_CODE);
 			code.setOffset(offset);
 			code.write(str);
+			//# Profiler.end(ProfilerSections.PF_CODE);
 			offset += code.getLength();
 			//
+			//# Profiler.start(ProfilerSections.PF_AUTOSTART);
 			autoStartScripts.setOffset(offset);
 			autoStartScripts.write(str);
+			//# Profiler.end(ProfilerSections.PF_AUTOSTART);
 			offset += autoStartScripts.getLength();
 			//
+			//# Profiler.start(ProfilerSections.PF_SCRIPTS);
 			scriptsSection.setOffset(offset);
 			scriptsSection.write(str);
+			//# Profiler.end(ProfilerSections.PF_SCRIPTS);
 			offset += scriptsSection.getLength();
 			//
+			//# Profiler.start(ProfilerSections.PF_DATA);
 			data.setOffset(offset);
 			data.write(str);
+			//# Profiler.end(ProfilerSections.PF_DATA);
+		} finally {
+			//# Profiler.end();
+			//# Profiler.printReport();
 		}
 	}
 	

@@ -51,7 +51,7 @@ public abstract class StructArray<E extends Struct> extends Section {
 	
 	@Override
 	public void read(EndianDataInputStream str) throws Exception {
-		items = readStructArray(str, getItemClass());
+		items = readStructArray(str);
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public abstract class StructArray<E extends Struct> extends Section {
 		return getItemClass().getName() + "[" + items.size() + "]";
 	}
 	
-	private static <E extends Struct> List<E> readStructArray(EndianDataInputStream str, Class<E> cls) throws Exception {
-		Constructor<E> constructor = cls.getConstructor();
+	private List<E> readStructArray(EndianDataInputStream str) throws Exception {
+		Constructor<E> constructor = getItemClass().getConstructor();
 		int count = str.readInt();
 		List<E> res = new ArrayList<E>(count);
 		for (int i = 0; i < count; i++) {
