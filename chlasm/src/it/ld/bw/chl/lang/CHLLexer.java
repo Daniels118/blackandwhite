@@ -15,6 +15,7 @@
  */
 package it.ld.bw.chl.lang;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -60,7 +61,7 @@ public class CHLLexer {
 		int line = 1;
 		int col = 0;
 		Token token = null;
-		try (PushbackReader str = new PushbackReader(new FileReader(file));) {
+		try (PushbackReader str = new PushbackReader(new BufferedReader(new FileReader(file)));) {
 			char c = (char) str.read();
 			col++;
 			while (true) {

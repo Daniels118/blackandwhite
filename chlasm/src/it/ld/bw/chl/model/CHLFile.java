@@ -15,6 +15,8 @@
  */
 package it.ld.bw.chl.model;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -86,7 +88,7 @@ public class CHLFile {
 	
 	public void read(File file) throws Exception {
 		//# Profiler.start();
-		try (EndianDataInputStream str = new EndianDataInputStream(new FileInputStream(file));) {
+		try (EndianDataInputStream str = new EndianDataInputStream(new BufferedInputStream(new FileInputStream(file)));) {
 			str.order(ByteOrder.LITTLE_ENDIAN);
 			int offset = 0;
 			//# Profiler.start(ProfilerSections.PF_HEADER);
@@ -133,7 +135,7 @@ public class CHLFile {
 	
 	public void write(File file) throws Exception {
 		//# Profiler.start();
-		try (EndianDataOutputStream str = new EndianDataOutputStream(new FileOutputStream(file));) {
+		try (EndianDataOutputStream str = new EndianDataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));) {
 			str.order(ByteOrder.LITTLE_ENDIAN);
 			int offset = 0;
 			//# Profiler.start(ProfilerSections.PF_HEADER);
@@ -207,7 +209,7 @@ public class CHLFile {
 		//LandControlAll
 		if (!landControlAllFound) {
 			res = false;
-			out.println("Script LandControlAll not found");
+			out.println("NOTICE: Script LandControlAll not found");
 		}
 		return res;
 	}
