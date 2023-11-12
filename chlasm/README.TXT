@@ -1,7 +1,7 @@
-CHLASM 
+CHLASM for Black & White 1
 
 This is a tool to compile/decompile CHL files used by the game Black & White
-developed by Lionhead Studios and release in 2001.
+developed by Lionhead Studios and released in 2001.
 
 This has been made for the original game, not the Creature Isle expansion.
 

@@ -31,11 +31,13 @@ import it.ld.utils.EndianDataOutputStream;
 
 
 public class CHLFile {
+	public static boolean traceEnabled = false;
+	
 	private Header header = new Header();
 	private GlobalVariables globalVariables = new GlobalVariables();
-	private Code code = new Code();
+	private Code code = new Code(this);
 	private AutoStartScripts autoStartScripts = new AutoStartScripts();
-	private Scripts scriptsSection = new Scripts();
+	private Scripts scriptsSection = new Scripts(this);
 	private DataSection data = new DataSection();
 	
 	public Header getHeader() {
@@ -90,40 +92,94 @@ public class CHLFile {
 		//# Profiler.start();
 		try (EndianDataInputStream str = new EndianDataInputStream(new BufferedInputStream(new FileInputStream(file)));) {
 			str.order(ByteOrder.LITTLE_ENDIAN);
+			if (traceEnabled && !str.markSupported()) {
+				System.out.println("NOTICE: input stream doesn't support mark, tracing will be weak");
+			}
 			int offset = 0;
+			if (traceEnabled) System.out.println("Reading header...");
 			//# Profiler.start(ProfilerSections.PF_HEADER);
 			header.read(str);
 			//# Profiler.end(ProfilerSections.PF_HEADER);
 			offset += header.getLength();
 			//
+			if (traceEnabled) System.out.println("Reading global vars...");
 			//# Profiler.start(ProfilerSections.PF_GLOBALS);
 			globalVariables.setOffset(offset);
 			globalVariables.read(str);
 			//# Profiler.end(ProfilerSections.PF_GLOBALS);
 			offset += globalVariables.getLength();
 			//
-			//# Profiler.start(ProfilerSections.PF_CODE);
-			code.setOffset(offset);
-			code.read(str);
-			//# Profiler.end(ProfilerSections.PF_CODE);
-			offset += code.getLength();
-			//
-			//# Profiler.start(ProfilerSections.PF_AUTOSTART);
-			autoStartScripts.setOffset(offset);
-			autoStartScripts.read(str);
-			//# Profiler.end(ProfilerSections.PF_AUTOSTART);
-			offset += autoStartScripts.getLength();
-			//
-			//# Profiler.start(ProfilerSections.PF_SCRIPTS);
-			scriptsSection.setOffset(offset);
-			scriptsSection.read(str);
-			//# Profiler.end(ProfilerSections.PF_SCRIPTS);
-			offset += scriptsSection.getLength();
-			//
-			//# Profiler.start(ProfilerSections.PF_DATA);
-			data.setOffset(offset);
-			data.read(str);
-			//# Profiler.start(ProfilerSections.PF_DATA);
+			if (traceEnabled && str.markSupported()) {
+				System.out.println("Reading of code section postponed to empower tracing!");
+				str.mark((int)file.length());
+				final int codeOffset = offset;
+				final int codeSize = str.readInt() * Instruction.LENGTH;
+				offset += 4;
+				int n = str.skipBytes(codeSize);
+				if (n < codeSize) throw new IOException("Unexpected end of code section");
+				offset += n;
+				//
+				System.out.println("Reading autostart scripts...");
+				//# Profiler.start(ProfilerSections.PF_AUTOSTART);
+				autoStartScripts.setOffset(offset);
+				autoStartScripts.read(str);
+				//# Profiler.end(ProfilerSections.PF_AUTOSTART);
+				offset += autoStartScripts.getLength();
+				//
+				System.out.println("Reading scripts...");
+				//# Profiler.start(ProfilerSections.PF_SCRIPTS);
+				scriptsSection.setOffset(offset);
+				scriptsSection.read(str);
+				//# Profiler.end(ProfilerSections.PF_SCRIPTS);
+				offset += scriptsSection.getLength();
+				//
+				System.out.println("Reading data...");
+				//# Profiler.start(ProfilerSections.PF_DATA);
+				data.setOffset(offset);
+				data.read(str);
+				//# Profiler.end(ProfilerSections.PF_DATA);
+				offset += data.getLength();
+				//
+				final int endOffset = offset;
+				//
+				System.out.println("Now reading code...");
+				//# Profiler.start(ProfilerSections.PF_CODE);
+				str.reset();
+				offset = codeOffset;
+				code.setOffset(offset);
+				code.read(str);
+				//# Profiler.end(ProfilerSections.PF_CODE);
+				offset += code.getLength();
+				//
+				System.out.println("Skipping to previous point...");
+				n = str.skipBytes(endOffset - offset);
+				offset += n;
+				if (offset < endOffset) throw new IOException("Failed to skip past data section");
+			} else {
+				//# Profiler.start(ProfilerSections.PF_CODE);
+				code.setOffset(offset);
+				code.read(str);
+				//# Profiler.end(ProfilerSections.PF_CODE);
+				offset += code.getLength();
+				//
+				//# Profiler.start(ProfilerSections.PF_AUTOSTART);
+				autoStartScripts.setOffset(offset);
+				autoStartScripts.read(str);
+				//# Profiler.end(ProfilerSections.PF_AUTOSTART);
+				offset += autoStartScripts.getLength();
+				//
+				//# Profiler.start(ProfilerSections.PF_SCRIPTS);
+				scriptsSection.setOffset(offset);
+				scriptsSection.read(str);
+				//# Profiler.end(ProfilerSections.PF_SCRIPTS);
+				offset += scriptsSection.getLength();
+				//
+				//# Profiler.start(ProfilerSections.PF_DATA);
+				data.setOffset(offset);
+				data.read(str);
+				//# Profiler.start(ProfilerSections.PF_DATA);
+				offset += data.getLength();
+			}
 			//
 			byte[] t = str.readAllBytes();
 			if (t.length > 0) throw new IOException("There are "+t.length+" bytes after the last section");

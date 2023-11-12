@@ -247,18 +247,17 @@ public class ASMWriter {
 	private void writeScripts(CHLFile chl, FileWriter str, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		str.write("SCRIPTS\r\n");
 		//str.write(String.format("//0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
+		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
 		String prevSourceFilename = "";
 		List<Script> scripts = chl.getScriptsSection().getItems();
-		for (int i = 0; i < scripts.size(); i++) {
-			Script script = scripts.get(i);
+		for (Script script : scripts) {
 			if (!script.getSourceFilename().equals(prevSourceFilename)) {
 				str.write("\r\n");
 				str.write("source "+script.getSourceFilename()+"\r\n");
 				str.write("\r\n");
 				prevSourceFilename = script.getSourceFilename();
 			}
-			int limit = i < scripts.size() - 1 ? scripts.get(i + 1).getInstructionAddress() : Integer.MAX_VALUE;
-			writeScript(chl, str, script, limit, labels, constMap);
+			writeScript(chl, str, script, labels, constMap);
 			str.write("\r\n");
 		}
 		str.write("\r\n");
@@ -267,27 +266,17 @@ public class ASMWriter {
 	private void writeScripts(CHLFile chl, FileWriter str, String sourceFilename, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		str.write("SCRIPTS\r\n");
 		str.write("\r\n");
-		/* We need to iterate through all scripts to be sure that we can always access the next script in order to
-		 * compute the last instruction to write (limit) */
-		List<Script> scripts = chl.getScriptsSection().getItems();
-		for (int i = 0; i < scripts.size(); i++) {
-			Script script = scripts.get(i);
-			if (script.getSourceFilename().equals(sourceFilename)) {
-				int limit = i < scripts.size() - 1 ? scripts.get(i + 1).getInstructionAddress() : Integer.MAX_VALUE;
-				writeScript(chl, str, script, limit, labels, constMap);
-				str.write("\r\n");
-			}
+		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
+		List<Script> scripts = chl.getScripts(sourceFilename);
+		for (Script script : scripts) {
+			writeScript(chl, str, script, labels, constMap);
+			str.write("\r\n");
 		}
 	}
 	
-	private void writeScript(CHLFile chl, FileWriter str, Script script, int limit, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScript(CHLFile chl, FileWriter str, Script script, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
 		if (printSourceLineEnabled) {
 			setSourceFile(script.getSourceFilename());
-		}
-		if (script.getVarOffset() > 0) {
-			//This forces the var offset to be the same of the original CHL when assembling again
-			str.write("global "+script.getGlobalVar(chl, script.getVarOffset())+"\r\n");
-			str.write("\r\n");
 		}
 		Stack<String> comments = new Stack<>();
 		List<Instruction> instructions = chl.getCode().getItems();
@@ -411,7 +400,7 @@ public class ASMWriter {
 			} catch (Exception e) {
 				throw new CompileException(script.getName(), index, e);
 			}
-		} while (it.hasNext() && index < limit);
+		} while (it.hasNext() && index <= script.getLastInstructionAddress());
 		if (instrAfterEnd > 0) {
 			out.println(instrAfterEnd + " instructions found after end of script " + script.getName());
 		}

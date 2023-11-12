@@ -15,10 +15,63 @@
  */
 package it.ld.bw.chl.model;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.bw.chl.exceptions.ScriptNotFoundException;
 
 public class Scripts extends StructArray<Script> {
+	private final CHLFile chl;
+	
+	private boolean scriptsFinalized = false;
+	private Map<Integer, Script> entrypointScripts;
+	
+	public Scripts(CHLFile chl) {
+		this.chl = chl;
+	}
+	
+	public void finalizeScripts() {
+		if (!scriptsFinalized) {
+			int[] entrypoints = new int[items.size()];
+			int i = 0;
+			for (Script script : items) {
+				entrypoints[i++] = script.getInstructionAddress();
+			}
+			Arrays.sort(entrypoints);
+			//
+			for (i = 0; i < entrypoints.length - 1; i++) {
+				int entrypoint = entrypoints[i];
+				int nextEntrypoint = entrypoints[i + 1];
+				Script script = getScriptFromEntrypoint(entrypoint);
+				script.setLastInstructionAddress(nextEntrypoint - 1);
+			}
+			Script script = getScriptFromEntrypoint(entrypoints[entrypoints.length - 1]);
+			script.setLastInstructionAddress(chl.getCode().getItems().size() - 1);
+		}
+	}
+	
+	public Script getScriptFromInstruction(int instruction) {
+		finalizeScripts();
+		for (Script script : items) {
+			if (instruction >= script.getInstructionAddress() && instruction <= script.getLastInstructionAddress()) {
+				return script;
+			}
+		}
+		return null;
+	}
+	
+	public Script getScriptFromEntrypoint(int ip) {
+		if (entrypointScripts == null) {
+			entrypointScripts = new HashMap<>();
+			for (Script script : items) {
+				entrypointScripts.put(script.getInstructionAddress(), script);
+			}
+		}
+		return entrypointScripts.get(ip);
+	}
+	
 	@Override
 	public Class<Script> getItemClass() {
 		return Script.class;

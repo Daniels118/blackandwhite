@@ -24,6 +24,15 @@ import it.ld.utils.EndianDataOutputStream;
 
 public abstract class StructArray<E extends Struct> extends Section {
 	protected List<E> items = new ArrayList<E>();
+	private final Constructor<E> constructor;
+	
+	public StructArray() {
+		try {
+			constructor = getItemClass().getConstructor();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	public abstract Class<E> getItemClass();
 	
@@ -68,15 +77,19 @@ public abstract class StructArray<E extends Struct> extends Section {
 	}
 	
 	private List<E> readStructArray(EndianDataInputStream str) throws Exception {
-		Constructor<E> constructor = getItemClass().getConstructor();
 		int count = str.readInt();
 		List<E> res = new ArrayList<E>(count);
 		for (int i = 0; i < count; i++) {
-			E e = constructor.newInstance();
-			e.read(str);
+			E e = readItem(str, i);
 			res.add(e);
 		}
 		return res;
+	}
+	
+	protected E readItem(EndianDataInputStream str, int index) throws Exception {
+		E e = constructor.newInstance();
+		e.read(str);
+		return e;
 	}
 	
 	private static void writeStructArray(EndianDataOutputStream str, List<? extends Struct> items) throws Exception {

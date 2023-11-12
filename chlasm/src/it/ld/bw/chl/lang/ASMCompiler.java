@@ -141,13 +141,13 @@ public class ASMCompiler implements Compiler {
 			}
 			//Resolve vars
 			for (Entry<String, List<VarToResolve>> sourceVars : varsToResolve.entrySet()) {
-				//String sourceFilename = sourceVars.getKey();
 				List<VarToResolve> vars = sourceVars.getValue();
 				int maxGlobal = 0;
 				for (VarToResolve var : vars) {
-					maxGlobal = Math.max(maxGlobal, var.script.getVarOffset());	//To preserve var offset from decompiled CHL
 					Integer globalId = globalMap.get(var.name);
-					if (globalId != null && globalId > maxGlobal) maxGlobal = globalId;
+					if (globalId != null) {
+						maxGlobal = Math.max(maxGlobal, globalId);
+					}
 				}
 				for (VarToResolve var : vars) {
 					var.script.setVarOffset(maxGlobal);
@@ -236,7 +236,6 @@ public class ASMCompiler implements Compiler {
 				varsToResolve.put(sourceFilename, new LinkedList<>());
 			}
 			Script script = null;
-			int maxGlobal = 0;
 			String line = str.readLine();
 			int lineno = 1;
 			while (line != null) {
@@ -304,22 +303,8 @@ public class ASMCompiler implements Compiler {
 									if (!varsToResolve.containsKey(sourceFilename)) {
 										varsToResolve.put(sourceFilename, new LinkedList<VarToResolve>());
 									}
-									maxGlobal = 0;
 								} else if (sourceFilename == null) {
 									throw new ParseException("Source filename not set", file, lineno);
-								} else if ("global".equals(keyword)) {		//Global variable reference, used here to preserve var offset from decompiled CHL
-									if (tks.length < 2) {
-										throw new ParseException("Expected variable name after 'global'", file, lineno);
-									}
-									String name = tks[1];
-									if (!isValidIdentifier(name)) {
-										throw new ParseException("Invalid variable identifier", file, lineno);
-									}
-									Integer globalId = globalMap.get(name);
-									if (globalId == null) {
-										throw new ParseException("Global variable not declared previously in GLOBALS section", file, lineno);
-									}
-									maxGlobal = Math.max(maxGlobal, globalId);
 								} else if ("begin".equals(keyword)) {		//Script signature
 									if (tks.length < 2) {
 										throw new ParseException("Expected script type after 'begin'", file, lineno);
@@ -327,7 +312,6 @@ public class ASMCompiler implements Compiler {
 									script = new Script();
 									script.setScriptID(scripts.size() + 1);	//Script IDs must start from 1
 									script.setSourceFilename(sourceFilename);
-									script.setVarOffset(maxGlobal);
 									script.setInstructionAddress(instructions.size());
 									String expr = tks[1];
 									int p1 = expr.indexOf('(');

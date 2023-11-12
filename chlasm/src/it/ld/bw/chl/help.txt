@@ -1,4 +1,4 @@
-CHL Compiler
+CHL Compiler for Black & White 1
 Version 0.1
 Developer by Daniele Lombardi (alias Daniels118)
 
@@ -21,3 +21,6 @@ Arguments
   -prref   analyze the instructions in a CHL file and print a table summary
   -info    prints information about CHL language and runtime
   -help    prints the help specific to the selected option (chlasm, asmchl...)
+
+Common arguments
+  -trace enable tracing

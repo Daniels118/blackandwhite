@@ -28,12 +28,17 @@ import it.ld.bw.chl.lang.ASMWriter;
 import it.ld.bw.chl.lang.CHLCompiler;
 import it.ld.bw.chl.lang.Syntax;
 import it.ld.bw.chl.model.CHLFile;
+import it.ld.bw.chl.model.Code;
 import it.ld.bw.chl.model.NativeFunction;
 import it.ld.utils.CmdLine;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 		CmdLine cmd = new CmdLine(args);
+		if (cmd.getArgFlag("-trace")) {
+			CHLFile.traceEnabled = true;
+			Code.traceEnabled = true;
+		}
 		if (cmd.getArgFlag("-chlasm")) {
 			chlToAsm(cmd);
 		} else if (cmd.getArgFlag("-asmchl")) {

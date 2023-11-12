@@ -15,8 +15,13 @@
  */
 package it.ld.bw.chl.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 import it.ld.bw.chl.exceptions.InvalidVariableIdException;
 import it.ld.utils.EndianDataInputStream;
@@ -35,6 +40,9 @@ public class Script extends Section {
 	/**How many local variables are parameters*/
 	private int parameterCount;
 	private int scriptID;
+	
+	private Map<String, Integer> localsMap = null;
+	private int lastInstructionAddress = -1;
 	
 	public String getName() {
 		return name;
@@ -76,6 +84,28 @@ public class Script extends Section {
 		this.variables = variables;
 	}
 	
+	public int getLocalVarId(String name) {
+		if (localsMap == null) {
+			localsMap = new HashMap<>();
+			int i = 0;
+			Iterator<String> it = variables.iterator();
+			while (it.hasNext()) {
+				String tName = it.next();
+				localsMap.put(tName, i++);
+			}
+		}
+		return localsMap.getOrDefault(name, -1);
+	}
+	
+	public List<String> getVariablesWithoutParameters() {
+		List<String> res = new ArrayList<>(variables.size() - parameterCount);
+		ListIterator<String> it = variables.listIterator(parameterCount);
+		while (it.hasNext()) {
+			res.add(it.next());
+		}
+		return res;
+	}
+	
 	public int getInstructionAddress() {
 		return instructionAddress;
 	}
@@ -98,6 +128,17 @@ public class Script extends Section {
 	
 	public void setScriptID(int scriptID) {
 		this.scriptID = scriptID;
+	}
+	
+	public int getLastInstructionAddress() {
+		if (lastInstructionAddress < instructionAddress) {
+			throw new RuntimeException("Scripts section must be finalized in order to call getLastInstructionAddress");
+		}
+		return lastInstructionAddress;
+	}
+
+	public void setLastInstructionAddress(int lastInstructionAddress) {
+		this.lastInstructionAddress = lastInstructionAddress;
 	}
 	
 	@Override
