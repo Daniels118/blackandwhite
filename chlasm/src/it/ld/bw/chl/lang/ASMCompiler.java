@@ -38,11 +38,11 @@ import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection;
 import it.ld.bw.chl.model.DataType;
-import it.ld.bw.chl.model.GlobalVariables;
 import it.ld.bw.chl.model.Header;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.NativeFunction;
 import it.ld.bw.chl.model.OPCode;
+import it.ld.bw.chl.model.OPCodeFlag;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.ScriptType;
 
@@ -54,7 +54,7 @@ public class ASMCompiler implements Compiler {
 	private PrintStream out;
 	
 	private final CHLFile chl = new CHLFile();
-	private final GlobalVariables globalVariables;
+	private final List<String> globalVariables;
 	private ByteBuffer dataBuffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);
 	private final List<Instruction> instructions;
 	private final List<Script> scripts;
@@ -67,7 +67,6 @@ public class ASMCompiler implements Compiler {
 	private final Map<String, Integer> labelMap = new HashMap<>();
 	private final Map<String, Integer> scriptMap = new HashMap<>();
 	private final List<LabelToResolve> labelsToResolve = new LinkedList<>();
-	private final Map<String, List<VarToResolve>> varsToResolve = new HashMap<>();
 	private final List<ScriptToResolve> scriptsToResolve = new LinkedList<>();
 	private int[] scriptsUsageCount = null;
 	
@@ -80,14 +79,13 @@ public class ASMCompiler implements Compiler {
 	public ASMCompiler(PrintStream out) {
 		this.out = out;
 		//
-		globalVariables = chl.getGlobalVariables();
+		globalVariables = chl.getGlobalVariables().getNames();
 		instructions = chl.getCode().getItems();
 		scripts = chl.getScriptsSection().getItems();
 		autoStartScripts = chl.getAutoStartScripts().getScripts();
 		dataSection = chl.getDataSection();
 		dataBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		chl.getHeader().setVersion(Header.BW1);
-		globalVariables.setOffset(chl.getHeader().getLength());
 	}
 	
 	public void defineConstant(String name, Object value) {
@@ -138,33 +136,6 @@ public class ASMCompiler implements Compiler {
 				if (label.instr.opcode.isJump && ip > label.index) {
 					label.instr.flags = FORWARD;
 				}
-			}
-			//Resolve vars
-			for (Entry<String, List<VarToResolve>> sourceVars : varsToResolve.entrySet()) {
-				List<VarToResolve> vars = sourceVars.getValue();
-				int maxGlobal = 0;
-				for (VarToResolve var : vars) {
-					Integer globalId = globalMap.get(var.name);
-					if (globalId != null) {
-						maxGlobal = Math.max(maxGlobal, globalId);
-					}
-				}
-				for (VarToResolve var : vars) {
-					var.script.setVarOffset(maxGlobal);
-				}
-				for (VarToResolve var : vars) {
-					Integer globalId = globalMap.get(var.name);
-					if (globalId != null) {
-						var.instr.intVal = globalId;
-					} else {
-						int localId = var.script.getVariables().indexOf(var.name);
-						if (localId < 0) {
-							throw new ParseException("Undefined variable '"+var.name+"'", var.file, var.instr.lineNumber);
-						}
-						var.instr.intVal = maxGlobal + 1 + localId;
-					}
-				}
-				
 			}
 			//Resolve scripts
 			for (ScriptToResolve script : scriptsToResolve) {
@@ -232,30 +203,20 @@ public class ASMCompiler implements Compiler {
 		char section = 'H';	// H=header, D=data, G=global, S=script, A=autorun
 		try (BufferedReader str = new BufferedReader(new FileReader(file));) {
 			String sourceFilename = file.getName();
-			if (!varsToResolve.containsKey(sourceFilename)) {
-				varsToResolve.put(sourceFilename, new LinkedList<>());
-			}
 			Script script = null;
 			String line = str.readLine();
 			int lineno = 1;
 			while (line != null) {
-				if ("DATA".equals(line)) {
-					if (!scripts.isEmpty()) {
-						throw new ParseException("DATA section must occurr before SCRIPTS section", file, lineno);
-					}
+				if (line.startsWith("SOURCE ")) {
+					sourceFilename = line.substring(line.indexOf(' ')).trim();
+				} else if (".DATA".equals(line)) {
 					section = 'D';
-				} else if ("GLOBALS".equals(line)) {
-					if (!scripts.isEmpty()) {
-						throw new ParseException("GLOBALS section must occurr before SCRIPTS section", file, lineno);
-					}
+				} else if (".GLOBALS".equals(line)) {
 					section = 'G';
-				} else if ("AUTORUN".equals(line)) {
-					if (scripts.isEmpty()) {
-						throw new ParseException("AUTORUN section must occurr after SCRIPTS section", file, lineno);
-					}
+				} else if (".AUTORUN".equals(line)) {
 					scriptsUsageCount = new int[scripts.size()];
 					section = 'A';
-				} else if ("SCRIPTS".equals(line)) {
+				} else if (".SCRIPTS".equals(line)) {
 					section = 'S';
 				} else {
 					switch (section) {
@@ -284,8 +245,8 @@ public class ASMCompiler implements Compiler {
 										if (!isValidIdentifier(name)) {
 											throw new ParseException("Invalid variable identifier", file, lineno);
 										}
-										globalVariables.getNames().add(name);
-										globalMap.put(name, globalMap.size() + 1);	//Global variables are indexed starting from 1
+										globalVariables.add(name);
+										globalMap.put(name, globalVariables.size());	//Global variables are indexed starting from 1
 									}
 								}
 							}
@@ -295,15 +256,7 @@ public class ASMCompiler implements Compiler {
 							if (!line.isEmpty()) {
 								String[] tks = split2(line);
 								String keyword = tks[0];
-								if ("source".equals(keyword)) {				//Source filename
-									if (tks.length < 2) {
-										throw new ParseException("Expected source filename after 'source'", file, lineno);
-									}
-									sourceFilename = tks[1];
-									if (!varsToResolve.containsKey(sourceFilename)) {
-										varsToResolve.put(sourceFilename, new LinkedList<VarToResolve>());
-									}
-								} else if (sourceFilename == null) {
+								if (sourceFilename == null) {
 									throw new ParseException("Source filename not set", file, lineno);
 								} else if ("begin".equals(keyword)) {		//Script signature
 									if (tks.length < 2) {
@@ -311,6 +264,7 @@ public class ASMCompiler implements Compiler {
 									}
 									script = new Script();
 									script.setScriptID(scripts.size() + 1);	//Script IDs must start from 1
+									script.setGlobalCount(globalVariables.size());
 									script.setSourceFilename(sourceFilename);
 									script.setInstructionAddress(instructions.size());
 									String expr = tks[1];
@@ -382,12 +336,20 @@ public class ASMCompiler implements Compiler {
 									if (instr.opcode.hasArg || instr.opcode == OPCode.CAST && (instr.flags & ZERO) != 0) {
 										if (instr.opcode == OPCode.POP) {
 											if (operand != null) {
-												if (instr.dataType == DataType.FLOAT) instr.flags = 1;	//Weird, but it works this way...
+												if (instr.dataType == DataType.FLOAT) instr.flags = OPCodeFlag.REF;	//Weird, but it works this way...
 												if (!isValidIdentifier(operand)) {
 													throw new ParseException("Invalid variable name", file, lineno);
 												} else {
-													List<VarToResolve> vars = varsToResolve.get(sourceFilename);
-													vars.add(new VarToResolve(file, script, instr, operand));
+													int varIndex = script.getLocalVarIndex(operand);
+													if (varIndex >= 0) {
+														instr.intVal = script.getGlobalCount() + 1 + varIndex;
+													} else {
+														varIndex = globalMap.getOrDefault(operand, -1);
+														if (varIndex < 0) {
+															throw new ParseException("Undefined variable "+operand, file, lineno);
+														}
+														instr.intVal = varIndex;
+													}
 												}
 											}
 										} else if (instr.opcode == OPCode.SYS) {
@@ -440,8 +402,16 @@ public class ASMCompiler implements Compiler {
 												} else if (!isValidIdentifier(v)) {
 													throw new ParseException("Invalid identifier", file, lineno);
 												} else {
-													List<VarToResolve> vars = varsToResolve.get(sourceFilename);
-													vars.add(new VarToResolve(file, script, instr, v));
+													int varIndex = script.getLocalVarIndex(v);
+													if (varIndex >= 0) {
+														instr.intVal = script.getGlobalCount() + 1 + varIndex;
+													} else {
+														varIndex = globalMap.getOrDefault(v, -1);
+														if (varIndex < 0) {
+															throw new ParseException("Undefined variable "+v, file, lineno);
+														}
+														instr.intVal = varIndex;
+													}
 												}
 											} else if (instr.dataType == DataType.FLOAT) {
 												Float v = parseImmed(Float.class, operand, localConstants);
@@ -519,22 +489,6 @@ public class ASMCompiler implements Compiler {
 									try {
 										if (DataSection.ConstType.BYTE.keyword.equals(keyword)) {
 											dataBuffer.put(Byte.valueOf(expr));
-										} else if (DataSection.ConstType.INT.keyword.equals(keyword)) {
-											dataBuffer.putInt(Integer.valueOf(expr));
-										} else if (DataSection.ConstType.FLOAT.keyword.equals(keyword)) {
-											dataBuffer.putFloat(Float.valueOf(expr));
-										} else if (DataSection.ConstType.VEC3.keyword.equals(keyword)) {
-											String[] vals = expr.substring(1, expr.length() - 1).split("\\s*,\\s*");
-											for (String v : vals) {
-												float t = Float.parseFloat(v);
-												dataBuffer.putFloat(t);
-											}
-										} else if (DataSection.ConstType.BYTEARRAY.keyword.equals(keyword)) {
-											String[] vals = expr.substring(1, expr.length() - 1).split("\\s*,\\s*");
-											for (String v : vals) {
-												byte t = Byte.parseByte(v);
-												dataBuffer.put(t);
-											}
 										} else if (DataSection.ConstType.STRING.keyword.equals(keyword)) {
 											String value = expr.substring(1, expr.length() - 1);
 											value = value.replace("\\\"", "\"");
@@ -687,21 +641,6 @@ public class ASMCompiler implements Compiler {
         newBuffer.put(buffer);
         return newBuffer;
     }
-	
-	
-	private static class VarToResolve {
-		public final File file;
-		public final Script script;
-		public final Instruction instr;
-		public final String name;
-		
-		public VarToResolve(File file, Script script, Instruction instr, String name) {
-			this.file = file;
-			this.script = script;
-			this.instr = instr;
-			this.name = name;
-		}
-	}
 	
 	
 	private static class LabelToResolve {

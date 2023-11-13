@@ -31,8 +31,8 @@ public class Script extends Section {
 	private String name;
 	private String sourceFilename;
 	private ScriptType scriptType;
-	/**The highest index of global variables used by this script. Values greater than this are mapped to local parameters/variables*/
-	private int varOffset;
+	/**The number of global variables defined so far. Values greater than this are mapped to local params/vars */
+	private int globalCount = 0;
 	/**Parameters + local variables*/
 	private List<String> variables = new LinkedList<String>();
 	/**Index of the first instruction in the instructions array*/
@@ -68,12 +68,12 @@ public class Script extends Section {
 		this.scriptType = scriptType;
 	}
 	
-	public int getVarOffset() {
-		return varOffset;
+	public int getGlobalCount() {
+		return globalCount;
 	}
 	
-	public void setVarOffset(int varOffset) {
-		this.varOffset = varOffset;
+	public void setGlobalCount(int globalCount) {
+		this.globalCount = globalCount;
 	}
 	
 	public List<String> getVariables() {
@@ -84,7 +84,7 @@ public class Script extends Section {
 		this.variables = variables;
 	}
 	
-	public int getLocalVarId(String name) {
+	public int getLocalVarIndex(String name) {
 		if (localsMap == null) {
 			localsMap = new HashMap<>();
 			int i = 0;
@@ -158,7 +158,7 @@ public class Script extends Section {
 		name = readZString(str);
 		sourceFilename = readZString(str);
 		scriptType = ScriptType.fromCode(str.readInt());
-		varOffset = str.readInt();
+		globalCount = str.readInt();
 		variables = readZStringArray(str);
 		instructionAddress = str.readInt();
 		parameterCount = str.readInt();
@@ -170,7 +170,7 @@ public class Script extends Section {
 		writeZString(str, name);
 		writeZString(str, sourceFilename);
 		str.writeInt(scriptType.code);
-		str.writeInt(varOffset);
+		str.writeInt(globalCount);
 		writeZStringArray(str, variables);
 		str.writeInt(instructionAddress);
 		str.writeInt(parameterCount);
@@ -178,16 +178,16 @@ public class Script extends Section {
 	}
 	
 	public boolean isGlobalVar(int varId) {
-		return varId >= 1 && varId <= varOffset;
+		return varId >= 1 && varId <= globalCount;
 	}
 	
 	public boolean isLocalVar(int varId) {
-		return varId > varOffset;
+		return varId > globalCount;
 	}
 	
 	public String getLocalVar(int varId) throws InvalidVariableIdException {
 		if (!isLocalVar(varId)) throw new InvalidVariableIdException(varId);
-		int index = varId - varOffset - 1;
+		int index = varId - globalCount - 1;
 		if (index < 0 || index >= variables.size()) {
 			throw new InvalidVariableIdException(varId);
 		}

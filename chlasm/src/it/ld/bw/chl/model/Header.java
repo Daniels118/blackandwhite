@@ -36,7 +36,7 @@ public class Header extends Section {
 	}
 	
 	public void setMagic(String magic) throws InvalidChlException {
-		if (!("LHVM".equals(magic))) throw new InvalidChlException("Invalid CHL file (wrong magic string)");
+		if (!("LHVM".equals(magic))) throw new InvalidChlException("Invalid CHL file (wrong magic string: "+magic+")");
 		this.magic = magic;
 	}
 	

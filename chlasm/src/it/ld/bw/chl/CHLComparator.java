@@ -16,6 +16,7 @@
 package it.ld.bw.chl;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ import it.ld.bw.chl.model.Scripts;
  * and reference the same data.
  */
 public class CHLComparator {
+	private boolean strict;
 	private PrintStream out;
 	
 	public CHLComparator() {
@@ -47,6 +49,14 @@ public class CHLComparator {
 	
 	public CHLComparator(PrintStream out) {
 		this.out = out;
+	}
+	
+	public boolean isStrict() {
+		return strict;
+	}
+	
+	public void setStrict(boolean strict) {
+		this.strict = strict;
 	}
 	
 	public boolean compare(CHLFile a, CHLFile b) {
@@ -62,24 +72,34 @@ public class CHLComparator {
 			out.println("Version: "+ver1+" -> "+ver2);
 			return false;
 		}
-		//Number of global variables
+		//Global variables
 		List<String> globalVars1 = a.getGlobalVariables().getNames();
 		List<String> globalVars2 = a.getGlobalVariables().getNames();
-		if (globalVars1.size() != globalVars2.size()) {
-			out.println("Number of globals: "+globalVars1.size()+" -> "+globalVars2.size());
-			res = false;
-		}
-		//Global variable names
-		Set<String> globalVars2map = new HashSet<>();
-		for (int i = 0; i < globalVars2.size(); i++) {
-			String name2 = globalVars2.get(i);
-			globalVars2map.add(name2);
-		}
-		for (int i = 0; i < globalVars1.size(); i++) {
-			String name1 = globalVars1.get(i);
-			if (!globalVars2map.contains(name1)) {
-				out.println("Global variable "+name1+" missing in file 2");
+		if (strict) {
+			if (!globalVars1.equals(globalVars2)) {
+				out.println("Global vars differ:");
+				out.println(globalVars1.size());
+				out.println(globalVars2.size());
+				out.println();
 				res = false;
+			}
+		} else {
+			if (globalVars1.size() != globalVars2.size()) {
+				out.println("Number of global vars: "+globalVars1.size()+" -> "+globalVars2.size());
+				res = false;
+			}
+			//Global variable names
+			Set<String> globalVars2set = new HashSet<>();
+			for (int i = 0; i < globalVars2.size(); i++) {
+				String name2 = globalVars2.get(i);
+				globalVars2set.add(name2);
+			}
+			for (int i = 0; i < globalVars1.size(); i++) {
+				String name1 = globalVars1.get(i);
+				if (!globalVars2set.contains(name1)) {
+					out.println("Global variable "+name1+" missing in file 2");
+					res = false;
+				}
 			}
 		}
 		//Scripts count
@@ -93,8 +113,10 @@ public class CHLComparator {
 		}
 		out.println();
 		//Scripts list
-		Map<Integer, Const> data1 = map(a.getDataSection().analyze());
-		Map<Integer, Const> data2 = map(b.getDataSection().analyze());
+		List<Const> data1 = a.getDataSection().analyze();
+		List<Const> data2 = b.getDataSection().analyze();
+		Map<Integer, Const> dataMap1 = mapOffset(data1);
+		Map<Integer, Const> dataMap2 = mapOffset(data2);
 		List<Instruction> instructions1 = a.getCode().getItems();
 		List<Instruction> instructions2 = b.getCode().getItems();
 		for (int i = 0; i < scripts1.size(); i++) {
@@ -116,14 +138,16 @@ public class CHLComparator {
 					out.println();
 					res = false;
 				} else {
-					/*if (script1.getScriptID() != script2.getScriptID()) {
-						out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
-						res = false;
-					}*/
-					/*if (script1.getVarOffset() != script2.getVarOffset()) {
-						out.println("Script "+name+" varOffset: "+script1.getVarOffset()+" -> "+script2.getVarOffset());
-						res = false;
-					}*/
+					if (strict) {
+						if (script1.getScriptID() != script2.getScriptID()) {
+							out.println("Script "+name+" id: "+script1.getScriptID()+" -> "+script2.getScriptID());
+							res = false;
+						}
+						if (script1.getGlobalCount() != script2.getGlobalCount()) {
+							out.println("Script "+name+" global count: "+script1.getGlobalCount()+" -> "+script2.getGlobalCount());
+							res = false;
+						}
+					}
 					//Code
 					int locMaxLen = Math.max(script1.getSourceFilename().length(), script2.getSourceFilename().length()) + 8;
 					String locFmt = "%-"+locMaxLen+"s";
@@ -143,13 +167,21 @@ public class CHLComparator {
 						}
 						//
 						boolean eq = true;
-						if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
-								|| instr1.dataType != instr2.dataType
-								|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal) {
-							eq = false;
-							stop = true;
-						} else if (instr1.intVal != instr2.intVal) {
-							if (instr1.opcode.isIP) {
+						if (strict) {
+							if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
+									|| instr1.dataType != instr2.dataType
+									|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal
+									|| instr1.intVal != instr2.intVal) {
+								eq = false;
+								stop = true;
+							}
+						} else {
+							if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
+									|| instr1.dataType != instr2.dataType
+									|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal) {
+								eq = false;
+								stop = true;
+							} else if (instr1.opcode.isIP) {
 								int relDst1 = instr1.intVal - offset1;
 								int relDst2 = instr2.intVal - offset2;
 								if (relDst1 != relDst2) {
@@ -189,12 +221,12 @@ public class CHLComparator {
 									e.printStackTrace();
 									eq = false;
 								}
-							} else {
+							} else if (instr1.intVal != instr2.intVal) {
 								/*If 2 instructions that are supposed to be functionally identical have different
 								 * operands, try to resolve those operands as data pointers and check if the referred
 								 * values are equal. */
-								Const const1 = data1.get(instr1.intVal);
-								Const const2 = data2.get(instr2.intVal);
+								Const const1 = dataMap1.get(instr1.intVal);
+								Const const2 = dataMap2.get(instr2.intVal);
 								if (const1 == null || const2 == null || !const1.equals(const2)) {
 									eq = false;
 								}
@@ -211,8 +243,7 @@ public class CHLComparator {
 							String loc2 = String.format(locFmt, script2.getSourceFilename()+":"+instr2.lineNumber+": ");
 							out.println("Instruction mismatch for script " + name + ":\r\n"
 								+ loc1 + instr1.toString(a, script1, null) + "\r\n"
-								+ loc2 + instr2.toString(b, script2, null));
-							out.println();
+								+ loc2 + instr2.toString(b, script2, null) + "\r\n");
 							res = false;
 							if (stop) break;
 						}
@@ -227,20 +258,71 @@ public class CHLComparator {
 		//Autostart scripts
 		List<Integer> autostart1 = a.getAutoStartScripts().getScripts();
 		List<Integer> autostart2 = b.getAutoStartScripts().getScripts();
-		if (!autostart1.equals(autostart2)) {
-			out.println("Autostart scripts: "+autostart1+" -> "+autostart2);
-			res = false;
+		if (strict) {
+			if (!autostart1.equals(autostart2)) {
+				out.println("Autostart scripts: "+autostart1+" -> "+autostart2);
+				res = false;
+			}
+		} else {
+			if (autostart1.size() != autostart2.size()) {
+				out.println("Number of autostart scripts: "+autostart1.size()+" -> "+autostart2.size());
+				res = false;
+			}
+			//
+			Set<String> autostartNames2 = new HashSet<>();
+			for (Integer scriptId : autostart2) {
+				try {
+					Script script = b.getScriptsSection().getScript(scriptId);
+					autostartNames2.add(script.getName());
+				} catch (InvalidScriptIdException e) {
+					out.println(e.getMessage() + " in autostart section of file 2");
+					res = false;
+				}
+			}
+			for (Integer scriptId : autostart1) {
+				try {
+					Script script = a.getScriptsSection().getScript(scriptId);
+					String name = script.getName();
+					if (!autostartNames2.contains(name)) {
+						out.println("Autostart script "+name+" missing in file 2");
+						res = false;
+					}
+				} catch (InvalidScriptIdException e) {
+					out.println(e.getMessage() + " in autostart section of file 1");
+					res = false;
+				}
+			}
+		}
+		//Data
+		if (strict) {
+			byte[] rawData1 = a.getDataSection().getData();
+			byte[] rawData2 = b.getDataSection().getData();
+			if (!Arrays.equals(rawData1, rawData2)) {
+				out.println("Data sections differ:");
+				out.println(dataMap1.values());
+				out.println(dataMap2.values());
+				out.println();
+				res = false;
+			}
 		}
 		//
 		if (res) {
-			out.println("Files are functionally identical!");
+			if (strict) {
+				out.println("Files have a strict match!");
+			} else {
+				out.println("Files are functionally identical!");
+			}
 		} else {
-			out.println("Files don't match");
+			if (strict) {
+				out.println("Files don't match. You may retry without strict option.");
+			} else {
+				out.println("Files don't match");
+			}
 		}
 		return res;
 	}
 	
-	private static Map<Integer, Const> map(List<Const> constants) {
+	private static Map<Integer, Const> mapOffset(List<Const> constants) {
 		Map<Integer, Const> res = new HashMap<>();
 		for (Const c : constants) {
 			res.put(c.offset, c);

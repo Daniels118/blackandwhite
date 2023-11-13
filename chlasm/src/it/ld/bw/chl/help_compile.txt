@@ -1,13 +1,10 @@
 Compile CHL source files into CHL binary file
 
 Syntax
-  chlasm -compile -p filename -o filename [-oasm filename]
-  chlasm -compile -i files [-h files] [-hi files] -o filename [-oasm filename]
+  chlasm -compile -p filename -o filename [-oasm filename] [-noshr]
 
 Arguments
-  -p    project file
-  -i    input source files; order matters
-  -h    input c header files
-  -hi   input info files
-  -o    output CHL file
-  -oasm output ASM file (merged)
+  -p     project file
+  -o     output CHL file
+  -oasm  output ASM file (merged)
+  -noshr disable shared strings

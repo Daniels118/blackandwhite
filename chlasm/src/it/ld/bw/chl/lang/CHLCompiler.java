@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import it.ld.bw.chl.Project;
 import it.ld.bw.chl.exceptions.ParseError;
@@ -46,6 +47,10 @@ public class CHLCompiler implements Compiler {
 	private static final String DEFAULT_SOUNDBANK_NAME = "AUDIO_SFX_BANK_TYPE_IN_GAME";
 	private static final String DEFAULT_SUBTYPE_NAME = "SCRIPT_FIND_TYPE_ANY";
 	
+	private static final Charset ASCII = Charset.forName("US-ASCII");
+	private static final int INITIAL_BUFFER_SIZE = 16 * 1024;
+	private static final int MAX_BUFFER_SIZE = 2 * 1024 * 1024;
+	
 	private File file;
 	private String sourceFilename;
 	private LinkedList<SymbolInstance> symbols;
@@ -56,26 +61,27 @@ public class CHLCompiler implements Compiler {
 	private boolean optimizeAssignmentEnabled = false;
 	private boolean fixBugsEnabled = false;
 	private boolean ignoreMissingScriptsEnabled = false;
+	private boolean sharedStringsEnabled = true;
 	
 	private PrintStream traceStream;
 	private PrintStream out;
 	
 	private final CHLFile chl = new CHLFile();
+	private Script currentScript;
 	private final List<Instruction> instructions;
 	private boolean sealed = false;
 	private LinkedHashMap<String, Integer> strings = new LinkedHashMap<>();
-	private int dataSize = 0;
+	private ByteBuffer dataBuffer = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);
 	private Map<String, Integer> constants = new HashMap<>();
-	private LinkedHashMap<String, Integer> localVars = new LinkedHashMap<>();
+	private LinkedHashMap<String, Integer> localMap = new LinkedHashMap<>();
 	private Map<String, Integer> localConst = new HashMap<>();
-	private LinkedHashMap<String, Integer> globalVars = new LinkedHashMap<>();
+	private LinkedHashMap<String, Integer> globalMap = new LinkedHashMap<>();
 	private Map<String, Script> scriptDefinitions = new HashMap<>();
 	private LinkedHashMap<String, ScriptToResolve> autoruns = new LinkedHashMap<>();
 	private List<ScriptToResolve> calls = new LinkedList<>();
 	private String challengeName;
 	private Integer challengeId;
-	private int highestGlobal;
-	private int scriptId = 0;
+	private int scriptId = 1;
 	
 	private ParseException lastParseException = null;
 	
@@ -87,11 +93,12 @@ public class CHLCompiler implements Compiler {
 	
 	public CHLCompiler(PrintStream outStream) {
 		this.out = outStream;
+		dataBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		chl.getHeader().setVersion(Header.BW1);
 		instructions = chl.getCode().getItems();
 		/* This will help the disassembler when guessing string values, because it increases the pointer
 		 * of the first string (low values are too common and would lead to a lot of bad guessing) */
-		storeStringData("Compiled with CHL Compiler developed by Daniele Lombardi");
+		//storeStringData("Compiled with CHL Compiler developed by Daniele Lombardi");
 	}
 	
 	public boolean isOptimizeAssignmentEnabled() {
@@ -118,6 +125,14 @@ public class CHLCompiler implements Compiler {
 		this.ignoreMissingScriptsEnabled = ignoreMissingScriptsEnabled;
 	}
 	
+	public boolean isSharedStringsEnabled() {
+		return sharedStringsEnabled;
+	}
+	
+	public void setSharedStringsEnabled(boolean sharedStringsEnabled) {
+		this.sharedStringsEnabled = sharedStringsEnabled;
+	}
+	
 	public void setTraceStream(PrintStream traceStream) {
 		this.traceStream = traceStream;
 	}
@@ -142,23 +157,9 @@ public class CHLCompiler implements Compiler {
 			}
 			//Data section
 			trace("building data section...", 0);
-			final Charset ASCII = Charset.forName("US-ASCII");
-			byte[] data = new byte[dataSize];
-			for (Entry<String, Integer> e : strings.entrySet()) {
-				String value = e.getKey();
-				int strptr = e.getValue();
-				byte[] bytes = value.getBytes(ASCII);
-				System.arraycopy(bytes, 0, data, strptr, bytes.length);
-				strptr += bytes.length;
-				data[strptr] = 0;
-			}
-			chl.getDataSection().setData(data);
-			//Global variables
-			trace("building global variables section...", 0);
-			List<String> chlVars = chl.getGlobalVariables().getNames();
-			for (String name : globalVars.keySet()) {
-				chlVars.add(name);
-			}
+			dataBuffer.flip();
+			chl.getDataSection().setData(new byte[dataBuffer.limit()]);
+			dataBuffer.get(chl.getDataSection().getData());
 			//call and start
 			trace("resolving call and start instructions...", 0);
 			for (ScriptToResolve call : calls) {
@@ -284,7 +285,6 @@ public class CHLCompiler implements Compiler {
 		convertToNodes(tokens);
 		challengeName = null;
 		challengeId = null;
-		highestGlobal = 0;
 		line = 0;
 		col = 0;
 		//
@@ -295,9 +295,6 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseFile() throws ParseException {
 		final int start = it.nextIndex();
-		final int startIp = getIp();
-		final List<Script> scripts = chl.getScriptsSection().getItems();
-		final int firstScript = scripts.size();
 		while (it.hasNext()) {
 			SymbolInstance symbol = peek();
 			if (symbol.is("challenge")) {
@@ -319,16 +316,6 @@ public class CHLCompiler implements Compiler {
 		SymbolInstance symbol = next();
 		if (symbol != SymbolInstance.EOF) {
 			throw new ParseException("Unexpected token: "+symbol+". Expected: EOF", file, symbol.token.line, symbol.token.col);
-		}
-		//Fix local varOffset
-		for (int i = firstScript; i < scripts.size(); i++) {
-			scripts.get(i).setVarOffset(highestGlobal);
-		}
-		for (int i = startIp; i < instructions.size(); i++) {
-			Instruction instr = instructions.get(i);
-			if (instr.isReference() && instr.intVal < 0) {
-				instr.intVal = highestGlobal - instr.intVal;
-			}
 		}
 		return replace(start, "FILE");
 	}
@@ -360,14 +347,14 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private void declareGlobalVar(String name) {
-		Integer varId = globalVars.get(name);
+		Integer varId = globalMap.get(name);
 		if (varId == null) {
-			varId = globalVars.size() + 1;	//Global variables are indexed starting from 1
-			globalVars.put(name, varId);
+			chl.getGlobalVariables().getNames().add(name);
+			varId = globalMap.size() + 1;	//Global variables are indexed starting from 1
+			globalMap.put(name, varId);
 		} else {
-			out.println("NOTICE: redeclaration of global var "+name+" at "+file.getName()+":"+line+":"+col);
+			throw new ParseError("Redeclaration of global var "+name, file, line, col);
 		}
-		highestGlobal = Math.max(highestGlobal, varId);
 	}
 	
 	private SymbolInstance parseGlobal() throws ParseException {
@@ -430,7 +417,7 @@ public class CHLCompiler implements Compiler {
 		final int start = it.nextIndex();
 		//define SCRIPT_TYPE IDENTIFIER[([ARGS])] EOL
 		accept("define");
-		localVars.clear();
+		localMap.clear();
 		SymbolInstance symbol = parseScriptType();
 		ScriptType type = ScriptType.fromKeyword(symbol.toString());
 		symbol = accept(TokenType.IDENTIFIER);
@@ -440,7 +427,7 @@ public class CHLCompiler implements Compiler {
 		if (symbol.is("(")) {
 			argc = parseArguments();
 		}
-		localVars.clear();	//<- required because parseArguments adds arguments to local vars
+		localMap.clear();	//<- required because parseArguments adds arguments to local vars
 		accept(TokenType.EOL);
 		define(type, name, argc);
 		return replace(start, "DEFINE");
@@ -460,11 +447,13 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseScript() throws ParseException {
 		final int start = it.nextIndex();
-		localVars.clear();
+		localMap.clear();
 		localConst.clear();
 		try {
 			Script script = new Script();
-			script.setScriptID(++scriptId);	//Script IDs must start from 1
+			currentScript = script;
+			script.setScriptID(scriptId++);
+			script.setGlobalCount(chl.getGlobalVariables().getNames().size());
 			script.setSourceFilename(sourceFilename);
 			script.setInstructionAddress(getIp());
 			accept("begin");
@@ -483,7 +472,7 @@ public class CHLCompiler implements Compiler {
 			define(scriptType, name, argc);
 			//Start the exception handler and load parameter values from the stack
 			Instruction except_lblExceptionHandler = except();
-			Iterator<String> lvars = localVars.keySet().iterator();
+			Iterator<String> lvars = localMap.keySet().iterator();
 			for (int i = 0; i < argc; i++) {
 				String var = lvars.next();
 				popf(var);
@@ -495,7 +484,7 @@ public class CHLCompiler implements Compiler {
 			}
 			parse("start EOL");
 			free();
-			script.getVariables().addAll(localVars.keySet());
+			script.getVariables().addAll(localMap.keySet());
 			chl.getScriptsSection().getItems().add(script);
 			//STATEMENTS
 			parseStatements();
@@ -521,7 +510,7 @@ public class CHLCompiler implements Compiler {
 			accept(TokenType.EOL);
 			return replace(start, "SCRIPT");
 		} finally {
-			localVars.clear();
+			localMap.clear();
 			localConst.clear();
 		}
 	}
@@ -627,11 +616,11 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private void addLocalVar(String name) throws ParseException {
-		if (localVars.containsKey(name)) {
+		if (localMap.containsKey(name)) {
 			throw new ParseException("Duplicate local variable: "+name, file, line, col);
 		}
-		int varId = -1 - localVars.size();	//the real id will be calculated later
-		localVars.put(name, varId);
+		int varId = currentScript.getGlobalCount() + 1 + localMap.size();
+		localMap.put(name, varId);
 	}
 	
 	private SymbolInstance parseLocal() throws ParseException {
@@ -5063,12 +5052,9 @@ public class CHLCompiler implements Compiler {
 	 * @throws ParseException
 	 */
 	private int getVarId(String name) throws ParseException {
-		Integer varId = localVars.get(name);
+		Integer varId = localMap.get(name);
 		if (varId == null) {
-			varId = globalVars.get(name);
-			if (varId != null) {
-				highestGlobal = Math.max(highestGlobal, varId);
-			}
+			varId = globalMap.get(name);
 		}
 		if (varId == null) {
 			lastParseException = new ParseException("Undefined variable: "+name, file, line, col);
@@ -5184,15 +5170,32 @@ public class CHLCompiler implements Compiler {
 		peek();
 	}
 	
-	private int storeStringData(String value) {
-		Integer strptr = strings.get(value);
-		if (strptr == null) {
-			strptr = dataSize;
+	private int storeStringData(String value) throws ParseError {
+		int strptr = strings.getOrDefault(value, -1);
+		if (!sharedStringsEnabled || strptr < 0) {
+			byte[] data = value.getBytes(ASCII);
+			if (dataBuffer.remaining() < data.length + 1) {
+				int capacity = dataBuffer.capacity() * 2;
+				if (capacity > MAX_BUFFER_SIZE) {
+					throw new ParseError("Data exceeds "+MAX_BUFFER_SIZE+" bytes limit", file, line);
+				}
+				out.println("Data buffer full, increasing capacity to " + capacity);
+				dataBuffer = resize(dataBuffer, capacity);
+			}
+			strptr = dataBuffer.position();
 			strings.put(value, strptr);
-			dataSize += value.length() + 1;
+			dataBuffer.put(data);
+			dataBuffer.put((byte)0);
 		}
 		return strptr;
 	}
+	
+	private static ByteBuffer resize(ByteBuffer buffer, int capacity) {
+        ByteBuffer newBuffer = ByteBuffer.allocate(capacity);
+        buffer.flip();
+        newBuffer.put(buffer);
+        return newBuffer;
+    }
 	
 	private SymbolInstance parseString() throws ParseException {
 		SymbolInstance sInst = next();

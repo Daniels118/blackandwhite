@@ -48,6 +48,7 @@ public class ASMWriter {
 	private boolean printSourceLineEnabled = false;
 	private Path sourcePath = null;
 	private boolean printSourceCommentsEnabled = false;
+	private boolean printBinInfoEnabled = false;
 	
 	private String currentSourceFilename;
 	private String[] source;
@@ -110,6 +111,14 @@ public class ASMWriter {
 		this.printSourceCommentsEnabled = printSourceCommentsEnabled;
 	}
 	
+	public boolean isPrintBinInfoEnabled() {
+		return printBinInfoEnabled;
+	}
+	
+	public void setPrintBinInfoEnabled(boolean printBinInfoEnabled) {
+		this.printBinInfoEnabled = printBinInfoEnabled;
+	}
+	
 	public void write(CHLFile chl, File outdir) throws IOException, CompileException, InvalidScriptIdException {
 		Path path = outdir.toPath();
 		List<Const> constants = chl.getDataSection().analyze();
@@ -121,7 +130,6 @@ public class ASMWriter {
 		File prjFile = path.resolve("_project.txt").toFile();
 		try (FileWriter str = new FileWriter(prjFile);) {
 			str.write("source _data.txt\r\n");
-			str.write("source _globals.txt\r\n");
 			for (String sourceFilename : sources) {
 				str.write("source " + sourceFilename + "\r\n");
 				if (!isValidFilename(sourceFilename)) {
@@ -136,13 +144,6 @@ public class ASMWriter {
 		try (FileWriter str = new FileWriter(dataFile);) {
 			writeHeader(chl, str);
 			writeData(chl, str, constants);
-		}
-		//
-		out.println("Writing _globals.txt");
-		File globalsFile = path.resolve("_globals.txt").toFile();
-		try (FileWriter str = new FileWriter(globalsFile);) {
-			writeHeader(chl, str);
-			writeGlobals(chl, str);
 		}
 		//
 		out.println("Writing _autorun.txt");
@@ -169,7 +170,6 @@ public class ASMWriter {
 		try (FileWriter str = new FileWriter(file);) {
 			writeHeader(chl, str);
 			writeData(chl, str, constants);
-			writeGlobals(chl, str);
 			writeScripts(chl, str, labels, constMap);
 			writeAutoStartScripts(chl, str);
 		}
@@ -228,33 +228,34 @@ public class ASMWriter {
 	}
 	
 	private void writeData(CHLFile chl, FileWriter str, List<Const> constants) throws IOException {
-		str.write("DATA\r\n");
-		str.write(String.format("//0x%1$08X\r\n", chl.getDataSection().getOffset()));
+		str.write(".DATA\r\n");
+		if (printBinInfoEnabled) str.write(String.format("//offset: 0x%1$08X\r\n", chl.getDataSection().getOffset()));
 		for (Const c : constants) {
 			str.write(c.getDeclaration() + "\r\n");
 		}
 		str.write("\r\n");
 	}
 	
-	private void writeGlobals(CHLFile chl, FileWriter str) throws IOException {
-		str.write("GLOBALS\r\n");
-		for (String name : chl.getGlobalVariables().getNames()) {
-			str.write("global "+name+"\r\n");
-		}
-		str.write("\r\n");
-	}
-	
 	private void writeScripts(CHLFile chl, FileWriter str, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
-		str.write("SCRIPTS\r\n");
-		//str.write(String.format("//0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
+		if (printBinInfoEnabled) str.write(String.format("//offset: 0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
 		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
+		int firstGlobal = 0;
 		String prevSourceFilename = "";
 		List<Script> scripts = chl.getScriptsSection().getItems();
 		for (Script script : scripts) {
 			if (!script.getSourceFilename().equals(prevSourceFilename)) {
 				str.write("\r\n");
-				str.write("source "+script.getSourceFilename()+"\r\n");
+				str.write("SOURCE "+script.getSourceFilename()+"\r\n");
 				str.write("\r\n");
+				str.write(".GLOBALS\r\n");
+				List<String> globals = chl.getGlobalVariables().getNames().subList(firstGlobal, script.getGlobalCount());
+				for (String name : globals) {
+					str.write("global "+name+"\r\n");
+				}
+				str.write("\r\n");
+				firstGlobal = script.getGlobalCount();
+				str.write(".SCRIPTS\r\n");
+				
 				prevSourceFilename = script.getSourceFilename();
 			}
 			writeScript(chl, str, script, labels, constMap);
@@ -264,11 +265,31 @@ public class ASMWriter {
 	}
 	
 	private void writeScripts(CHLFile chl, FileWriter str, String sourceFilename, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
-		str.write("SCRIPTS\r\n");
-		str.write("\r\n");
 		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
-		List<Script> scripts = chl.getScripts(sourceFilename);
-		for (Script script : scripts) {
+		int firstGlobal = 0;
+		Script script = null;
+		ListIterator<Script> it = chl.getScriptsSection().getItems().listIterator();
+		while (it.hasNext()) {
+			script = it.next();
+			if (script.getSourceFilename().equals(sourceFilename)) {
+				it.previous();
+				break;
+			}
+			firstGlobal = script.getGlobalCount();
+		}
+		str.write(".GLOBALS\r\n");
+		List<String> globals = chl.getGlobalVariables().getNames().subList(firstGlobal, script.getGlobalCount());
+		for (String name : globals) {
+			str.write("global "+name+"\r\n");
+		}
+		str.write("\r\n");
+		str.write(".SCRIPTS\r\n");
+		str.write("\r\n");
+		while (it.hasNext()) {
+			script = it.next();
+			if (!script.getSourceFilename().equals(sourceFilename)) {
+				break;
+			}
 			writeScript(chl, str, script, labels, constMap);
 			str.write("\r\n");
 		}
@@ -291,7 +312,7 @@ public class ASMWriter {
 			}
 			//Search for previous comments
 			for (int i = instr.lineNumber - 2; i >= 0; i--) {
-				String src = source[i];
+				String src = i < source.length ? source[i] : "";
 				String srcT = src.trim();
 				if (src.isBlank() || srcT.startsWith("//")) {
 					comments.push(src);
@@ -308,11 +329,13 @@ public class ASMWriter {
 		}
 		//Signature
 		str.write("begin "+script.getSignature()+"\r\n");
+		if (printBinInfoEnabled) str.write("//global count: " + script.getGlobalCount() + "\r\n");
 		//Local variables
 		for (int i = script.getParameterCount(); i < script.getVariables().size(); i++) {
 			str.write("\tLocal " + script.getVariables().get(i) + "\r\n");
 		}
 		//Code
+		if (printBinInfoEnabled) str.write("//instruction address: 0x" + Integer.toHexString(firstInstruction) + "\r\n");
 		int index = firstInstruction;
 		ListIterator<Instruction> it = instructions.listIterator(index);
 		boolean endFound = false;
@@ -383,6 +406,12 @@ public class ASMWriter {
 				} else if (printNativeInfoEnabled && instr.opcode == OPCode.SYS) {
 					NativeFunction f = NativeFunction.fromCode(instr.intVal);
 					str.write("\t//" + f.getInfoString());
+				} else if (printBinInfoEnabled) {
+					if (instr.opcode.isIP) {
+						str.write(String.format("\t//offset: 0x%X, target: 0x%X", index, instr.intVal));
+					} else {
+						str.write(String.format("\t//offset: 0x%X", index));
+					}
 				}
 				if (printSourceLinenoEnabled
 						&& instr.lineNumber > 0
@@ -407,7 +436,7 @@ public class ASMWriter {
 	}
 	
 	private void writeAutoStartScripts(CHLFile chl, FileWriter str) throws IOException, CompileException {
-		str.write("AUTORUN\r\n");
+		str.write(".AUTORUN\r\n");
 		for (int scriptID : chl.getAutoStartScripts().getScripts()) {
 			try {
 				Script script = chl.getScriptsSection().getScript(scriptID);

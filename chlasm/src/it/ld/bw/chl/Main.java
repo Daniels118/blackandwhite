@@ -33,9 +33,12 @@ import it.ld.bw.chl.model.NativeFunction;
 import it.ld.utils.CmdLine;
 
 public class Main {
+	private static boolean trace = false;
+	
 	public static void main(String[] args) throws Exception {
 		CmdLine cmd = new CmdLine(args);
 		if (cmd.getArgFlag("-trace")) {
+			trace = true;
 			CHLFile.traceEnabled = true;
 			Code.traceEnabled = true;
 		}
@@ -128,21 +131,12 @@ public class Main {
 	
 	private static void compile(CmdLine cmd) throws Exception {
 		CHLCompiler compiler = new CHLCompiler();
+		if (trace) compiler.setTraceStream(System.out);
 		File prj = cmd.getArgFile("-p");
-		Project project;
-		if (prj == null) {
-			project = new Project();
-			project.sources = cmd.getArgFiles("-i");
-			project.cHeaders = cmd.getArgFiles("-h");
-			project.infoFiles = cmd.getArgFiles("-ih");
-			project.sourcePath = project.sources.get(0).getParentFile().toPath();
-			if (project.sources.isEmpty()) throw new Exception("Please specify either -i or -p");
-		} else {
-			if (cmd.getArgFlag("-i")) throw new Exception("Please specify either -i or -p");
-			project = Project.load(prj);
-		}
+		Project project = Project.load(prj);
 		File out = mandatory(cmd.getArgFile("-o"), "-p");
 		File outAsm = cmd.getArgFile("-oasm");
+		compiler.setSharedStringsEnabled(!cmd.getArgFlag("-noshr"));
 		//
 		try {
 			CHLFile chl = compiler.compile(project);
@@ -179,6 +173,7 @@ public class Main {
 	private static void compare(CmdLine cmd) throws Exception {
 		File f1 = mandatory(cmd.getArgFile("-f1"), "-f1");
 		File f2 = mandatory(cmd.getArgFile("-f2"), "-f2");
+		boolean strict = cmd.getArgFlag("-strict");
 		Set<String> scripts = new HashSet<>(cmd.getArgVals("-s"));
 		if (scripts.isEmpty()) scripts = null;
 		//
@@ -190,6 +185,7 @@ public class Main {
 		chl2.read(f2);
 		System.out.println("Comparing...");
 		CHLComparator comparator = new CHLComparator();
+		comparator.setStrict(strict);
 		comparator.compare(chl1, chl2, scripts);
 	}
 	

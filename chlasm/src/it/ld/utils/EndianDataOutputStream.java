@@ -133,4 +133,14 @@ public class EndianDataOutputStream extends OutputStream implements DataOutput {
 	public void writeChars(String s) throws IOException {
 		dataOut.writeChars(s);
 	}
+	
+	@Override
+	public void flush() throws IOException {
+		dataOut.flush();
+	}
+	
+	@Override
+	public void close() throws IOException {
+		dataOut.close();
+	}
 }

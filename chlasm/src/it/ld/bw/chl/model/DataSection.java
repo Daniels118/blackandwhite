@@ -16,8 +16,6 @@
 package it.ld.bw.chl.model;
 
 import java.io.EOFException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +43,9 @@ public class DataSection extends Section {
 	public void read(EndianDataInputStream str) throws Exception {
 		int count = str.readInt();
 		data = str.readNBytes(count);
-		if (data.length < count) throw new EOFException("End of file ("+data.length+" bytes read out of "+count+")");
+		if (data.length < count) {
+			throw new EOFException("Unexpected end of file while reading data section ("+data.length+" bytes read out of "+count+")");
+		}
 	}
 
 	@Override
@@ -58,30 +58,16 @@ public class DataSection extends Section {
 		List<Const> res = new LinkedList<Const>();
 		int offset = 0;
 		while (offset < data.length) {
-			int n = getBinaryNumber(data, offset);
+			int n = getZString(data, offset);
 			if (n > 0) {
-				if (n % 12 == 0) {
-					for (int i = 0; i < n; i += 12, offset += 12) {
-						res.add(new Const(data, offset, 12, ConstType.VEC3));
-					}
-				} else {
-					for (int i = 0; i < n; i += 4, offset += 4) {
-						Const c = new Const(data, offset, 4, ConstType.FLOAT);
-						res.add(c);
-					}
-				}
+				Const c = new Const(data, offset, n, ConstType.STRING);
+				res.add(c);
+				offset += n + 1;
 			} else {
-				n = getZString(data, offset);
-				if (n > 0) {
-					Const c = new Const(data, offset, n, ConstType.STRING);
-					res.add(c);
-					offset += n + 1;
-				} else {
-					n = 1;
-					Const c = new Const(data, offset, 1, ConstType.BYTE);
-					res.add(c);
-					offset += n;
-				}
+				n = 1;
+				Const c = new Const(data, offset, 1, ConstType.BYTE);
+				res.add(c);
+				offset += n;
 			}
 		}
 		return res;
@@ -107,28 +93,8 @@ public class DataSection extends Section {
 		return n;
 	}
 	
-	private static int getBinaryNumber(byte[] data, int offset) {
-		int n = 0;
-		int printable = 0;
-		while (offset < data.length) {
-			if (isPrintable((char)data[offset])) {
-				printable++;
-				if (printable >= 4) break;
-			} else {
-				printable = 0;
-			}
-			n++;
-			offset++;
-		}
-		return n & 0xFFFC;	//Clear the last 2 bits to round down to a multiple of 4
-	}
-	
 	public enum ConstType {
 		BYTE("byte"),
-		INT("int"),
-		FLOAT("float"),
-		VEC3("float[] "),
-		BYTEARRAY("byte[]"),
 		STRING("string");
 		
 		public final String keyword;
@@ -155,36 +121,6 @@ public class DataSection extends Section {
 			return data[offset];
 		}
 		
-		public byte[] getByteArray() {
-			byte[] res = new byte[length];
-			System.arraycopy(data, offset, res, 0, length);
-			return res;
-		}
-		
-		public int getInt() {
-			ByteBuffer buffer = ByteBuffer.allocate(length);
-			buffer.order(ByteOrder.LITTLE_ENDIAN);
-			buffer.put(data, offset, length);
-			buffer.flip();
-			return buffer.getInt();
-		}
-		
-		public float getFloat() {
-			ByteBuffer buffer = ByteBuffer.allocate(length);
-			buffer.order(ByteOrder.LITTLE_ENDIAN);
-			buffer.put(data, offset, length);
-			buffer.flip();
-			return buffer.getFloat();
-		}
-		
-		public float[] getVec3() {
-			ByteBuffer buffer = ByteBuffer.allocate(length);
-			buffer.order(ByteOrder.LITTLE_ENDIAN);
-			buffer.put(data, offset, length);
-			buffer.flip();
-			return new float[] {buffer.getFloat(), buffer.getFloat(), buffer.getFloat()};
-		}
-		
 		public String getString() {
 			final Charset ASCII = Charset.forName("US-ASCII");
 			return new String(data, offset, length, ASCII);
@@ -195,6 +131,15 @@ public class DataSection extends Section {
 		}
 		
 		@Override
+		public int hashCode() {
+			int s = 0;
+			for (int i = Math.min(7, data.length - 1); i >= 0; i--) {
+				s += data[i];
+			}
+			return s;
+		}
+		
+		@Override
 		public boolean equals(Object obj) {
 			if (!(obj instanceof Const)) return false;
 			Const other = (Const) obj;
@@ -202,16 +147,8 @@ public class DataSection extends Section {
 			switch (type) {
 				case BYTE:
 					return this.getByte() == other.getByte();
-				case BYTEARRAY:
-					return this.getByteArray().equals(other.getByteArray());
-				case FLOAT:
-					return this.getFloat() == other.getFloat();
-				case INT:
-					return this.getInt() == other.getInt();
 				case STRING:
 					return this.getString().equals(other.getString());
-				case VEC3:
-					return this.getVec3().equals(other.getVec3());
 				default:
 					throw new RuntimeException("Unsupported constant type: "+type);
 			}
@@ -222,19 +159,11 @@ public class DataSection extends Section {
 			switch (type) {
 				case BYTE:
 					return String.valueOf(getByte());
-				case BYTEARRAY:
-					return String.valueOf(getByteArray());
-				case FLOAT:
-					return String.valueOf(getFloat());
-				case INT:
-					return String.valueOf(getInt());
 				case STRING:
 					String t = getString();
 					t = t.replace("\\", "\\\\");
 					t = t.replace("\"", "\\\"");
 					return "\"" + t + "\"";
-				case VEC3:
-					return String.valueOf(getVec3());
 				default:
 					throw new RuntimeException("Unsupported constant type: "+type);
 			}
