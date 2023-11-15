@@ -1,5 +1,5 @@
 CHL Compiler for Black & White 1
-Version 0.1
+Version 0.2
 Developer by Daniele Lombardi (alias Daniels118)
 
 Syntax
@@ -9,7 +9,7 @@ Syntax
   chlasm -chlinfo <parameters>
   chlasm -cmp <parameters>
   chlasm -prref <parameters>
-  chlasm -info
+  chlasm -info <parameters>
   chlasm -help option
 
 Arguments
@@ -22,5 +22,6 @@ Arguments
   -info    prints information about CHL language and runtime
   -help    prints the help specific to the selected option (chlasm, asmchl...)
 
-Common arguments
-  -trace enable tracing
+Shared arguments
+  -v     verbose output
+  -trace enable tracing of various operations

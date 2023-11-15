@@ -43,6 +43,8 @@ import it.ld.bw.chl.model.ScriptType;
 
 import static it.ld.bw.chl.model.NativeFunction.*;
 
+//TODO add in camera/dialogue block check for statements that require it
+
 public class CHLCompiler implements Compiler {
 	private static final String DEFAULT_SOUNDBANK_NAME = "AUDIO_SFX_BANK_TYPE_IN_GAME";
 	private static final String DEFAULT_SUBTYPE_NAME = "SCRIPT_FIND_TYPE_ANY";
@@ -63,8 +65,8 @@ public class CHLCompiler implements Compiler {
 	private boolean ignoreMissingScriptsEnabled = false;
 	private boolean sharedStringsEnabled = true;
 	
-	private PrintStream traceStream;
 	private PrintStream out;
+	private boolean verboseEnabled;
 	
 	private final CHLFile chl = new CHLFile();
 	private Script currentScript;
@@ -82,6 +84,9 @@ public class CHLCompiler implements Compiler {
 	private String challengeName;
 	private Integer challengeId;
 	private int scriptId = 1;
+	private boolean inCinemaBlock;
+	private boolean inCameraBlock;
+	private boolean inDialogueBlock;
 	
 	private ParseException lastParseException = null;
 	
@@ -99,6 +104,30 @@ public class CHLCompiler implements Compiler {
 		/* This will help the disassembler when guessing string values, because it increases the pointer
 		 * of the first string (low values are too common and would lead to a lot of bad guessing) */
 		//storeStringData("Compiled with CHL Compiler developed by Daniele Lombardi");
+	}
+	
+	public boolean isVerboseEnabled() {
+		return verboseEnabled;
+	}
+	
+	public void setVerboseEnabled(boolean verboseEnabled) {
+		this.verboseEnabled = verboseEnabled;
+	}
+	
+	private void warning(String s) {
+		out.println(s);
+	}
+	
+	private void notice(String s) {
+		if (verboseEnabled) {
+			out.println(s);
+		}
+	}
+	
+	private void info(String s) {
+		if (verboseEnabled) {
+			out.println(s);
+		}
 	}
 	
 	public boolean isOptimizeAssignmentEnabled() {
@@ -133,10 +162,6 @@ public class CHLCompiler implements Compiler {
 		this.sharedStringsEnabled = sharedStringsEnabled;
 	}
 	
-	public void setTraceStream(PrintStream traceStream) {
-		this.traceStream = traceStream;
-	}
-	
 	public void setFirstScriptId(int id) throws IllegalStateException {
 		if (!chl.getScriptsSection().getItems().isEmpty()) {
 			throw new IllegalStateException("Some scripts have already been parsed");
@@ -149,24 +174,24 @@ public class CHLCompiler implements Compiler {
 	 */
 	public CHLFile seal() throws ParseException {
 		if (!sealed) {
-			out.println("building...");
+			info("building...");
 			//Script map
 			Map<String, Script> scriptMap = new HashMap<>();
 			for (Script script : chl.getScriptsSection().getItems()) {
 				scriptMap.put(script.getName(), script);
 			}
 			//Data section
-			trace("building data section...", 0);
+			info("building data section...");
 			dataBuffer.flip();
 			chl.getDataSection().setData(new byte[dataBuffer.limit()]);
 			dataBuffer.get(chl.getDataSection().getData());
 			//call and start
-			trace("resolving call and start instructions...", 0);
+			info("resolving call and start instructions...");
 			for (ScriptToResolve call : calls) {
 				Script script = scriptMap.get(call.name);
 				if (script == null) {
 					if (ignoreMissingScriptsEnabled) {
-						out.println("ERROR: script not found: "+call.name+" at "+call.file+":"+call.line);
+						warning("ERROR: script not found: "+call.name+" at "+call.file+":"+call.line);
 					} else {
 						throw new ParseException("Script not found: "+call.name, call.file, call.line, 1);
 					}
@@ -178,7 +203,7 @@ public class CHLCompiler implements Compiler {
 				}
 			}
 			//Auto start scripts
-			trace("resolving autorun scripts...", 0);
+			info("resolving autorun scripts...");
 			for (ScriptToResolve call : autoruns.values()) {
 				Script script = scriptMap.get(call.name);
 				if (script == null) {
@@ -191,7 +216,7 @@ public class CHLCompiler implements Compiler {
 			}
 			//
 			sealed = true;
-			out.println("done...");
+			info("done.");
 		}
 		return chl;
 	}
@@ -205,13 +230,6 @@ public class CHLCompiler implements Compiler {
 			seal();
 		}
 		return chl;
-	}
-	
-	private void trace(String s, int depth) {
-		if (traceStream != null) {
-			traceStream.print("\t".repeat(depth));
-			traceStream.println(s);
-		}
 	}
 	
 	private void convertToNodes(List<Token> tokens) throws ParseException {
@@ -233,14 +251,14 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	public void loadHeader(File headerFile) throws FileNotFoundException, IOException, ParseException {
-		out.println("loading "+headerFile.getName()+"...");
+		info("loading "+headerFile.getName()+"...");
 		CHeaderParser parser = new CHeaderParser();
 		Map<String, Integer> hconst = parser.parse(headerFile);
 		constants.putAll(hconst);
 	}
 	
 	public void loadInfo(File infoFile) throws FileNotFoundException, IOException, ParseException {
-		out.println("loading "+infoFile.getName()+"...");
+		info("loading "+infoFile.getName()+"...");
 		InfoParser2 parser = new InfoParser2();
 		Map<String, Integer> hconst = parser.parse(infoFile);
 		constants.putAll(hconst);
@@ -268,7 +286,7 @@ public class CHLCompiler implements Compiler {
 		try {
 			this.file = file;
 			sourceFilename = file.getName();
-			out.println("compiling "+sourceFilename+"...");
+			info("compiling "+sourceFilename+"...");
 			CHLLexer lexer = new CHLLexer();
 			List<Token> tokens = lexer.tokenize(file);
 			parse(tokens);
@@ -290,7 +308,6 @@ public class CHLCompiler implements Compiler {
 		//
 		it = symbols.listIterator();
 		parseFile();
-		trace("SUCCESS!", 0);
 	}
 	
 	private SymbolInstance parseFile() throws ParseException {
@@ -330,7 +347,7 @@ public class CHLCompiler implements Compiler {
 		SymbolInstance symbol = accept(TokenType.STRING);
 		sourceFilename = symbol.token.stringVal();
 		accept(TokenType.EOL);
-		out.println("Source filename set to: "+sourceFilename);
+		info("Source filename set to: "+sourceFilename);
 		return replace(start, "source STRING EOL");
 	}
 	
@@ -340,7 +357,7 @@ public class CHLCompiler implements Compiler {
 		challengeName = symbol.token.value;
 		challengeId = getConstant("CHALLENGE_" + challengeName);
 		if (challengeId == -1) {
-			out.println("NOTICE: challenge id "+challengeName+" is dummy, snapshot and highlight statements "
+			notice("NOTICE: challenge id "+challengeName+" is dummy, snapshot and highlight statements "
 					+ "won't be available. At "+file.getName()+":"+line+":"+col);
 		}
 		return replace(start, "challenge IDENTIFIER EOL");
@@ -375,7 +392,7 @@ public class CHLCompiler implements Compiler {
 			accept(TokenType.EOL);
 			Integer oldVal = constants.put(name, val);
 			if (oldVal != null && oldVal != val) {
-				out.println("WARNING: redefinition of global constant: "+name+" at "+file+":"+symbol.token.line);
+				warning("WARNING: redefinition of global constant: "+name+" at "+file+":"+symbol.token.line);
 			}
 			return replace(start, "GLOBAL_CONST_DECL");
 		} else {
@@ -384,7 +401,7 @@ public class CHLCompiler implements Compiler {
 			String name = symbol.token.value;
 			symbol = peek(false);
 			if (symbol.is("=")) {
-				out.println("WARNING: global variable initialization is not supported, it will be ignored. "
+				warning("WARNING: global variable initialization is not supported, it will be ignored. "
 						+ "At "+file.getName()+":"+line+":"+col);
 				symbol = next(false);
 				while (!symbol.is(TokenType.EOL)) {
@@ -2940,22 +2957,42 @@ public class CHLCompiler implements Compiler {
 			symbol = peek();
 			if (symbol.is("cinema")) {
 				//begin known cinema STATEMENTS end known cinema
+				if (inCinemaBlock) {
+					throw new ParseError("Already in cinema block", file, line, col);
+				}
+				inCinemaBlock = true;
+				inCameraBlock = true;
+				inDialogueBlock = true;
 				parse("cinema EOL");
 				parseStatements();
 				parse("end known cinema EOL");
+				inCinemaBlock = false;
+				inCameraBlock = false;
+				inDialogueBlock = false;
 				return replace(start, "KNOWN_CINEMA");
 			} else if (symbol.is("dialogue")) {
 				//begin known dialogue STATEMENTS end known dialogue
+				if (inDialogueBlock) {
+					throw new ParseError("Already in dialogue block", file, line, col);
+				}
+				inDialogueBlock = true;
 				parse("dialogue EOL");
 				parseStatements();
 				parse("end known dialogue EOL");
-				return replace(start, "KNOWN_CINEMA");
+				inDialogueBlock = false;
+				return replace(start, "KNOWN_DIALOGUE");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol+". Expected: dialogue|cinema", lastParseException, file, symbol.token.line, symbol.token.col);
 			}
 		} else if (symbol.is("cinema")) {
 			//begin cinema STATEMENTS end cinema
 			parse("cinema EOL");
+			if (inCinemaBlock) {
+				throw new ParseError("Already in cinema block", file, line, col);
+			}
+			inCinemaBlock = true;
+			inCameraBlock = true;
+			inDialogueBlock = true;
 			final int lblRetry1 = getIp();
 			sys(START_CAMERA_CONTROL);
 			jz(lblRetry1);
@@ -2974,6 +3011,7 @@ public class CHLCompiler implements Compiler {
 				sys(SET_WIDESCREEN);
 				sys(END_GAME_SPEED);
 				sys(END_CAMERA_CONTROL);
+				inCameraBlock = false;
 				//
 				parseStatements();
 				//
@@ -2987,9 +3025,16 @@ public class CHLCompiler implements Compiler {
 				sys(END_CAMERA_CONTROL);
 				sys(END_DIALOGUE);
 			}
+			inCinemaBlock = false;
+			inCameraBlock = false;
+			inDialogueBlock = false;
 			return replace(start, "CINEMA");
 		} else if (symbol.is("camera")) {
 			//begin camera STATEMENTS end camera
+			if (inCameraBlock) {
+				throw new ParseError("Already in camera block", file, line, col);
+			}
+			inCameraBlock = true;
 			parse("camera EOL");
 			final int lblRetry1 = getIp();
 			sys(START_CAMERA_CONTROL);
@@ -3005,9 +3050,14 @@ public class CHLCompiler implements Compiler {
 			sys(END_GAME_SPEED);
 			sys(END_CAMERA_CONTROL);
 			sys(END_DIALOGUE);
+			inCameraBlock = false;
 			return replace(start, "begin camera");
 		} else if (symbol.is("dialogue")) {
 			//begin dialogue STATEMENTS end dialogue
+			if (inDialogueBlock) {
+				throw new ParseError("Already in dialogue block", file, line, col);
+			}
+			inDialogueBlock = true;
 			parse("dialogue EOL");
 			final int lblRetry1 = getIp();
 			sys(START_DIALOGUE);
@@ -3016,27 +3066,9 @@ public class CHLCompiler implements Compiler {
 			parseStatements();
 			//
 			parse("end dialogue EOL");
+			inDialogueBlock = false;
 			sys(END_DIALOGUE);
 			return replace(start, "begin dialogue");
-		} else if (symbol.is("known")) {
-			symbol = peek();
-			if (symbol.is("dialogue")) {
-				//begin known dialogue STATEMENTS end dialogue
-				parse("dialogue EOL");
-				throw new ParseException("Statement not implemented", file, line, col);
-				/*parseStatements();
-				parse("end dialogue EOL");
-				return replace(start, "begin known dialogue");*/
-			} else if (symbol.is("cinema")) {
-				//begin known cinema STATEMENTS end cinema
-				parse("cinema EOL");
-				throw new ParseException("Statement not implemented", file, line, col);
-				/*parseStatements();
-				parse("end cinema EOL");
-				return replace(start, "begin known cinema");*/
-			} else {
-				throw new ParseException("Unexpected token: "+symbol+". Expected: dialogue|cinema", lastParseException, file, symbol.token.line, symbol.token.col);
-			}
 		} else if (symbol.is("dual")) {
 			//begin dual camera to OBJECT OBJECT EOL STATEMENTS EOL end dual camera
 			parse("dual camera to OBJECT OBJECT EOL");
@@ -5179,7 +5211,7 @@ public class CHLCompiler implements Compiler {
 				if (capacity > MAX_BUFFER_SIZE) {
 					throw new ParseError("Data exceeds "+MAX_BUFFER_SIZE+" bytes limit", file, line);
 				}
-				out.println("Data buffer full, increasing capacity to " + capacity);
+				info("Data buffer full, increasing capacity to " + capacity);
 				dataBuffer = resize(dataBuffer, capacity);
 			}
 			strptr = dataBuffer.position();

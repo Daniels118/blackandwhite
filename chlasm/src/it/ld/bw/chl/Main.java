@@ -33,10 +33,14 @@ import it.ld.bw.chl.model.NativeFunction;
 import it.ld.utils.CmdLine;
 
 public class Main {
+	private static boolean verbose = false;
 	private static boolean trace = false;
 	
 	public static void main(String[] args) throws Exception {
 		CmdLine cmd = new CmdLine(args);
+		if (cmd.getArgFlag("-v")) {
+			verbose = true;
+		}
 		if (cmd.getArgFlag("-trace")) {
 			trace = true;
 			CHLFile.traceEnabled = true;
@@ -73,6 +77,7 @@ public class Main {
 	}
 	
 	private static void chlToAsm(CmdLine cmd) throws Exception {
+		ASMWriter writer = new ASMWriter();
 		File inp = mandatory(cmd.getArgFile("-i"), "-i");
 		File out = cmd.getArgFile("-o");
 		File prj = cmd.getArgFile("-p");
@@ -82,7 +87,8 @@ public class Main {
 			if (out != null) throw new Exception("Please specify either -o or -p");
 			if (!prj.isDirectory()) throw new Exception("-p must be a directory");
 		}
-		boolean printSourceLineNumbers = cmd.getArgFlag("-prlno");
+		writer.setPrintSourceLinenoEnabled(cmd.getArgFlag("-prlno"));
+		writer.setPrintBinInfoEnabled(cmd.getArgFlag("-prbin"));
 		File srcPath = cmd.getArgFile("-prsrc");
 		//
 		System.out.println("Loading compiled CHL...");
@@ -91,8 +97,6 @@ public class Main {
 		chl.checkCodeCoverage(System.out);
 		chl.validate(System.out);
 		System.out.println("Writing ASM sources...");
-		ASMWriter writer = new ASMWriter();
-		writer.setPrintSourceLinenoEnabled(printSourceLineNumbers);
 		if (srcPath != null) {
 			writer.setSourcePath(srcPath.toPath());
 			writer.setPrintSourceLineEnabled(true);
@@ -107,7 +111,8 @@ public class Main {
 	}
 	
 	private static void asmToChl(CmdLine cmd) throws Exception {
-		ASMCompiler parser = new ASMCompiler();
+		ASMCompiler compiler = new ASMCompiler();
+		compiler.setVerboseEnabled(verbose);
 		File prj = cmd.getArgFile("-p");
 		Project project;
 		if (prj == null) {
@@ -123,7 +128,7 @@ public class Main {
 		File out = mandatory(cmd.getArgFile("-o"), "-o");
 		//
 		System.out.println("Parsing ASM sources...");
-		CHLFile chl = parser.compile(project);
+		CHLFile chl = compiler.compile(project);
 		System.out.println("Writing compiled CHL...");
 		chl.write(out);
 		System.out.println("Done.");
@@ -131,7 +136,7 @@ public class Main {
 	
 	private static void compile(CmdLine cmd) throws Exception {
 		CHLCompiler compiler = new CHLCompiler();
-		if (trace) compiler.setTraceStream(System.out);
+		compiler.setVerboseEnabled(verbose);
 		File prj = cmd.getArgFile("-p");
 		Project project = Project.load(prj);
 		File out = mandatory(cmd.getArgFile("-o"), "-p");

@@ -52,6 +52,7 @@ public class ASMCompiler implements Compiler {
 	private static final int MAX_BUFFER_SIZE = 2 * 1024 * 1024;
 	
 	private PrintStream out;
+	private boolean verboseEnabled;
 	
 	private final CHLFile chl = new CHLFile();
 	private final List<String> globalVariables;
@@ -88,19 +89,43 @@ public class ASMCompiler implements Compiler {
 		chl.getHeader().setVersion(Header.BW1);
 	}
 	
+	public boolean isVerboseEnabled() {
+		return verboseEnabled;
+	}
+	
+	public void setVerboseEnabled(boolean verboseEnabled) {
+		this.verboseEnabled = verboseEnabled;
+	}
+	
+	private void warning(String s) {
+		out.println(s);
+	}
+	
+	private void notice(String s) {
+		if (verboseEnabled) {
+			out.println(s);
+		}
+	}
+	
+	private void info(String s) {
+		if (verboseEnabled) {
+			out.println(s);
+		}
+	}
+
 	public void defineConstant(String name, Object value) {
 		SourceConst newConst = new SourceConst(name, value);
 		SourceConst oldConst = globalConstants.get(name);
 		if (oldConst == null) {
 			globalConstants.put(newConst.name, newConst);
 		} else if (!(oldConst.value.equals(newConst.value))) {
-			out.println("WARNING: redefinition of global constant "+name);
+			warning("WARNING: redefinition of global constant "+name);
 			globalConstants.put(newConst.name, newConst);
 		}
 	}
 	
 	public void loadHeader(File headerFile) throws FileNotFoundException, IOException, ParseException {
-		out.println("loading "+headerFile.getName()+"...");
+		info("loading "+headerFile.getName()+"...");
 		CHeaderParser parser = new CHeaderParser();
 		Map<String, Integer> hconst = parser.parse(headerFile);
 		for (Entry<String, Integer> e : hconst.entrySet()) {
@@ -109,7 +134,7 @@ public class ASMCompiler implements Compiler {
 	}
 	
 	public void loadInfo(File infoFile) throws FileNotFoundException, IOException, ParseException {
-		out.println("loading "+infoFile.getName()+"...");
+		info("loading "+infoFile.getName()+"...");
 		InfoParser2 parser = new InfoParser2();
 		Map<String, Integer> hconst = parser.parse(infoFile);
 		for (Entry<String, Integer> e : hconst.entrySet()) {
@@ -122,7 +147,7 @@ public class ASMCompiler implements Compiler {
 	 */
 	public CHLFile seal() throws ParseException {
 		if (!sealed) {
-			out.println("building...");
+			info("building...");
 			if (scriptsUsageCount == null) {
 				scriptsUsageCount = new int[scripts.size()];
 			}
@@ -156,13 +181,13 @@ public class ASMCompiler implements Compiler {
 					Script script = scripts.get(i);
 					String fmt = "NOTICE: script %1$ 4d %2$s is never used (instruction address: %3$08X)";
 					String msg = String.format(fmt, script.getScriptID(), script.getName(), script.getInstructionAddress());
-					out.println(msg);
+					notice(msg);
 				}
 			}
 			//
 			chl.checkCodeCoverage(out);
 			sealed = true;
-			out.println("done...");
+			info("done.");
 		}
 		return chl;
 	}
@@ -506,7 +531,7 @@ public class ASMCompiler implements Compiler {
 										if (capacity > MAX_BUFFER_SIZE) {
 											throw new ParseException("Data exceeds "+MAX_BUFFER_SIZE+" bytes limit", file, lineno);
 										}
-										out.println("Data buffer full, increasing capacity to " + capacity);
+										info("Data buffer full, increasing capacity to " + capacity);
 										dataBuffer = resize(dataBuffer, capacity);
 									}
 								}

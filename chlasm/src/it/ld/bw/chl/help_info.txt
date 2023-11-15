@@ -4,7 +4,7 @@ Syntax
   chlasm -info arg
 
 Arguments
-  keywords
-  syntax
-  syntax_tree
-  native_functions
+  keywords         list language keywords
+  syntax           list available statements
+  syntax_tree      display the syntax choices available after a given symbol as a tree
+  native_functions list all native functions
