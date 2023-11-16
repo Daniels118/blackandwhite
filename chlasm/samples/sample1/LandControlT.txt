@@ -1,7 +1,0 @@
-challenge TUTORIAL_LAND
-
-begin script LandControlT
-start
-	say "This is just a placeholder"
-	wait until read
-end script LandControlT
