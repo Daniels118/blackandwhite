@@ -25,3 +25,4 @@ Arguments
 Shared arguments
   -v     verbose output
   -trace enable tracing of various operations
+  -jst   print java stack trace on error

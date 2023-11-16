@@ -1,0 +1,139 @@
+/**	An example of the Challenge system in action!
+ *	In this document we describe a complete script... Bowling!
+ */
+
+global constant BOWLING_BALL = 57
+
+
+global PlayingVoice
+global Score
+global End
+
+
+begin script MyChallengeNotify(Location, Radius)
+start
+	begin cinema
+		eject evil spirit
+		make evil spirit point to Location
+		say "Have a game of bowling!"
+		wait until read
+		say "Try to get a strike!" with interaction
+		wait until read
+	end cinema
+end script MyChallengeNotify
+
+
+/**		Control the behaviour of the bowling ball.
+ *				Control the behaviour of the bowling ball, which is passed to this script as a parameter.
+ */
+begin script BowlingBall(Ball)
+	InitialPos = marker at [Ball]
+	Moving = 0
+start
+	begin loop
+		until End == 1
+		when [Ball] not near [InitialPos] radius 20 and Moving == 1
+			delete Ball
+			Ball = create OBJECT BOWLING_BALL at [InitialPos]
+		when [Ball] not at [InitialPos] and Moving == 0
+			set Ball position to [InitialPos]
+		when Ball is FLYING and Moving == 0
+			Moving = 1
+			begin cinema
+				say "Slow-mo"
+				set camera follow Ball distance 10
+				set game speed to 0.5
+				wait until Ball is not FLYING or [Ball] not near [InitialPos] radius 20 or Score == 6
+				set game speed to 1.0
+			end cinema
+		when Ball is not FLYING and Moving == 1
+			Moving = 0
+	end loop
+end script BowlingBall
+
+
+/**		Control the behaviour of a bowling pin.
+ */
+begin script BowlingPin(Man)
+	ManPos = marker at [Man]
+	TmpPos = 0
+	Standing = 1
+	Moving = 0
+start
+	begin loop
+		until End == 1
+		when Man not exists
+			Man = create VILLAGER MALE at [ManPos]
+			Standing = 1
+			Moving = 0
+		when HEALTH of Man <= 0.1 and Man is not FLYING
+			say "Man died"
+			TmpPos = marker at [Man]
+			delete Man
+			Man = create VILLAGER MALE at [TmpPos]
+			if Standing == 0
+				Score--
+				Standing = 1
+			end if
+		when Man is FLYING and Standing == 1
+			say "Man got knocked over"
+			Score++
+			Standing = 0
+			if PlayingVoice == 0
+				PlayingVoice = 1
+				start say sound constant from HELP_TEXT_THROW_BLOKE_06 to HELP_TEXT_THROW_BLOKE_14 at [Man]
+				wait 2 seconds
+				PlayingVoice = 0
+			end if
+		when Man is not FLYING and Standing == 0
+			Score--
+			Standing = 1
+		when [Man] not at [ManPos] and Moving == 0
+			move Man position to [ManPos]
+			Moving = 1
+		when [Man] at [ManPos] and Moving == 1
+			Moving = 0
+	end loop
+end script BowlingPin
+
+
+/**		Start everything up, then monitor the progress of the game.
+ */
+begin script Bowling
+	PinPos = marker at [1920, 2240]
+	BallPos = marker at [PinPos] + [10, 10]
+	Size = 0.7
+	Ball = create OBJECT BOWLING_BALL at [BallPos]
+	Influence = create influence at [2185.616, 94.651, 2409.528] radius 2000
+start
+	begin camera
+		set camera position to [Ball] + [15, 10, 15]
+		set camera focus to [Ball]
+	end camera
+	
+	PlayingVoice = 0
+	Score = 0
+	End = 0
+	run background script BowlingBall(Ball)
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [0, 0, 0])
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [-Size, 0, 2 * Size])
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [Size, 0, 2 * Size])
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [-2 * Size, 0, 4 * Size])
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [0, 0, 4 * Size])
+	run background script BowlingPin(create VILLAGER MALE at [PinPos] + [2 * Size, 0, 4 * Size])
+	run script MyChallengeNotify(Ball, 60)
+	
+	begin loop
+		until End == 1
+		
+		when Score == 6
+			begin cinema
+				eject evil spirit
+				say "You got a strike!" with interaction
+				wait until read
+			end cinema
+			End = 1
+	end loop
+	say "Thanks for playing!"
+	wait until read
+end script Bowling

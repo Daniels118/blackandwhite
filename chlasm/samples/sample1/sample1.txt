@@ -1,0 +1,10 @@
+challenge LandControlAll
+
+begin script LandControlAll	
+start
+	load map "scripts/LandT.txt"
+	set fade in time 3
+	
+	run script Bowling
+	
+end script LandControlAll

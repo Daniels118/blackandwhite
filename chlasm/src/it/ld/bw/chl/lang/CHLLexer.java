@@ -319,7 +319,11 @@ public class CHLLexer {
 		if (status == Status.BLANK || status == Status.COMMENT) {
 			add(tokens, token.setValue(buffer.toString()));
 		} else if (status != Status.DEFAULT) {
-			throw new ParseException("Unexpected end of file while parsing "+status, file, line, col);
+			String msg = "Unexpected end of file while parsing "+status;
+			if (token != null) {
+				msg += " (started at "+token.line+":"+token.col+")";
+			}
+			throw new ParseException(msg, file, line, col);
 		}
 		return tokens;
 	}

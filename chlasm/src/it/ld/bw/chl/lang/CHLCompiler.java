@@ -442,9 +442,8 @@ public class CHLCompiler implements Compiler {
 		symbol = peek();
 		int argc = 0;
 		if (symbol.is("(")) {
-			argc = parseArguments();
+			argc = parseArguments(false);
 		}
-		localMap.clear();	//<- required because parseArguments adds arguments to local vars
 		accept(TokenType.EOL);
 		define(type, name, argc);
 		return replace(start, "DEFINE");
@@ -483,7 +482,7 @@ public class CHLCompiler implements Compiler {
 			int argc = 0;
 			symbol = peek();
 			if (symbol.is("(")) {
-				argc = parseArguments();
+				argc = parseArguments(true);
 			}
 			script.setParameterCount(argc);
 			define(scriptType, name, argc);
@@ -562,7 +561,7 @@ public class CHLCompiler implements Compiler {
 		}
 	}
 	
-	private int parseArguments() throws ParseException {
+	private int parseArguments(boolean addToLocalVars) throws ParseException {
 		final int start = it.nextIndex();
 		int argc = 0;
 		accept("(");
@@ -571,14 +570,18 @@ public class CHLCompiler implements Compiler {
 			symbol = accept(TokenType.IDENTIFIER);
 			String name = symbol.token.value;
 			argc++;
-			addLocalVar(name);
+			if (addToLocalVars) {
+				addLocalVar(name);
+			}
 			symbol = peek();
 			while (!symbol.is(")")) {
 				accept(",");
 				symbol = accept(TokenType.IDENTIFIER);
 				name = symbol.token.value;
 				argc++;
-				addLocalVar(name);
+				if (addToLocalVars) {
+					addLocalVar(name);
+				}
 				symbol = peek();
 			}
 		}
@@ -677,6 +680,18 @@ public class CHLCompiler implements Compiler {
 			return replace(start, "CONST_DECL");
 		} else {
 			throw new ParseException("Unexpected token: "+symbol+". Expected: IDENTIFIER|constant", lastParseException, file, symbol.token.line, symbol.token.col);
+		}
+	}
+	
+	private void checkInCameraBlock(String statement) {
+		if (!inCameraBlock) {
+			throw new ParseError("Statement \""+statement+"\" must be called within a camera block", file, line, col);
+		}
+	}
+	
+	private void checkInDialogueBlock(String statement) {
+		if (!inCameraBlock) {
+			throw new ParseError("Statement \""+statement+"\" must be called within a camera block", file, line, col);
 		}
 	}
 	
@@ -794,6 +809,7 @@ public class CHLCompiler implements Compiler {
 				return parseAssignment();
 			}
 		}
+		lastParseException = new ParseException("Unexpected token: "+symbol+". Expected STATEMENT", lastParseException, file, line, col);
 		return null;
 	}
 	
@@ -1026,8 +1042,9 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "STATEMENT");
 				}
 			} else if (symbol.is("speed")) {
-				parse("speed to EXPRESSION EOL");
 				//set game speed to EXPRESSION
+				checkInCameraBlock("set game speed");
+				parse("speed to EXPRESSION EOL");
 				sys2(SET_GAMESPEED);
 				return replace(start, "STATEMENT");
 			} else {
@@ -4727,7 +4744,7 @@ public class CHLCompiler implements Compiler {
 		}
 		if (fail) {
 			symbol = peek();
-			throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
+			throw new ParseException("Unexpected token: "+symbol+". Expected CONST_EXPR", file, symbol.token.line, symbol.token.col);
 		} else {
 			seek(start);
 			return null;
@@ -4751,7 +4768,7 @@ public class CHLCompiler implements Compiler {
 		if (fail) {
 			if (lastParseException != null) throw lastParseException;
 			symbol = peek();
-			throw new ParseException("Unexpected token: "+symbol, file, symbol.token.line, symbol.token.col);
+			throw new ParseException("Unexpected token: "+symbol+". Expected COORD_EXPR", file, symbol.token.line, symbol.token.col);
 		} else {
 			seek(start);
 			return null;

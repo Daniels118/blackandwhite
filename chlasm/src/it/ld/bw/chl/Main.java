@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.lang.ASMCompiler;
 import it.ld.bw.chl.lang.ASMWriter;
@@ -36,42 +37,55 @@ public class Main {
 	private static boolean verbose = false;
 	private static boolean trace = false;
 	
-	public static void main(String[] args) throws Exception {
-		CmdLine cmd = new CmdLine(args);
-		if (cmd.getArgFlag("-v")) {
-			verbose = true;
-		}
-		if (cmd.getArgFlag("-trace")) {
-			trace = true;
-			CHLFile.traceEnabled = true;
-			Code.traceEnabled = true;
-		}
-		if (cmd.getArgFlag("-chlasm")) {
-			chlToAsm(cmd);
-		} else if (cmd.getArgFlag("-asmchl")) {
-			asmToChl(cmd);
-		} else if (cmd.getArgFlag("-compile")) {
-			compile(cmd);
-		} else if (cmd.getArgFlag("-chlinfo")) {
-			chlinfo(cmd);
-		} else if (cmd.getArgFlag("-cmp")) {
-			compare(cmd);
-		} else if (cmd.getArgFlag("-prref")) {
-			printInstructionReference(cmd);
-		} else if (cmd.getArgFlag("-info")) {
-			printInfo(cmd);
-		} else {
-			String topic = cmd.getArgVal("-help");
-			if (topic == null) {
-				printHelp("help.txt");
-			} else {
-				if (topic.startsWith("-")) topic = topic.substring(1);
-				if (in(topic, "chlasm", "asmchl", "compile", "chlinfo", "cmp", "prref", "info")) {
-					printHelp("help_" + topic + ".txt");
-				} else {
-					System.out.println("Unknown option: " + topic);
-				}
+	public static void main(String[] args) {
+		boolean printJavaStackTrace = true;
+		try {
+			CmdLine cmd = new CmdLine(args);
+			printJavaStackTrace = cmd.getArgFlag("-jst");
+			verbose = cmd.getArgFlag("-v");
+			if (cmd.getArgFlag("-trace")) {
+				trace = true;
+				CHLFile.traceEnabled = true;
+				Code.traceEnabled = true;
 			}
+			if (cmd.getArgFlag("-chlasm")) {
+				chlToAsm(cmd);
+			} else if (cmd.getArgFlag("-asmchl")) {
+				asmToChl(cmd);
+			} else if (cmd.getArgFlag("-compile")) {
+				compile(cmd);
+			} else if (cmd.getArgFlag("-chlinfo")) {
+				chlinfo(cmd);
+			} else if (cmd.getArgFlag("-cmp")) {
+				compare(cmd);
+			} else if (cmd.getArgFlag("-prref")) {
+				printInstructionReference(cmd);
+			} else if (cmd.getArgFlag("-info")) {
+				printInfo(cmd);
+			} else {
+				String topic = cmd.getArgVal("-help");
+				if (topic == null) {
+					printHelp("help.txt");
+				} else {
+					if (topic.startsWith("-")) topic = topic.substring(1);
+					if (in(topic, "chlasm", "asmchl", "compile", "chlinfo", "cmp", "prref", "info")) {
+						printHelp("help_" + topic + ".txt");
+					} else {
+						System.out.println("Unknown option: " + topic);
+					}
+				}
+				System.exit(1);
+			}
+		} catch (ParseException|ParseError e) {
+			Exception e2 = getCause(e);
+			if (printJavaStackTrace) {
+				e2.printStackTrace();
+			} else {
+				System.out.println(e2.getMessage());
+			}
+			System.exit(1);
+		} catch (Exception e) {
+			e.printStackTrace();
 			System.exit(1);
 		}
 	}
@@ -143,26 +157,21 @@ public class Main {
 		File outAsm = cmd.getArgFile("-oasm");
 		compiler.setSharedStringsEnabled(!cmd.getArgFlag("-noshr"));
 		//
-		try {
-			CHLFile chl = compiler.compile(project);
-			System.out.println("Writing compiled CHL...");
-			chl.write(out);
-			if (outAsm != null) {
-				System.out.println("Writing ASM sources...");
-				ASMWriter writer = new ASMWriter();
-				writer.setPrintSourceLinenoEnabled(true);
-				if (project.sourcePath != null) {
-					writer.setSourcePath(project.sourcePath);
-					writer.setPrintSourceLineEnabled(true);
-					writer.setPrintSourceCommentsEnabled(true);
-				}
-				writer.writeMerged(chl, outAsm);
+		CHLFile chl = compiler.compile(project);
+		System.out.println("Writing compiled CHL...");
+		chl.write(out);
+		if (outAsm != null) {
+			System.out.println("Writing ASM sources...");
+			ASMWriter writer = new ASMWriter();
+			writer.setPrintSourceLinenoEnabled(true);
+			if (project.sourcePath != null) {
+				writer.setSourcePath(project.sourcePath);
+				writer.setPrintSourceLineEnabled(true);
+				writer.setPrintSourceCommentsEnabled(true);
 			}
-			System.out.println("Done.");
-		} catch (ParseException e) {
-			ParseException root = getCause(e);
-			root.printStackTrace();
+			writer.writeMerged(chl, outAsm);
 		}
+		System.out.println("Done.");
 	}
 	
 	private static void chlinfo(CmdLine cmd) throws Exception {
