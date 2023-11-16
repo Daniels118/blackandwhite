@@ -1,0 +1,7 @@
+Analyze the instructions in a chl file and print a table summary
+
+Syntax
+  chlasm -prref -i filename
+
+Arguments
+  -i input CHL file

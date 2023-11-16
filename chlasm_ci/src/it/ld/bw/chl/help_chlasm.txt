@@ -1,0 +1,12 @@
+Convert chl file to asm
+
+Syntax
+  chlasm -chlasm -i filename (-o filename|-p directory) [-prlno] [-prsrc path]
+
+Arguments
+  -i input CHL file
+  -o output source file (merged)
+  -p output source folder
+  -prlno print source filename and line number in output files
+  -prsrc sets the original source folder and include source lines in output files
+  -prbin print binary information (segment offsets, raw instruction pointers, etc.)

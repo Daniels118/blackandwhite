@@ -1,0 +1,12 @@
+Compile ASM source files into CHL binary file
+
+Syntax
+  chlasm -asmchl -p filename -o filename
+  chlasm -asmchl -i files [-h files] [-hi files] -o filename
+
+Arguments
+  -p  project file
+  -i  input source files; order matters
+  -h  input c header files
+  -hi input info files
+  -o  output CHL file

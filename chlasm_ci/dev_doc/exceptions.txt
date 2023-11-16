@@ -1,0 +1,163 @@
+### My notes about how exception works ###
+
+Exceptions allow to execute some code whenever a condition meets, even if the script execution is locked in a loop.
+I guess the exception handler is executed on the same thread of the script every [N] instructions.
+An interesting aspect is that the exception handler code is embedded in the calling script, but it is skipped
+from normal execution by a fixed JMP instruction.
+Another notable thing is that the conditions are just normal test instructions within an infinite loop, so there
+is no real callback mechanism. This means that exception handling consumes CPU time, so use it with care.
+
+Exception handlers can be nested. An exception handler gets activated by EXCEPT and deactivated by ENDEXCEPT.
+The EXCEPT instruction must specify the address of the first instruction of the exception handler.
+
+Just after the ENDEXCEPT instruction must be placed the followings:
+1) a fixed JMP to skip the subsequent exception handler code from normal execution;
+2) the exception handler code;
+3) the ITEREXCEPT instruction; this is used by the exception handler executor to know that the exception
+   handler code is ended and must be executed again from the start in the future;
+4) whatever instruction; the fixed JMP at point 1 must point here. If this handler was defined at script
+   level, then this instruction is END.
+
+There are 2 types of exception which buildup the handler code: "when" and "until".
+
+The "when" exceptions are similar to "if" statements: they check a condition and execute or skip the subsequent
+user defined statements.
+
+The "until" exception is similar to "when", but if it matches, after the execution of the user defined code,
+instead of continuing the execution, it deactivates the exception handler and breaks the execution of the
+current block (script/while/loop). The implementation is as follow:
+	PUSHB false
+	SYS SET_WIDESCREEN
+	SYS END_GAME_SPEED
+	SYS END_DIALOGUE
+	SYS END_CAMERA_CONTROL
+		//user defined statements (optional)
+	BRKEXCEPT
+	JMP labelAfterITEREXCEPT
+
+They first clear any camera or dialogue sequence, the BRKEXCEPT stops the exception handler, and the JMP breaks
+the execution of the block in the main script (script/while/loop).
+
+Exceptions can be defined at script level and within loops (while/loop), and must be placed after regular code.
+
+
+## Examples ##
+
+Consider the following code:
+
+Repeat = 0
+while Repeat < 100
+	Repeat++
+	when SomeVar == 2
+		Repeat += 2
+	when SomeVar == 3
+		Repeat += 3
+	until SomeVar == 4
+		Repeat += 4
+end while
+
+
+This is how it should be translated:
+	
+	//Repeat = 0
+	PUSHF 0.0
+	POPF [Repeat]
+	//while Repeat < 100
+	EXCEPT lblExceptionHandler
+lblStartWhile:
+	PUSHF [Repeat]
+	PUSHF 100.0
+	LT
+	JZ lblEndWhile
+		//while body
+		//Repeat++
+		PUSHF [Repeat]
+		PUSHF 1.0
+		ADD
+		POPF Repeat
+	//end while
+	JMP lblStartWhile
+lblEndWhile:
+	ENDEXCEPT
+	JMP lblEndExcept
+lblExceptionHandler:
+	//when SomeVar == 2
+	PUSHF [SomeVar]
+	PUSHF 2.0
+	EQ
+	JZ lblWhen2
+		//Repeat += 2
+		PUSHF [Repeat]
+		PUSHF 2.0
+		ADD
+		POPF Repeat
+lblWhen2:
+	//when SomeVar == 3
+	PUSHF [SomeVar]
+	PUSHF 3.0
+	EQ
+	JZ lblUntil1
+		//Repeat += 3
+		PUSHF [Repeat]
+		PUSHF 3.0
+		ADD
+		POPF Repeat
+lblUntil1:
+	//until SomeVar == 4
+	PUSHF [SomeVar]
+	PUSHF 4.0
+	EQ
+	JZ lblUntilNotMatched
+	PUSHB false
+	SYS SET_WIDESCREEN
+	SYS END_GAME_SPEED
+	SYS END_DIALOGUE
+	SYS END_CAMERA_CONTROL
+		//Repeat += 4
+		PUSHF [Repeat]
+		PUSHF 4.0
+		ADD
+		POPF Repeat
+	BRKEXCEPT
+	JMP lblEndExcept
+lblUntilNotMatched:
+	ITEREXCEPT
+lblEndExcept:
+
+
+The same code without any exception:
+
+Repeat = 0
+while Repeat < 100
+	Repeat++
+end while
+
+
+Translates to:
+
+	//Repeat = 0
+	PUSHF 0.0
+	POPF [Repeat]
+	//while Repeat < 100
+	EXCEPT lblExceptionHandler
+lblStartWhile:
+	PUSHF [Repeat]
+	PUSHF 100.0
+	LT
+	JZ lblEndWhile
+		//while body
+		//Repeat++
+		PUSHF [Repeat]
+		PUSHF 1.0
+		ADD
+		POPF Repeat
+	//end while
+	JMP lblStartWhile
+lblEndWhile:
+	ENDEXCEPT
+	JMP lblEndExcept
+lblExceptionHandler:
+	//Here would go the exception handlers
+	ITEREXCEPT
+lblEndExcept:
+

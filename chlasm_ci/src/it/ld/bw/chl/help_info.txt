@@ -1,0 +1,10 @@
+Prints information about CHL language and runtime
+
+Syntax
+  chlasm -info arg
+
+Arguments
+  keywords         list language keywords
+  syntax           list available statements
+  syntax_tree      display the syntax choices available after a given symbol as a tree
+  native_functions list all native functions

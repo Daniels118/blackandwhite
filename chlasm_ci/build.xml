@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="package" name="chlasm">
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="11"/>
+    <property name="source" value="11"/>
+	
+    <path id="chlasm_ci.classpath">
+        <pathelement location="bin"/>
+    </path>
+    
+    <target name="init">
+        <mkdir dir="bin"/>
+    	<mkdir dir="build"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.xtend"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+	
+    <target name="clean">
+        <delete dir="bin"/>
+    	<delete dir="build"/>
+    </target>
+	
+    <target name="cleanall" depends="clean"/>
+	
+    <target name="build-project" depends="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="chlasm_ci.classpath"/>
+        </javac>
+    </target>
+	
+	<target name="build-subprojects"></target>
+	
+	<target name="build" depends="build-subprojects,build-project"/>
+    
+	<target name="build-refprojects" description="Build all projects which reference this project."/>
+    
+  	<target name="jar" description="Create JAR" depends="clean, build">
+  	    <jar destfile="build/chlasm_ci.jar" basedir="bin">
+  	    	<fileset dir="bin">
+  	    		<include name="**/*.class"/>
+  	    	</fileset>
+  	    	<fileset dir=".">
+  	    		<include name="COPYING.TXT"/>
+  	    		<include name="README.TXT"/>
+  	    	</fileset>
+  	    </jar>
+  	</target>
+	
+	<target name="package" description="Package JAR, CMD, license and samples" depends="jar">
+	  	<mkdir dir="build/chlasm_ci"/>
+		<mkdir dir="build/chlasm_ci/samples/bwci_story"/>
+		
+		<copy includeemptydirs="false" todir="build/chlasm_ci">
+			<fileset dir="build">
+                <include name="chlasm_ci.jar"/>
+            </fileset>
+			<fileset dir=".">
+            	<include name="chlasm_ci.cmd"/>
+	  			<include name="COPYING.TXT"/>
+  	    		<include name="README.TXT"/>
+            </fileset>
+        </copy>
+		
+		<copy includeemptydirs="false" todir="build/chlasm_ci/samples/bwci_story">
+			<fileset dir="samples/bwci_story">
+                <include name="_project.txt"/>
+            </fileset>
+        </copy>
+		
+		<zip destfile="build/chlasm_ci.zip">
+	  		<fileset dir="build">
+	  			<include name="chlasm_ci/**"/>
+	  		</fileset>
+	  	</zip>
+	</target>
+</project>

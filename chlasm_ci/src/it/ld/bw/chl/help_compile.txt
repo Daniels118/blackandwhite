@@ -1,0 +1,10 @@
+Compile CHL source files into CHL binary file
+
+Syntax
+  chlasm -compile -p filename -o filename [-oasm filename] [-noshr]
+
+Arguments
+  -p     project file
+  -o     output CHL file
+  -oasm  output ASM file (merged)
+  -noshr disable shared strings
