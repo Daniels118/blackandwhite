@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import it.ld.bw.chl.Project;
 import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.model.CHLFile;

@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import it.ld.bw.chl.Project;
 import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection;
