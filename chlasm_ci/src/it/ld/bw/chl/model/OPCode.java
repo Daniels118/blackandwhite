@@ -120,7 +120,7 @@ public enum OPCode {
 /* 0*/	{{"END"}},
 /* 1*/	{null, {null, "JZ"}, {null, "JZ"}},
 /* 2*/	{null, {null, "PUSHI", "PUSHF", "PUSHC", "PUSHO", null, "PUSHB", "PUSHV"}, {null, null, null, null, null, null, null, "PUSHV"}},
-/* 3*/	{null, {null, "POPI", null, null, "POPO"}, {null, null, "POPF"}},
+/* 3*/	{null, {null, "POPI", "POPF", null, "POPO"}, {null, null, "POPF"}},
 /* 4*/	{null, {null, null, "ADDF", "ADDC"}},
 /* 5*/	{null, {"SYS", null, "SYS2"}},
 /* 6*/	{null, {null, null, "SUBF", "SUBC"}},
