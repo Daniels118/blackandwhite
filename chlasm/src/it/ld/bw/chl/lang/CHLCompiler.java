@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
@@ -252,15 +253,13 @@ public class CHLCompiler implements Compiler {
 	public void loadHeader(File headerFile) throws FileNotFoundException, IOException, ParseException {
 		info("loading "+headerFile.getName()+"...");
 		CHeaderParser parser = new CHeaderParser();
-		Map<String, Integer> hconst = parser.parse(headerFile);
-		constants.putAll(hconst);
+		parser.parse(headerFile, constants);
 	}
 	
 	public void loadInfo(File infoFile) throws FileNotFoundException, IOException, ParseException {
 		info("loading "+infoFile.getName()+"...");
 		InfoParser2 parser = new InfoParser2();
-		Map<String, Integer> hconst = parser.parse(infoFile);
-		constants.putAll(hconst);
+		parser.parse(infoFile, constants);
 	}
 	
 	public CHLFile compile(Project project) throws IOException, ParseException {
@@ -499,7 +498,6 @@ public class CHLCompiler implements Compiler {
 			}
 			parse("start EOL");
 			free();
-			script.getVariables().addAll(localMap.keySet());
 			chl.getScriptsSection().getItems().add(script);
 			//STATEMENTS
 			parseStatements();
@@ -638,8 +636,10 @@ public class CHLCompiler implements Compiler {
 		if (localMap.containsKey(name)) {
 			throw new ParseException("Duplicate local variable: "+name, file, line, col);
 		}
-		int varId = currentScript.getGlobalCount() + 1 + localMap.size();
-		localMap.put(name, varId);
+		List<String> scriptVars = currentScript.getVariables();
+		scriptVars.add(name);
+		int id = currentScript.getGlobalCount() + scriptVars.size();
+		localMap.put(name, id);
 	}
 	
 	private SymbolInstance parseLocal() throws ParseException {

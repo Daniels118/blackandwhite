@@ -21,16 +21,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.Map;
 
+import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
 
 /**This is a very simple parser for text info files that can be found in B&W 1 for MacOS.
  */
 public class InfoParser2 {
-	public Map<String, Integer> parse(File file) throws FileNotFoundException, IOException, ParseException {
-		Map<String, Integer> res = new HashMap<>();
+	public void parse(File file, Map<String, Integer> dst) throws FileNotFoundException, IOException, ParseException {
 		int lineno = 0;
 		String sVal = "";
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));) {
@@ -49,11 +48,16 @@ public class InfoParser2 {
 				}
 				String name = tokens[0];
 				int val = Integer.parseInt(tokens[1]);
-				res.put(name, val);
+				//
+				Integer oldVal = dst.get(name);
+				if (oldVal == null) {
+					dst.put(name, val);
+				} else if (oldVal != val) {
+					throw new ParseError("Redefinition of constant "+name+" with different value", file, lineno);
+				}
 			}
 		} catch (NumberFormatException e) {
 			throw new ParseException("Cannot parse \""+sVal+"\" as int", file, lineno, 1);
 		}
-		return res;
 	}
 }
