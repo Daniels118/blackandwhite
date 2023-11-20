@@ -42,7 +42,7 @@ public class Project {
 	public static Project load(File projectFile) throws ParseException, FileNotFoundException, IOException {
 		Project project = new Project();
 		int lineno = 0;
-		Path prjPath = projectFile.getParentFile().toPath();
+		Path prjPath = projectFile.toPath().toAbsolutePath().getParent();
 		project.sourcePath = prjPath;
 		Path headersPath = prjPath;
 		Path infoPath = prjPath;

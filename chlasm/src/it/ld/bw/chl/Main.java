@@ -152,9 +152,9 @@ public class Main {
 	private static void compile(CmdLine cmd) throws Exception {
 		CHLCompiler compiler = new CHLCompiler();
 		compiler.setVerboseEnabled(verbose);
-		File prj = cmd.getArgFile("-p");
+		File prj = mandatory(cmd.getArgFile("-p"), "-p");
 		Project project = Project.load(prj);
-		File out = mandatory(cmd.getArgFile("-o"), "-p");
+		File out = mandatory(cmd.getArgFile("-o"), "-o");
 		File outAsm = cmd.getArgFile("-oasm");
 		compiler.setSharedStringsEnabled(!cmd.getArgFlag("-noshr"));
 		//
