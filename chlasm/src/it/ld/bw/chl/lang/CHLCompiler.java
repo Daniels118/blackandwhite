@@ -263,6 +263,7 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	public CHLFile compile(Project project) throws IOException, ParseException {
+		constants.putAll(project.constants);
 		for (File file : project.cHeaders) {
 			loadHeader(file);
 		}

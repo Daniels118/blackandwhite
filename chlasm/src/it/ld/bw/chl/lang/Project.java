@@ -20,13 +20,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import it.ld.bw.chl.exceptions.ParseException;
 
 public class Project {
+	private static final Charset ASCII = Charset.forName("windows-1252");
+	
+	public Map<String, Integer> constants = new HashMap<>();
+	
 	public Path sourcePath;
 	public List<File> sources = new LinkedList<>();
 	public List<File> cHeaders = new LinkedList<>();
@@ -39,40 +46,74 @@ public class Project {
 		project.sourcePath = prjPath;
 		Path headersPath = prjPath;
 		Path infoPath = prjPath;
-		try (BufferedReader str = new BufferedReader(new FileReader(projectFile));) {
+		try (BufferedReader str = new BufferedReader(new FileReader(projectFile, ASCII));) {
 			String line = str.readLine();
 			while (line != null) {
 				lineno++;
 				line = line.trim();
-				if (!line.isEmpty() && !line.startsWith("#")) {
+				if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("//")) {
 					String[] parts = line.split("\\s+", 2);
 					if (parts.length != 2) {
-						throw new ParseException("Invalid line", projectFile, lineno, 1);
+						throw new ParseException("Invalid line", projectFile, lineno);
 					}
 					String type = parts[0];
-					String sFile = parts[1];
-					if ("source".equals(type)) {
-						File file = project.sourcePath.resolve(sFile).toFile();
+					String sVal = parts[1];
+					if ("define".equals(type)) {
+						parts = parts[1].split("\\s+", 2);
+						String name = parts[0];
+						int val = Integer.parseInt(parts[1]);
+						project.constants.put(name, val);
+					} else if ("source".equals(type)) {
+						File file = project.sourcePath.resolve(sVal).toFile();
+						if (!file.exists()) throw new ParseException("File not found: "+sVal, projectFile, lineno);
 						project.sources.add(file);
+					} else if ("sourcelist".equals(type)) {
+						File file = project.sourcePath.resolve(sVal).toFile();
+						if (!file.exists()) throw new ParseException("File not found: "+sVal, projectFile, lineno);
+						sourcelist(file, project);
 					} else if ("header".equals(type)) {
-						File file = headersPath.resolve(sFile).toFile();
+						File file = headersPath.resolve(sVal).toFile();
+						if (!file.exists()) throw new ParseException("File not found: "+sVal, projectFile, lineno);
 						project.cHeaders.add(file);
 					} else if ("info".equals(type)) {
-						File file = infoPath.resolve(sFile).toFile();
+						File file = infoPath.resolve(sVal).toFile();
+						if (!file.exists()) throw new ParseException("File not found: "+sVal, projectFile, lineno);
 						project.infoFiles.add(file);
 					} else if ("source_path".equals(type)) {
-						project.sourcePath = prjPath.resolve(sFile);
+						project.sourcePath = prjPath.resolve(sVal);
 					} else if ("headers_path".equals(type)) {
-						headersPath = prjPath.resolve(sFile);
+						headersPath = prjPath.resolve(sVal);
 					} else if ("info_path".equals(type)) {
-						infoPath = prjPath.resolve(sFile);
+						infoPath = prjPath.resolve(sVal);
 					} else {
-						throw new ParseException("Invalid type: "+type, projectFile, lineno, 1);
+						throw new ParseException("Invalid type: "+type, projectFile, lineno);
 					}
 				}
 				line = str.readLine();
 			}
 		}
 		return project;
+	}
+	
+	private static void sourcelist(File file, Project project) throws FileNotFoundException, IOException, ParseException {
+		int lineno = 0;
+		try (BufferedReader str = new BufferedReader(new FileReader(file, ASCII));) {
+			String line = str.readLine();
+			while (line != null) {
+				lineno++;
+				line = line.trim();
+				if (!line.isEmpty() && !line.startsWith("//")) {
+					File subFile = project.sourcePath.resolve(line).toFile();
+					if (!subFile.exists()) {
+						throw new ParseException("File not found: "+line, file, lineno);
+					}
+					if (!subFile.isFile()) {
+						throw new ParseException("Invalid file: "+line, file, lineno);
+					}
+					project.sources.add(subFile);
+				}
+				line = str.readLine();
+			}
+		}
 	}
 }

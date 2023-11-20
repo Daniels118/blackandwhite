@@ -54,7 +54,7 @@ public class CHLInfoExtractor {
 		//Scripts list
 		for (int i = 0; i < scripts.size(); i++) {
 			Script s1 = scripts.get(i);
-			out.println("  Scripts["+i+"] (id: "+s1.getScriptID()+"): "+s1.getSignature()+" (ip: "+s1.getInstructionAddress()+", varOffset: "+s1.getGlobalCount()+")");
+			out.println("  Scripts["+i+"] (id: "+s1.getScriptID()+"): "+s1.getSignature()+" (ip: "+s1.getInstructionAddress()+", globals: "+s1.getGlobalCount()+")");
 		}
 		//Autostart scripts offset
 		AutoStartScripts autostartSection = chl.getAutoStartScripts();
