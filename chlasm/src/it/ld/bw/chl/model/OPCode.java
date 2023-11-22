@@ -72,9 +72,9 @@ public enum OPCode {
 	JZ(1, 0, JUMP),			//0x01 Alias: JZ, WAIT
 	PUSH(0, 1, ARG),		//0x02
 	POP(1, 0, ARG),			//0x03
-	ADD(VSTACK),			//0x04
+	ADD(2, 1, VSTACK),		//0x04
 	SYS(ARG|FINT|VSTACK),	//0x05 Alias: SYS, SYS2, CALL
-	SUB(VSTACK),			//0x06
+	SUB(2, 1, VSTACK),		//0x06
 	NEG(1, 1),				//0x07 Alias: NEG, UMINUS
 	MUL(2, 1),				//0x08 Alias: MUL, TIMES
 	DIV(2, 1),				//0x09
@@ -90,13 +90,13 @@ public enum OPCode {
 	LT(2, 1),				//0x13
 	JMP(JUMP),				//0x14
 	SLEEP(1, 1),			//0x15 Alias: SLEEP, DLY
-	EXCEPT(0, 1, IP),		//0x16 Alias: EXCEPT, BLK
+	EXCEPT(IP),				//0x16 Alias: EXCEPT, BLK
 	CAST(1, 1),				//0x17 Alias: CAST, ZERO
 	CALL(SCRIPT|VSTACK),	//0x18 Alias: CALL, START, RUN
-	ENDEXCEPT(1, 0),		//0x19 Alias: FREE, ENDB, ENDEXCEPT
+	ENDEXCEPT(),			//0x19 Alias: FREE, ENDB, ENDEXCEPT
 	RETEXCEPT(),			//0x1A Never found
 	ITEREXCEPT(),			//0x1B Alias: FAILEXCEPT, ITER
-	BRKEXCEPT(1, 0),		//0x1C Alias: BRKEXCEPT, ENDC
+	BRKEXCEPT(),			//0x1C Alias: BRKEXCEPT, ENDC
 	SWAP(ARG|FINT|VSTACK);	//0x1D 
 	//LINE(ARG);			//0x1E Never found
 	
