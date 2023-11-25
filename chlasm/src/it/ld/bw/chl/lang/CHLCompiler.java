@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
@@ -61,7 +60,6 @@ public class CHLCompiler implements Compiler {
 	private int col;
 	
 	private boolean optimizeAssignmentEnabled = false;
-	private boolean fixBugsEnabled = false;
 	private boolean ignoreMissingScriptsEnabled = false;
 	private boolean sharedStringsEnabled = true;
 	
@@ -136,14 +134,6 @@ public class CHLCompiler implements Compiler {
 	
 	public void setOptimizeAssignmentEnabled(boolean optimizeAssignmentEnabled) {
 		this.optimizeAssignmentEnabled = optimizeAssignmentEnabled;
-	}
-	
-	public boolean isFixBugsEnabled() {
-		return fixBugsEnabled;
-	}
-	
-	public void setFixBugsEnabled(boolean fixBugsEnabled) {
-		this.fixBugsEnabled = fixBugsEnabled;
 	}
 	
 	public boolean isIgnoreMissingScriptsEnabled() {
@@ -945,25 +935,8 @@ public class CHLCompiler implements Compiler {
 					sys(CONVERT_CAMERA_FOCUS);
 					pushi(constVal);
 					sys(CONVERT_CAMERA_POSITION);
-					if (fixBugsEnabled) {	//See notes in 3.18.23
-						symbol = parse("time ANY EOL")[1];
-						if (symbol.is(TokenType.IDENTIFIER)) {
-							String varName = symbol.token.value;
-							pushf(varName);
-							swapf(4);
-							pushf(varName);
-						} else if (symbol.is(TokenType.NUMBER)) {
-							float timeVal = symbol.token.floatVal();
-							pushf(timeVal);
-							swapf(4);
-							pushf(timeVal);
-						} else {
-							throw new ParseException("Unexpected token: "+symbol+". Expected: NUMBER|IDENTIFIER", lastParseException, file, symbol.token.line, symbol.token.col);
-						}
-					} else {
-						parse("time EXPRESSION EOL");
-						swapf(4);
-					}
+					parse("time EXPRESSION EOL");
+					swapf(4);
 					sys(MOVE_CAMERA_POSITION);
 					sys(MOVE_CAMERA_FOCUS);
 					return replace(start, "STATEMENT");
