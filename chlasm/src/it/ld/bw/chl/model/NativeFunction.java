@@ -47,10 +47,10 @@ import it.ld.bw.chl.exceptions.InvalidNativeFunctionException;
 
 public enum NativeFunction {
 /*000*/	NONE(),												//Never found
-/*001*/	SET_CAMERA_POSITION("Coord position"),
-/*002*/	SET_CAMERA_FOCUS("Coord position"),
-/*003*/	MOVE_CAMERA_POSITION("Coord position, float time"),
-/*004*/	MOVE_CAMERA_FOCUS("Coord position, float time"),
+/*001*/	SET_CAMERA_POSITION("Coord position", Context.CAMERA),
+/*002*/	SET_CAMERA_FOCUS("Coord position", Context.CAMERA),
+/*003*/	MOVE_CAMERA_POSITION("Coord position, float time", Context.CAMERA),
+/*004*/	MOVE_CAMERA_FOCUS("Coord position, float time", Context.CAMERA),
 /*005*/	GET_CAMERA_POSITION("", "Coord"),
 /*006*/	GET_CAMERA_FOCUS("", "Coord"),
 /*007*/	SPIRIT_EJECT("HELP_SPIRIT_TYPE spirit"),
@@ -59,8 +59,8 @@ public enum NativeFunction {
 /*010*/	SPIRIT_POINT_GAME_THING("HELP_SPIRIT_TYPE spirit, Object target, bool inWorld"),
 /*011*/	GAME_THING_FIELD_OF_VIEW("Object object", "bool"),
 /*012*/	POS_FIELD_OF_VIEW("Coord position", "bool"),
-/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction"),
-/*014*/	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction"),
+/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction", Context.DIALOGUE),
+/*014*/	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction", Context.DIALOGUE),
 /*015*/	TEXT_READ("", "bool"),
 /*016*/	GAME_THING_CLICKED("Object object", "bool"),
 /*017*/	SET_SCRIPT_STATE("Object object, VILLAGER_STATES state"),
@@ -68,7 +68,7 @@ public enum NativeFunction {
 /*019*/	SET_SCRIPT_FLOAT("ObjectInt object, float value"),
 /*020*/	SET_SCRIPT_ULONG("ObjectObj object, int animation, int loop"),
 /*021*/	GET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object", "int|float"),	//Call with SYS or SYS2, see OPCode.java
-/*022*/	SET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val", true),
+/*022*/	SET_PROPERTY("SCRIPT_OBJECT_PROPERTY_TYPE prop, Object object, float val"),
 /*023*/	GET_POSITION("Object object", "Coord"),
 /*024*/	SET_POSITION("Object object, Coord position"),
 /*025*/	GET_DISTANCE("Coord p0, Coord p1", "float"),
@@ -104,15 +104,15 @@ public enum NativeFunction {
 /*055*/	CALL_IN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Object container, bool excludingScripted", "Object"),
 /*056*/	CHANGE_INNER_OUTER_PROPERTIES("Object obj, float inner, float outer, float calm"),
 /*057*/	SNAPSHOT("bool quest, Coord position, Coord focus, float success, float alignment, int titleStrID, StrPtr reminderScript, float... args, int argc, int challengeID"), //The challengeID is set at compile time by the previous "challenge" statement
-/*058*/	GET_ALIGNMENT("int zero", "float", true),
+/*058*/	GET_ALIGNMENT("int zero", "float"),
 /*059*/	SET_ALIGNMENT(2),									//Never found; guess (int, float)
 /*060*/	INFLUENCE_OBJECT("Object target, float radius, int zero, int anti", "Object"),
 /*061*/	INFLUENCE_POSITION("Coord position, float radius, int zero, int anti", "Object"),
 /*062*/	GET_INFLUENCE("float player, bool raw, Coord position", "float"),
-/*063*/	SET_INTERFACE_INTERACTION("SCRIPT_INTERFACE_LEVEL level", true),
+/*063*/	SET_INTERFACE_INTERACTION("SCRIPT_INTERFACE_LEVEL level"),
 /*064*/	PLAYED("Object obj", "bool"),
-/*065*/	RANDOM_ULONG("int min, int max", "int", true),
-/*066*/	SET_GAMESPEED("float speed", true),
+/*065*/	RANDOM_ULONG("int min, int max", "int"),
+/*066*/	SET_GAMESPEED("float speed", Context.CAMERA),
 /*067*/	CALL_IN_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Object container, Coord pos, float radius, bool excludingScripted", "Object"),
 /*068*/	OVERRIDE_STATE_ANIMATION("Object obj, DETAIL_ANIM_TYPES animType"),
 /*069*/	CREATURE_CREATE_RELATIVE_TO_CREATURE("Object creature, float scale, Coord position, CREATURE_TYPE type", "Object"),
@@ -312,7 +312,7 @@ public enum NativeFunction {
 /*263*/	CREATE_MIST("Coord pos, float scale, float r, float g, float b, float transparency, float heightRatio", "Object"),
 /*264*/	SET_MIST_FADE("Object mist, float startScale, float endScale, float startTransparency, float endTransparency, float duration"),
 /*265*/	GET_OBJECT_FADE("Object object", "float"),			//Never found
-/*266*/	PLAY_HAND_DEMO("StrPtr string, bool withPause, bool withoutHandModify"),
+/*266*/	PLAY_HAND_DEMO("StrPtr string, bool withPause, bool withoutHandModify", Context.CAMERA),
 /*267*/	IS_PLAYING_HAND_DEMO("", "bool"),
 /*268*/	GET_ARSE_POSITION("Object object", "Coord"),
 /*269*/	IS_LEASHED_TO_OBJECT("Object object, Object target", "bool"),
@@ -526,8 +526,8 @@ public enum NativeFunction {
 	public final ArgType returnType;
 	/**Tells whether the number of values popped from the stack is variable or not.*/
 	public final boolean varargs;
-	/**Tells whether the function must be called with SYS2 or not.*/
-	public final boolean sys2;
+	/**Tells whether the function must be called within a camera/dialogue block.*/
+	public final Context context;
 	
 	NativeFunction() {
 		this(0, 0);
@@ -539,18 +539,18 @@ public enum NativeFunction {
 	}
 	
 	NativeFunction(String sArgs) {
-		this(sArgs, null);
+		this(sArgs, null, null);
 	}
 	
 	NativeFunction(String sArgs, String sRet) {
-		this(sArgs, sRet, false);
+		this(sArgs, sRet, null);
 	}
 	
-	NativeFunction(String sArgs, boolean sys2) {
-		this(sArgs, null, false);
+	NativeFunction(String sArgs, Context context) {
+		this(sArgs, null, context);
 	}
 	
-	NativeFunction(String sArgs, String sRet, boolean sys2) {
+	NativeFunction(String sArgs, String sRet, Context context) {
 		boolean varargs = false;
 		if (sArgs == null || sArgs.isEmpty()) {
 			this.pop = 0;
@@ -580,7 +580,7 @@ public enum NativeFunction {
 			this.push = returnType.stackCount;
 		}
 		//
-		this.sys2 = sys2;
+		this.context = context;
 	}
 	
 	//TODO comment out when finished
@@ -601,7 +601,7 @@ public enum NativeFunction {
 		} else {
 			throw new IllegalArgumentException("Invalid number of return values: " + push);
 		}
-		this.sys2 = false;
+		this.context = null;
 	}
 	
 	//TODO comment out when finished
@@ -619,7 +619,7 @@ public enum NativeFunction {
 			returnType = ArgType.fromKeyword(sRet);
 			this.push = returnType.stackCount;
 		}
-		this.sys2 = false;
+		this.context = null;
 	}
 	
 	public String getArgsString() {
@@ -656,6 +656,11 @@ public enum NativeFunction {
 			throw new InvalidNativeFunctionException(code);
 		}
 		return functions[code];
+	}
+	
+	
+	public enum Context {
+		CINEMA, CAMERA, DIALOGUE
 	}
 	
 	
