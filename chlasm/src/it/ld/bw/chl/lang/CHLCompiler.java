@@ -5625,6 +5625,12 @@ public class CHLCompiler implements Compiler {
 					throw new ParseError("Statement must be called within a camera block", file, line, col);
 				}
 				break;
+			case CAMERA_OR_DIALOGUE:
+				if (!inCameraBlock && !inDialogueBlock) {
+					throw new ParseError("Function "+func+" must be called within a camera/dialogue block", file, line, col);
+				}
+				break;
+			default:
 		}
 	}
 	

@@ -59,8 +59,8 @@ public enum NativeFunction {
 /*010*/	SPIRIT_POINT_GAME_THING("HELP_SPIRIT_TYPE spirit, Object target, bool inWorld"),
 /*011*/	GAME_THING_FIELD_OF_VIEW("Object object", "bool"),
 /*012*/	POS_FIELD_OF_VIEW("Coord position", "bool"),
-/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction", Context.DIALOGUE),
-/*014*/	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction", Context.DIALOGUE),
+/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction", Context.CAMERA_OR_DIALOGUE),
+/*014*/	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction"),
 /*015*/	TEXT_READ("", "bool"),
 /*016*/	GAME_THING_CLICKED("Object object", "bool"),
 /*017*/	SET_SCRIPT_STATE("Object object, VILLAGER_STATES state"),
@@ -660,7 +660,7 @@ public enum NativeFunction {
 	
 	
 	public enum Context {
-		CINEMA, CAMERA, DIALOGUE
+		CINEMA, CAMERA, DIALOGUE, CAMERA_OR_DIALOGUE
 	}
 	
 	
