@@ -278,7 +278,7 @@ public enum NativeFunction {
 /*229*/	IS_FIGHTING("Object object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("Object object, float radius"),
 /*231*/	TEMP_TEXT_WITH_NUMBER(4),							//Never found
-/*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero"),
+/*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero", Context.CAMERA_OR_DIALOGUE),
 /*233*/	CREATURE_SPELL_REVERSION(2),						//Never found 
 /*234*/	GET_DESIRE(2, "float"),								//Never found
 /*235*/	GET_EVENTS_PER_SECOND("HELP_EVENT_TYPE type", "float"),	//Never found
@@ -457,8 +457,8 @@ public enum NativeFunction {
 /*408*/	RESET_GAME_TIME_PROPERTIES(),
 /*409*/	SOUND_EXISTS("", "bool"),							//Never found
 /*410*/	GET_TOWN_WORSHIP_DEATHS("Object town", "float"),
-/*411*/	GAME_CLEAR_DIALOGUE(),
-/*412*/	GAME_CLOSE_DIALOGUE(),
+/*411*/	GAME_CLEAR_DIALOGUE(Context.CAMERA_OR_DIALOGUE),
+/*412*/	GAME_CLOSE_DIALOGUE(Context.CAMERA_OR_DIALOGUE),
 /*413*/	GET_HAND_STATE("", "int"),
 /*414*/	SET_INTERFACE_CITADEL("bool enable"),
 /*415*/	MAP_SCRIPT_FUNCTION("StrPtr command"),
@@ -544,6 +544,10 @@ public enum NativeFunction {
 	
 	NativeFunction(String sArgs, String sRet) {
 		this(sArgs, sRet, null);
+	}
+	
+	NativeFunction(Context context) {
+		this(null, null, context);
 	}
 	
 	NativeFunction(String sArgs, Context context) {
