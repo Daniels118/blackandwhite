@@ -5617,17 +5617,12 @@ public class CHLCompiler implements Compiler {
 		switch (func.context) {
 			case CAMERA:
 				if (!inCameraBlock) {
-					throw new ParseError("Statement must be called within a camera block", file, line, col);
+					throw new ParseError("Statement must be called within a camera/cinema block", file, line, col);
 				}
 				break;
 			case DIALOGUE:
 				if (!inDialogueBlock) {
-					throw new ParseError("Statement must be called within a camera block", file, line, col);
-				}
-				break;
-			case CAMERA_OR_DIALOGUE:
-				if (!inCameraBlock && !inDialogueBlock) {
-					throw new ParseError("Function "+func+" must be called within a camera/dialogue block", file, line, col);
+					throw new ParseError("Statement must be called within a dialogue/cinema block", file, line, col);
 				}
 				break;
 			default:

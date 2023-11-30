@@ -53,13 +53,13 @@ public enum NativeFunction {
 /*004*/	MOVE_CAMERA_FOCUS("Coord position, float time", Context.CAMERA),
 /*005*/	GET_CAMERA_POSITION("", "Coord"),
 /*006*/	GET_CAMERA_FOCUS("", "Coord"),
-/*007*/	SPIRIT_EJECT("HELP_SPIRIT_TYPE spirit"),
-/*008*/	SPIRIT_HOME("HELP_SPIRIT_TYPE spirit"),
-/*009*/	SPIRIT_POINT_POS("HELP_SPIRIT_TYPE spirit, Coord position, bool inWorld"),
-/*010*/	SPIRIT_POINT_GAME_THING("HELP_SPIRIT_TYPE spirit, Object target, bool inWorld"),
+/*007*/	SPIRIT_EJECT("HELP_SPIRIT_TYPE spirit", Context.DIALOGUE),
+/*008*/	SPIRIT_HOME("HELP_SPIRIT_TYPE spirit", Context.DIALOGUE),
+/*009*/	SPIRIT_POINT_POS("HELP_SPIRIT_TYPE spirit, Coord position, bool inWorld", Context.DIALOGUE),
+/*010*/	SPIRIT_POINT_GAME_THING("HELP_SPIRIT_TYPE spirit, Object target, bool inWorld", Context.DIALOGUE),
 /*011*/	GAME_THING_FIELD_OF_VIEW("Object object", "bool"),
 /*012*/	POS_FIELD_OF_VIEW("Coord position", "bool"),
-/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction", Context.CAMERA_OR_DIALOGUE),
+/*013*/	RUN_TEXT("bool singleLine, int textID, int withInteraction", Context.DIALOGUE),
 /*014*/	TEMP_TEXT("bool singleLine, StrPtr string, int withInteraction"),
 /*015*/	TEXT_READ("", "bool"),
 /*016*/	GAME_THING_CLICKED("Object object", "bool"),
@@ -278,7 +278,7 @@ public enum NativeFunction {
 /*229*/	IS_FIGHTING("Object object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("Object object, float radius"),
 /*231*/	TEMP_TEXT_WITH_NUMBER(4),							//Never found
-/*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero", Context.CAMERA_OR_DIALOGUE),
+/*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero", Context.DIALOGUE),
 /*233*/	CREATURE_SPELL_REVERSION(2),						//Never found 
 /*234*/	GET_DESIRE(2, "float"),								//Never found
 /*235*/	GET_EVENTS_PER_SECOND("HELP_EVENT_TYPE type", "float"),	//Never found
@@ -326,7 +326,7 @@ public enum NativeFunction {
 /*277*/	SET_POSITION_FOLLOW("Object target"),
 /*278*/	SET_FOCUS_AND_POSITION_FOLLOW("Object target, float distance"),
 /*279*/	SET_CAMERA_LENS("float lens"),
-/*280*/	MOVE_CAMERA_LENS("float lens, float time"),
+/*280*/	MOVE_CAMERA_LENS("float lens, float time", Context.CAMERA),
 /*281*/	CREATURE_REACTION(2),								//Never found
 /*282*/	CREATURE_IN_DEV_SCRIPT("bool enable, Object creature"),
 /*283*/	STORE_CAMERA_DETAILS(),								//Never found
@@ -457,8 +457,8 @@ public enum NativeFunction {
 /*408*/	RESET_GAME_TIME_PROPERTIES(),
 /*409*/	SOUND_EXISTS("", "bool"),							//Never found
 /*410*/	GET_TOWN_WORSHIP_DEATHS("Object town", "float"),
-/*411*/	GAME_CLEAR_DIALOGUE(Context.CAMERA_OR_DIALOGUE),
-/*412*/	GAME_CLOSE_DIALOGUE(Context.CAMERA_OR_DIALOGUE),
+/*411*/	GAME_CLEAR_DIALOGUE(Context.DIALOGUE),
+/*412*/	GAME_CLOSE_DIALOGUE(Context.DIALOGUE),
 /*413*/	GET_HAND_STATE("", "int"),
 /*414*/	SET_INTERFACE_CITADEL("bool enable"),
 /*415*/	MAP_SCRIPT_FUNCTION("StrPtr command"),
@@ -664,7 +664,7 @@ public enum NativeFunction {
 	
 	
 	public enum Context {
-		CINEMA, CAMERA, DIALOGUE, CAMERA_OR_DIALOGUE
+		CINEMA, CAMERA, DIALOGUE
 	}
 	
 	
