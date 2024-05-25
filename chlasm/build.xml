@@ -55,6 +55,7 @@
 	
 	<target name="package" description="Package JAR, CMD, license and samples" depends="jar">
 	  	<mkdir dir="build/chlasm"/>
+		<mkdir dir="build/chlasm/headers"/>
 		<mkdir dir="build/chlasm/samples/bw1_story"/>
 		<mkdir dir="build/chlasm/samples/sample1"/>
 		
@@ -66,6 +67,12 @@
             	<include name="chlasm.cmd"/>
 	  			<include name="COPYING.TXT"/>
   	    		<include name="README.TXT"/>
+            </fileset>
+        </copy>
+		
+		<copy includeemptydirs="false" todir="build/chlasm/headers">
+			<fileset dir="headers">
+                <include name="*"/>
             </fileset>
         </copy>
 		
