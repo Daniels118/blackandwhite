@@ -58,6 +58,7 @@
 		<mkdir dir="build/chlasm/headers"/>
 		<mkdir dir="build/chlasm/samples/bw1_story"/>
 		<mkdir dir="build/chlasm/samples/sample1"/>
+		<mkdir dir="build/chlasm/samples/sample2"/>
 		
 		<copy includeemptydirs="false" todir="build/chlasm">
 			<fileset dir="build">
@@ -84,6 +85,12 @@
 		
 		<copy includeemptydirs="false" todir="build/chlasm/samples/sample1">
 			<fileset dir="samples/sample1">
+                <include name="*"/>
+            </fileset>
+        </copy>
+		
+		<copy includeemptydirs="false" todir="build/chlasm/samples/sample2">
+			<fileset dir="samples/sample2">
                 <include name="*"/>
             </fileset>
         </copy>

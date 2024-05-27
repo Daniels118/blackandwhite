@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2024 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -885,7 +885,7 @@ public class CHLCompiler implements Compiler {
 					sys(POSITION_FOLLOW);
 					return replace(start, "STATEMENT");
 				} else {
-					parse("COORD_EXPR docus COORD_EXPR lens EXPRESSION time EXPRESSION EOL");
+					parse("COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION EOL");
 					//move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION
 					throw new ParseException("Statement not implemented", file, line, col);
 					//return replace(start, "STATEMENT");
@@ -2607,10 +2607,22 @@ public class CHLCompiler implements Compiler {
 			sys(SAY_SOUND_EFFECT_PLAYING);
 			return replace(start, "STATEMENT");
 		} else if (checkAhead("STRING with number")) {
-			parse("STRING with number EXPRESSION EOL");
-			//say STRING with number EXPRESSION
-			throw new ParseException("Statement not implemented", file, line, col);
-			//return replace(start, "STATEMENT");
+			parseString();
+			//say [single line] STRING with number EXPRESSION [with interaction|without interaction]
+			parse("with number EXPRESSION");
+			symbol = peek();
+			if (symbol.is("with")) {
+				parse("with interaction");
+				pushi(1);
+			} else if (symbol.is("without")) {
+				parse("without interaction");
+				pushi(2);
+			} else {
+				pushi(0);
+			}
+			accept(TokenType.EOL);
+			sys(TEMP_TEXT_WITH_NUMBER);
+			return replace(start, "STATEMENT");
 		} else {
 			parse("[single line]");
 			symbol = peek();
@@ -5614,6 +5626,9 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private void checkContext(NativeFunction func) {
+		if (func.context == null) {
+			return;
+		}
 		switch (func.context) {
 			case CAMERA:
 				if (!inCameraBlock) {

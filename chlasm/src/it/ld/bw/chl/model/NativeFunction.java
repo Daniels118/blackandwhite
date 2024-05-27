@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2024 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -277,7 +277,7 @@ public enum NativeFunction {
 /*228*/	SET_ATTACK_OWN_TOWN(2),								//Never found
 /*229*/	IS_FIGHTING("Object object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("Object object, float radius"),
-/*231*/	TEMP_TEXT_WITH_NUMBER(4),							//Never found
+/*231*/	TEMP_TEXT_WITH_NUMBER("bool singleLine, StrPtr format, float value, int withInteraction"),
 /*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero", Context.DIALOGUE),
 /*233*/	CREATURE_SPELL_REVERSION(2),						//Never found 
 /*234*/	GET_DESIRE(2, "float"),								//Never found

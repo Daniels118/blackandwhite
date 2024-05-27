@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Daniele Lombardi / Daniels118
+# Copyright (c) 2023-2024 Daniele Lombardi / Daniels118
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -316,7 +316,9 @@ STATEMENT: {
 	say [single line] STRING EOL
 	say [single line] STRING with interaction EOL
 	say [single line] STRING without interaction EOL
-	say STRING with number EXPRESSION EOL
+	say [single line] STRING with number EXPRESSION EOL
+	say [single line] STRING with number EXPRESSION with interaction EOL
+	say [single line] STRING with number EXPRESSION without interaction EOL
 	say [single line] CONST_EXPR EOL
 	say [single line] CONST_EXPR with interaction EOL
 	say [single line] CONST_EXPR without interaction EOL

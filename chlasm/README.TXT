@@ -53,6 +53,6 @@ Remarkable sources of information used in this project are:
 
 _______________________
 
-CHLASM, Copyright (c) 2023 Daniele Lombardi / Daniels118. 
+CHLASM, Copyright (c) 2023-2024 Daniele Lombardi / Daniels118. 
 This software is distributed under GNU GENERAL PUBLIC LICENSE Version 3.
 Read LICENSE.TXT file for more details about licenses applicable to this software.

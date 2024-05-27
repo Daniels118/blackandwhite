@@ -1,0 +1,41 @@
+/**	This sample shows how to pick coordinates.
+ *  Press left CTRL key to show the coordinates of the hand.
+ */
+challenge LandControlAll
+
+begin script DisplayCoords
+	HandPos = marker at hand position
+	X = SCRIPT_OBJECT_PROPERTY_TYPE_XPOS of HandPos
+	Z = SCRIPT_OBJECT_PROPERTY_TYPE_ZPOS of HandPos
+start
+	begin dialogue
+		say "X: $d" with number X with interaction
+		wait until read
+		say "Z: $d" with number Z with interaction
+		wait until read
+	end dialogue
+end script DisplayCoords
+
+
+begin script CoordsLoop
+	RefPos = marker at [1920, 2240]
+	Influence = create influence at [2185.616, 94.651, 2409.528] radius 2000
+start
+	begin camera
+		set camera position to [RefPos] + [15, 10, 15]
+		set camera focus to [RefPos]
+	end camera
+	
+	begin loop
+		when key KB_LCTRL down
+			run script DisplayCoords
+	end loop
+end script CoordsLoop
+
+
+begin script LandControlAll	
+start
+	load map "scripts/LandT.txt"
+	set fade in time 3
+	run background script CoordsLoop
+end script LandControlAll

@@ -52,27 +52,50 @@ public class CHeaderParser {
 					if (wholeline.endsWith(",") || wholeline.contains("}")) {
 						int p = Math.max(wholeline.indexOf(","), wholeline.indexOf("}"));
 						wholeline = wholeline.substring(0, p).trim();
-						String[] parts = wholeline.split("=");
-						String name = parts[0].trim();
-						if (parts.length == 2) {
-							sVal = parts[1].trim();
-							val = Integer.parseInt(sVal);
+						if (!wholeline.isEmpty()) {
+							String[] parts = wholeline.split("=");
+							String name = parts[0].trim();
+							if (parts.length == 2) {
+								sVal = parts[1].trim();
+								val = parseExpr(sVal);
+							}
+							//
+							Integer oldVal = dst.get(name);
+							if (oldVal == null) {
+								dst.put(name, val);
+							} else if (oldVal != val) {
+								throw new ParseError("Redefinition of constant "+name+" with different value", file, lineno);
+							}
+							//
+							val++;
+							wholeline = "";
 						}
-						//
-						Integer oldVal = dst.get(name);
-						if (oldVal == null) {
-							dst.put(name, val);
-						} else if (oldVal != val) {
-							throw new ParseError("Redefinition of constant "+name+" with different value", file, lineno);
-						}
-						//
-						val++;
-						wholeline = "";
 					}
 				}
 			}
 		} catch (NumberFormatException e) {
 			throw new ParseException("Cannot parse \""+sVal+"\" as int", file, lineno, 1);
 		}
+	}
+	
+	private static int parseExpr(String expr) {
+		int r = 0;
+		String[] sVals = expr.split("\\s*\\+\\s*");
+		for (String sVal : sVals) {
+			r += parseInt(sVal);
+		}
+		return r;
+	}
+	
+	private static Integer parseInt(String s) {
+		try {
+			if (s.startsWith("0x")) {
+				return Integer.parseInt(s.substring(2), 16);
+			} else {
+				return Integer.parseInt(s);
+			}
+	    } catch (NumberFormatException e) {
+	        return null;
+	    }
 	}
 }
