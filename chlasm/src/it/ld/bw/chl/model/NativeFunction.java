@@ -278,7 +278,7 @@ public enum NativeFunction {
 /*229*/	IS_FIGHTING("Object object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("Object object, float radius"),
 /*231*/	TEMP_TEXT_WITH_NUMBER("bool singleLine, StrPtr format, float value, int withInteraction"),
-/*232*/	RUN_TEXT_WITH_NUMBER("bool alwaysFalse, int string, float number, int alwaysZero", Context.DIALOGUE),
+/*232*/	RUN_TEXT_WITH_NUMBER("bool singleLine, int string, float number, int withInteraction", Context.DIALOGUE),
 /*233*/	CREATURE_SPELL_REVERSION(2),						//Never found 
 /*234*/	GET_DESIRE(2, "float"),								//Never found
 /*235*/	GET_EVENTS_PER_SECOND("HELP_EVENT_TYPE type", "float"),	//Never found

@@ -53,6 +53,13 @@ Remarkable sources of information used in this project are:
 
 _______________________
 
+CHANGELOG
+
+# Version 0.4
+- Fixed camera block not allowing dialog statements
+- Implemented full support for "say" instructions
+_______________________
+
 CHLASM, Copyright (c) 2023-2024 Daniele Lombardi / Daniels118. 
 This software is distributed under GNU GENERAL PUBLIC LICENSE Version 3.
 Read LICENSE.TXT file for more details about licenses applicable to this software.

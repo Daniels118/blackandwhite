@@ -2606,48 +2606,59 @@ public class CHLCompiler implements Compiler {
 			parse("sound CONST_EXPR playing EOL");
 			sys(SAY_SOUND_EFFECT_PLAYING);
 			return replace(start, "STATEMENT");
-		} else if (checkAhead("STRING with number")) {
-			parseString();
-			//say [single line] STRING with number EXPRESSION [with interaction|without interaction]
-			parse("with number EXPRESSION");
-			symbol = peek();
-			if (symbol.is("with")) {
-				parse("with interaction");
-				pushi(1);
-			} else if (symbol.is("without")) {
-				parse("without interaction");
-				pushi(2);
-			} else {
-				pushi(0);
-			}
-			accept(TokenType.EOL);
-			sys(TEMP_TEXT_WITH_NUMBER);
-			return replace(start, "STATEMENT");
 		} else {
 			parse("[single line]");
 			symbol = peek();
 			if (symbol.is(TokenType.STRING)) {
-				//say [single line] STRING [with interaction|without interaction]
 				parseString();
-				symbol = peek(false);
-				if (symbol.is("with")) {
-					parse("with interaction");
-					pushi(1);
-				} else if (symbol.is("without")) {
-					parse("without interaction");
-					pushi(2);
+				if (checkAhead("with number")) {
+					//say [single line] STRING with number EXPRESSION [with interaction|without interaction]
+					parse("with number EXPRESSION");
+					symbol = peek();
+					if (symbol.is("with")) {
+						parse("with interaction");
+						pushi(1);
+					} else if (symbol.is("without")) {
+						parse("without interaction");
+						pushi(2);
+					} else {
+						pushi(0);
+					}
+					accept(TokenType.EOL);
+					sys(TEMP_TEXT_WITH_NUMBER);
+					return replace(start, "STATEMENT");
 				} else {
-					pushi(0);
+					//say [single line] STRING [with interaction|without interaction]
+					symbol = peek(false);
+					if (symbol.is("with")) {
+						parse("with interaction");
+						pushi(1);
+					} else if (symbol.is("without")) {
+						parse("without interaction");
+						pushi(2);
+					} else {
+						pushi(0);
+					}
+					accept(TokenType.EOL);
+					sys(TEMP_TEXT);
+					return replace(start, "STATEMENT");
 				}
-				accept(TokenType.EOL);
-				sys(TEMP_TEXT);
-				return replace(start, "STATEMENT");
 			} else {
 				parseConstExpr(true);
 				if (checkAhead("with number")) {
-					//say CONST_EXPR with number EXPRESSION
-					parse("with number EXPRESSION EOL");
-					pushi(0);
+					//say [single line] CONST_EXPR with number EXPRESSION [with interaction|without interaction]
+					parse("with number EXPRESSION");
+					symbol = peek(false);
+					if (symbol.is("with")) {
+						parse("with interaction");
+						pushi(1);
+					} else if (symbol.is("without")) {
+						parse("without interaction");
+						pushi(2);
+					} else {
+						pushi(0);
+					}
+					accept(TokenType.EOL);
 					sys(RUN_TEXT_WITH_NUMBER);
 					return replace(start, "STATEMENT");
 				} else {
@@ -3024,6 +3035,7 @@ public class CHLCompiler implements Compiler {
 				throw new ParseError("Already in camera block", file, line, col);
 			}
 			inCameraBlock = true;
+			inDialogueBlock = true;
 			parse("camera EOL");
 			final int lblRetry1 = getIp();
 			sys(START_CAMERA_CONTROL);
@@ -3040,6 +3052,7 @@ public class CHLCompiler implements Compiler {
 			sys(END_CAMERA_CONTROL);
 			sys(END_DIALOGUE);
 			inCameraBlock = false;
+			inDialogueBlock = false;
 			return replace(start, "begin camera");
 		} else if (symbol.is("dialogue")) {
 			//begin dialogue STATEMENTS end dialogue

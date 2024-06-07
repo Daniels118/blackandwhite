@@ -313,16 +313,10 @@ STATEMENT: {
 	make SPIRIT_TYPE spirit appear EOL
 	make SPIRIT_TYPE spirit disappear EOL
 	send SPIRIT_TYPE spirit home EOL
-	say [single line] STRING EOL
-	say [single line] STRING with interaction EOL
-	say [single line] STRING without interaction EOL
-	say [single line] STRING with number EXPRESSION EOL
-	say [single line] STRING with number EXPRESSION with interaction EOL
-	say [single line] STRING with number EXPRESSION without interaction EOL
-	say [single line] CONST_EXPR EOL
-	say [single line] CONST_EXPR with interaction EOL
-	say [single line] CONST_EXPR without interaction EOL
-	say CONST_EXPR with number EXPRESSION EOL
+	say [single line] STRING [SAY_MODE] EOL
+	say [single line] STRING with number EXPRESSION [SAY_MODE] EOL
+	say [single line] CONST_EXPR [SAY_MODE] EOL
+	say [single line] CONST_EXPR with number EXPRESSION [SAY_MODE] EOL
 	clear dialogue EOL
 	close dialogue EOL
 	draw text CONST_EXPR across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds EOL
@@ -681,6 +675,11 @@ SPIRIT_TYPE: {
 
 PLAYING_SIDE: {
 	away
+}
+
+SAY_MODE: {
+	with interaction
+	without interaction
 }
 
 CONSTANT: {
