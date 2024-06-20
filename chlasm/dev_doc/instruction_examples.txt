@@ -2610,7 +2610,7 @@ say single line "Sorry, the boss got the cheat removed"		//#LandControlAll.txt:2
 	SYS TEMP_TEXT	//[3, 0] (bool singleLine, StrPtr string, int withInteraction)
 ___________________________________________
 
-3.16.2.2 say STRING with number EXPRESSION
+3.16.2.2 say [single line] STRING with number EXPRESSION [with interaction|without interaction]
 
 When developing a script it is useful to have a text out function to debug or put in temp text until
 the script has been scripted. This version places a value at the
@@ -2631,7 +2631,7 @@ say HELP_TEXT_DYK_EXPLAINED_01		//#DidYouKnow.txt:12
 	SYS RUN_TEXT	//[3, 0] (bool singleLine, int textID, int withInteraction)
 ___________________________________________
 
-3.16.2.4 say CONST_EXPR with number EXPRESSION
+3.16.2.4 say [single line] CONST_EXPR with number EXPRESSION [with interaction|without interaction]
 
 This displays text predefined which may have sound attached to it which will be automatically played.
 This version places a value at the
@@ -2639,12 +2639,12 @@ $d-decimal $p-percentage (Gets the number followed by a '%' drawn).
 
 say constant StatText with number Need		//#HelpSystem.txt:108
 
-	PUSHB false					//
+	PUSHB false					//single line
 	PUSHF [StatText]			//string
 	CASTI						//
 	PUSHF [Need]				//number
-	PUSHI 0						//fixed 0
-	SYS RUN_TEXT_WITH_NUMBER	//[4, 0] (bool alwaysFalse, int string, float number, int alwaysZero)
+	PUSHI 0						//withInteraction
+	SYS RUN_TEXT_WITH_NUMBER	//[4, 0] (bool singleLine, int string, float number, int withInteraction)
 ___________________________________________
 
 3.16.2.5 clear dialogue
