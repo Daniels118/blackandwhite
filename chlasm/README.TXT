@@ -55,6 +55,9 @@ _______________________
 
 CHANGELOG
 
+# Version 0.5
+- Added //@noyield annotation to speed up execution of short-living scripts
+
 # Version 0.4
 - Fixed camera block not allowing dialog statements
 - Implemented full support for "say" instructions

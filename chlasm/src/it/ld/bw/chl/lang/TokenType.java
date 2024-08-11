@@ -20,6 +20,7 @@ public enum TokenType {
 	COMMENT(false),
 	BLOCK_COMMENT(false),
 	EOL,
+	ANNOTATION,
 	KEYWORD,
 	IDENTIFIER,
 	NUMBER,

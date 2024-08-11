@@ -17,7 +17,7 @@ package it.ld.bw.chl.lang;
 
 class Symbol {
 	public enum TerminalType {
-		EOF, EOL, KEYWORD, IDENTIFIER, NUMBER, STRING
+		EOF, EOL, KEYWORD, IDENTIFIER, NUMBER, STRING, DIRECTIVE
 	}
 	
 	public String keyword;

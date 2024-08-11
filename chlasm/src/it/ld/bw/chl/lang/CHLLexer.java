@@ -32,7 +32,7 @@ public class CHLLexer {
 	private static final char EOF = 0xFFFF;
 	
 	private enum Status {
-		DEFAULT, IDENTIFIER, NUMBER, STRING, COMMENT, BLOCK_COMMENT, BLANK
+		DEFAULT, IDENTIFIER, NUMBER, STRING, ANNOTATION, COMMENT, BLOCK_COMMENT, BLANK
 	}
 	
 	private int tabSize = 4;
@@ -115,9 +115,17 @@ public class CHLLexer {
 								col++;
 							} else if (c2 == '/') {
 								col++;
-								status = Status.COMMENT;
-								token = new Token(line, col, TokenType.COMMENT);
-								buffer.append("//");
+								char c3 = (char) str.read();
+								if (c3 == '@') {
+									status = Status.ANNOTATION;
+									token = new Token(line, col, TokenType.ANNOTATION);
+									buffer.append("//@");
+								} else {
+									str.unread(c3);
+									status = Status.COMMENT;
+									token = new Token(line, col, TokenType.COMMENT);
+									buffer.append("//");
+								}
 							} else if (c2 == '*') {
 								status = Status.BLOCK_COMMENT;
 								depth++;
@@ -206,6 +214,7 @@ public class CHLLexer {
 						}
 						break;
 					case COMMENT:
+					case ANNOTATION:
 						if (c == '\n') {
 							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
@@ -255,7 +264,14 @@ public class CHLLexer {
 							str.unread(c);
 							col--;
 							add(tokens, token.setValue(buffer.toString()));
-							if (Syntax.isKeyword(token.value)) token.type = TokenType.KEYWORD;
+							if (Syntax.isKeyword(token.value)) {
+								token.type = TokenType.KEYWORD;
+							} else {
+								String lower = token.value.toLowerCase();
+								if ("if".equals(lower) || "else".equals(lower) || "while".equals(lower) || "end".equals(lower)) {
+									System.out.println("Warning: identifier matches a keyword with bad capitals. Did you mean '"+lower+"'? At "+file.getName()+":"+line+":"+(col-1));
+								}
+							}
 							buffer.setLength(0);
 							status = Status.DEFAULT;
 						}

@@ -86,6 +86,8 @@ public class CHLCompiler implements Compiler {
 	private boolean inCameraBlock;
 	private boolean inDialogueBlock;
 	
+	private boolean noYield = false;
+	
 	private ParseException lastParseException = null;
 	
 	private List<Integer> strptrInstructions = new LinkedList<>();	//TODO use to compile to intermediate obj file
@@ -487,8 +489,18 @@ public class CHLCompiler implements Compiler {
 			if (!symbol.is("start")) {
 				parseLocals();
 			}
+			//Check for #noyield
+			symbol = peek();
+			if (symbol.is(TokenType.ANNOTATION) && "//@noyield".equals(symbol.toString().trim())) {
+				noYield = true;
+				next();
+			}
 			parse("start EOL");
-			free();
+			if (noYield) {
+				noYield = false;
+			} else {
+				free();
+			}
 			chl.getScriptsSection().getItems().add(script);
 			//STATEMENTS
 			parseStatements();
@@ -683,7 +695,17 @@ public class CHLCompiler implements Compiler {
 	}
 	
 	private SymbolInstance parseStatement() throws ParseException {
+		noYield = false;
+		//
 		SymbolInstance symbol = peek();
+		if (symbol.is(TokenType.ANNOTATION)) {
+			if ("//@noyield".equals(symbol.toString().trim())) {
+				noYield = true;
+				next();
+				symbol = peek();
+			}
+		}
+		//
 		if (symbol.is("challenge")) {
 			return parseChallenge();
 		} else if (symbol.is("remove")) {
@@ -2909,6 +2931,7 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseWhile() throws ParseException {
 		final int start = it.nextIndex();
+		final boolean noYield = this.noYield;
 		//WHILE
 		Instruction except_lblExceptionHandler = except();
 		int lblStartWhile = getIp();
@@ -2917,6 +2940,9 @@ public class CHLCompiler implements Compiler {
 		//STATEMENTS
 		parseStatements();
 		Instruction jmp_lblStartWhile = jmp(lblStartWhile);
+		if (noYield) {
+			jmp_lblStartWhile.flags = OPCodeFlag.FORWARD;
+		}
 		int lblEndWhile = getIp();
 		jz_lblEndWhile.intVal = lblEndWhile;
 		endexcept();
@@ -5492,6 +5518,9 @@ public class CHLCompiler implements Compiler {
 				break;
 			case KEYWORD:
 				sInst = new SymbolInstance(Syntax.getSymbol(token.value), token);
+				break;
+			case ANNOTATION:
+				sInst = new SymbolInstance(Syntax.ANNOTATION, token);
 				break;
 			default:
 				throw new ParseException("Unrecognized symbol: "+token.value, file, token.line, token.col);
