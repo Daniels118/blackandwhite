@@ -4641,13 +4641,14 @@ Town = get town with id 0		//#creaturesavingpeople.txt:107
 	POPF Town
 ___________________________________________
 
-9.35 get OBJECT hand is over
+9.35 get object hand is over
 
 Gets the object the interface hand is over.
 
-Never found
+MyObj = get object hand is over
 
 	SYS GET_OBJECT_HAND_IS_OVER	//[0, 1] () returns (Object)
+	POPF MyObj
 ___________________________________________
 
 9.36 get object clicked

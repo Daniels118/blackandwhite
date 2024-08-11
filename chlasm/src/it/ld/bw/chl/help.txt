@@ -1,5 +1,5 @@
 CHL Compiler for Black & White 1
-Version 0.5
+Version 0.6
 Developer by Daniele Lombardi (alias Daniels118)
 
 Syntax

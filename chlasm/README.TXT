@@ -55,6 +55,9 @@ _______________________
 
 CHANGELOG
 
+# Version 0.6
+- Fixed statement 'get object hand is over'
+
 # Version 0.5
 - Added //@noyield annotation to speed up execution of short-living scripts
 

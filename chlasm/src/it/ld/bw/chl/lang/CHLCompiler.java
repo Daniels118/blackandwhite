@@ -4351,8 +4351,13 @@ public class CHLCompiler implements Compiler {
 						//get object clicked
 						sys(GET_OBJECT_CLICKED);
 						return replace(start, "OBJECT");
+					} else if (symbol.is("hand")) {
+						parse("hand is over");
+						//get object hand is over
+						sys(GET_OBJECT_HAND_IS_OVER);
+						return replace(start, "OBJECT");
 					} else {
-						throw new ParseException("Unexpected token: "+symbol+". Expected: which|held|clicked", lastParseException, file, symbol.token.line, symbol.token.col);
+						throw new ParseException("Unexpected token: "+symbol+". Expected: which|held|clicked|hand", lastParseException, file, symbol.token.line, symbol.token.col);
 					}
 				} else if (symbol.is("football")) {
 					parse("football pitch in OBJECT");
@@ -4454,12 +4459,7 @@ public class CHLCompiler implements Compiler {
 					symbol = parseObject(false);
 					if (symbol != null) {
 						symbol = peek();
-						if (symbol.is("hand")) {
-							parse("hand is over");
-							//get OBJECT hand is over
-							sys(GET_OBJECT_HAND_IS_OVER);
-							return replace(start, "OBJECT");
-						} else if (symbol.is("flock")) {
+						if (symbol.is("flock")) {
 							accept("flock");
 							//get OBJECT flock
 							sys(GET_OBJECT_FLOCK);
