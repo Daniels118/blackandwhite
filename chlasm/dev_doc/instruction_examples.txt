@@ -458,14 +458,18 @@ ___________________________________________
 
 Enables/disables a creatures ability to attack their own town.
 
-Never found (SET_ATTACK_OWN_TOWN)
+Never found
+
+	SYS SET_ATTACK_OWN_TOWN	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
 3.2.8 enable|disable OBJECT reaction
 
 Enables/disables a creatures reactions.
 
-Never found (CREATURE_REACTION?)
+Never found
+
+	SYS CREATURE_REACTION	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
 3.2.9 enable|disable OBJECT development script
@@ -483,7 +487,9 @@ ___________________________________________
 
 Enables/disables a creatures ability to revert spells.
 
-Never found (CREATURE_SPELL_REVERSION)
+Never found
+
+	SYS CREATURE_SPELL_REVERSION	//[2, 0] (bool enable, Object creature)
 ___________________________________________
 
 3.2.11 enable|disable OBJECT anim time modify
@@ -577,6 +583,8 @@ ___________________________________________
 Teaches the creature every lesson excluding the type defined.
 
 Never found
+
+	SYS CREATURE_LEARN_EVERYTHING_EXCLUDING	//[2, 0] (Object creature, CREATURE_ACTION_TYPE typeOfAction)
 ___________________________________________
 
 3.2.19 force OBJECT CONST_EXPR OBJECT [with OBJECT]
@@ -620,19 +628,23 @@ enable Gremlin friends with Ogre
 	SYS CREATURE_FORCE_FRIENDS	//[3, 0] (bool enable, Object creature, Object targetCreature)
 ___________________________________________
 
-3.2.22 initialise number of constant for OBJECT
+3.2.22 initialise number of CONST_EXPR for OBJECT
 
 Clears the number of times the creature has eaten anything / attacked anything / etc (see
 SCRIPT_PERFORMED_ACTION enum in CreatureEnum.h).
 
-Never found (CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION)
+Never found
+
+	SYS CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION	//[2, 0] (SCRIPT_PERFORMED_ACTION action, Object creature)
 ___________________________________________
 
 3.2.23 force action OBJECT finish
 
 Force creature to stop whatever he is doing.
 
-Never found (CREATURE_FORCE_FINISH)
+Never found
+
+	SYS CREATURE_FORCE_FINISH	//[1, 0] (Object creature)
 ___________________________________________
 
 3.2.24 enable OBJECT confined to COORD_EXPR radius EXPRESSION
@@ -653,21 +665,27 @@ ___________________________________________
 
 Clears the last known object dropped by the creature from its memory (used in CreatureSavingPeople.txt).
 
-Never found (CLEAR_DROPPED_BY_OBJECT)
+Never found
+
+	SYS CLEAR_DROPPED_BY_OBJECT	//[1, 0] (Object creature)
 ___________________________________________
 
 3.2.27 attach OBJECT leash to OBJECT
 
 Attaches a creatures leash to the passed object.
 
-Never found (ATTACH_OBJECT_LEASH_TO_OBJECT)
+Never found
+
+	SYS ATTACH_OBJECT_LEASH_TO_OBJECT	//[2, 0] (Object creature, Object target)
 ___________________________________________
 
 3.2.28 attach OBJECT leash to hand
 
 Attaches a creatures leash to the hand.
 
-Never found (ATTACH_OBJECT_LEASH_TO_HAND)
+Never found
+
+	SYS ATTACH_OBJECT_LEASH_TO_HAND	//[1, 0] (Object creature)
 ___________________________________________
 
 3.2.29 enable|disable leash on OBJECT
@@ -708,6 +726,8 @@ ___________________________________________
 If this is disabled any throwing with a player hand will be unrealistically accurate.
 
 Never found
+
+	SYS SET_PLAYER_WIND_RESISTANCE	//[2, 1] (float player, float resistance) returns ?
 ___________________________________________
 
 3.2.33 detach OBJECT leash
@@ -772,7 +792,9 @@ ___________________________________________
 
 Sets if a fight can be exited by interaction.
 
-Never found (SET_FIGHT_EXIT)
+Never found
+
+	SYS SET_FIGHT_EXIT	//[1, 0] (bool enable)
 ___________________________________________
 
 3.2.39 queue OBJECT fight move FIGHT_MOVE
@@ -1003,7 +1025,9 @@ ___________________________________________
 
 Attaches a player to the game for a specified side, the side is defined by either the word 'home' or 'away'.
 
-Never found (ATTACH_TO_GAME)
+Never found
+
+	SYS ATTACH_TO_GAME	//[3, 0] (Object player, Object game, PLAYING_SIDE team)
 ___________________________________________
 
 3.4.3 detach OBJECT in game OBJECT from PLAYING_SIDE team
@@ -1017,7 +1041,9 @@ ___________________________________________
 
 Detaches a player from the football game.
 
-Never found (DETACH_UNDEFINED_FROM_GAME)
+Never found
+
+	SYS DETACH_UNDEFINED_FROM_GAME	//[2, 0] (Object game, PLAYING_SIDE team)
 ___________________________________________
 
 3.4.5 enable|disable OBJECT only for scripts
@@ -1026,7 +1052,9 @@ Makes the object only usable for scripts, so for the football match this means t
 naturally used by the villagers. If you don't set it back to allowed for scripts, it doesn't get
 automatically restored after it has been released from the scripts, so be warned!
 
-Never found (SET_ONLY_FOR_SCRIPTS)
+Never found
+
+	SYS SET_ONLY_FOR_SCRIPTS	//[2, 0] (bool enable, Object object)
 ___________________________________________
 
 3.4.6 start OBJECT with OBJECT as referee
@@ -1119,6 +1147,8 @@ Set the visual game time properties. Duration in seconds (Usually about 1700) pe
 currently 0.083, and the percentage dawn and dusk (not included in the night ratio) is usually about 0.04.
 
 Never found
+
+	SYS SET_GAME_TIME_PROPERTIES	//[3, 0] (float duration, float pNight, float pTransition)
 ___________________________________________
 
 3.7.3 set game time properties duration EXPRESSION percentage night EXPRESSION percentage dawn dusk EXPRESSION
@@ -1183,7 +1213,9 @@ ___________________________________________
 
 Sets the help system on/off.
 
-Never found (SET_HELP_SYSTEM)
+Never found
+
+	SYS SET_HELP_SYSTEM	//[1, 0] (bool enable)
 ___________________________________________
 
 3.8.5 enable|disable OBJECT skeleton
@@ -1632,14 +1664,18 @@ ___________________________________________
 
 Sets the towns balance (Peter no descriptive function to balance lands).
 
-Never found (SET_LAND_BALANCE)
+Never found
+
+	SYS SET_LAND_BALANCE	//[2, 0] (float land, float balance)
 ___________________________________________
 
 3.8.42 set OBJECT belief scale EXPRESSION
 
 Sets the towns belief scaled by the number passed.
 
-Never found (SET_OBJECT_BELIEF_SCALE)
+Never found
+
+	SYS SET_OBJECT_BELIEF_SCALE	//[2, 0] (Object object, float scale)
 ___________________________________________
 
 3.8.43 set OBJECT player EXPRESSION relative belief EXPRESSION
@@ -1790,7 +1826,9 @@ ___________________________________________
 
 Sets the building state for the introduction of the game.
 
-Never found (SET_INTRO_BUILDING)
+Never found
+
+	SYS SET_INTRO_BUILDING	//[1, 0] (bool enable)
 ___________________________________________
 
 3.8.57 start say [extra] sound CONST_EXPR [at COORD_EXPR]
@@ -1898,7 +1936,9 @@ ___________________________________________
 
 Sets a bookmark to a set position.
 
-Never found (SET_BOOKMARK_POSITION)
+Never found
+
+	SYS SET_BOOKMARK_POSITION	//[4, 0] (float bookmark, Coord position)
 ___________________________________________
 
 3.8.66 set OBJECT building properties ABODE_NUMBER size EXPRESSION [destroys when placed]
@@ -2145,7 +2185,9 @@ ___________________________________________
 If an object has music attached to it, it enables to music playing or sets the object to not playing
 music but setting silence in the area.
 
-Never found (ENABLE_DISABLE_MUSIC)
+Never found
+
+	SYS ENABLE_DISABLE_MUSIC	//[2, 0] (bool enable, Object object)
 ___________________________________________
 
 3.12.7 restart music on OBJECT
@@ -2159,7 +2201,9 @@ ___________________________________________
 
 Sets the objects music play position to one different to the object position.
 
-Never found (SET_MUSIC_PLAY_POSITION)
+Never found
+
+	SYS SET_MUSIC_PLAY_POSITION	//[4, 0] (Object object, Coord position)
 ___________________________________________
 
 3.12.9 enable|disable alignment music
@@ -2787,7 +2831,9 @@ ___________________________________________
 
 Sets the clipping distance.
 
-Never found (SET_GRAPHICS_CLIPPING)
+Never found
+
+	SYS SET_GRAPHICS_CLIPPING	//[2, 0] (bool enable, float distance)
 ___________________________________________
 
 3.18.6 set camera lens EXPRESSION [time EXPRESSION]
@@ -2878,7 +2924,11 @@ ___________________________________________
 
 Sets the camera to face an object, with a distance from the object.
 
-Never found (SET_CAMERA_TO_FACE_OBJECT)
+set camera to face eve distance 30
+
+	PUSHV [eve]
+	PUSHF 30.0
+	SYS SET_CAMERA_TO_FACE_OBJECT	//[2, 0] (Object target, float distance)
 ___________________________________________
 
 3.18.13 set camera focus follow OBJECT
@@ -3023,7 +3073,9 @@ ___________________________________________
 
 DANGEROUS - fixes the camera rotation point. Used in learning script
 
-Never found (SET_FIXED_CAM_ROTATION)
+Never found
+
+	SYS SET_FIXED_CAM_ROTATION	//[4, 0] (bool enable, Coord position)
 ___________________________________________
 
 3.18.26 shake camera at COORD_EXPR radius EXPRESSION amplitude EXPRESSION time EXPRESSION
@@ -3089,7 +3141,9 @@ ___________________________________________
 
 Sets the camera position, focus and lens instantly.
 
-Never found (SET_CAMERA_POS_FOC_LENS)
+Never found
+
+	SYS SET_CAMERA_POS_FOC_LENS	//[7, 0] (Coord expr, Coord focus, float lens)
 ___________________________________________
 
 3.18.32 move camera position COORD_EXPR focus COORD_EXPR lens EXPRESSION time EXPRESSION

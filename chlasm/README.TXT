@@ -55,6 +55,9 @@ _______________________
 
 CHANGELOG
 
+# Version 0.7
+- Implemented 30 more statements
+
 # Version 0.6
 - Fixed statement 'get object hand is over'
 

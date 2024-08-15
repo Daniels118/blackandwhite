@@ -131,11 +131,11 @@ public enum NativeFunction {
 /*082*/	CONVERT_CAMERA_FOCUS("int camera_enum", "Coord"),
 /*083*/	CREATURE_SET_PLAYER("Object creature"),
 /*084*/	START_COUNTDOWN_TIMER("float timeout"),				//Never found
-/*085*/	CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION(2),	//Never found
+/*085*/	CREATURE_INITIALISE_NUM_TIMES_PERFORMED_ACTION("SCRIPT_PERFORMED_ACTION action, Object creature"),	//Never found
 /*086*/	CREATURE_GET_NUM_TIMES_ACTION_PERFORMED(2, "float"),	//Never found
 /*087*/	REMOVE_COUNTDOWN_TIMER(),							//Never found
 /*088*/	GET_OBJECT_DROPPED("Object creature", "Object"),	//Never found
-/*089*/	CLEAR_DROPPED_BY_OBJECT("Object creature"),			//Never found; guess (Object creature)
+/*089*/	CLEAR_DROPPED_BY_OBJECT("Object creature"),			//Never found
 /*090*/	CREATE_REACTION("Object object, REACTION reaction"),
 /*091*/	REMOVE_REACTION("Object object"),					//Never found
 /*092*/	GET_COUNTDOWN_TIMER("", "float"),					//Never found
@@ -152,7 +152,7 @@ public enum NativeFunction {
 /*103*/	HIDE_COUNTDOWN_TIMER(),								//Never found
 /*104*/	GET_ACTION_TEXT_FOR_OBJECT("Object obj", "int"),	//The return value is used as second parameter in RUN_TEXT
 /*105*/	CREATE_DUAL_CAMERA_WITH_POINT("Object obj, Coord position"),	//Never found
-/*106*/	SET_CAMERA_TO_FACE_OBJECT(2),						//Never found
+/*106*/	SET_CAMERA_TO_FACE_OBJECT("Object target, float distance"),		//Never found
 /*107*/	MOVE_CAMERA_TO_FACE_OBJECT("Object target, float distance, float time"),
 /*108*/	GET_MOON_PERCENTAGE("", "float"),					//Never found
 /*109*/	POPULATE_CONTAINER("Object obj, float quantity, SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype"),
@@ -195,7 +195,7 @@ public enum NativeFunction {
 /*146*/	CREATE_TIMER("float timeout", "Object"),
 /*147*/	GET_TIMER_TIME_REMAINING("Object timer", "float"),
 /*148*/	GET_TIMER_TIME_SINCE_SET("Object timer", "float"),
-/*149*/	MOVE_MUSIC(2),										//Never found
+/*149*/	MOVE_MUSIC("Object fromObj, Object toObj"),			//Never found
 /*150*/	GET_INCLUSION_DISTANCE("", "float"),				//Never found
 /*151*/	GET_LAND_HEIGHT("Coord position", "float"),
 /*152*/	LOAD_MAP("StrPtr path"),			//path is relative to installation, eg. "scripts/land2.txt"
@@ -227,12 +227,12 @@ public enum NativeFunction {
 /*178*/	FOCUS_AND_POSITION_FOLLOW(2),						//Never found
 /*179*/	GET_WALK_PATH_PERCENTAGE("Object object", "float"),	//Never found
 /*180*/	CAMERA_PROPERTIES("float distance, float speed, float angle, bool enableBehind"),
-/*181*/	ENABLE_DISABLE_MUSIC(2),							//Never found
+/*181*/	ENABLE_DISABLE_MUSIC("bool enable, Object object"),	//Never found
 /*182*/	GET_MUSIC_OBJ_DISTANCE("Object source", "float"),	//never found
 /*183*/	GET_MUSIC_ENUM_DISTANCE("int type", "float"),		//Never found
-/*184*/	SET_MUSIC_PLAY_POSITION(4),							//Never found
-/*185*/	ATTACH_OBJECT_LEASH_TO_OBJECT(2),					//Never found; guess (Object creature, Object target)
-/*186*/	ATTACH_OBJECT_LEASH_TO_HAND(1),						//Never found; guess (Object creature)
+/*184*/	SET_MUSIC_PLAY_POSITION("Object object, Coord position"),	//Never found
+/*185*/	ATTACH_OBJECT_LEASH_TO_OBJECT("Object creature, Object target"),	//Never found
+/*186*/	ATTACH_OBJECT_LEASH_TO_HAND("Object creature"),		//Never found
 /*187*/	DETACH_OBJECT_LEASH("Object creature"),
 /*188*/	SET_CREATURE_ONLY_DESIRE("Object creature, CREATURE_DESIRES desire, float value"),	//value must be 86400 (timeout?)
 /*189*/	SET_CREATURE_ONLY_DESIRE_OFF("Object creature"),
@@ -255,15 +255,15 @@ public enum NativeFunction {
 /*206*/	HAS_MOUSE_WHEEL("", "bool"),
 /*207*/	NUM_MOUSE_BUTTONS("", "float"),						//Never found
 /*208*/	SET_CREATURE_DEV_STAGE("Object creature, DEVELOPMENT_PHASE stage"),
-/*209*/	SET_FIXED_CAM_ROTATION(4),							//Never found
+/*209*/	SET_FIXED_CAM_ROTATION("bool enable, Coord position"),	//Never found
 /*210*/	SWAP_CREATURE("Object fromCreature, Object toCreature"),
 /*211*/	GET_ARENA(5, "Object"),								//Never found
 /*212*/	GET_FOOTBALL_PITCH("Object town", "Object"),		//Never found
 /*213*/	STOP_ALL_GAMES(1),									//Never found; guess (Object object)
-/*214*/	ATTACH_TO_GAME(3),									//Never found
+/*214*/	ATTACH_TO_GAME("Object player, Object game, PLAYING_SIDE team"),	//Never found
 /*215*/	DETACH_FROM_GAME(3),								//Never found
-/*216*/	DETACH_UNDEFINED_FROM_GAME(2),						//Never found
-/*217*/	SET_ONLY_FOR_SCRIPTS(2),							//Never found
+/*216*/	DETACH_UNDEFINED_FROM_GAME("Object game, PLAYING_SIDE team"),	//Never found
+/*217*/	SET_ONLY_FOR_SCRIPTS("bool enable, Object object"),	//Never found
 /*218*/	START_MATCH_WITH_REFEREE(2),						//Never found
 /*219*/	GAME_TEAM_SIZE(2),									//Never found
 /*220*/	GAME_TYPE("Object object", "int"),
@@ -274,12 +274,12 @@ public enum NativeFunction {
 /*225*/	GET_OBJECT_WHICH_HIT("", "Object"),					//Never found
 /*226*/	GET_NEAREST_TOWN_OF_PLAYER(5, "Object"),			//Never found
 /*227*/	SPELL_AT_POINT("MAGIC_TYPE spell, Coord position, float radius", "Object"),
-/*228*/	SET_ATTACK_OWN_TOWN(2),								//Never found
+/*228*/	SET_ATTACK_OWN_TOWN("bool enable, Object creature"),	//Never found
 /*229*/	IS_FIGHTING("Object object", "bool"),
 /*230*/	SET_MAGIC_RADIUS("Object object, float radius"),
 /*231*/	TEMP_TEXT_WITH_NUMBER("bool singleLine, StrPtr format, float value, int withInteraction"),
 /*232*/	RUN_TEXT_WITH_NUMBER("bool singleLine, int string, float number, int withInteraction", Context.DIALOGUE),
-/*233*/	CREATURE_SPELL_REVERSION(2),						//Never found 
+/*233*/	CREATURE_SPELL_REVERSION("bool enable, Object creature"),	//Never found 
 /*234*/	GET_DESIRE(2, "float"),								//Never found
 /*235*/	GET_EVENTS_PER_SECOND("HELP_EVENT_TYPE type", "float"),	//Never found
 /*236*/	GET_TIME_SINCE("HELP_EVENT_TYPE type", "float"),	//Never found
@@ -305,7 +305,7 @@ public enum NativeFunction {
 /*256*/	THING_VALID("ObjectObj object", "bool"),
 /*257*/	VORTEX_FADE_OUT("Object vortex"),
 /*258*/	REMOVE_REACTION_OF_TYPE("Object object, REACTION reaction"),
-/*259*/	CREATURE_LEARN_EVERYTHING_EXCLUDING(2),				//Never found
+/*259*/	CREATURE_LEARN_EVERYTHING_EXCLUDING("Object creature, CREATURE_ACTION_TYPE typeOfAction"),	//Never found
 /*260*/	PLAYED_PERCENTAGE("Object object", "float"),
 /*261*/	OBJECT_CAST_BY_OBJECT("Object spellInstance, Object caster", "bool"),	//Never found
 /*262*/	IS_WIND_MAGIC_AT_POS(1, "bool"),					//Never found
@@ -327,13 +327,13 @@ public enum NativeFunction {
 /*278*/	SET_FOCUS_AND_POSITION_FOLLOW("Object target, float distance"),
 /*279*/	SET_CAMERA_LENS("float lens"),
 /*280*/	MOVE_CAMERA_LENS("float lens, float time", Context.CAMERA),
-/*281*/	CREATURE_REACTION(2),								//Never found
+/*281*/	CREATURE_REACTION("bool enable, Object creature"),	//Never found
 /*282*/	CREATURE_IN_DEV_SCRIPT("bool enable, Object creature"),
 /*283*/	STORE_CAMERA_DETAILS(),								//Never found
 /*284*/	RESTORE_CAMERA_DETAILS(),							//Never found
 /*285*/	START_ANGLE_SOUND1("bool enable"),
-/*286*/	SET_CAMERA_POS_FOC_LENS(7),							//Never found
-/*287*/	MOVE_CAMERA_POS_FOC_LENS(8),						//Never found
+/*286*/	SET_CAMERA_POS_FOC_LENS("Coord expr, Coord focus, float lens"),	//Never found
+/*287*/	MOVE_CAMERA_POS_FOC_LENS("Coord position, Coord focus, float lens, float time"),	//Never found
 /*288*/	GAME_TIME_ON_OFF("bool enable"),
 /*289*/	MOVE_GAME_TIME("float hourOfTheDay, float duration"),
 /*290*/	SET_HIGH_GRAPHICS_DETAIL("bool enable, Object object"),
@@ -345,7 +345,7 @@ public enum NativeFunction {
 /*296*/	ADD_SPOT_VISUAL_TARGET_POS("Object object, Coord position"),
 /*297*/	ADD_SPOT_VISUAL_TARGET_OBJECT("Object object, Object target"),
 /*298*/	SET_INDESTRUCTABLE("bool indestructible, Object object"),
-/*299*/	SET_GRAPHICS_CLIPPING(2),							//Never found
+/*299*/	SET_GRAPHICS_CLIPPING("bool enable, float distance"),	//Never found
 /*300*/	SPIRIT_APPEAR("HELP_SPIRIT_TYPE spirit"),
 /*301*/	SPIRIT_DISAPPEAR("HELP_SPIRIT_TYPE spirit"),
 /*302*/	SET_FOCUS_ON_OBJECT("Object object, Object target"),
@@ -408,10 +408,10 @@ public enum NativeFunction {
 /*359*/	GET_FIRST_HELP("Object object", "float"),
 /*360*/	GET_LAST_HELP("Object object", "float"),
 /*361*/	IS_ACTIVE("Object object", "bool"),
-/*362*/	SET_BOOKMARK_POSITION(4),							//Never found
+/*362*/	SET_BOOKMARK_POSITION("float bookmark, Coord position"),	//Never found
 /*363*/	SET_SCAFFOLD_PROPERTIES("Object object, ABODE_NUMBER type, float size, bool destroy"),
 /*364*/	SET_COMPUTER_PLAYER_PERSONALITY("float player, StrPtr aspect, float probability"),
-/*365*/	SET_COMPUTER_PLAYER_SUPPRESSION(3),	//Never found; guess (float player, StrPtr aspect, float probability)
+/*365*/	SET_COMPUTER_PLAYER_SUPPRESSION("float player, StrPtr aspect, float probability"),	//Never found
 /*366*/	FORCE_COMPUTER_PLAYER_ACTION("float player, StrPtr action, Object obj1, Object obj2"),
 /*367*/	QUEUE_COMPUTER_PLAYER_ACTION("float player, StrPtr action, Object obj1, Object obj2"),
 /*368*/	GET_TOWN_WITH_ID("float id", "Object"),
@@ -445,7 +445,7 @@ public enum NativeFunction {
 /*396*/	CREATURE_FIGHT_QUEUE_HITS("Object creature", "float"),
 /*397*/	SQUARE_ROOT("float value", "float"),				//Never found
 /*398*/	GET_PLAYER_ALLY("float player1, float player2", "float"),	//Never found
-/*399*/	SET_PLAYER_WIND_RESISTANCE(2, 1),					//Never found
+/*399*/	SET_PLAYER_WIND_RESISTANCE("float player, float resistance", "float"),	//Never found
 /*400*/	GET_PLAYER_WIND_RESISTANCE(2, 1),					//Never found
 /*401*/	PAUSE_UNPAUSE_CLIMATE_SYSTEM("bool enable"),
 /*402*/	PAUSE_UNPAUSE_STORM_CREATION_IN_CLIMATE_SYSTEM("bool enable"),	//Never found
@@ -453,7 +453,7 @@ public enum NativeFunction {
 /*404*/	KILL_STORMS_IN_AREA("Coord position, float radius"),
 /*405*/	INSIDE_TEMPLE("", "bool"),
 /*406*/	RESTART_OBJECT("Object object"),					//Never found
-/*407*/	SET_GAME_TIME_PROPERTIES(3),						//Never found
+/*407*/	SET_GAME_TIME_PROPERTIES("float duration, float pNight, float pTransition"),	//Never found
 /*408*/	RESET_GAME_TIME_PROPERTIES(),
 /*409*/	SOUND_EXISTS("", "bool"),							//Never found
 /*410*/	GET_TOWN_WORSHIP_DEATHS("Object town", "float"),
@@ -466,15 +466,15 @@ public enum NativeFunction {
 /*417*/	GET_PLAYER_TOWN_TOTAL("float player", "float"),
 /*418*/	SPIRIT_SCREEN_POINT(3),								//Never found
 /*419*/	KEY_DOWN("int key", "bool"),
-/*420*/	SET_FIGHT_EXIT(1),									//Never found; guess (bool enable)
+/*420*/	SET_FIGHT_EXIT("bool enable"),						//Never found
 /*421*/	GET_OBJECT_CLICKED("", "Object"),
 /*422*/	GET_MANA("Object worshipSite", "float"),
 /*423*/	CLEAR_PLAYER_SPELL_CHARGING("float player"),
 /*424*/	STOP_SOUND_EFFECT("bool alwaysFalse, int sound, AUDIO_SFX_BANK_TYPE soundbank"),
 /*425*/	GET_TOTEM_STATUE("Object town", "Object"),
 /*426*/	SET_SET_ON_FIRE("bool enable, Object object"),
-/*427*/	SET_LAND_BALANCE(2),								//Never found
-/*428*/	SET_OBJECT_BELIEF_SCALE(2),							//Never found
+/*427*/	SET_LAND_BALANCE("float land, float balance"),		//Never found
+/*428*/	SET_OBJECT_BELIEF_SCALE("Object object, float scale"),	//Never found
 /*429*/	START_IMMERSION("IMMERSION_EFFECT_TYPE effect"),
 /*430*/	STOP_IMMERSION("IMMERSION_EFFECT_TYPE effect"),		//Never found
 /*431*/	STOP_ALL_IMMERSION(),								//Never found
@@ -490,7 +490,7 @@ public enum NativeFunction {
 /*441*/	POS_VALID_FOR_CREATURE("Coord position", "bool"),	//Never found
 /*442*/	GET_TIME_SINCE_OBJECT_ATTACKED("float player, Object town", "float"),
 /*443*/	GET_TOWN_AND_VILLAGER_HEALTH_TOTAL("Object town", "float"),
-/*444*/	GAME_ADD_FOR_BUILDING(2),							//Never found
+/*444*/	GAME_ADD_FOR_BUILDING("Object obj, Object town"),	//Never found
 /*445*/	ENABLE_DISABLE_ALIGNMENT_MUSIC("bool enable"),
 /*446*/	GET_DEAD_LIVING("Coord position, float radius", "Object"),
 /*447*/	ATTACH_SOUND_TAG("bool threeD, int sound, AUDIO_SFX_BANK_TYPE soundbank, Object target"),
@@ -745,6 +745,7 @@ public enum NativeFunction {
 		CREATURE_DESIRES(),				//defined in Enum.h
 		CREATURE_TYPE(),				//defined in CreatureEnum.h
 		CREATURE_ACTION(),				//defined in CreatureEnum.h
+		SCRIPT_PERFORMED_ACTION(),		//defined in CreatureEnum.h
 		DEVELOPMENT_PHASE(),			//defined in CreatureEnum.h
 		CREATURE_ACTION_TYPE(),			//see enums.txt
 		CREATURE_ACTION_SUBTYPE(),		//various enums defined in Enum.h

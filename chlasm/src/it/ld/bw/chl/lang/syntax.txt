@@ -674,6 +674,7 @@ SPIRIT_TYPE: {
 }
 
 PLAYING_SIDE: {
+	home
 	away
 }
 
