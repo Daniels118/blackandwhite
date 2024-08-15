@@ -754,7 +754,8 @@ public enum NativeFunction {
 		DETAIL_ANIM_TYPES(),			//defined in info1.txt (alias of ANIM_LIST in AllMeshes.h)
 		HELP_EVENT_TYPE(),				//see enums.txt
 		HAND_GLOW(),					//see enums.txt
-		FIGHT_MOVE();					//defined in HitRegions.h
+		FIGHT_MOVE(),					//defined in HitRegions.h
+		PLAYING_SIDE();
 		
 		private static final Map<String, ArgType> map = new HashMap<>();
 		
