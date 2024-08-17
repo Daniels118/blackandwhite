@@ -144,7 +144,7 @@ public enum NativeFunction {
 /*095*/	RELEASE_DUAL_CAMERA(),
 /*096*/	SET_CREATURE_HELP(1),								//Never found
 /*097*/	GET_TARGET_OBJECT("Object obj", "Object"),
-/*098*/	CREATURE_DESIRE_IS(2, 1),							//Never found
+/*098*/	CREATURE_DESIRE_IS("Object creature, int desire", "bool"),	//Never found
 /*099*/	COUNTDOWN_TIMER_EXISTS("", "bool"),					//Never found
 /*100*/	LOOK_GAME_THING("HELP_SPIRIT_TYPE spirit, Object target"),
 /*101*/	GET_OBJECT_DESTINATION("Object obj", "Coord"),		//Never found
@@ -186,7 +186,7 @@ public enum NativeFunction {
 /*137*/	STOP_POINTING("HELP_SPIRIT_TYPE spirit"),
 /*138*/	STOP_LOOKING("HELP_SPIRIT_TYPE spirit"),
 /*139*/	LOOK_AT_POSITION("HELP_SPIRIT_TYPE spirit, Coord position"),
-/*140*/	PLAY_SPIRIT_ANIM(5),								//Never found
+/*140*/	PLAY_SPIRIT_ANIM("HELP_SPIRIT_TYPE spirit, float pScreenX, float pScreenY, int animation, float pSpeed"),	//Never found
 /*141*/	CALL_IN_NOT_NEAR("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Object container, Coord pos, float radius, bool excludingScripted", "Object"),
 /*142*/	SET_CAMERA_ZONE("StrPtr filename"),	//filename is relative to folder Data\Zones, eg. Land1Zone5.exc
 /*143*/	GET_OBJECT_STATE("Object obj", "int"),
@@ -204,7 +204,7 @@ public enum NativeFunction {
 /*155*/	STOP_SCRIPT("StrPtr scriptName"),
 /*156*/	CLEAR_CLICKED_OBJECT(),
 /*157*/	CLEAR_CLICKED_POSITION(),							//Never found
-/*158*/	POSITION_CLICKED(4, "bool"),						//Never found
+/*158*/	POSITION_CLICKED("Coord position, float radius", "bool"),	//Never found
 /*159*/	RELEASE_FROM_SCRIPT("Object obj"),
 /*160*/	GET_OBJECT_HAND_IS_OVER("", "Object"),				//Never found
 /*161*/	ID_POISONED_SIZE("Object container", "float"),
@@ -236,7 +236,7 @@ public enum NativeFunction {
 /*187*/	DETACH_OBJECT_LEASH("Object creature"),
 /*188*/	SET_CREATURE_ONLY_DESIRE("Object creature, CREATURE_DESIRES desire, float value"),	//value must be 86400 (timeout?)
 /*189*/	SET_CREATURE_ONLY_DESIRE_OFF("Object creature"),
-/*190*/	RESTART_MUSIC(1),									//Never found
+/*190*/	RESTART_MUSIC("Object object"),						//Never found
 /*191*/	MUSIC_PLAYED1(1, 1),								//Never found
 /*192*/	IS_OF_TYPE("Object object, SCRIPT_OBJECT_TYPE type, int subtype", "bool"),
 /*193*/	CLEAR_HIT_OBJECT(),
@@ -259,12 +259,12 @@ public enum NativeFunction {
 /*210*/	SWAP_CREATURE("Object fromCreature, Object toCreature"),
 /*211*/	GET_ARENA(5, "Object"),								//Never found
 /*212*/	GET_FOOTBALL_PITCH("Object town", "Object"),		//Never found
-/*213*/	STOP_ALL_GAMES(1),									//Never found; guess (Object object)
+/*213*/	STOP_ALL_GAMES("Object object"),					//Never found
 /*214*/	ATTACH_TO_GAME("Object player, Object game, PLAYING_SIDE team"),	//Never found
-/*215*/	DETACH_FROM_GAME(3),								//Never found
+/*215*/	DETACH_FROM_GAME("Object player, Object game, PLAYING_SIDE team"),	//Never found
 /*216*/	DETACH_UNDEFINED_FROM_GAME("Object game, PLAYING_SIDE team"),	//Never found
 /*217*/	SET_ONLY_FOR_SCRIPTS("bool enable, Object object"),	//Never found
-/*218*/	START_MATCH_WITH_REFEREE(2),						//Never found
+/*218*/	START_MATCH_WITH_REFEREE("Object game, Object referee"),	//Never found
 /*219*/	GAME_TEAM_SIZE(2),									//Never found
 /*220*/	GAME_TYPE("Object object", "int"),
 /*221*/	GAME_SUB_TYPE("Object object", "int"),
@@ -272,7 +272,7 @@ public enum NativeFunction {
 /*223*/	SET_CREATURE_HOME("Object creature, Coord position"),
 /*224*/	GET_HIT_OBJECT("", "Object"),						//Never found
 /*225*/	GET_OBJECT_WHICH_HIT("", "Object"),					//Never found
-/*226*/	GET_NEAREST_TOWN_OF_PLAYER(5, "Object"),			//Never found
+/*226*/	GET_NEAREST_TOWN_OF_PLAYER("Coord position, float player, float radius", "Object"),	//Never found
 /*227*/	SPELL_AT_POINT("MAGIC_TYPE spell, Coord position, float radius", "Object"),
 /*228*/	SET_ATTACK_OWN_TOWN("bool enable, Object creature"),	//Never found
 /*229*/	IS_FIGHTING("Object object", "bool"),
@@ -280,7 +280,7 @@ public enum NativeFunction {
 /*231*/	TEMP_TEXT_WITH_NUMBER("bool singleLine, StrPtr format, float value, int withInteraction"),
 /*232*/	RUN_TEXT_WITH_NUMBER("bool singleLine, int string, float number, int withInteraction", Context.DIALOGUE),
 /*233*/	CREATURE_SPELL_REVERSION("bool enable, Object creature"),	//Never found 
-/*234*/	GET_DESIRE(2, "float"),								//Never found
+/*234*/	GET_DESIRE("Object town, TOWN_DESIRE_INFO desire", "float"),	//Never found
 /*235*/	GET_EVENTS_PER_SECOND("HELP_EVENT_TYPE type", "float"),	//Never found
 /*236*/	GET_TIME_SINCE("HELP_EVENT_TYPE type", "float"),	//Never found
 /*237*/	GET_TOTAL_EVENTS("HELP_EVENT_TYPE type", "float"),
@@ -364,7 +364,7 @@ public enum NativeFunction {
 /*315*/	GET_STORED_CAMERA_FOCUS("", "Coord"),				//Never found
 /*316*/	CALL_NEAR_IN_STATE("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, int state, Coord position, float radius, bool excludingScripted", "Object"),
 /*317*/	SET_CREATURE_SOUND("bool enable"),
-/*318*/	CREATURE_INTERACTING_WITH(2, "bool"),				//Never found
+/*318*/	CREATURE_INTERACTING_WITH("Object creature, Object target", "bool"),	//Never found
 /*319*/	SET_SUN_DRAW(1),									//Never found
 /*320*/	OBJECT_INFO_BITS("Object object", "float"),
 /*321*/	SET_HURT_BY_FIRE("bool enable, Object object"),
@@ -376,8 +376,8 @@ public enum NativeFunction {
 /*327*/	IS_PLAYING_JC_SPECIAL("int feature", "bool"),		//Never found
 /*328*/	VORTEX_PARAMETERS("Object vortex, Object town, Coord position, float distance, float radius, Object flock"),
 /*329*/	LOAD_CREATURE("CREATURE_TYPE type, StrPtr mindFilename, float player, Coord position"),
-/*330*/	IS_SPELL_CHARGING(1, "bool"),						//Never found
-/*331*/	IS_THAT_SPELL_CHARGING(2, "bool"),					//Never found
+/*330*/	IS_SPELL_CHARGING("float player", "bool"),			//Never found
+/*331*/	IS_THAT_SPELL_CHARGING("float player, MAGIC_TYPE spell", "bool"),	//Never found
 /*332*/	OPPOSING_CREATURE("int god", "int"),				//Never found
 /*333*/	FLOCK_WITHIN_LIMITS("Object object", "bool"),		//Never found
 /*334*/	HIGHLIGHT_PROPERTIES("Object object, int text, int category"),
@@ -421,13 +421,13 @@ public enum NativeFunction {
 /*372*/	SET_FOCUS_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
 /*373*/	SET_POSITION_FOLLOW_COMPUTER_PLAYER("float player"),	//Never found
 /*374*/	CALL_COMPUTER_PLAYER("float player", "Object"),
-/*375*/	CALL_BUILDING_IN_TOWN(4, 1),						//Never found
+/*375*/	CALL_BUILDING_IN_TOWN("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Object town, bool excludingScripted", "Object"),	//Never found
 /*376*/	SET_CAN_BUILD_WORSHIPSITE("bool enable, Object object"),
 /*377*/	GET_FACING_CAMERA_POSITION("float distance", "Coord"),
 /*378*/	SET_COMPUTER_PLAYER_ATTITUDE("float player1, float player2, float attitude"),	//Attitude in range [-1, 1]; -1=nice, 1=reactive
 /*379*/	GET_COMPUTER_PLAYER_ATTITUDE("float player1, float player2", "float"),
-/*380*/	LOAD_COMPUTER_PLAYER_PERSONALITY(2),				//Never found; guess (float player, StrPtr filename)
-/*381*/	SAVE_COMPUTER_PLAYER_PERSONALITY(2),				//Never found; guess (float player, StrPtr filename)
+/*380*/	LOAD_COMPUTER_PLAYER_PERSONALITY("float player, StrPtr filename"),	//Never found
+/*381*/	SAVE_COMPUTER_PLAYER_PERSONALITY("float player, StrPtr filename"),	//Never found
 /*382*/	SET_PLAYER_ALLY("float player1, float player2, float percentage"),
 /*383*/	CALL_FLYING("SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Coord position, float radius, bool excluding scripted", "Object"),
 /*384*/	SET_OBJECT_FADE_IN("Object object, float time"),

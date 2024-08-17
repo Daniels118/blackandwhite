@@ -812,14 +812,18 @@ ___________________________________________
 
 Queues a fight step into the objects fight move list.
 
-Never found (SET_CREATURE_QUEUE_FIGHT_STEP)
+Never found
+
+	SYS SET_CREATURE_QUEUE_FIGHT_STEP	//[2, 0] (Object creature, int step)
 ___________________________________________
 
 3.2.41 queue OBJECT fight spell CONST_EXPR
 
 Queues a fight spell into the objects fight move list.
 
-Never found (SET_CREATURE_QUEUE_FIGHT_SPELL)
+Never found
+
+	SYS SET_CREATURE_QUEUE_FIGHT_SPELL	//[2, 0] (Object creature, int spell)
 ___________________________________________
 
 3.2.42 set OBJECT name CONST_EXPR
@@ -996,14 +1000,18 @@ ___________________________________________
 
 Loads in a computer player personality.
 
-Never found (LOAD_COMPUTER_PLAYER_PERSONALITY)
+Never found
+
+	SYS LOAD_COMPUTER_PLAYER_PERSONALITY	//[2, 0] (float player, StrPtr filename)
 ___________________________________________
 
 3.3.13 save computer player EXPRESSION personality STRING
 
 Saves a computer player personality
 
-Never found (SAVE_COMPUTER_PLAYER_PERSONALITY)
+Never found
+
+	SYS SAVE_COMPUTER_PLAYER_PERSONALITY	//[2, 0] (float player, StrPtr filename)
 ___________________________________________
 
 3.3.14 clear computer player EXPRESSION actions
@@ -1018,7 +1026,9 @@ ___________________________________________
 
 Stops all the games associated with an object, currently only applicable to football matches.
 
-Never found (STOP_ALL_GAMES)
+Never found
+
+	SYS STOP_ALL_GAMES	//[1, 0] (Object object)
 ___________________________________________
 
 3.4.2 attach OBJECT to game OBJECT for PLAYING_SIDE team
@@ -1034,7 +1044,9 @@ ___________________________________________
 
 Detaches a player from the football game.
 
-Never found (DETACH_FROM_GAME)
+Never found
+
+	SYS DETACH_FROM_GAME	//[3, 0] (Object player, Object game, PLAYING_SIDE team)
 ___________________________________________
 
 3.4.4 detach player from OBJECT from PLAYING_SIDE team
@@ -1061,7 +1073,9 @@ ___________________________________________
 
 Starts a game with a specified ref-
 
-Never found (START_MATCH_WITH_REFEREE)
+Never found
+
+	SYS START_MATCH_WITH_REFEREE	//[2, 0] (Object game, Object referee)
 ___________________________________________
 
 3.5.1 set OBJECT fade start scale EXPRESSION end scale EXPRESSION start transparency EXPRESSION end transparency EXPRESSION time EXPRESSION
@@ -2194,7 +2208,9 @@ ___________________________________________
 
 restarts the music on a game music thing.
 
-Never found (RESTART_MUSIC)
+Never found
+
+	SYS RESTART_MUSIC	//[1, 0] (Object object)
 ___________________________________________
 
 3.12.8 set OBJECT music position to COORD_EXPR
@@ -2525,7 +2541,9 @@ ___________________________________________
 The specified spirit type will play an animation at the set position, (percentage x across the screen,
 and percentage y down the screen) at an optionally defined speed percentage
 
-Never found (PLAY_SPIRIT_ANIM)
+Never found
+
+	SYS PLAY_SPIRIT_ANIM	//[5, 0] (HELP_SPIRIT_TYPE spirit, float pScreenX, float pScreenY, int animation, float pSpeed)
 ___________________________________________
 
 3.16.1.4 make HELP_SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
@@ -3415,7 +3433,9 @@ ___________________________________________
 If the last position clicked (if in the last few seconds) is within the defined radius of the defined
 position this check is true.
 
-Never found (guess POSITION_CLICKED[4, 1])
+Never found
+
+	SYS POSITION_CLICKED	//[4, 1] (Coord position, float radius) returns (bool)
 ___________________________________________
 
 6.15 hand demo played
@@ -3442,6 +3462,8 @@ ___________________________________________
 Checks to see if a specific jc special is running.
 
 Never found
+
+	SYS IS_PLAYING_JC_SPECIAL	//[1, 1] (int feature) returns (bool)
 ___________________________________________
 
 6.18 OBJECT played
@@ -3632,7 +3654,7 @@ ___________________________________________
 
 This test whether the wind resistance flag is on (the default).
 
-Never found
+Never found (perhaps GET_PLAYER_WIND_RESISTANCE, but stack-in doesn't match)
 ___________________________________________
 
 6.38 COORD_EXPR near COORD_EXPR [radius EXPRESSION]
@@ -3782,7 +3804,9 @@ ___________________________________________
 
 Is object interacting with an object, currently only used to see if a creature is interacting with a totem.
 
-Never found (CREATURE_INTERACTING_WITH)
+Never found
+
+	SYS CREATURE_INTERACTING_WITH	[2, 1] (Object creature, Object target) returns (bool)
 ___________________________________________
 
 6.49 creature CONST_EXPR is available
@@ -3800,6 +3824,8 @@ ___________________________________________
 No doc.
 
 Never found
+
+	SYS CREATURE_DESIRE_IS	//[2, 1] (Object creature, int desire) returns (bool)
 ___________________________________________
 
 6.51 OBJECT is CONST_EXPR
@@ -3981,18 +4007,22 @@ Never found
 	SYS SOUND_EXISTS	//[0, 1] () returns (bool)
 ___________________________________________
 
-6.68 spell charging
+6.68 player EXPRESSION spell charging
 
 Check if a spell (any) is charging for a player.
 
-Never found (IS_SPELL_CHARGING)
+player 1 spell charging
+
+	SYS IS_SPELL_CHARGING	//[1, 1] (float player) returns (bool)
 ___________________________________________
 
-6.69 specific spell charging
+6.69 player EXPRESSION spell MAGIC_TYPE charging
 
 Check if a specific spell is charging for a player.
 
-Never found (IS_THAT_SPELL_CHARGING)
+player 1 spell SPELL_FOOD charging
+
+	SYS IS_THAT_SPELL_CHARGING	//[2, 1] (float player, MAGIC_TYPE spell) returns (bool)
 ___________________________________________
 
 6.70 music line EXPRESSION
@@ -4306,11 +4336,13 @@ Villager = get VILLAGER in NorseTown excluding scripted		//#followus.txt:654
 	POPF Villager
 ___________________________________________
 
-9.6 get building TYPE in OBJECT [excluding scripted]
+9.6 get building TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
 
 Gets a building of a certain type in a town.
 
-Never found (CALL_BUILDING_IN_TOWN)
+Never found
+
+	SYS CALL_BUILDING_IN_TOWN	//[4, 1] (SCRIPT_OBJECT_TYPE type, SCRIPT_OBJECT_SUBTYPE subtype, Object town, bool excludingScripted) returns (Object)
 ___________________________________________
 
 9.7 get poisoned TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
@@ -4681,7 +4713,9 @@ ___________________________________________
 
 Gets the nearest town of a players near a position within a radius.
 
-Never found (GET_NEAREST_TOWN_OF_PLAYER)
+Never found
+
+	SYS GET_NEAREST_TOWN_OF_PLAYER	//[5, 1] (Coord position, float player, float radius) returns (Object)
 ___________________________________________
 
 9.34 get town with id EXPRESSION
@@ -4750,7 +4784,9 @@ ___________________________________________
 
 Gets an arena within the specified radius.
 
-Never found (GET_ARENA)
+Never found
+
+	SYS GET_ARENA	//[5, 1] (Coord position, float radius, ?) returns (Object)
 ___________________________________________
 
 9.41 get hit object
@@ -5674,6 +5710,8 @@ ___________________________________________
 Gets the number of players in a game in a specific team.
 
 Never found
+
+	SYS GAME_TEAM_SIZE	//[2, 0] (Object game, PLAYING_SIDE team)
 ___________________________________________
 
 12.34 get OBJECT played percentage
@@ -5849,21 +5887,27 @@ ___________________________________________
 
 No doc.
 
-Never found (GET_REAL_MONTH)
+Never found
+
+	SYS GET_REAL_MONTH	//[0, 1] () returns (float)
 ___________________________________________
 
 12.46.7 get real year
 
 No doc.
 
-Never found (GET_REAL_YEAR)
+Never found
+
+	SYS GET_REAL_YEAR	//[0, 1] () returns (float)
 ___________________________________________
 
-12.47.1 get OBJECT desire CONST_EXPR
+12.47.1 get OBJECT desire TOWN_DESIRE_INFO desire
 
 Gets the percentage desire a town has for something (See Enums.h).
 
-Never found (GET_DESIRE)
+Never found
+
+	SYS GET_DESIRE	//[2, 1] (Object town, TOWN_DESIRE_INFO desire) returns (float)
 ___________________________________________
 
 12.48.1 get CONSTANT events per second

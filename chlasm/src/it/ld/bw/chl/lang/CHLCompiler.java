@@ -1522,6 +1522,7 @@ public class CHLCompiler implements Compiler {
 				parse("wind resistance EOL");
 				//enable|disable player EXPRESSION wind resistance
 				sys(SET_PLAYER_WIND_RESISTANCE);
+				popo();	//returns something... what?
 				return replace(start, "STATEMENT");
 			} else if (symbol.is("virtual")) {
 				parse("virtual influence EOL");
@@ -1581,8 +1582,9 @@ public class CHLCompiler implements Compiler {
 				sys(SET_MAGIC_IN_OBJECT);
 				return replace(start, "STATEMENT");
 			} else if (symbol.is("for")) {
-				//enable|disable spell CONST_EXPR for player EXPRESSION
+				//TODO: enable|disable spell CONST_EXPR for player EXPRESSION
 				parse("for player EXPRESSION EOL");
+				//NOTICE: it looks like this statement was not present in BW1
 				throw new ParseException("Statement not implemented", file, line, col);
 				//return replace(start, "STATEMENT");
 			} else {
@@ -2046,8 +2048,8 @@ public class CHLCompiler implements Compiler {
 			} else if (symbol.is("in")) {
 				parse("in game OBJECT from PLAYING_SIDE team EOL");
 				//detach OBJECT in game OBJECT from PLAYING_SIDE team
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				sys(DETACH_FROM_GAME);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("from")) {
 				parse("from OBJECT EOL");
 				//detach [OBJECT] from OBJECT
@@ -2088,13 +2090,13 @@ public class CHLCompiler implements Compiler {
 			} else if (symbol.is("step")) {
 				parse("step CONST_EXPR EOL");
 				//queue OBJECT fight step CONST_EXPR
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				sys(SET_CREATURE_QUEUE_FIGHT_STEP);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("spell")) {
 				parse("spell CONST_EXPR EOL");
 				//queue OBJECT fight spell CONST_EXPR
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				sys(SET_CREATURE_QUEUE_FIGHT_SPELL);
+				return replace(start, "STATEMENT");
 			} else {
 				throw new ParseException("Unexpected token: "+symbol+". Expected: move|step|spell", lastParseException, file, symbol.token.line, symbol.token.col);
 			}
@@ -2116,8 +2118,8 @@ public class CHLCompiler implements Compiler {
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION personality STRING EOL");
 			//load computer player EXPRESSION personality STRING
-			throw new ParseException("Statement not implemented", file, line, col);
-			//return replace(start, "STATEMENT");
+			sys(LOAD_COMPUTER_PLAYER_PERSONALITY);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("map")) {
 			parse("map STRING EOL");
 			//load map STRING
@@ -2145,8 +2147,8 @@ public class CHLCompiler implements Compiler {
 		if (symbol.is("computer")) {
 			parse("computer player EXPRESSION personality STRING EOL");
 			//save computer player EXPRESSION personality STRING
-			throw new ParseException("Statement not implemented", file, line, col);
-			//return replace(start, "STATEMENT");
+			sys(SAVE_COMPUTER_PLAYER_PERSONALITY);
+			return replace(start, "STATEMENT");
 		} else if (symbol.is("game")) {
 			parse("game in slot EXPRESSION EOL");
 			//save game in slot EXPRESSION
@@ -2167,8 +2169,8 @@ public class CHLCompiler implements Compiler {
 			if (symbol.is("games")) {
 				parse("games for OBJECT EOL");
 				//stop all games for OBJECT
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				sys(STOP_ALL_GAMES);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("scripts")) {
 				parse("scripts excluding");
 				symbol = peek();
@@ -2306,8 +2308,8 @@ public class CHLCompiler implements Compiler {
 			if (symbol.is("with")) {
 				parse("with OBJECT as referee EOL");
 				//start OBJECT with OBJECT as referee
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				sys(START_MATCH_WITH_REFEREE);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("fade")) {
 				parse("fade out EOL");
 				//start OBJECT fade out
@@ -2345,7 +2347,8 @@ public class CHLCompiler implements Compiler {
 	private SymbolInstance parseAffect() throws ParseException {
 		//final int start = it.nextIndex();
 		parse("affect alignment by EXPRESSION EOL");
-		//affect alignment by EXPRESSION
+		//TODO: affect alignment by EXPRESSION
+		//NOTICE: most likely not supported in BW1
 		throw new ParseException("Statement not implemented", file, line, col);
 		//return replace(start, "STATEMENT");
 	}
@@ -2483,8 +2486,8 @@ public class CHLCompiler implements Compiler {
 		if (symbol.is("music")) {
 			parse("music on OBJECT EOL");
 			//restart music on OBJECT
-			throw new ParseException("Statement not implemented", file, line, col);
-			//return replace(start, "STATEMENT");
+			sys(RESTART_MUSIC);
+			return replace(start, "STATEMENT");
 		} else {
 			parse("OBJECT EOL");
 			//restart OBJECT
@@ -2546,10 +2549,10 @@ public class CHLCompiler implements Compiler {
 					throw new ParseException("Unexpected token: "+symbol+". Expected: to|at", lastParseException, file, symbol.token.line, symbol.token.col);
 				}
 			} else if (symbol.is("play")) {
-				parse("play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION] EOL");
-				//make SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "STATEMENT");
+				parse("play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION] EOL", 1f);
+				//make HELP_SPIRIT_TYPE spirit play across EXPRESSION down EXPRESSION CONST_EXPR [speed EXPRESSION]
+				sys(PLAY_SPIRIT_ANIM);
+				return replace(start, "STATEMENT");
 			} else if (symbol.is("cling")) {
 				parse("cling across EXPRESSION down EXPRESSION EOL");
 				//make SPIRIT_TYPE spirit cling across EXPRESSION down EXPRESSION
@@ -3318,7 +3321,7 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "EXPRESSION");
 				} else if (symbol.is("number")) {
 					parse("number of CONST_EXPR for OBJECT");
-					//get number of CONST_EXPR for OBJECT
+					//TODO: get number of CONST_EXPR for OBJECT
 					throw new ParseException("Statement not implemented", file, line, col);
 					//return replace(start, "EXPRESSION");
 				} else if (symbol.is("inclusion")) {
@@ -3349,8 +3352,8 @@ public class CHLCompiler implements Compiler {
 				} else if (symbol.is("size")) {
 					parse("size of OBJECT PLAYING_SIDE team");
 					//get size of OBJECT PLAYING_SIDE team
-					throw new ParseException("Statement not implemented", file, line, col);
-					//return replace(start, "EXPRESSION");
+					sys(GAME_TEAM_SIZE);
+					return replace(start, "EXPRESSION");
 				} else if (symbol.is("worship")) {
 					parse("worship deaths in OBJECT");
 					//get worship deaths in OBJECT
@@ -3381,12 +3384,12 @@ public class CHLCompiler implements Compiler {
 						return replace(start, "EXPRESSION");
 					} else if (symbol.is("day")) {
 						accept("day");
-						//get real day
+						//TODO: get real day
 						throw new ParseException("Statement not implemented", file, line, col);
 						//return replace(start, "EXPRESSION");
 					} else if (symbol.is("weekday")) {
 						accept("weekday");
-						//get real weekday
+						//TODO: get real weekday
 						throw new ParseException("Statement not implemented", file, line, col);
 						//return replace(start, "EXPRESSION");
 					} else if (symbol.is("month")) {
@@ -3488,9 +3491,9 @@ public class CHLCompiler implements Compiler {
 							return replace(start, "EXPRESSION");
 						} else if (symbol.is("desire")) {
 							parse("desire CONST_EXPR");
-							//get OBJECT desire CONST_EXPR
-							throw new ParseException("Statement not implemented", file, line, col);
-							//return replace(start, "EXPRESSION");
+							//get OBJECT desire TOWN_DESIRE_INFO
+							sys(GET_DESIRE);
+							return replace(start, "EXPRESSION");
 						} else if (symbol.is("sacrifice")) {
 							parse("sacrifice total");
 							//get OBJECT sacrifice total
@@ -3734,8 +3737,8 @@ public class CHLCompiler implements Compiler {
 			} else if (symbol.is("jc")) {
 				parse("jc special CONST_EXPR played");
 				//jc special CONST_EXPR played
-				throw new ParseException("Statement not implemented", file, line, col);
-				//return replace(start, "CONDITION");
+				sys(IS_PLAYING_JC_SPECIAL);
+				return replace(start, "CONDITION");
 			} else if (symbol.is("fire")) {
 				parse("fire near COORD_EXPR radius EXPRESSION");
 				//fire near COORD_EXPR radius EXPRESSION
@@ -3746,12 +3749,8 @@ public class CHLCompiler implements Compiler {
 				symbol = peek();
 				if (symbol.is("wind")) {
 					parse("wind near COORD_EXPR radius EXPRESSION");
-					//spell wind near COORD_EXPR radius EXPRESSION
-					throw new ParseException("Statement not implemented", file, line, col);
-					//return replace(start, "CONDITION");
-				} else if (symbol.is("charging")) {
-					accept("charging");
-					//spell charging
+					//TODO: spell wind near COORD_EXPR radius EXPRESSION
+					//NOTICE: perhaps IS_WIND_MAGIC_AT_POS, but stack-in doesn't match
 					throw new ParseException("Statement not implemented", file, line, col);
 					//return replace(start, "CONDITION");
 				} else {
@@ -3818,10 +3817,31 @@ public class CHLCompiler implements Compiler {
 					sys(HAS_MOUSE_WHEEL);
 					return replace(start, "CONDITION");
 				} else {
-					parse("EXPRESSION wind resistance");
-					//player EXPRESSION wind resistance
-					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-					//return replace(start, "CONDITION");
+					parse("EXPRESSION");
+					symbol = peek();
+					if (symbol.is("spell")) {
+						accept("spell");
+						symbol = peek();
+						if (symbol.is("charging")) {
+							accept("charging");
+							//player EXPRESSION spell charging
+							sys(IS_SPELL_CHARGING);
+							return replace(start, "CONDITION");
+						} else {
+							parse("CONST_EXPR charging");
+							//player EXPRESSION spell MAGIC_TYPE charging
+							sys(IS_THAT_SPELL_CHARGING);
+							return replace(start, "CONDITION");
+						}
+					} else if (symbol.is("wind")) {
+						parse("wind resistance");
+						//TODO: player EXPRESSION wind resistance
+						//NOTICE: perhaps GET_PLAYER_WIND_RESISTANCE, but stack-in doesn't match
+						throw new ParseException("Statement not implemented", lastParseException, file, line, col);
+						//return replace(start, "CONDITION");
+					} else {
+						throw new ParseException("Unexpected token: "+symbol+". Expected: spell|wind", lastParseException, file, symbol.token.line, symbol.token.col);
+					}
 				}
 			} else if (symbol.is("creature")) {
 				parse("creature CONST_EXPR is available");
@@ -3831,8 +3851,8 @@ public class CHLCompiler implements Compiler {
 			} else if (symbol.is("get")) {
 				parse("get desire of OBJECT is CONST_EXPR");
 				//get desire of OBJECT is CONST_EXPR
-				throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-				//return replace(start, "CONDITION");
+				sys(CREATURE_DESIRE_IS);
+				return replace(start, "CONDITION");
 			} else if (symbol.is("read")) {
 				accept("read");
 				//read
@@ -3869,11 +3889,6 @@ public class CHLCompiler implements Compiler {
 					sys(GAME_SOUND_PLAYING);
 					return replace(start, "CONDITION");
 				}
-			} else if (symbol.is("specific")) {
-				parse("specific spell charging");
-				//specific spell charging
-				throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-				//return replace(start, "CONDITION");
 			} else if (symbol.is("music")) {
 				parse("music line EXPRESSION");
 				//music line EXPRESSION
@@ -4022,7 +4037,7 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "CONDITION");
 				} else if (symbol.is("music")) {
 					parse("music played");
-					//OBJECT music played
+					//TODO: OBJECT music played
 					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 					//return replace(start, "CONDITION");
 				} else if (symbol.is("cast")) {
@@ -4070,8 +4085,8 @@ public class CHLCompiler implements Compiler {
 				} else if (symbol.is("interacting")) {
 					parse("interacting with OBJECT");
 					//OBJECT interacting with OBJECT
-					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-					//return replace(start, "CONDITION");
+					sys(CREATURE_INTERACTING_WITH);
+					return replace(start, "CONDITION");
 				} else if (symbol.is("is")) {
 					accept("is");
 					symbol = peek();
@@ -4148,8 +4163,8 @@ public class CHLCompiler implements Compiler {
 				} else if (symbol.is("clicked")) {
 					parse("clicked radius EXPRESSION");
 					//COORD_EXPR clicked radius EXPRESSION
-					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-					//return replace(start, "CONDITION");
+					sys(POSITION_CLICKED);
+					return replace(start, "CONDITION");
 				} else if (symbol.is("near")) {
 					//COORD_EXPR near COORD_EXPR [radius EXPRESSION]
 					parse("near COORD_EXPR");
@@ -4255,10 +4270,17 @@ public class CHLCompiler implements Compiler {
 				accept("get");
 				symbol = peek();
 				if (symbol.is("building")) {
-					//get building TYPE in OBJECT [excluding scripted]
-					parse("building CONST_EXPR in OBJECT [excluding scripted]");
-					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-					//return replace(start, "OBJECT");
+					//get building TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+					parse("building CONST_EXPR");
+					symbol = peek();
+					if (symbol.is("in")) {
+						pushi(DEFAULT_SUBTYPE_NAME);
+					} else {
+						parseConstExpr(true);
+					}
+					parse("in OBJECT [excluding scripted]");
+					sys(CALL_BUILDING_IN_TOWN);
+					return replace(start, "OBJECT");
 				} else if (symbol.is("poisoned")) {
 					//get poisoned TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT
 					parse("poisoned CONST_EXPR");
@@ -4311,8 +4333,8 @@ public class CHLCompiler implements Compiler {
 				} else if (symbol.is("nearest")) {
 					parse("nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION");
 					//get nearest town at COORD_EXPR for player EXPRESSION radius EXPRESSION
-					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
-					//return replace(start, "OBJECT");
+					sys(GET_NEAREST_TOWN_OF_PLAYER);
+					return replace(start, "OBJECT");
 				} else if (symbol.is("town")) {
 					parse("town with id EXPRESSION");
 					//get town with id EXPRESSION
@@ -4325,7 +4347,8 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "OBJECT");
 				} else if (symbol.is("arena")) {
 					parse("arena at COORD_EXPR radius EXPRESSION");
-					//get arena at COORD_EXPR radius EXPRESSION
+					//TODO: get arena at COORD_EXPR radius EXPRESSION
+					//NOTICE: function is GET_ARENA, but it expects one more parameter
 					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 					//return replace(start, "OBJECT");
 				} else if (symbol.is("hit")) {
@@ -4583,7 +4606,7 @@ public class CHLCompiler implements Compiler {
 				} else {
 					symbol = parseConstExpr(false);
 					if (symbol != null) {
-						//marker at CONST_EXPR
+						//TODO: marker at CONST_EXPR
 						throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 						//return replace(start, "OBJECT");
 					} else {
@@ -4794,7 +4817,7 @@ public class CHLCompiler implements Compiler {
 			symbol = next();
 			if (symbol.is("/")) {
 				parseExpression(true);
-				//COORD_EXPR / EXPRESSION
+				//TODO: COORD_EXPR / EXPRESSION
 				throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 				//return replace(start, "COORD_EXPR");
 			} else if (symbol.is("+") || symbol.is("-")) {
@@ -4947,7 +4970,7 @@ public class CHLCompiler implements Compiler {
 			}
 		} else if (symbol.is("-")) {
 			parse("- COORD_EXPR");
-			//-COORD_EXPR
+			//TODO: -COORD_EXPR
 			throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 			//return replace(start, "COORD_EXPR");
 		} else if (symbol.is("(")) {
@@ -4963,7 +4986,7 @@ public class CHLCompiler implements Compiler {
 				SymbolInstance mode = next();
 				if (mode.is("*")) {
 					parseCoordExpr(true);
-					//EXPRESSION * COORD_EXPR
+					//TODO: EXPRESSION * COORD_EXPR
 					throw new ParseException("Statement not implemented", lastParseException, file, line, col);
 					//return replace(start, "COORD_EXPR");
 				}

@@ -55,6 +55,9 @@ _______________________
 
 CHANGELOG
 
+# Version 0.8
+- Implemented 19 more statements
+
 # Version 0.7
 - Implemented 30 more statements
 
