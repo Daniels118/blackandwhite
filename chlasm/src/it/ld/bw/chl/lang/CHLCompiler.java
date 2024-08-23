@@ -2634,7 +2634,7 @@ public class CHLCompiler implements Compiler {
 		} else {
 			parse("[single line]");
 			symbol = peek();
-			if (symbol.is(TokenType.STRING)) {
+			if (symbol.is(TokenType.STRING) || symbol.is("string")) {
 				parseString();
 				if (checkAhead("with number")) {
 					//say [single line] STRING with number EXPRESSION [with interaction|without interaction]
@@ -2710,7 +2710,7 @@ public class CHLCompiler implements Compiler {
 		final int start = it.nextIndex();
 		parse("draw text");
 		SymbolInstance symbol = peek();
-		if (symbol.is(TokenType.STRING)) {
+		if (symbol.is(TokenType.STRING) || symbol.is("string")) {
 			parse("STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds EOL");
 			//draw text STRING across EXPRESSION down EXPRESSION width EXPRESSION height EXPRESSION size EXPRESSION fade in time EXPRESSION second|seconds
 			sys(GAME_DRAW_TEMP_TEXT);
@@ -3598,8 +3598,15 @@ public class CHLCompiler implements Compiler {
 				neg();
 				return replace(start, "EXPRESSION");
 			} else if (symbol.is("variable")) {
-				parse("variable CONST_EXPR");
-				//variable CONST_EXPR
+				accept("variable");
+				symbol = peek();
+				if (symbol.is(TokenType.STRING)) {
+					//variable STRING
+					parseString();
+				} else {
+					//variable CONST_EXPR
+					parseConstExpr(true);
+				}
 				castf();
 				return replace(start, "EXPRESSION");
 			} else if (symbol.is("(")) {
@@ -4270,15 +4277,8 @@ public class CHLCompiler implements Compiler {
 				accept("get");
 				symbol = peek();
 				if (symbol.is("building")) {
-					//get building TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
-					parse("building CONST_EXPR");
-					symbol = peek();
-					if (symbol.is("in")) {
-						pushi(DEFAULT_SUBTYPE_NAME);
-					} else {
-						parseConstExpr(true);
-					}
-					parse("in OBJECT [excluding scripted]");
+					//get building ABODE_TYPE in OBJECT [min built EXPRESSION] [excluding scripted]
+					parse("building CONST_EXPR in OBJECT [min built EXPRESSION] [excluding scripted]");
 					sys(CALL_BUILDING_IN_TOWN);
 					return replace(start, "OBJECT");
 				} else if (symbol.is("poisoned")) {
@@ -5283,16 +5283,21 @@ public class CHLCompiler implements Compiler {
     }
 	
 	private SymbolInstance parseString() throws ParseException {
+		final int start = it.nextIndex();
 		SymbolInstance sInst = next();
-		if (!sInst.is(TokenType.STRING)) {
+		if (sInst.is("string")) {
+			parse("EXPRESSION");
+			casti();
+		} else if (sInst.is(TokenType.STRING)) {
+			String value = sInst.token.stringVal();
+			int strptr = storeStringData(value);
+			//STRING
+			strptrInstructions.add(getIp());
+			pushi(strptr);
+		} else {
 			throw new ParseException("Unexpected token: "+sInst+". Expected: STRING", lastParseException, file, sInst.token.line, sInst.token.col);
 		}
-		String value = sInst.token.stringVal();
-		int strptr = storeStringData(value);
-		//STRING
-		strptrInstructions.add(getIp());
-		pushi(strptr);
-		return sInst;
+		return replace(start, "STRING");
 	}
 	
 	private SymbolInstance[] parse(String expression, Object... defaults) throws ParseException {
@@ -5457,6 +5462,8 @@ public class CHLCompiler implements Compiler {
 	private static float asFloat(Object v) {
 		if (v instanceof Double) {
 			return ((Double)v).floatValue();
+		} else if (v instanceof Float) {
+			return ((Float)v).floatValue();
 		} else if (v instanceof Integer) {
 			return ((Integer)v).floatValue();
 		} else {
