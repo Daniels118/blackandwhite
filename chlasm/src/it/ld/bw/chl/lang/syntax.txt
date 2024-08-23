@@ -500,7 +500,7 @@ OBJECT: {
 	get CONST_EXPR [CONST_EXPR] in OBJECT at COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] in OBJECT not near COORD_EXPR radius EXPRESSION [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] in OBJECT [excluding scripted]
-	get building SCRIPT_OBJECT_TYPE [SCRIPT_OBJECT_SUBTYPE] in OBJECT [excluding scripted]
+	get building ABODE_TYPE in OBJECT [min built EXPRESSION] [excluding scripted]
 	get poisoned CONST_EXPR [CONST_EXPR] in OBJECT
 	get not poisoned CONST_EXPR [CONST_EXPR] in OBJECT [excluding scripted]
 	get CONST_EXPR [CONST_EXPR] flying at COORD_EXPR radius EXPRESSION [excluding scripted]
@@ -697,6 +697,8 @@ TOWN_DESIRE_INFO: CONST_EXPR
 
 ABODE_NUMBER: CONST_EXPR
 
+ABODE_TYPE: CONST_EXPR
+
 IMMERSION_EFFECT_TYPE: CONST_EXPR
 
 CARRIED_OBJECT: CONST_EXPR
@@ -760,6 +762,11 @@ ANIMLIST: CONST_EXPR
 SCRIPT_NAME: IDENTIFIER
 
 R_IDENTIFIER: IDENTIFIER
+
+STRING: {
+	string EXPRESSION
+	STRING
+}
 
 CONSTANT: {
 	IDENTIFIER
