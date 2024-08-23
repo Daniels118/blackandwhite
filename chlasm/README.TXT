@@ -55,6 +55,13 @@ _______________________
 
 CHANGELOG
 
+# Version 0.9
+- Implemented string cast statements.
+- Implemented generic type arguments (for future use).
+- Fixed syntax statement 9.6 (get building ...)
+- Fixed bug on statement 3.16.1.3 (make HELP_SPIRIT_TYPE spirit play ...)
+- Added AllMeshes.h, HelpDudeAnim.h
+
 # Version 0.8
 - Implemented 19 more statements
 
