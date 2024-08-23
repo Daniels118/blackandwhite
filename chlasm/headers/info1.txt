@@ -1,4 +1,6 @@
-#BLACKandWHITEAnimationBankIds			Status : Normal	2/1/2001 13:28	
+#BLACKandWHITEAnimationBankIds			Status : Normal	2/1/2001 13:28
+
+#Comments are courtesy of herolich1	
 					
 			 		
 DETAIL_MESH_TYPES	Value				
@@ -832,248 +834,248 @@ ANM_PHONEBOX	192
 ANM_PIPER_CAVE_CLOSING	193
 ANM_PIPER_CAVE_OPENING	194
 ANM_GATE_TOTEM_PLINTHE	195
-ANM_PIED_PIPER_DANCE_STAND	196
-ANM_PIED_PIPER_DANCE_STAND_SPIN	197
-ANM_PIED_PIPER_DANCE_WALK	198
-ANM_PIED_PIPER_DANCE_WALK_SPIN	199
-ANM_PIED_PIPER_SUMMON	200
-ANM_PIED_PIPER_WALK	201
-ANM_P_AFRICAN_DRUMMER	202
-ANM_P_AMBIENT1	203
-ANM_P_AMBIENT2	204
-ANM_P_ARSONIST	205
-ANM_P_ATTACKED_BY_LION	206
-ANM_P_ATTRACT_YOUR_ATTENTION	207
-ANM_P_AVOID_OBJECT_DIVE	208
-ANM_P_AVOID_OBJECT_DODGE	209
-ANM_P_BECKON	210
-ANM_P_BLOW_RASPBERRY	211
-ANM_P_CARRYING_BAG	212
-ANM_P_CARRYING_POT	213
-ANM_P_CARRYING_STICKS	214
-ANM_P_CARRY_AXE	215
-ANM_P_CARRY_OBJECT_RUN	216
-ANM_P_CHOPPING_TREE	217
-ANM_P_CLAP_1	218
-ANM_P_CLAP_2	219
-ANM_P_CLAP_3	220
-ANM_P_CLAP_4	221
-ANM_P_CONDUCT_MEETING	222
-ANM_P_COUPLE_KISS_MAN	223
-ANM_P_COUPLE_KISS_WOMAN	224
-ANM_P_CRAWL_INJURED	225
-ANM_P_CRAWL_INJURED_INTO	226
-ANM_P_CROWD_IMPRESSED_1	227
-ANM_P_CROWD_IMPRESSED_2	228
-ANM_P_CROWD_LOST	229
-ANM_P_CROWD_LOST_2	230
-ANM_P_CROWD_MEXICAN_WAVE	231
-ANM_P_CROWD_UNIMPRESSED_1	232
-ANM_P_CROWD_UNIMPRESSED_2	233
-ANM_P_CROWD_WON	234
-ANM_P_CROWD_WON_2	235
-ANM_P_DANCE_PISS_TAKE_	236
-ANM_P_DANCE_STAND	237
-ANM_P_DANCE_TOGETHER_ARMLINK	238
-ANM_P_DANCE_TOGETHER_CIRCLING	239
-ANM_P_DANCE_TOGETHER_CIRCLING_PARTNER	240
-ANM_P_DANCE_X	241
-ANM_P_DANCE_X_PARTNER	242
-ANM_P_DEAD1	243
-ANM_P_DEAD1_GOTO_HEAVEN	244
-ANM_P_DEAD1_GOTO_HELL	245
-ANM_P_DEAD2	246
-ANM_P_DEAD2_GOTO_HEAVEN	247
-ANM_P_DEAD2_GOTO_HELL	248
-ANM_P_DEAD_DROWNED	249
-ANM_P_DEAD_IN_HAND	250
-ANM_P_DRIBBLE_BALL	251
-ANM_P_DROWNING	252
-ANM_P_DYING	253
-ANM_P_EAT	254
-ANM_P_FAKE_FOUL_FALL	255
-ANM_P_FARMER	256
-ANM_P_FARMER_HARVESTING	257
-ANM_P_FARMER_SHOO_SHEEP	258
-ANM_P_FARMER_SOWING_SEEDS	259
-ANM_P_FARMER_STOKE_SHEEP	260
-ANM_P_FARMER_TURNING_SOIL	261
-ANM_P_FISHERMAN	262
-ANM_P_FRIGHT_DUCK	263
-ANM_P_FRIGHT_JUMP	264
-ANM_P_F_DANCE_A	265
-ANM_P_F_DANCE_B	266
-ANM_P_F_DANCE_C	267
-ANM_P_GIVE_BIRTH	268
-ANM_P_GOALKEEPER	269
-ANM_P_GOALKEEPER_2	270
-ANM_P_GOALKEEPER_3	271
-ANM_P_GOSSIP_MAN	272
-ANM_P_GOSSIP_WOMAN_1	273
-ANM_P_GOSSIP_WOMAN_2	274
-ANM_P_GOSSIP_WOMAN_3	275
-ANM_P_HAMMERING	276
-ANM_P_HELP_SOMEONE_HELPEE	277
-ANM_P_HELP_SOMEONE_HELPER	278
-ANM_P_HUG	279
-ANM_P_INSPECT_OBJECT_1	280
-ANM_P_INSPECT_OBJECT_2	281
-ANM_P_INSPECT_OBJECT_3	282
-ANM_P_INTO_DEAD_DROWNED	283
-ANM_P_INTO_HAMMERING	284
-ANM_P_INTO_MOURNING	285
-ANM_P_INTO_POINTING	286
-ANM_P_INTO_PRAY	287
-ANM_P_INTO_PULL_OBJECT	288
-ANM_P_INTO_PUSH_OBJECT	289
-ANM_P_INTO_RUN_MAN	290
-ANM_P_INTO_RUN_WOMAN	291
-ANM_P_INTO_SAW_WOOD	292
-ANM_P_INTO_SLEDGEHAMMER	293
-ANM_P_INTO_SLEEP	294
-ANM_P_INTO_SPRINT_MAN	295
-ANM_P_INTO_SPRINT_WOMAN	296
-ANM_P_INTO_WALK_MAN	297
-ANM_P_INTO_WALK_WOMAN	298
-ANM_P_JUMP_A	299
-ANM_P_JUMP_AT_HAND	300
-ANM_P_JUMP_AT_HAND_2	301
-ANM_P_KICK_BALL	302
-ANM_P_KICK_BALL_PASS	303
-ANM_P_KICK_BALL_PASS_PT1	304
-ANM_P_KICK_BALL_PASS_PT2	305
-ANM_P_LANDED	306
-ANM_P_LANDED_FROM_BACK	307
-ANM_P_LANDED_FROM_FEET	308
-ANM_P_LANDED_FROM_FEET_CARRY_OBJECT	309
-ANM_P_LOOKING_FOR_SOMETHING	310
-ANM_P_LOOK_AT_HAND	311
-ANM_P_LOVING_TOUCH	312
-ANM_P_MOURNING	313
-ANM_P_M_DANCE_A	314
-ANM_P_M_DANCE_B	315
-ANM_P_M_DANCE_C	316
-ANM_P_ON_FIRE_DIE	317
-ANM_P_ON_FIRE_DOUSED	318
-ANM_P_ON_FIRE_RUN	319
-ANM_P_OUT_OF_HAMMERING	320
-ANM_P_OUT_OF_MOURNING	321
-ANM_P_OUT_OF_POINTING	322
-ANM_P_OUT_OF_PRAY	323
-ANM_P_OUT_OF_PULL_OBJECT	324
-ANM_P_OUT_OF_PUSH_OBJECT	325
-ANM_P_OUT_OF_RUN_MAN	326
-ANM_P_OUT_OF_RUN_WOMAN	327
-ANM_P_OUT_OF_SAW_WOOD	328
-ANM_P_OUT_OF_SLEDGEHAMMER	329
-ANM_P_OUT_OF_SLEEP	330
-ANM_P_OUT_OF_WALK_WOMAN	331
-ANM_P_OVERWORKED1	332
-ANM_P_OVERWORKED2	333
-ANM_P_PANIC_MAN	334
-ANM_P_PANIC_WOMAN	335
-ANM_P_PICKUP_BALL_PT1	336
-ANM_P_PICKUP_BALL_PT2	337
-ANM_P_PICK_UP_BAG	338
-ANM_P_PICK_UP_POT_ON_HEAD	339
-ANM_P_PICK_UP_STICKS	340
-ANM_P_PLAY_ACCORDIAN	341
-ANM_P_POISONED	342
-ANM_P_PRAY	343
-ANM_P_PROD_CAMPFIRE	344
-ANM_P_PULL_OBJECT	345
-ANM_P_PUSH_OBJECT	346
-ANM_P_PUT_DOWN_BAG	347
-ANM_P_PUT_DOWN_STICKS	348
-ANM_P_PUT_OUT_FIRE	349
-ANM_P_PUZZLED	350
-ANM_P_RUN_MAN	351
-ANM_P_RUN_WITH_BALL	352
-ANM_P_RUN_WOMAN	353
-ANM_P_SAW_WOOD	354
-ANM_P_SCARED_STIFF	355
-ANM_P_SCARED_STIFF_2	356
-ANM_P_SCORE_GOAL	357
-ANM_P_SCRIPT1	358
-ANM_P_SCRUBBS	359
-ANM_P_SCULPTOR	360
-ANM_P_SHAKE_FIST_FEMALE	361
-ANM_P_SHOOT_AT_GOAL	362
-ANM_P_SHOOT_AT_GOAL_2	363
-ANM_P_SHOOT_AT_GOAL_PT_1	364
-ANM_P_SHOOT_AT_GOAL_PT_2	365
-ANM_P_SHRUG_SHOULDERS	366
-ANM_P_SITTING_DOWN1_INTO	367
-ANM_P_SITTING_DOWN1_OUT_OF	368
-ANM_P_SITTING_DOWN1_SITTING	369
-ANM_P_SITTING_DOWN2_INTO	370
-ANM_P_SITTING_DOWN2_OUT_OF	371
-ANM_P_SITTING_DOWN2_SITTING	372
-ANM_P_SITTING_DOWN_DANCE_SAILING1	373
-ANM_P_SITTING_DOWN_DANCE_SAILING2	374
-ANM_P_SITTING_DOWN_DANCE_SAILING3	375
-ANM_P_SITTING_DOWN_MALE1	376
-ANM_P_SITTING_DOWN_MALE2	377
-ANM_P_SITTING_SWINGING_LEGS	378
-ANM_P_SKIP02	379
-ANM_P_SLEDGEHAMMER	380
-ANM_P_SLEEP	381
-ANM_P_SLEEPING	382
-ANM_P_SPRINT_RUN_MAN	383
-ANM_P_SPRINT_RUN_WOMAN	384
-ANM_P_STAND	385
-ANM_P_STAND_DESPAIR_1	386
-ANM_P_STAND_DESPAIR_2	387
-ANM_P_STAND_DESPAIR_3	388
-ANM_P_STIR_POT01	389
-ANM_P_SWIM2	390
-ANM_P_TALK1_FEMALE	391
-ANM_P_TALK1_MALE	392
-ANM_P_TALK2_FEMALE	393
-ANM_P_TALK2_MALE	394
-ANM_P_TALKING_AND_POINTING	395
-ANM_P_TALK_TO_NEIGHBOUR	396
-ANM_P_THANK_YOU	397
-ANM_P_THANK_YOU_FEMALE	398
-ANM_P_THROWN	399
-ANM_P_THROWN_DEAD	400
-ANM_P_THROWN_VORTEX	401
-ANM_P_THROW_BALL_PT_1	402
-ANM_P_THROW_BALL_PT_2	403
-ANM_P_THROW_ROCK	404
-ANM_P_THROW_WATER	405
-ANM_P_TITANIC	406
-ANM_P_TURN_180	407
-ANM_P_TURN_90_LEFT	408
-ANM_P_TURN_90_RIGHT	409
-ANM_P_TURN_ON_THE_SPOT_LEFT	410
-ANM_P_TURN_ON_THE_SPOT_RIGHT	411
-ANM_P_WAITING_FOR_BALL	412
-ANM_P_WAITING_FOR_BALL_2	413
-ANM_P_WAITING_FOR_KICK_OFF	414
-ANM_P_WAITING_FOR_KICK_OFF_2	415
-ANM_P_WAITING_FOR_KICK_OFF_3	416
-ANM_P_WAITING_FOR_KICK_OFF_4	417
-ANM_P_WAITING_IMPATEINTLY	418
-ANM_P_WALK_BECKON02	419
-ANM_P_WALK_DESPAIR_AWAY_1	420
-ANM_P_WALK_DESPAIR_AWAY_2	421
-ANM_P_WALK_DESPAIR_AWAY_3	422
-ANM_P_WALK_DESPAIR_TO_1	423
-ANM_P_WALK_DESPAIR_TO_2	424
-ANM_P_WALK_DESPAIR_TO_3	425
-ANM_P_WALK_INJURED	426
-ANM_P_WALK_MAN	427
-ANM_P_WALK_POINT	428
-ANM_P_WALK_TIRED_EYES	429
-ANM_P_WALK_TO_STAND_WOMAN	430
-ANM_P_WALK_WOMAN	431
-ANM_P_WELL_DONE__FEMALE	432
-ANM_P_WHITTLING_AT_STICK	433
-ANM_P_YANKED_UNDERGROUND	434
-ANM_P_YANKED_UNDERGROUND2	435
-ANM_P_YANKED_UNDERGROUND3	436
-ANM_P_YAWN	437
-ANM_P_YAWN2	438
-ANM_S_PRIEST_SUCK_LIFE_FORCE	439
+ANM_PIED_PIPER_DANCE_STAND              196    //hopping on the spot (Pied piper)
+ANM_PIED_PIPER_DANCE_STAND_SPIN         197    //hopping spiral on the spot (Pied piper)
+ANM_PIED_PIPER_DANCE_WALK               198    //hopping walking (Pied piper)
+ANM_PIED_PIPER_DANCE_WALK_SPIN          199    //hopping spiral walking (Pied piper)
+ANM_PIED_PIPER_SUMMON                   200    //raises arms and brings them to person. Beckoning over. (Pied piper)
+ANM_PIED_PIPER_WALK                     201    //Walk with a flute (Pied piper)
+ANM_P_AFRICAN_DRUMMER                   202    //Drums on a drum (needs something to drum on to be useful)
+ANM_P_AMBIENT1                          203    //crosses arms
+ANM_P_AMBIENT2                          204    //puts hands behind back
+ANM_P_ARSONIST                          205    //looks around and lowers to the ground to light a fire.
+ANM_P_ATTACKED_BY_LION                  206    //Attacked by lion/tiger/wolf
+ANM_P_ATTRACT_YOUR_ATTENTION            207    //Waving for your attention with both arms
+ANM_P_AVOID_OBJECT_DIVE                 208    //Jumps out of the way.
+ANM_P_AVOID_OBJECT_DODGE                209    //Run out of the way.
+ANM_P_BECKON                            210    //Beckons someone over.
+ANM_P_BLOW_RASPBERRY                    211    //Blows a raspberry.
+ANM_P_CARRYING_BAG                      212    //Carrying a bag (Needs a bag to work well...)
+ANM_P_CARRYING_POT                      213    //carries a pot for a moment... doesn't work well.
+ANM_P_CARRYING_STICKS                   214    //see ANM_P_CARRYING_BAG
+ANM_P_CARRY_AXE                         215    //Carry axe over shoulder as they walk. Also works for other carryable items
+ANM_P_CARRY_OBJECT_RUN                  216    //run while holding carryable item over shoulder.
+ANM_P_CHOPPING_TREE                     217    //chopping tree.
+ANM_P_CLAP_1                            218    //claps head tilt left
+ANM_P_CLAP_2                            219    //claps head tilt right
+ANM_P_CLAP_3                            220    //claps high
+ANM_P_CLAP_4                            221    //claps low.
+ANM_P_CONDUCT_MEETING                   222    //look around and point around.
+ANM_P_COUPLE_KISS_MAN                   223    //kissing (guy)
+ANM_P_COUPLE_KISS_WOMAN                 224    //kissing (gal)
+ANM_P_CRAWL_INJURED                     225    //crawls around injured
+ANM_P_CRAWL_INJURED_INTO                226    //intro into ANM_P_CRAWL_INJURED
+ANM_P_CROWD_IMPRESSED_1                 227    //Points and then claps as they nod.
+ANM_P_CROWD_IMPRESSED_2                 228    //puts hand to chin as they nod.
+ANM_P_CROWD_LOST                        229    //look down and kick the dirt.
+ANM_P_CROWD_LOST_2                      230    //Puts hands to head in distress as they look away.
+ANM_P_CROWD_MEXICAN_WAVE                231    //looks around for a moment before raising both arms in a wave.
+ANM_P_CROWD_UNIMPRESSED_1               232    //Raises arms before brining them to the sides as they shake their head, looking away in dissapointment.
+ANM_P_CROWD_UNIMPRESSED_2               233    //Put hands to face to shout(?) before lowering hand waving it in a rude manner.
+ANM_P_CROWD_WON                         234    //get hyped on the spot.
+ANM_P_CROWD_WON_2                       235    //fist bump the air
+ANM_P_DANCE_PISS_TAKE_                  236    //Dance by moving left fist in the air, then the right, and so forth as your body goes with the flow.
+ANM_P_DANCE_STAND                       237    //clap hands in a dance motion once before freezing in place.
+ANM_P_DANCE_TOGETHER_ARMLINK            238    //The armlink dance. You know which one I am talking about.
+ANM_P_DANCE_TOGETHER_CIRCLING           239    //Circling in a circle dance with ANM_P_DANCE_TOGETHER_CIRCLING_PARTNER
+ANM_P_DANCE_TOGETHER_CIRCLING_PARTNER   240    //Circling in a circle dance with ANM_P_DANCE_TOGETHER_CIRCLING
+ANM_P_DANCE_X                           241    //Moving left and right in dance with ANM_P_DANCE_X_PARTNER
+ANM_P_DANCE_X_PARTNER                   242    //Moving left and right in dance with ANM_P_DANCE_X
+ANM_P_DEAD1                             243    //Corpse on chest (Also, unrelated, buy seeing the guy go from dancing with motion to dead instantly on the ground is hilarious)
+ANM_P_DEAD1_GOTO_HEAVEN                 244    //Flies to heaven/the sky (in this version as a solid human)
+ANM_P_DEAD1_GOTO_HELL                   245    //digs to hell/into the ground (in this version as a solid human)
+ANM_P_DEAD2                             246    //corpse on back
+ANM_P_DEAD2_GOTO_HEAVEN                 247    //Flies to heaven/the sky (in this version as a solid human)
+ANM_P_DEAD2_GOTO_HELL                   248    //digs to hell/into the ground (in this version as a solid human)
+ANM_P_DEAD_DROWNED                      249    //dead in water
+ANM_P_DEAD_IN_HAND                      250    //dead standing up with head lowered.
+ANM_P_DRIBBLE_BALL                      251    //Running as he's dribbling a ball.
+ANM_P_DROWNING                          252    //drowns in water.
+ANM_P_DYING                             253    //Is dying on their chest.
+ANM_P_EAT                               254    //Has food in their hands which they bring to their face to eat.
+ANM_P_FAKE_FOUL_FALL                    255    //Goes down and reaches for knee in pain.
+ANM_P_FARMER                            256    //is digging into the ground. (needs a tool)
+ANM_P_FARMER_HARVESTING                 257    //Collecting stuff from the ground into a bag.
+ANM_P_FARMER_SHOO_SHEEP                 258    //Shooing motion
+ANM_P_FARMER_SOWING_SEEDS               259    //sowing seeds (Might need bag?)
+ANM_P_FARMER_STOKE_SHEEP                260    //stroking over surface motion
+ANM_P_FARMER_TURNING_SOIL               261    //digging into the soil (needs a tool)
+ANM_P_FISHERMAN                         262    //Uses a fishing pole to fish.
+ANM_P_FRIGHT_DUCK                       263    //ducks in fright once.
+ANM_P_FRIGHT_JUMP                       264    //jumps in fright once.
+ANM_P_F_DANCE_A                         265    //dances with one hand on the hip and one raised into the air.
+ANM_P_F_DANCE_B                         266    //dances with one hand on the hip and one raised into the air.
+ANM_P_F_DANCE_C                         267    //dancing in a twirl
+ANM_P_GIVE_BIRTH                        268    //Read the tin.
+ANM_P_GOALKEEPER                        269    //Goalkeeper stance on spot
+ANM_P_GOALKEEPER_2                      270    //Goalkeeper stance move on the spot
+ANM_P_GOALKEEPER_3                      271    //Goalkeeper trying to save the game
+ANM_P_GOSSIP_MAN                        272    //See ANM_P_AMBIENT2
+ANM_P_GOSSIP_WOMAN_1                    273    //One arm around chest with the elbow of the other resting on that hand, the raised hand next to the face as they gossip.
+ANM_P_GOSSIP_WOMAN_2                    274    //ANM_P_GOSSIP_WOMAN_1 base to raising both hands and pointing at something.
+ANM_P_GOSSIP_WOMAN_3                    275    //ANM_P_GOSSIP_WOMAN_1 again?
+ANM_P_HAMMERING                         276    //Hammering the ground (needs hammer)
+ANM_P_HELP_SOMEONE_HELPEE               277    //Get pulled off of the ground by someone.
+ANM_P_HELP_SOMEONE_HELPER               278    //Help someone else off of the ground.
+ANM_P_HUG                               279    //Hug.
+ANM_P_INSPECT_OBJECT_1                  280    //Point at something and look around a little.
+ANM_P_INSPECT_OBJECT_2                  281    //put hands on knees as you lower your head to get a better look.
+ANM_P_INSPECT_OBJECT_3                  282    //same as ANM_P_INSPECT_OBJECT_2?
+ANM_P_INTO_DEAD_DROWNED                 283    //transition between ANM_P_DROWNING and ANM_P_DEAD_DROWNED
+ANM_P_INTO_HAMMERING                    284    //Go from standing into ANM_P_HAMMERING
+ANM_P_INTO_MOURNING                     285    //Go from standing into ANM_P_MOURNING
+ANM_P_INTO_POINTING                     286    //Go from standing into ...a pointing animation?
+ANM_P_INTO_PRAY                         287    //Go from standing into ANM_P_PRAY
+ANM_P_INTO_PULL_OBJECT                  288    //Go from standing into ANM_P_PULL_OBJECT
+ANM_P_INTO_PUSH_OBJECT                  289    //Go from standing into ANM_P_PUSH_OBJECT
+ANM_P_INTO_RUN_MAN                      290    //Go from standing into ANM_P_RUN_MAN
+ANM_P_INTO_RUN_WOMAN                    291    //Go from standing into ANM_P_RUN_WOMAN
+ANM_P_INTO_SAW_WOOD                     292    //Go from standing into ANM_P_SAW_WOOD
+ANM_P_INTO_SLEDGEHAMMER                 293    //Go from standing into ANM_P_SLEDGEHAMMER
+ANM_P_INTO_SLEEP                        294    //Go from standing into ANM_P_SLEEP
+ANM_P_INTO_SPRINT_MAN                   295    //Go from standing into ANM_P_SPRINT_RUN_MAN
+ANM_P_INTO_SPRINT_WOMAN                 296    //Go from standing into ANM_P_SPRINT_RUN_WOMAN
+ANM_P_INTO_WALK_MAN                     297    //Go from standing into ANM_P_WALK_MAN
+ANM_P_INTO_WALK_WOMAN                   298    //Go from standing into ANM_P_WALK_WOMAN
+ANM_P_JUMP_A                            299    //Makes a jump!
+ANM_P_JUMP_AT_HAND                      300    //Jump up and reach towards the sky.
+ANM_P_JUMP_AT_HAND_2                    301    //Jump up and reach towards the sky with both arms in sync.
+ANM_P_KICK_BALL                         302    //Give a hard kick with the front of foot
+ANM_P_KICK_BALL_PASS                    303    //give soft kick with side of foot
+ANM_P_KICK_BALL_PASS_PT1                304    //first half ANM_P_KICK_BALL_PASS
+ANM_P_KICK_BALL_PASS_PT2                305    //second half ANM_P_KICK_BALL_PASS
+ANM_P_LANDED                            306    //Getting up from the ground from chest position.
+ANM_P_LANDED_FROM_BACK                  307    //Getting up from the ground from back position.
+ANM_P_LANDED_FROM_FEET                  308    //Put on the ground
+ANM_P_LANDED_FROM_FEET_CARRY_OBJECT     309    //Put on the ground while carrying something.
+ANM_P_LOOKING_FOR_SOMETHING             310    //Put hand above head as you look around for something
+ANM_P_LOOK_AT_HAND                      311    //Look at the sky
+ANM_P_LOVING_TOUCH                      312    //Put hands on someone's shoulders.
+ANM_P_MOURNING                          313    //On their knees, crying.
+ANM_P_M_DANCE_A                         314    //Dance on the spot as they thrust elbows back.
+ANM_P_M_DANCE_B                         315    //Dance while swaying arms in the air.
+ANM_P_M_DANCE_C                         316    //DANCE WITH THAT THRUST!
+ANM_P_ON_FIRE_DIE                       317    //Run on fire before stumbling onto the ground to a laying on back dead position.
+ANM_P_ON_FIRE_DOUSED                    318    //Stop running as the fire has been doused.
+ANM_P_ON_FIRE_RUN                       319    //Run while on fire.
+ANM_P_OUT_OF_HAMMERING                  320    //Go from standing into ANM_P_HAMMERING
+ANM_P_OUT_OF_MOURNING                   321    //Go from standing into ANM_P_MOURNING
+ANM_P_OUT_OF_POINTING                   322    //Go from standing into ...a pointing animation?
+ANM_P_OUT_OF_PRAY                       323    //Go from standing into ANM_P_PRAY
+ANM_P_OUT_OF_PULL_OBJECT                324    //Go from standing into ANM_P_PULL_OBJECT
+ANM_P_OUT_OF_PUSH_OBJECT                325    //Go from standing into ANM_P_PUSH_OBJECT
+ANM_P_OUT_OF_RUN_MAN                    326    //Go from standing into ANM_P_RUN_MAN
+ANM_P_OUT_OF_RUN_WOMAN                  327    //Go from standing into ANM_P_RUN_WOMAN
+ANM_P_OUT_OF_SAW_WOOD                   328    //Go from standing into ANM_P_SAW_WOOD
+ANM_P_OUT_OF_SLEDGEHAMMER               329    //Go from standing into ANM_P_SLEDGEHAMMER
+ANM_P_OUT_OF_SLEEP                      330    //Go from standing into ANM_P_SLEEP
+ANM_P_OUT_OF_WALK_WOMAN                 331    //Go from standing into ANM_P_WALK_WOMAN
+ANM_P_OVERWORKED1                       332    //Hands on knees as they catch their breath.
+ANM_P_OVERWORKED2                       333    //Reaches to back and stretches body as they get rid of the pain there
+ANM_P_PANIC_MAN                         334    //Reaches hands to head in panic, before shaking arms around.
+ANM_P_PANIC_WOMAN                       335    //Puts hands to mouth in panic.
+ANM_P_PICKUP_BALL_PT1                   336    //Pickup ball
+ANM_P_PICKUP_BALL_PT2                   337    //Pickup ball
+ANM_P_PICK_UP_BAG                       338    //Picking up a bag
+ANM_P_PICK_UP_POT_ON_HEAD               339    //putting a pot on the head.
+ANM_P_PICK_UP_STICKS                    340    //Picking up sticks.
+ANM_P_PLAY_ACCORDIAN                    341    //Playing the accordian (OOOOOO-)
+ANM_P_POISONED                          342    //Reach for neck before puking.
+ANM_P_PRAY                              343    //pray with knees on the ground.
+ANM_P_PROD_CAMPFIRE                     344    //prods at campfire.
+ANM_P_PULL_OBJECT                       345    //Pulling an object
+ANM_P_PUSH_OBJECT                       346    //pushing an object.
+ANM_P_PUT_DOWN_BAG                      347    //put down a bag
+ANM_P_PUT_DOWN_STICKS                   348    //put down some sticks.
+ANM_P_PUT_OUT_FIRE                      349    //Put out fire by kicking the ground.
+ANM_P_PUZZLED                           350    //Scratches head in confusion.
+ANM_P_RUN_MAN                           351    //Running guy
+ANM_P_RUN_WITH_BALL                     352    //running with a ball in hands.
+ANM_P_RUN_WOMAN                         353    //running gal
+ANM_P_SAW_WOOD                          354    //Sawing wood on the ground (used for building)
+ANM_P_SCARED_STIFF                      355    //scarred on the spot with hands to the mouth, shaking
+ANM_P_SCARED_STIFF_2                    356    //hands before face with one knee on the ground, shivering in fear.
+ANM_P_SCORE_GOAL                        357    //Get on knees and cheers!
+ANM_P_SCRIPT1                           358    //Get on knees and pray before getting up.
+ANM_P_SCRUBBS                           359    //Scrub the ground
+ANM_P_SCULPTOR                          360    //sculpt a stone (I am definitly the best sculptor in the village)
+ANM_P_SHAKE_FIST_FEMALE                 361    //Stomps ground before shaking fist.
+ANM_P_SHOOT_AT_GOAL                     362    //Shoot at goal while staning still
+ANM_P_SHOOT_AT_GOAL_2                   363    //Shoot at goal while running
+ANM_P_SHOOT_AT_GOAL_PT_1                364    //part one of ANM_P_SHOOT_AT_GOAL_2
+ANM_P_SHOOT_AT_GOAL_PT_2                365    //part two of ANM_P_SHOOT_AT_GOAL_2
+ANM_P_SHRUG_SHOULDERS                   366    //Gives a shrug
+ANM_P_SITTING_DOWN1_INTO                367    //Goes sit down (Crossed legs)
+ANM_P_SITTING_DOWN1_OUT_OF              368    //gets up from sitting down (Crossed legs)
+ANM_P_SITTING_DOWN1_SITTING             369    //Sitting idle (Crossed legs)
+ANM_P_SITTING_DOWN2_INTO                370    //Goes sit down (legs next to each other)
+ANM_P_SITTING_DOWN2_OUT_OF              371    //gets up from sitting down (legs next to each other)
+ANM_P_SITTING_DOWN2_SITTING             372    //Sitting idle (legs next to each other)
+ANM_P_SITTING_DOWN_DANCE_SAILING1       373    //crossed legs while moving arms jolly
+ANM_P_SITTING_DOWN_DANCE_SAILING2       374    //crossed legs with arms on legs swaying left to right.
+ANM_P_SITTING_DOWN_DANCE_SAILING3       375    //crossed legs with arms in the air swaying left to right.
+ANM_P_SITTING_DOWN_MALE1                376    //Goes sit down... for guys? (Crossed legs)
+ANM_P_SITTING_DOWN_MALE2                377    //Goes sit down... for guys? (legs next to each other)
+ANM_P_SITTING_SWINGING_LEGS             378    //Sitting on something with swinging legs
+ANM_P_SKIP02                            379    //Skipping across the land before transitioning into a run (used in the intro.)
+ANM_P_SLEDGEHAMMER                      380    //using sledgehammer. (used for building)
+ANM_P_SLEEP                             381    //sleeping on the floor.
+ANM_P_SLEEPING                          382    //A calmer version of sleeping on the floor.
+ANM_P_SPRINT_RUN_MAN                    383    //Running guy
+ANM_P_SPRINT_RUN_WOMAN                  384    //Running gal
+ANM_P_STAND                             385    //idle on the ground.
+ANM_P_STAND_DESPAIR_1                   386    //holding head and shaking it.
+ANM_P_STAND_DESPAIR_2                   387    //Lowers head and shakes it.
+ANM_P_STAND_DESPAIR_3                   388    //puking on the floor
+ANM_P_STIR_POT01                        389    //stirring a pot.
+ANM_P_SWIM2                             390    //Taking a swim.
+ANM_P_TALK1_FEMALE                      391    //talking female
+ANM_P_TALK1_MALE                        392    //talking male
+ANM_P_TALK2_FEMALE                      393    //talking female
+ANM_P_TALK2_MALE                        394    //talking male
+ANM_P_TALKING_AND_POINTING              395    //talking while pointing.
+ANM_P_TALK_TO_NEIGHBOUR                 396    //talking with hand on hip.
+ANM_P_THANK_YOU                         397    //nods while opening arms before bringing hands together.
+ANM_P_THANK_YOU_FEMALE                  398    //brings hands together near head in thankful gesture.
+ANM_P_THROWN                            399    //thrown through the air.
+ANM_P_THROWN_DEAD                       400    //thrown dead guy
+ANM_P_THROWN_VORTEX                     401    //thrown into a vortex
+ANM_P_THROW_BALL_PT_1                   402    //throwing a ball part one
+ANM_P_THROW_BALL_PT_2                   403    //throwing a ball part two
+ANM_P_THROW_ROCK                        404    //throw a rock.
+ANM_P_THROW_WATER                       405    //throw water on something
+ANM_P_TITANIC                           406    //do the titanic pose
+ANM_P_TURN_180                          407    //turn around 180 degrees.
+ANM_P_TURN_90_LEFT                      408    //turn 90 degrees left
+ANM_P_TURN_90_RIGHT                     409    //turn 90 degrees right
+ANM_P_TURN_ON_THE_SPOT_LEFT             410    //turning on the spot to the left
+ANM_P_TURN_ON_THE_SPOT_RIGHT            411    //turning on the spot to the right
+ANM_P_WAITING_FOR_BALL                  412    //kicks back of leg as they wait.
+ANM_P_WAITING_FOR_BALL_2                413    //waiting on the spot.
+ANM_P_WAITING_FOR_KICK_OFF              414    //hands on sides and legs spread.
+ANM_P_WAITING_FOR_KICK_OFF_2            415    //kicking legs around a bit
+ANM_P_WAITING_FOR_KICK_OFF_3            416    //holding right leg then the left leg for a moment.
+ANM_P_WAITING_FOR_KICK_OFF_4            417    //moving torso left and right with the elbows pointing out before jumping on the spot.
+ANM_P_WAITING_IMPATEINTLY               418    //cross arms and give an impatient foot stomp.
+ANM_P_WALK_BECKON02                     419    //walk while looking behind and motioning to follow.
+ANM_P_WALK_DESPAIR_AWAY_1               420    //walk with hand on head in despair
+ANM_P_WALK_DESPAIR_AWAY_2               421    //walk with body slouched in despair.
+ANM_P_WALK_DESPAIR_AWAY_3               422    //walk away with hands on head while crying in despair.
+ANM_P_WALK_DESPAIR_TO_1                 423    //see ANM_P_WALK_DESPAIR_AWAY_2?
+ANM_P_WALK_DESPAIR_TO_2                 424    //a sad walk with raised shoulders?
+ANM_P_WALK_DESPAIR_TO_3                 425    //see ANM_P_WALK_DESPAIR_TO_2
+ANM_P_WALK_INJURED                      426    //walk while holding stomach in pain.
+ANM_P_WALK_MAN                          427    //Walking guy
+ANM_P_WALK_POINT                        428    //walk while looking to the side and pointing.
+ANM_P_WALK_TIRED_EYES                   429    //walk while rubbing the sleep out of their eyes.
+ANM_P_WALK_TO_STAND_WOMAN               430    //female walk stops
+ANM_P_WALK_WOMAN                        431    //walking gal.
+ANM_P_WELL_DONE__FEMALE                 432    //clapping with a tilt of the hip to the side.
+ANM_P_WHITTLING_AT_STICK                433    //sitting while cutting a stick or something
+ANM_P_YANKED_UNDERGROUND                434    //yanked underground instantly.
+ANM_P_YANKED_UNDERGROUND2               435    //yanked underground, briefly stuck at the chest, before being pulled down.
+ANM_P_YANKED_UNDERGROUND3               436    //yanked underground from the feet down
+ANM_P_YAWN                              437    //yawns
+ANM_P_YAWN2                             438    //yawns 2
+ANM_S_PRIEST_SUCK_LIFE_FORCE            439    //CRASHES THE GAME!!!
 ANM_A_WORM	440
