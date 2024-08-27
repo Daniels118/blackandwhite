@@ -107,14 +107,14 @@ public enum OPCode {
 /*00*/	{{"END"}},
 /*01*/	{{null, "JZ"}, {null, "JZ"}},
 /*02*/	{{null, "PUSHI", "PUSHF", "PUSHC", "PUSHO", null, "PUSHB"}, {null, "PUSHI", "PUSHF", "PUSHC", "PUSHO", null, "PUSHB"}},
-/*03*/	{{null, "POPI", "POPF", "POPC", "POPO", null, "POPB"}, {null, null, "POPF"}},
+/*03*/	{{null, "POPI", "POPF", "POPC", "POPO", null, "POPB"}, {null, "POPI", "POPF"}},
 /*04*/	{{null, "ADDI", "ADDF", "ADDC"}},
 /*05*/	{{"SYS", null, "SYS2"}},
 /*06*/	{{null, "SUBI", "SUBF", "SUBC"}},
-/*07*/	{{null, null, "NEG"}},
-/*08*/	{{null, null, "MUL"}},
-/*09*/	{{null, null, "DIV"}},
-/*0A*/	{{null, "MOD"}},
+/*07*/	{{null, "NEGI", "NEGF"}},
+/*08*/	{{null, "MULI", "MULF"}},
+/*09*/	{{null, "DIVI", "DIVF"}},
+/*0A*/	{{null, "MODI", "MODF"}},
 /*0B*/	{{null, "NOT"}},
 /*0C*/	{{null, "AND"}},
 /*0D*/	{{null, "OR"}},
@@ -133,7 +133,7 @@ public enum OPCode {
 /*1A*/	null,	//RETEXCEPT
 /*1B*/	{{null, "ITEREXCEPT"}},
 /*1C*/	{{null, "BRKEXCEPT"}},
-/*1D*/	{{null, "SWAPI", "SWAPF"}},
+/*1D*/	{{null, "SWAP", "COPYTO"}, {null, null, "COPYFROM"}},
 /*1E*/	null	//LINE
 	};
 	

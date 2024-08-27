@@ -52,11 +52,25 @@ public class Token {
 	}
 	
 	public int intVal() {
-		return Integer.parseInt(value);
+		if (type == TokenType.NUMBER) {
+			if (value.startsWith("0x")) {
+				return Integer.parseInt(value.substring(2), 16);
+			} else {
+				return Integer.parseInt(value);
+			}
+		} else if (type == TokenType.CHAR) {
+			return parseChar(value);
+		} else {
+			throw new RuntimeException(type + " cannot be converted to int");
+		}
 	}
 	
 	public float floatVal() {
-		return Float.parseFloat(value);
+		if (type == TokenType.NUMBER) {
+			return Float.parseFloat(value);
+		} else {
+			throw new RuntimeException(type + " cannot be converted to float");
+		}
 	}
 	
 	public String stringVal() {
@@ -68,5 +82,19 @@ public class Token {
 		s = s.replace("\\n", "\n");
 		s = s.replace("\\t", "\t");
 		return s;
+	}
+	
+	private static int parseChar(String value) {
+		if (value.charAt(1) == '\\') {
+			int c = value.charAt(2);
+			switch (c) {
+				case 't': return '\t';
+				case 'r': return '\r';
+				case 'n': return '\n';
+				default: return c;
+			}
+		} else {
+			return value.charAt(1);
+		}
 	}
 }

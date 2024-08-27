@@ -24,7 +24,8 @@ public enum TokenType {
 	KEYWORD,
 	IDENTIFIER,
 	NUMBER,
-	STRING;
+	STRING,
+	CHAR;
 	
 	/**Tells if this token must be taken into account or can be ignored.*/
 	public final boolean important;

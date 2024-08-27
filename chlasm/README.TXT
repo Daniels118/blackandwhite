@@ -55,6 +55,17 @@ _______________________
 
 CHANGELOG
 
+# Version 0.10 b
+- Fixed modulus operator
+- Added //@intmath(on|off) annotation to support integer arithmetic
+- Implemented support for char type
+- Implemented support for hex numbers
+- Implemented strong typing of variables
+- Implemented automatic cast from int to float
+- Implemented variadic functions
+- Implemented charsequence as argument to variadic functions
+- Implemented dword-packed 7-bit charsequence as argument to variadic functions
+
 # Version 0.9
 - Implemented string cast statements.
 - Implemented generic type arguments (for future use).

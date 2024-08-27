@@ -58,6 +58,7 @@ public class Syntax {
 	public static final Symbol IDENTIFIER;
 	public static final Symbol NUMBER;
 	public static final Symbol STRING;
+	public static final Symbol CHAR;
 	public static final Symbol ANNOTATION;
 	
 	/**Map of all symbols indexed by name. The name of implicit symbols is equivalent to their expression.*/
@@ -71,6 +72,7 @@ public class Syntax {
 		IDENTIFIER = addSymbol("IDENTIFIER", TerminalType.IDENTIFIER, true, true);
 		NUMBER = addSymbol("NUMBER", TerminalType.NUMBER, true, true);
 		STRING = addSymbol("STRING", TerminalType.STRING, true, true);
+		CHAR = addSymbol("CHAR", TerminalType.CHAR, true, true);
 		ANNOTATION = addSymbol("ANNOTATION", TerminalType.DIRECTIVE, true, true);
 		load();
 	}

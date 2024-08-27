@@ -32,7 +32,7 @@ public class CHLLexer {
 	private static final char EOF = 0xFFFF;
 	
 	private enum Status {
-		DEFAULT, IDENTIFIER, NUMBER, STRING, ANNOTATION, COMMENT, BLOCK_COMMENT, BLANK
+		DEFAULT, IDENTIFIER, NUMBER, STRING, CHAR, ANNOTATION, COMMENT, BLOCK_COMMENT, BLANK
 	}
 	
 	private int tabSize = 4;
@@ -58,6 +58,7 @@ public class CHLLexer {
 		boolean escape = false;
 		int depth = 0;
 		int numDots = 0;
+		int numX = 0;
 		int line = 1;
 		int col = 0;
 		Token token = null;
@@ -74,6 +75,10 @@ public class CHLLexer {
 						} else if (c == '"') {
 							status = Status.STRING;
 							token = new Token(line, col, TokenType.STRING);
+							buffer.append(c);
+						} else if (c == '\'') {
+							status = Status.CHAR;
+							token = new Token(line, col, TokenType.CHAR);
 							buffer.append(c);
 						} else if (c == '+') {
 							char c2 = (char) str.read();
@@ -187,6 +192,15 @@ public class CHLLexer {
 						} else if (c == ']') {
 							add(tokens, new Token(line, col, TokenType.KEYWORD, c));
 							buffer.setLength(0);
+						} else if (c == '.') {
+							char c2 = (char) str.read();
+							char c3 = (char) str.read();
+							if (c2 == '.' && c3 == '.') {
+								add(tokens, new Token(line, col, TokenType.KEYWORD, "..."));
+								col += 2;
+							} else {
+								throw new ParseException("Expected '..' after '.'", file, line, col);
+							}
 						} else if (Character.isJavaIdentifierStart(c)) {
 							status = Status.IDENTIFIER;
 							token = new Token(line, col, TokenType.IDENTIFIER);
@@ -195,6 +209,7 @@ public class CHLLexer {
 							status = Status.NUMBER;
 							token = new Token(line, col, TokenType.NUMBER);
 							numDots = 0;
+							numX = 0;
 							buffer.append(c);
 						} else if (c == ' ') {
 							status = Status.BLANK;
@@ -277,10 +292,13 @@ public class CHLLexer {
 						}
 						break;
 					case NUMBER:
-						if (Character.isDigit(c) || c == '.') {
+						if (Character.isDigit(c) || c == '.' || c == 'x' || (numX > 0 && isHexDigit(c))) {
 							if (c == '.') {
 								numDots++;
 								if (numDots > 1) throw new ParseException("Invalid number", file, line, col);
+							} else if (c == 'x') {
+								numX++;
+								if (numX > 1) throw new ParseException("Invalid number", file, line, col);
 							}
 							buffer.append(c);
 						} else if (Character.isJavaIdentifierPart(c)) {	//This is required to handle keywords starting with numbers such as "3d"
@@ -303,6 +321,22 @@ public class CHLLexer {
 							escape = true;
 							buffer.append(c);
 						} else if (c == '"') {
+							buffer.append(c);
+							add(tokens, token.setValue(buffer.toString()));
+							buffer.setLength(0);
+							status = Status.DEFAULT;
+						} else {
+							buffer.append(c);
+						}
+						break;
+					case CHAR:
+						if (escape) {
+							buffer.append(c);
+							escape = false;
+						} else if (c == '\\') {
+							escape = true;
+							buffer.append(c);
+						} else if (c == '\'') {
 							buffer.append(c);
 							add(tokens, token.setValue(buffer.toString()));
 							buffer.setLength(0);
@@ -343,5 +377,12 @@ public class CHLLexer {
 			throw new ParseException(msg, file, line, col);
 		}
 		return tokens;
+	}
+	
+	private static boolean isHexDigit(char c) {
+		if (Character.isDigit(c)) return true;
+		if ('a' <= c && c <= 'f') return true;
+		if ('A' <= c && c <= 'F') return true;
+		return false;
 	}
 }

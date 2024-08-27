@@ -30,6 +30,16 @@ class SymbolInstance {
 		return token != null && token.type == TokenType.KEYWORD && keyword.equals(token.value);
 	}
 	
+	public boolean isInt() {
+		if (token != null && token.type == TokenType.NUMBER) {
+			try {
+				token.intVal();
+				return true;
+			} catch (Exception e) {}
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		if (this == EOF) {
