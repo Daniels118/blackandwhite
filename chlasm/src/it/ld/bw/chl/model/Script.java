@@ -34,7 +34,7 @@ public class Script extends Section {
 	/**The number of global variables defined so far. Values greater than this are mapped to local params/vars */
 	private int globalCount = 0;
 	/**Parameters + local variables*/
-	private List<String> variables = new LinkedList<String>();
+	private List<String> variables = new LinkedList<>();
 	/**Index of the first instruction in the instructions array*/
 	private int instructionAddress;
 	/**How many local variables are parameters*/
