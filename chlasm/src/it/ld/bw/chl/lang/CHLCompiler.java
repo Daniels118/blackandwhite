@@ -399,7 +399,7 @@ public class CHLCompiler implements Compiler {
 			//global [DATATYPE] IDENTIFIER
 			DataType type = getType(symbol.token.value);
 			if (type != null) next();
-			accept(TokenType.IDENTIFIER);
+			symbol = accept(TokenType.IDENTIFIER);
 			String name = symbol.token.value;
 			symbol = peek(false);
 			if (symbol.is("=")) {
