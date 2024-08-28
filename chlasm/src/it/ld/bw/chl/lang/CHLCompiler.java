@@ -3544,7 +3544,8 @@ public class CHLCompiler implements Compiler {
 	
 	private SymbolInstance parseExpression1() throws ParseException {
 		final int start = it.nextIndex();
-		//final int startIp = getIp();
+		final int startIp = getIp();
+		final SymbolInstance startPreserve = peek();
 		try {
 			SymbolInstance symbol = peek();
 			if ("EXPRESSION".equals(symbol.symbol.keyword)) {
@@ -3994,25 +3995,24 @@ public class CHLCompiler implements Compiler {
 					//IDENTIFIER
 					String name = id1.token.value;
 					Var var = getVar(name);
-					if (var == null) {
-						throw new ParseException("Undefined variable "+name, file, line, col);
+					if (var != null) {
+						if (var.type == null || var.type == DataType.FLOAT) {
+							pushf(name);
+						} else if (var.type == DataType.INT) {
+							pushiVar(name);
+							castf();
+						} else {
+							throw new ParseException("Expected EXPRESSION, but variable "+name+" is "+var.type.keyword, file, line, col);
+						}
+						return replace(start, "EXPRESSION");
 					}
-					if (var.type == null || var.type == DataType.FLOAT) {
-						pushf(name);
-					} else if (var.type == DataType.INT) {
-						pushiVar(name);
-						castf();
-					} else {
-						throw new ParseException("Expected EXPRESSION, but variable "+name+" is "+var.type.keyword, file, line, col);
-					}
-					return replace(start, "EXPRESSION");
 				}
 			}
 		} catch (ParseException e) {
 			lastParseException = e;
 		}
-		//revert(start, startIp);
-		seek(start);
+		revert(start, startIp, startPreserve);
+		//seek(start);
 		return null;
 	}
 	
@@ -5080,11 +5080,13 @@ public class CHLCompiler implements Compiler {
 				//VARIABLE
 				String name = symbol.token.value;
 				Var var = getVar(name);
-				if (var != null && var.type != null && var.type != DataType.OBJECT) {
-					throw new ParseException("Expected OBJECT, but variable "+name+" is "+var.type.keyword, lastParseException, file, line, col);
+				if (var != null) {
+					if (var.type != null && var.type != DataType.OBJECT) {
+						throw new ParseException("Expected OBJECT, but variable "+name+" is "+var.type.keyword, lastParseException, file, line, col);
+					}
+					parse("VARIABLE");
+					return replace(start, "OBJECT");
 				}
-				parse("VARIABLE");
-				return replace(start, "OBJECT");
 			} else if (symbol.isInt() && symbol.token.intVal() == 0) {
 				//0
 				next();
