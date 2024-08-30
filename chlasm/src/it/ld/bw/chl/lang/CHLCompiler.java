@@ -4433,9 +4433,11 @@ public class CHLCompiler implements Compiler {
 					return replace(start, "CONDITION");
 				} else if (symbol.is("type")) {
 					parse("type CONST_EXPR");
-					symbol = parseConstExpr(false);
-					if (symbol == null) {
+					symbol = peek(false);
+					if (symbol.is(TokenType.EOL)) {
 						pushi(DEFAULT_SUBTYPE_NAME);
+					} else {
+						symbol = parseConstExpr(true);
 					}
 					//OBJECT type TYPE [CONST_EXPR]
 					sys(IS_OF_TYPE);
