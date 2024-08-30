@@ -194,8 +194,7 @@ public class CHLCompiler implements Compiler {
 					}
 				} else {
 					ScriptInfo info = scriptsInfo.get(call.name);
-					boolean varargs = info != null && info.varargs;
-					if (!varargs && script.getParameterCount() != call.argc) {
+					if (!info.varargs && script.getParameterCount() != call.argc) {
 						throw new ParseException("Parameters count doesn't match script declaration", call.file, call.line, 1);
 					}
 					call.instr.intVal = script.getScriptID();
@@ -441,6 +440,7 @@ public class CHLCompiler implements Compiler {
 		ScriptType type = ScriptType.fromKeyword(symbol.toString());
 		symbol = accept(TokenType.IDENTIFIER);
 		String name = symbol.token.value;
+		scriptsInfo.put(name, new ScriptInfo());
 		symbol = peek();
 		int argc = 0;
 		if (symbol.is("(")) {
@@ -480,6 +480,7 @@ public class CHLCompiler implements Compiler {
 			script.setScriptType(scriptType);
 			SymbolInstance symbol = accept(TokenType.IDENTIFIER);
 			String name = symbol.token.value;
+			scriptsInfo.put(name, new ScriptInfo());
 			script.setName(name);
 			int argc = 0;
 			symbol = peek();
@@ -605,13 +606,8 @@ public class CHLCompiler implements Compiler {
 	
 	private int parseArguments(boolean addToLocalVars, String scriptName) throws ParseException {
 		final int start = it.nextIndex();
-		boolean addScriptVars = false;
 		ScriptInfo scriptInfo = this.scriptsInfo.get(scriptName);
-		if (scriptInfo == null) {
-			scriptInfo = new ScriptInfo();
-			scriptsInfo.put(scriptName, scriptInfo);
-			addScriptVars = true;
-		}
+		final boolean addScriptVars = scriptInfo.vars.isEmpty();
 		int argc = 0;
 		accept("(");
 		SymbolInstance symbol = peek();
@@ -764,6 +760,9 @@ public class CHLCompiler implements Compiler {
 	private int parseParameters(String scriptName) throws ParseException {
 		final int start = it.nextIndex();
 		final ScriptInfo scriptInfo = scriptsInfo.get(scriptName);
+		if (scriptInfo == null) {
+			throw new ParseException("Script "+scriptName+" not found", file, line, col);
+		}
 		int parametersCount = 0;
 		int vargc = 0;
 		if (scriptInfo.varargs) {
