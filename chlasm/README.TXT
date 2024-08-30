@@ -55,6 +55,12 @@ _______________________
 
 CHANGELOG
 
+# Version 0.11 b
+- Fixed declaration of typed global vars
+- Fixed wrong error message on unexpected type
+- Fixed NullPointerException on script not found
+- Fixed statement "OBJECT type TYPE [CONST_EXPR]" taking optional parameter from the subsequent line
+
 # Version 0.10 b
 - Fixed modulus operator
 - Added //@intmath(on|off) annotation to support integer arithmetic
