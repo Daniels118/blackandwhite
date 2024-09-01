@@ -1,0 +1,28 @@
+/**	Test script to show how to draw text on the ground using objects. 
+ */
+challenge LandControlAll
+
+//@intmath(on)
+begin script Test1
+	object base = marker at [1925,2495]
+start
+	//Place the camera at a wide area
+	SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of base = land height at [base]
+	begin cinema
+		move camera position to [base] + [0, 10, -3] time 0.5
+		move camera focus to [base] time 0.5
+		wait 0.5 seconds
+		move camera focus to [base] time 0.2
+		wait 0.2 seconds
+	end cinema
+	wait 0.5 seconds
+	//Set text properties
+	WGFX_DotOnFire = 1
+	//Draw the text
+	run script WGFX_DrawCharsPacked(1915, 2508, __packed "Nemesis\n  is\n back!")
+end script Test1
+
+begin script LandControlAll
+start
+	run background script Test1
+end script LandControlAll

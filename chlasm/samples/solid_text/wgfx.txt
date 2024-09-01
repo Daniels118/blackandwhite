@@ -1,0 +1,439 @@
+/**	This is a small library to draw text on the ground using common objects as pixels.
+ *  Set the global variables to alter the text aspect. Use it as:
+ *    run script WGFX_DrawCharsPacked(1915, 2508, __packed "Hello\nworld!")
+ */
+ 
+global WGFX_FontScale
+global WGFX_FontSkew
+global WGFX_DotScale
+global WGFX_DotAngle
+global WGFX_DotOnFire
+global int WGFX_DotType
+global int WGFX_SubType
+
+//@intmath(on)
+begin script WGFX_Init
+//@noyield
+start
+	WGFX_FontScale = 0.5
+	WGFX_FontSkew = 0.3
+	WGFX_DotAngle = -20
+	WGFX_DotScale = 0.5
+	WGFX_DotType = SCRIPT_OBJECT_TYPE_FEATURE
+	WGFX_SubType = FEATURE_INFO_OLD_4
+end script WGFX_Init
+
+run script WGFX_Init
+
+//@intmath(on)
+begin script WGFX_DrawDots65(x0, z0, int block, int Height, int ltrim, int rtrim)
+	int ix = 0
+	int iz = 0
+	float x1 = 0
+	float y1 = 0
+	float z1 = 0
+	object Dot = 0
+	float DotScale = WGFX_FontScale * WGFX_DotScale
+	int x2 = 6 - rtrim
+	float lshift = WGFX_FontScale * WGFX_FontSkew
+//@noyield
+start
+	//@noyield
+	while iz < Height
+		z1 = z0 - iz * WGFX_FontScale
+		//@noyield
+		while ix < 6
+			if ix >= ltrim and ix < x2 and block % 2 != 0
+				x1 = x0 + ix * WGFX_FontScale
+				y1 = land height at [x1, 0, z1]
+				Dot = create with angle WGFX_DotAngle and scale DotScale WGFX_DotType WGFX_SubType at [x1, 0, z1]
+				//disable Dot moveable
+				//disable Dot pickup
+				if WGFX_DotOnFire != 0
+					disable Dot hurt by fire
+					enable Dot on fire 1
+					//set Dot temperature 2000
+				end if
+				//Dot = create special effect SPOT_VISUAL_APPLY_SPELL_EFFECT at [x1, y1 + 2, z1] time 10
+				//SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dot = 1
+				//add Dot target at [x1, y1, z1]
+			end if
+			block /= 2
+			ix++
+		end while
+		x0 -= lshift
+		ix = 0
+		iz++
+    end while
+end script WGFX_DrawDots65
+
+begin script WGFX_DrawDots68(x0, z0, int block0, int block1, int ltrim, int rtrim)
+//@noyield
+start
+	run background script WGFX_DrawDots65(x0 + 6 * WGFX_FontSkew * WGFX_FontScale, z0, block0, 5, ltrim, rtrim)
+	run background script WGFX_DrawDots65(x0, z0 - 5 * WGFX_FontScale, block1, 3, ltrim, rtrim)
+end script WGFX_DrawDots68
+
+//@intmath(on)
+begin script WGFX_DrawCharsPacked(x0, z0, int argc, int...argv)
+	float x1 = x0
+	int b0 = 0
+	int b1 = 0
+	int c = 0
+	int ltrim = 0
+	int rtrim = 0
+	int n = 0
+	int packed = 0
+//@noyield
+start
+	//@noyield
+	while argc > 0
+		packed = va_arg
+		n = 4
+		//@noyield
+		while n > 0
+			c = packed % 0x80
+			packed /= 0x80
+			n--
+			//
+			ltrim = 0
+			rtrim = 0
+			if c == ' '
+				b0 = 0x00000000
+				b1 = 0x00000000
+			elsif c == '!'
+				b0 = 0x0821C708
+				b1 = 0x00000200
+				ltrim = 1
+				rtrim = 1
+			elsif c == '"'
+				b0 = 0x00012DB6
+				b1 = 0x00000000
+			elsif c == '#'
+				b0 = 0x1453E500
+				b1 = 0x0000053E
+			elsif c == '$'
+				b0 = 0x10302704
+				b1 = 0x0000020E
+			elsif c == '%'
+				b0 = 0x042109A6
+				b1 = 0x00000CB2
+			elsif c == '&'
+				b0 = 0x2A10A284
+				b1 = 0x00000B12
+			elsif c == '\''
+				b0 = 0x0000430C
+				b1 = 0x00000000
+			elsif c == '('
+				b0 = 0x04104108
+				b1 = 0x00000204
+			elsif c == ')'
+				b0 = 0x08208204
+				b1 = 0x00000108
+			elsif c == '*'
+				b0 = 0x1CF9C500
+				b1 = 0x00000014
+			elsif c == '+'
+				b0 = 0x08F88200
+				b1 = 0x00000008
+			elsif c == ','
+				b0 = 0x00000000
+				b1 = 0x0000430C
+			elsif c == '-'
+				b0 = 0x00F80000
+				b1 = 0x00000000
+			elsif c == '.'
+				b0 = 0x00000000
+				b1 = 0x0000030C
+			elsif c == '/'
+				b0 = 0x04210800
+				b1 = 0x00000002
+			elsif c == '0'
+				b0 = 0x26AB289C
+				b1 = 0x00000722
+			elsif c == '1'
+				b0 = 0x08208308
+				b1 = 0x00000708
+				ltrim = 1
+				rtrim = 1
+			elsif c == '2'
+				b0 = 0x0462089C
+				b1 = 0x00000F82
+			elsif c == '3'
+				b0 = 0x2072089C
+				b1 = 0x00000722
+			elsif c == '4'
+				b0 = 0x3E494610
+				b1 = 0x00000410
+			elsif c == '5'
+				b0 = 0x207820BE
+				b1 = 0x00000722
+			elsif c == '6'
+				b0 = 0x22782118
+				b1 = 0x00000722
+			elsif c == '7'
+				b0 = 0x0421083E
+				b1 = 0x00000104
+			elsif c == '8'
+				b0 = 0x2272289C
+				b1 = 0x00000722
+			elsif c == '9'
+				b0 = 0x20F2289C
+				b1 = 0x00000310
+			elsif c == ':'
+				b0 = 0x0030C000
+				b1 = 0x0000030C
+				ltrim = 1
+				rtrim = 2
+			elsif c == ';'
+				b0 = 0x0030C000
+				b1 = 0x0000430C
+				ltrim = 1
+				rtrim = 2
+			elsif c == '<'
+				b0 = 0x04084210
+				b1 = 0x00000408
+			elsif c == '='
+				b0 = 0x0003E000
+				b1 = 0x0000003E
+			elsif c == '>'
+				b0 = 0x10810204
+				b1 = 0x00000108
+			elsif c == '?'
+				b0 = 0x0862089C
+				b1 = 0x00000200
+			elsif c == '@'
+				b0 = 0x3AABA89C
+				b1 = 0x00000702
+			elsif c == 'A'
+				b0 = 0x3E8A289C
+				b1 = 0x000008A2
+			elsif c == 'B'
+				b0 = 0x227A289E
+				b1 = 0x000007A2
+			elsif c == 'C'
+				b0 = 0x0208289C
+				b1 = 0x00000722
+			elsif c == 'D'
+				b0 = 0x228A289E
+				b1 = 0x000007A2
+			elsif c == 'E'
+				b0 = 0x027820BE
+				b1 = 0x00000F82
+			elsif c == 'F'
+				b0 = 0x027820BE
+				b1 = 0x00000082
+			elsif c == 'G'
+				b0 = 0x22E8289C
+				b1 = 0x00000F22
+			elsif c == 'H'
+				b0 = 0x22FA28A2
+				b1 = 0x000008A2
+			elsif c == 'I'
+				b0 = 0x0820821C
+				b1 = 0x00000708
+				ltrim = 1
+				rtrim = 1
+			elsif c == 'J'
+				b0 = 0x22820820
+				b1 = 0x00000722
+			elsif c == 'K'
+				b0 = 0x0A18A4A2
+				b1 = 0x00000892
+			elsif c == 'L'
+				b0 = 0x02082082
+				b1 = 0x00000F82
+			elsif c == 'M'
+				b0 = 0x228AADA2
+				b1 = 0x000008A2
+			elsif c == 'N'
+				b0 = 0x22CAA9A2
+				b1 = 0x000008A2
+			elsif c == 'O'
+				b0 = 0x228A289C
+				b1 = 0x00000722
+			elsif c == 'P'
+				b0 = 0x027A289E
+				b1 = 0x00000082
+			elsif c == 'Q'
+				b0 = 0x2A8A289C
+				b1 = 0x00000B12
+			elsif c == 'R'
+				b0 = 0x127A289E
+				b1 = 0x000008A2
+			elsif c == 'S'
+				b0 = 0x2070289C
+				b1 = 0x00000722
+			elsif c == 'T'
+				b0 = 0x0820823E
+				b1 = 0x00000208
+			elsif c == 'U'
+				b0 = 0x228A28A2
+				b1 = 0x00000722
+			elsif c == 'V'
+				b0 = 0x228A28A2
+				b1 = 0x00000214
+			elsif c == 'W'
+				b0 = 0x2AAAA8A2
+				b1 = 0x0000052A
+			elsif c == 'X'
+				b0 = 0x142148A2
+				b1 = 0x000008A2
+			elsif c == 'Y'
+				b0 = 0x085228A2
+				b1 = 0x00000208
+			elsif c == 'Z'
+				b0 = 0x0210841E
+				b1 = 0x00000782
+				rtrim = 1
+			elsif c == '['
+				b0 = 0x0410411C
+				b1 = 0x00000704
+				ltrim = 1
+				rtrim = 1
+			elsif c == '\\'
+				b0 = 0x10204080
+				b1 = 0x00000020
+			elsif c == ']'
+				b0 = 0x1041041C
+				b1 = 0x00000710
+				ltrim = 1
+				rtrim = 1
+			elsif c == '^'
+				b0 = 0x00022508
+				b1 = 0x00000000
+			elsif c == '_'
+				b0 = 0x00000000
+				b1 = 0x0003F000
+			elsif c == '`'
+				b0 = 0x0000830C
+				b1 = 0x00000000
+				ltrim = 1
+				rtrim = 2
+			elsif c == 'a'
+				b0 = 0x3C81C000
+				b1 = 0x00000F22
+			elsif c == 'b'
+				b0 = 0x2289E082
+				b1 = 0x000007A2
+			elsif c == 'c'
+				b0 = 0x0289C000
+				b1 = 0x00000722
+			elsif c == 'd'
+				b0 = 0x228BC820
+				b1 = 0x00000F22
+			elsif c == 'e'
+				b0 = 0x1E89C000
+				b1 = 0x00000702
+			elsif c == 'f'
+				b0 = 0x04784118
+				b1 = 0x00000104
+				rtrim = 1
+			elsif c == 'g'
+				b0 = 0x228BC000
+				b1 = 0x0001C83C
+			elsif c == 'h'
+				b0 = 0x1248E082
+				b1 = 0x00000492
+				rtrim = 1
+			elsif c == 'i'
+				b0 = 0x08208008
+				b1 = 0x00000608
+				ltrim = 2
+				rtrim = 1
+			elsif c == 'j'
+				b0 = 0x10418010
+				b1 = 0x0000C490
+			elsif c == 'k'
+				b0 = 0x06292082
+				b1 = 0x0000048A
+				rtrim = 1
+			elsif c == 'l'
+				b0 = 0x08208208
+				b1 = 0x00000608
+				ltrim = 2
+				rtrim = 1
+			elsif c == 'm'
+				b0 = 0x2AA96000
+				b1 = 0x000008A2
+			elsif c == 'n'
+				b0 = 0x1248E000
+				b1 = 0x00000492
+				rtrim = 1
+			elsif c == 'o'
+				b0 = 0x2289C000
+				b1 = 0x00000722
+			elsif c == 'p'
+				b0 = 0x2289E000
+				b1 = 0x000027A2
+			elsif c == 'q'
+				b0 = 0x228BC000
+				b1 = 0x00020F22
+			elsif c == 'r'
+				b0 = 0x0491A000
+				b1 = 0x00000384
+			elsif c == 's'
+				b0 = 0x1C09C000
+				b1 = 0x00000720
+			elsif c == 't'
+				b0 = 0x0411E100
+				b1 = 0x00000214
+				rtrim = 1
+			elsif c == 'u'
+				b0 = 0x12492000
+				b1 = 0x0000051A
+				rtrim = 1
+			elsif c == 'v'
+				b0 = 0x228A2000
+				b1 = 0x00000214
+			elsif c == 'w'
+				b0 = 0x2A8A2000
+				b1 = 0x0000053E
+			elsif c == 'x'
+				b0 = 0x0C492000
+				b1 = 0x00000492
+				rtrim = 1
+			elsif c == 'y'
+				b0 = 0x12492000
+				b1 = 0x0000621C
+			elsif c == 'z'
+				b0 = 0x0C41E000
+				b1 = 0x00000782
+			elsif c == '{'
+				b0 = 0x04184118
+				b1 = 0x00000604
+				rtrim = 1
+			elsif c == '|'
+				b0 = 0x08008208
+				b1 = 0x00000208
+				ltrim = 2
+				rtrim = 2
+			elsif c == '}'
+				b0 = 0x10C1040C
+				b1 = 0x00000310
+				ltrim = 1
+			elsif c == '~'
+				b0 = 0x00000294
+				b1 = 0x00000000
+			elsif c == '\n'
+				x1 = x0
+				z0 -= 8 * WGFX_FontScale
+				rtrim = 6
+			else
+				b0 = 0
+				b1 = 0
+				rtrim = 6
+			end if
+			if rtrim < 6
+				x1 -= ltrim * WGFX_FontScale
+				if b0 != 0 and b1 != 0
+					//run script WGFX_DrawDots68(x1, z0, b0, b1, ltrim, rtrim)
+					run background script WGFX_DrawDots65(x1 + 6 * WGFX_FontSkew * WGFX_FontScale, z0, b0, 5, ltrim, rtrim)
+					run background script WGFX_DrawDots65(x1, z0 - 5 * WGFX_FontScale, b1, 3, ltrim, rtrim)
+				end if
+				x1 += variable(6 - rtrim) * WGFX_FontScale
+			end if
+		end while
+		argc--
+	end while
+end script WGFX_DrawCharsPacked
