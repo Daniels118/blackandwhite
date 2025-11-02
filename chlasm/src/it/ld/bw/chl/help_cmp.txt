@@ -1,9 +1,10 @@
 Compare chl files ignoring line numbers
 
 Syntax
-chlasm -cmp -f1 filename -f2 filename [-s scripts]
+chlasm -cmp -f1 filename -f2 filename [-s scripts] [-strict]
 
 Arguments
   -f1 first input CHL file
   -f2 second input CHL file
   -s  space separed scripts to compare (default: all)
+  -strict everything but line numbers must be identical
