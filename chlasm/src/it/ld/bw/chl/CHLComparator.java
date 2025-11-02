@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.bw.chl.exceptions.InvalidVariableIdException;
 import it.ld.bw.chl.exceptions.ScriptNotFoundException;
 import it.ld.bw.chl.model.CHLFile;
-import it.ld.bw.chl.model.DataSection.Const;
+import it.ld.bw.chl.model.DataSection.StringData;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.OPCode;
 import it.ld.bw.chl.model.Script;
@@ -113,10 +113,10 @@ public class CHLComparator {
 		}
 		out.println();
 		//Scripts list
-		List<Const> data1 = a.getDataSection().analyze();
-		List<Const> data2 = b.getDataSection().analyze();
-		Map<Integer, Const> dataMap1 = mapOffset(data1);
-		Map<Integer, Const> dataMap2 = mapOffset(data2);
+		List<StringData> data1 = a.getDataSection().getStrings();
+		List<StringData> data2 = b.getDataSection().getStrings();
+		Map<Integer, StringData> dataMap1 = mapOffset(data1);
+		Map<Integer, StringData> dataMap2 = mapOffset(data2);
 		List<Instruction> instructions1 = a.getCode().getItems();
 		List<Instruction> instructions2 = b.getCode().getItems();
 		for (int i = 0; i < scripts1.size(); i++) {
@@ -168,7 +168,7 @@ public class CHLComparator {
 						//
 						boolean eq = true;
 						if (strict) {
-							if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
+							if (instr1.opcode != instr2.opcode || instr1.mode != instr2.mode
 									|| instr1.dataType != instr2.dataType
 									|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal
 									|| instr1.intVal != instr2.intVal) {
@@ -176,7 +176,7 @@ public class CHLComparator {
 								stop = true;
 							}
 						} else {
-							if (instr1.opcode != instr2.opcode || instr1.flags != instr2.flags
+							if (instr1.opcode != instr2.opcode || instr1.mode != instr2.mode
 									|| instr1.dataType != instr2.dataType
 									|| instr1.floatVal != instr2.floatVal || instr1.boolVal != instr2.boolVal) {
 								eq = false;
@@ -225,8 +225,8 @@ public class CHLComparator {
 								/*If 2 instructions that are supposed to be functionally identical have different
 								 * operands, try to resolve those operands as data pointers and check if the referred
 								 * values are equal. */
-								Const const1 = dataMap1.get(instr1.intVal);
-								Const const2 = dataMap2.get(instr2.intVal);
+								StringData const1 = dataMap1.get(instr1.intVal);
+								StringData const2 = dataMap2.get(instr2.intVal);
 								if (const1 == null || const2 == null || !const1.equals(const2)) {
 									eq = false;
 								}
@@ -322,9 +322,9 @@ public class CHLComparator {
 		return res;
 	}
 	
-	private static Map<Integer, Const> mapOffset(List<Const> constants) {
-		Map<Integer, Const> res = new HashMap<>();
-		for (Const c : constants) {
+	private static Map<Integer, StringData> mapOffset(List<StringData> constants) {
+		Map<Integer, StringData> res = new HashMap<>();
+		for (StringData c : constants) {
 			res.put(c.offset, c);
 		}
 		return res;

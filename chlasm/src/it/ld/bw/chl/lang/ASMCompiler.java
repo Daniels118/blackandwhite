@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
  */
 package it.ld.bw.chl.lang;
 
-import static it.ld.bw.chl.model.OPCodeFlag.*;
+import static it.ld.bw.chl.model.OPCodeMode.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,7 +40,7 @@ import it.ld.bw.chl.model.Header;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.NativeFunction;
 import it.ld.bw.chl.model.OPCode;
-import it.ld.bw.chl.model.OPCodeFlag;
+import it.ld.bw.chl.model.OPCodeMode;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.ScriptType;
 
@@ -140,7 +140,7 @@ public class ASMCompiler implements Compiler {
 				}
 				label.instr.intVal = ip;
 				if (label.instr.opcode.isJump && ip > label.index) {
-					label.instr.flags = FORWARD;
+					label.instr.mode = FORWARD;
 				}
 			}
 			//Resolve scripts
@@ -269,7 +269,7 @@ public class ASMCompiler implements Compiler {
 									if (tks.length < 2) {
 										throw new ParseException("Expected script type after 'begin'", file, lineno);
 									}
-									script = new Script();
+									script = new Script(chl);
 									script.setScriptID(scripts.size() + 1);	//Script IDs must start from 1
 									script.setGlobalCount(globalVariables.size());
 									script.setSourceFilename(sourceFilename);
@@ -340,10 +340,10 @@ public class ASMCompiler implements Compiler {
 										throw new ParseException("Unknown opcode '" + keyword + "'", file, lineno);
 									}
 									instr.lineNumber = lineno;
-									if (instr.opcode.hasArg || instr.opcode == OPCode.CAST && (instr.flags & ZERO) != 0) {
+									if (instr.opcode.hasArg || instr.opcode == OPCode.CAST && (instr.mode & ZERO) != 0) {
 										if (instr.opcode == OPCode.POP) {
 											if (operand != null) {
-												if (instr.dataType == DataType.FLOAT) instr.flags = OPCodeFlag.REF;	//Weird, but it works this way...
+												if (instr.dataType == DataType.FLOAT) instr.mode = OPCodeMode.REF;	//Weird, but it works this way...
 												if (!isValidIdentifier(operand)) {
 													throw new ParseException("Invalid variable name", file, lineno);
 												} else {
@@ -381,7 +381,7 @@ public class ASMCompiler implements Compiler {
 												if (ip != null) {
 													instr.intVal = ip;
 													if (instr.opcode.isJump && ip > instructions.size()) {
-														instr.flags = FORWARD;
+														instr.mode = FORWARD;
 													}
 												} else if (!isValidIdentifier(operand)) {
 													throw new ParseException("Invalid label", file, lineno);
@@ -401,7 +401,7 @@ public class ASMCompiler implements Compiler {
 												if (!operand.endsWith("]")) {
 													throw new ParseException("Expected ']'", file, lineno);
 												}
-												instr.flags = REF;
+												instr.mode = REF;
 												String v = operand.substring(1, operand.length() - 1);
 												Integer iv = parseInt(v);
 												if (iv != null) {
@@ -494,9 +494,7 @@ public class ASMCompiler implements Compiler {
 								}
 								while (true) {
 									try {
-										if (DataSection.ConstType.BYTE.keyword.equals(keyword)) {
-											dataBuffer.put(Byte.valueOf(expr));
-										} else if (DataSection.ConstType.STRING.keyword.equals(keyword)) {
+										if ("string".equals(keyword)) {
 											String value = expr.substring(1, expr.length() - 1);
 											value = value.replace("\\\"", "\"");
 											value = value.replace("\\\\", "\\");

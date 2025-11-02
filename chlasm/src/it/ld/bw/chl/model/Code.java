@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ public class Code extends StructArray<Instruction> {
 	}
 	
 	@Override
-	public int getLength() {
-		return 4 + items.size() * Instruction.LENGTH;
+	public Instruction createItem() {
+		return new Instruction();
 	}
 	
 	@Override

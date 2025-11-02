@@ -9,6 +9,10 @@ import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.model.CHLFile;
 
 public interface Compiler {
+	/**Finalize the CHL file. No more files can be parsed after finalization.
+	 * @throws ParseException
+	 * @throws ParseError
+	 */
 	public CHLFile seal() throws ParseException, ParseError;
 	public CHLFile compile(Project project) throws ParseException, ParseError, IOException, IllegalStateException;
 	public CHLFile compile(List<File> files) throws ParseException, ParseError, IOException, IllegalStateException;

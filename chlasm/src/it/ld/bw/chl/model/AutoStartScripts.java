@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
-public class AutoStartScripts extends Section {
+public class AutoStartScripts extends Struct {
 	private List<Integer> scripts = new ArrayList<Integer>();
 	
 	public List<Integer> getScripts() {
@@ -32,11 +32,6 @@ public class AutoStartScripts extends Section {
 	
 	public void setScripts(List<Integer> scripts) {
 		this.scripts = scripts;
-	}
-	
-	@Override
-	public int getLength() {
-		return 4 + scripts.size() * 4;
 	}
 	
 	@Override

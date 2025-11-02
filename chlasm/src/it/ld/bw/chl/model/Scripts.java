@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,11 @@ public class Scripts extends StructArray<Script> {
 	@Override
 	public Class<Script> getItemClass() {
 		return Script.class;
+	}
+	
+	@Override
+	public Script createItem() {
+		return new Script(chl);
 	}
 	
 	public Script getScript(int scriptID) throws InvalidScriptIdException {

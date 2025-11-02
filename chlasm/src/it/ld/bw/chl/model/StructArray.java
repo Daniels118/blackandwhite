@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,47 +15,26 @@
  */
 package it.ld.bw.chl.model;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
-public abstract class StructArray<E extends Struct> extends Section {
-	protected List<E> items = new ArrayList<E>();
-	private final Constructor<E> constructor;
+public abstract class StructArray<E extends Struct> extends Struct {
+	public static final int MAX_ITEMS = 32 * 1024 * 1024;
 	
-	public StructArray() {
-		try {
-			constructor = getItemClass().getConstructor();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+	protected ArrayList<E> items = new ArrayList<E>();
 	
 	public abstract Class<E> getItemClass();
+	public abstract E createItem();
 	
-	public List<E> getItems() {
+	public ArrayList<E> getItems() {
 		return items;
 	}
 	
-	public void setItems(List<E> items) {
+	public void setItems(ArrayList<E> items) {
 		this.items = items;
-	}
-	
-	/**Returns the size of this array in bytes.
-	 * The default implementation calculates the size by summing up the size of all items in the array.
-	 * If the items are fix-sized, you should override this method to improve its performances using the following formula:
-	 *   return 4 + items.size() * SIZE_OF_ITEM;
-	 */
-	@Override
-	public int getLength() {
-		int s = 4;
-		for (E item : items) {
-			s += item.getLength();
-		}
-		return s;
 	}
 	
 	@Override
@@ -68,34 +47,48 @@ public abstract class StructArray<E extends Struct> extends Section {
 		writeStructArray(str, items);
 	}
 	
-	/**Returns the classname of the items in this array followd by their quantity.
-	 *
+	public String getTypeName() {
+		return getItemClass().getSimpleName();
+	}
+	
+	/**Returns the class name of the items in this array followed by their quantity.
 	 */
 	@Override
 	public String toString() {
-		return getItemClass().getName() + "[" + items.size() + "]";
+		return getTypeName() + "[" + items.size() + "]";
 	}
 	
-	private List<E> readStructArray(EndianDataInputStream str) throws Exception {
+	private ArrayList<E> readStructArray(EndianDataInputStream str) throws Exception {
 		int count = str.readInt();
-		List<E> res = new ArrayList<E>(count);
+		if (count < 0) throw new Exception("Invalid "+getTypeName()+" count: " + count);
+		if (count > MAX_ITEMS) throw new Exception("Too many "+getTypeName()+"s: " + count);
+		ArrayList<E> res = new ArrayList<E>(count);
 		for (int i = 0; i < count; i++) {
-			E e = readItem(str, i);
-			res.add(e);
+			try {
+				E e = readItem(str, i);
+				res.add(e);
+			} catch (Exception e) {
+				throw new Exception(e.getMessage() + ", reading " + getTypeName() + " " + i, e);
+			}
 		}
 		return res;
 	}
 	
 	protected E readItem(EndianDataInputStream str, int index) throws Exception {
-		E e = constructor.newInstance();
+		E e = createItem();
 		e.read(str);
 		return e;
 	}
 	
-	private static void writeStructArray(EndianDataOutputStream str, List<? extends Struct> items) throws Exception {
+	private void writeStructArray(EndianDataOutputStream str, List<? extends Struct> items) throws Exception {
 		str.writeInt(items.size());
-		for (Struct struct : items) {
-			struct.write(str);
+		for (int i = 0; i < items.size(); i++) {
+			try {
+				Struct struct = items.get(i);
+				struct.write(str);
+			} catch (Exception e) {
+				throw new Exception(e.getMessage() + ", writing " + getTypeName() + " " + i, e);
+			}
 		}
 	}
 }

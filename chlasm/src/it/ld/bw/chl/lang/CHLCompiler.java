@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import it.ld.bw.chl.model.DataType;
 import it.ld.bw.chl.model.Header;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.NativeFunction;
-import it.ld.bw.chl.model.OPCodeFlag;
+import it.ld.bw.chl.model.OPCodeMode;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.ScriptType;
 
@@ -423,7 +423,7 @@ public class CHLCompiler implements Compiler {
 				throw new ParseError("Redefinition of script "+name, file, line, col);
 			}
 		} else {
-			def = new Script();
+			def = new Script(chl);
 			def.setScriptType(type);
 			def.setName(name);
 			def.setParameterCount(parameterCount);
@@ -468,7 +468,7 @@ public class CHLCompiler implements Compiler {
 		localMap.clear();
 		localConst.clear();
 		try {
-			Script script = new Script();
+			Script script = new Script(chl);
 			currentScript = script;
 			script.setScriptID(scriptId++);
 			script.setGlobalCount(chl.getGlobalVariables().getNames().size());
@@ -3292,7 +3292,7 @@ public class CHLCompiler implements Compiler {
 		parseStatements();
 		Instruction jmp_lblStartWhile = jmp(lblStartWhile);
 		if (noYield) {
-			jmp_lblStartWhile.flags = OPCodeFlag.FORWARD;
+			jmp_lblStartWhile.mode = OPCodeMode.FORWARD;
 		}
 		int lblEndWhile = getIp();
 		jz_lblEndWhile.intVal = lblEndWhile;
@@ -6127,7 +6127,7 @@ public class CHLCompiler implements Compiler {
 		int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("JZ");
 		if (dstIp > ip || noYield) {
-			instruction.flags = OPCodeFlag.FORWARD;
+			instruction.mode = OPCodeMode.FORWARD;
 		}
 		instruction.intVal = dstIp;
 		instruction.lineNumber = line;
@@ -6136,7 +6136,7 @@ public class CHLCompiler implements Compiler {
 	
 	private Instruction jz() {
 		Instruction instruction = Instruction.fromKeyword("JZ");
-		instruction.flags = OPCodeFlag.FORWARD;
+		instruction.mode = OPCodeMode.FORWARD;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 		return instruction;
@@ -6198,7 +6198,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void pushiVar(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHI");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6206,7 +6206,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void pushf(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHF");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6214,7 +6214,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void pusho(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("PUSHO");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6250,7 +6250,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void popi(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("POPI");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6258,7 +6258,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void popf(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("POPF");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6266,7 +6266,7 @@ public class CHLCompiler implements Compiler {
 	
 	private void popo(String variable) throws ParseException {
 		Instruction instruction = Instruction.fromKeyword("POPO");
-		instruction.flags = OPCodeFlag.REF;
+		instruction.mode = OPCodeMode.REF;
 		instruction.intVal = getVarId(variable);
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6448,7 +6448,7 @@ public class CHLCompiler implements Compiler {
 	private Instruction jmp(int dstIp) {
 		int ip = getIp();
 		Instruction instruction = Instruction.fromKeyword("JMP");
-		if (dstIp > ip) instruction.flags = OPCodeFlag.FORWARD;
+		if (dstIp > ip) instruction.mode = OPCodeMode.FORWARD;
 		instruction.intVal = dstIp;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
@@ -6457,7 +6457,7 @@ public class CHLCompiler implements Compiler {
 	
 	private Instruction jmp() {
 		Instruction instruction = Instruction.fromKeyword("JMP");
-		instruction.flags = OPCodeFlag.FORWARD;
+		instruction.mode = OPCodeMode.FORWARD;
 		instruction.lineNumber = line;
 		instructions.add(instruction);
 		return instruction;

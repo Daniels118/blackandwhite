@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import it.ld.bw.chl.exceptions.UnsupportedVersionException;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
-public class Header extends Section {
+public class Header extends Struct {
 	public static final int BW1 = 7;
 	public static final int BWCI = 8;
 	public static final int BW2 = 12;
@@ -54,11 +54,6 @@ public class Header extends Section {
 		} else {
 			throw new UnknownVersionException(version);
 		}
-	}
-	
-	@Override
-	public int getLength() {
-		return 8;
 	}
 	
 	@Override

@@ -5,7 +5,7 @@ package it.ld.bw.chl.model;
  * so that they reflect the proper meaning making the code more readable.
  */
 
-public final class OPCodeFlag {
+public final class OPCodeMode {
 	//Normal flags
 	public static final int REF = 1;
 	public static final int FORWARD = 1;
@@ -15,5 +15,5 @@ public final class OPCodeFlag {
 	public static final int ZERO = 1;
 	public static final int FREE = 1;
 	
-	private OPCodeFlag() {}
+	private OPCodeMode() {}
 }

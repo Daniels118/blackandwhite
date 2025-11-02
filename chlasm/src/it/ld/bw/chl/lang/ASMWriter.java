@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import it.ld.bw.chl.model.NativeFunction;
 import it.ld.bw.chl.model.OPCode;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.CHLFile;
-import it.ld.bw.chl.model.DataSection.Const;
+import it.ld.bw.chl.model.DataSection.StringData;
 import it.ld.bw.chl.model.DataType;
 
 public class ASMWriter {
@@ -123,8 +123,8 @@ public class ASMWriter {
 	
 	public void write(CHLFile chl, File outdir) throws IOException, CompileException, InvalidScriptIdException {
 		Path path = outdir.toPath();
-		List<Const> constants = chl.getDataSection().analyze();
-		Map<Integer, Const> constMap = mapConstants(constants);
+		List<StringData> constants = chl.getDataSection().getStrings();
+		Map<Integer, StringData> constMap = mapConstants(constants);
 		List<String> sources = chl.getSourceFilenames();
 		Map<Integer, Label> labels = getLabels(chl);
 		//
@@ -166,8 +166,8 @@ public class ASMWriter {
 	}
 	
 	public void writeMerged(CHLFile chl, File file) throws IOException, CompileException {
-		List<Const> constants = chl.getDataSection().analyze();
-		Map<Integer, Const> constMap = mapConstants(constants);
+		List<StringData> constants = chl.getDataSection().getStrings();
+		Map<Integer, StringData> constMap = mapConstants(constants);
 		Map<Integer, Label> labels = getLabels(chl);
 		try (Writer str = new BufferedWriter(new FileWriter(file));) {
 			writeHeader(chl, str);
@@ -216,9 +216,9 @@ public class ASMWriter {
 		return labels;
 	}
 	
-	private Map<Integer, Const> mapConstants(List<Const> constants) {
-		Map<Integer, Const> constMap = new HashMap<Integer, Const>();
-		for (Const c : constants) {
+	private Map<Integer, StringData> mapConstants(List<StringData> constants) {
+		Map<Integer, StringData> constMap = new HashMap<Integer, StringData>();
+		for (StringData c : constants) {
 			constMap.put(c.offset, c);
 		}
 		return constMap;
@@ -229,17 +229,15 @@ public class ASMWriter {
 		str.write("\r\n");
 	}
 	
-	private void writeData(CHLFile chl, Writer str, List<Const> constants) throws IOException {
+	private void writeData(CHLFile chl, Writer str, List<StringData> constants) throws IOException {
 		str.write(".DATA\r\n");
-		if (printBinInfoEnabled) str.write(String.format("//offset: 0x%1$08X\r\n", chl.getDataSection().getOffset()));
-		for (Const c : constants) {
+		for (StringData c : constants) {
 			str.write(c.getDeclaration() + "\r\n");
 		}
 		str.write("\r\n");
 	}
 	
-	private void writeScripts(CHLFile chl, Writer str, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
-		if (printBinInfoEnabled) str.write(String.format("//offset: 0x%1$08X\r\n", chl.getScriptsSection().getOffset()));
+	private void writeScripts(CHLFile chl, Writer str, Map<Integer, Label> labels, Map<Integer, StringData> constMap) throws IOException, CompileException {
 		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
 		int firstGlobal = 0;
 		String prevSourceFilename = "";
@@ -266,7 +264,7 @@ public class ASMWriter {
 		str.write("\r\n");
 	}
 	
-	private void writeScripts(CHLFile chl, Writer str, String sourceFilename, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScripts(CHLFile chl, Writer str, String sourceFilename, Map<Integer, Label> labels, Map<Integer, StringData> constMap) throws IOException, CompileException {
 		chl.getScriptsSection().finalizeScripts();	//Required to initialize the last instruction index of each script
 		int firstGlobal = 0;
 		Script script = null;
@@ -297,7 +295,7 @@ public class ASMWriter {
 		}
 	}
 	
-	private void writeScript(CHLFile chl, Writer str, Script script, Map<Integer, Label> labels, Map<Integer, Const> constMap) throws IOException, CompileException {
+	private void writeScript(CHLFile chl, Writer str, Script script, Map<Integer, Label> labels, Map<Integer, StringData> constMap) throws IOException, CompileException {
 		if (printSourceLineEnabled) {
 			setSourceFile(script.getSourceFilename());
 		}
@@ -402,7 +400,7 @@ public class ASMWriter {
 					str.write(label + ":\r\n");
 				}
 				str.write("\t" + instr.toString(chl, script, labels));
-				boolean isConstRef = instr.opcode == OPCode.PUSH && instr.flags == 0 && instr.dataType == DataType.INT;
+				boolean isConstRef = instr.opcode == OPCode.PUSH && instr.mode == 0 && instr.dataType == DataType.INT;
 				if (printDataHintEnabled && isConstRef && instr.intVal > 0 && constMap.containsKey(instr.intVal)) {
 					str.write("\t//" + constMap.get(instr.intVal));
 				} else if (printNativeInfoEnabled && instr.opcode == OPCode.SYS) {

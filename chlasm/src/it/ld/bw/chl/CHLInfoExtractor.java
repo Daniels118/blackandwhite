@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ import it.ld.bw.chl.model.DataSection;
 import it.ld.bw.chl.model.Instruction;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.Scripts;
-import it.ld.bw.chl.model.Section;
 
 public class CHLInfoExtractor {
 	private PrintStream out;
@@ -47,7 +46,6 @@ public class CHLInfoExtractor {
 		out.println("Number of globals: "+globalVars.size());
 		//Scripts offset
 		Scripts scriptsSection = chl.getScriptsSection();
-		out.println("Scripts section offset: "+getOffset(scriptsSection));
 		//Scripts count
 		List<Script> scripts = scriptsSection.getItems();
 		out.println("Scripts count: "+scripts.size());
@@ -58,7 +56,6 @@ public class CHLInfoExtractor {
 		}
 		//Autostart scripts offset
 		AutoStartScripts autostartSection = chl.getAutoStartScripts();
-		out.println("Autostart scripts offset: "+getOffset(autostartSection));
 		//Autostart scripts count
 		List<Integer> autostartScripts = autostartSection.getScripts();
 		out.println("Autostart scripts count: "+autostartScripts.size());
@@ -69,19 +66,13 @@ public class CHLInfoExtractor {
 		}
 		//Data offset
 		DataSection dataSection = chl.getDataSection();
-		out.println("Data offset: "+getOffset(dataSection));
 		//Data length
 		byte[] data = dataSection.getData();
 		out.println("Data length: "+data.length);
 		//Code offset
 		Code code = chl.getCode();
-		out.println("Code offset: "+getOffset(code));
 		//Number of instructions
 		List<Instruction> instructions = code.getItems();
 		out.println("Number of instructions: "+instructions.size());
-	}
-	
-	private static String getOffset(Section section) {
-		return String.format("0x%1$08X", section.getOffset());
 	}
 }

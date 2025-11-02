@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,9 @@ import it.ld.bw.chl.exceptions.InvalidVariableIdException;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
 
-public class Script extends Section {
+public class Script extends Struct {
+	private CHLFile chl;
+	
 	private String name;
 	private String sourceFilename;
 	private ScriptType scriptType;
@@ -43,6 +45,18 @@ public class Script extends Section {
 	
 	private Map<String, Integer> localsMap = null;
 	private int lastInstructionAddress = -1;
+	
+	public Script(CHLFile chl) {
+		this.chl = chl;
+	}
+	
+	public CHLFile getChl() {
+		return chl;
+	}
+	
+	public void setChl(CHLFile chl) {
+		this.chl = chl;
+	}
 	
 	public String getName() {
 		return name;
@@ -141,17 +155,6 @@ public class Script extends Section {
 		this.lastInstructionAddress = lastInstructionAddress;
 	}
 	
-	@Override
-	public int getLength() {
-		return 	  name.length() + 1
-				+ sourceFilename.length() + 1
-				+ 4 //scriptType
-				+ 4 //varOffset
-				+ getZStringArraySize(variables)
-				+ 4 //instructionAddress
-				+ 4 //parameterCount
-				+ 4;//scriptID
-	}
 	
 	@Override
 	public void read(EndianDataInputStream str) throws Exception {
