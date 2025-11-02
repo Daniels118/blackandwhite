@@ -1,0 +1,45 @@
+challenge BLACK_CLOUD_TEST
+
+
+// globals
+
+run script BlackCloudTestMain
+
+begin script BlackCloudTestMain
+
+VillagerHutPos = marker at [2715.3101, 30.8200, 2019.9000]
+VillagerHut = get HOUSE at [VillagerHutPos]
+BlackCloud = 0
+VortexPos = marker at [2891.9419, 42.4848, 1940.5481]
+BeginPos= 0
+BeginFoc = 0
+
+start
+
+	wait until VillagerHut clicked
+
+	begin cinema
+		BeginPos= 0
+		BeginFoc = 0
+		move camera position to [VillagerHutPos]+[-20,20,20] time 3
+		move camera focus to [VortexPos] time 2
+
+
+BlackCloud = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [VortexPos]+[0,60,0]
+				set BlackCloud properties time 180 fade 20
+				set BlackCloud properties degrees 25 rainfall 0.8 snowfall 0 overcast 0.8 speed 1
+				set BlackCloud properties clouds 20 shade 1 height 140
+				set BlackCloud properties sheetmin 5 sheetmax 10 forkmin 5 forkmax 10
+				set BlackCloud properties inner 100 outer 150 
+				SPEED of BlackCloud = 10
+
+
+			// wait 10 seconds
+
+			move BlackCloud position to [VillagerHutPos]
+
+			wait until [BlackCloud] near [VillagerHutPos] radius 10
+
+		end cinema
+
+end script BlackCloudTestMain

@@ -1,0 +1,12 @@
+challenge RunSpiritualHealer
+
+run script RunSpiritualHealer
+
+begin script RunSpiritualHealer
+	
+start
+	
+	run script SpiritualHealerMain
+	
+
+end script RunSpiritualHealer

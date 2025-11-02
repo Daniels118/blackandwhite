@@ -1,0 +1,14 @@
+challenge RunCreatureBreeder
+
+run script RunCreatureBreeder
+
+begin script RunCreatureBreeder
+	
+start
+	MyCreature = get player 1 creature
+	GlobalCurrentCreature = -1
+	GlobalOldCreature	  = -1	
+	run script RunCreatureBreederLand(1)
+	
+
+end script RunCreatureBreeder

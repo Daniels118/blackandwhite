@@ -1,0 +1,16 @@
+run script RunCreatureGuide
+
+begin script RunCreatureGuide
+
+start
+	run script SetupLand1
+	run script MeetTheGuide
+	run script GuideAsksToMeetYourCreature
+	run script GuideImpressTownLesson
+	run script GuideImpressTownNextLesson
+	run script CreatureDevGuideTeachesFight
+		run background script LeaveThroughVortexL1
+	run script TheStorm
+	
+end script RunCreatureGuide
+                                                  

@@ -1,0 +1,12 @@
+challenge RunRebuildVillage
+
+run script RunRebuildVillage
+
+begin script RunRebuildVillage
+	
+start
+	
+	run script RebuildVillage
+	
+
+end script RunRebuildVillage

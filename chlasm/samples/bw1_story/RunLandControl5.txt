@@ -1,0 +1,12 @@
+challenge RunLandControl5
+
+run script RunLandControl5
+
+begin script RunLandControl5
+	
+start
+	
+	run script LandControl5
+	
+
+end script RunLandControl5

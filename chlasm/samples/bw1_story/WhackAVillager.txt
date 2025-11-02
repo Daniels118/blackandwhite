@@ -1,0 +1,352 @@
+challenge WHACK_A_VILLAGER
+
+global VillagersCaught
+
+begin script PopUpVillager(Hole)
+
+	Random = 0
+	Pop = -1.5
+	Sex = 0
+	Villager = 0
+
+
+start
+	
+	Sex = number from 1 to 2
+
+	if Sex == 1
+
+		Villager = create VILLAGER VILLAGER_INFO_TIBETAN_FORESTER_MALE at [Hole] + [0,-1.5,0]
+
+	elsif Sex == 2
+
+		Villager = create VILLAGER VILLAGER_INFO_TIBETAN_HOUSEWIFE_FEMALE at [Hole] + [0,-1.5,0]
+
+	end if
+
+
+
+	ALTITUDE of Villager = Pop
+	
+	begin loop
+
+		set Villager focus to camera position
+
+		while ALTITUDE of Villager <= -0.4
+
+			Pop = Pop + 0.4
+
+			ALTITUDE of Villager = Pop
+
+		end while
+
+		Villager play ANM_P_ATTRACT_YOUR_ATTENTION
+
+		Random = number from 1 to 3
+
+		wait until Random seconds
+
+		ALTITUDE of Villager = Pop
+
+		while ALTITUDE of Villager >= -1.5
+
+			Pop = Pop - 0.4
+
+			ALTITUDE of Villager = Pop
+					
+		end while
+
+		delete Villager
+
+	until Villager not exists
+	until Villager is HELD 
+		
+	end loop
+
+	if Villager exists
+		VillagersCaught ++
+		delete Villager with fade
+	end if
+
+end script PopUpVillager
+
+begin script PopUpVillagerRun(Hole1,Hole2)
+
+	Speed = 0
+	Sex = 0
+	Villager = 0
+
+
+start
+	
+	Speed = number from 5 to 10
+	
+	Sex = number from 1 to 2
+
+	if Sex == 1
+
+		Villager = create VILLAGER VILLAGER_INFO_TIBETAN_FORESTER_MALE at [Hole1] + [0,-1.5,0]
+
+	elsif Sex == 2
+
+		Villager = create VILLAGER VILLAGER_INFO_TIBETAN_HOUSEWIFE_FEMALE at [Hole1] + [0,-1.5,0]
+
+	end if
+
+	begin loop
+
+		SPEED of Villager = Speed/10
+
+		move Villager position to [Hole2]
+		
+		wait until [Villager] near [Hole2] radius 0.2
+
+		delete Villager
+
+		until Villager not exists
+		until Villager is HELD 
+
+	end loop
+
+	if Villager exists
+		VillagersCaught ++
+		delete Villager with fade
+	end if
+
+end script PopUpVillagerRun
+
+
+
+begin script WhackAVillager
+
+	Scale = 8
+
+	House1 = marker at [3184.868, 15.085, 3305.796]  
+	House2 = marker at [3184.984, 14.808, 3314.033] 
+
+	House3 = marker at [3187.388, 14.926, 3322.779] 
+	House4 = marker at [3193.848, 14.227, 3322.768] 
+
+	House5 = marker at [3199.600, 13.458, 3321.372] 
+	House6 = marker at [3199.559, 13.916, 3313.267] 
+	House7 = marker at [3200.597, 14.031, 3304.360] 
+
+
+	Hole1 = marker at [3188.935, 14.740, 3317.303] 
+	Hole2 = marker at [3194.384, 14.447, 3315.025] 
+	Hole3 = marker at [3189.385, 14.774, 3310.156] 
+	Hole4 = marker at [3195.348, 14.384, 3305.866] 
+	Hole5 = marker at [3188.973, 14.811, 3305.431] 
+
+	Base1 = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Hole1]
+	Base2 = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Hole2]
+	Base3 = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Hole3]
+	Base4 = create with angle 0 and scale 0.2 OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Hole4]
+	Base5 = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Hole5]
+	
+	Random = 0
+	Random2	= 0
+	Random3 = 0
+	RandomWait = 0
+
+	HouseX = 0
+	HouseY = 0
+
+
+	VillagersPopped = 0
+
+	Town = get TOWN at [3238.915, 10.050, 3293.436] radius 20
+	Inf = create influence at [3189.385, 14.774, 3310.156] radius 40
+
+	Finished = 0
+
+start
+
+	while Finished == 0
+
+		VillagersPopped = 0
+		VillagersCaught = 0
+
+	begin cinema
+
+		set camera position to [3191.441, 24.055, 3295.547] 
+		set camera focus to [3192.594, 15.083, 3310.147] 
+
+		say HELP_TEXT_WHACK_A_VILLAGER_01 // You care so much about followers, why not catch them yourself?
+		wait until read
+
+		eject good spirit
+
+		say HELP_TEXT_WHACK_A_VILLAGER_02 // If we catch enough, perhaps the whole Town will believe in us.
+
+		wait until read
+
+	end cinema
+
+		while Finished == 0
+
+			Random = number from 1 to 10
+			Random2 = number from 1 to 7
+			Random3 = number from 1 to 7
+
+			if Random2 == 1 and Random3 == 2
+				Random3 = number from 3 to 7
+			elsif Random2 == 2 and Random3 == 1
+				Random3 = number from 3 to 7
+			elsif Random2 == 3 and Random3 == 4
+				Random3 = number from 5 to 6
+			elsif Random2 == 4 and Random3 == 3
+				Random3 = number from 5 to 6
+			elsif Random2 == 5 and (Random3 == 6 or Random3 == 7)
+				Random3 = number from 1 to 4
+			elsif Random2 == 6 and (Random3 == 5 or Random3 == 7)
+				Random3 = number from 1 to 4
+			elsif Random2 == 7 and (Random3 == 6 or Random3 == 5)
+				Random3 = number from 1 to 4
+			end if
+
+			
+			
+			if Random == 1
+				run background script PopUpVillager(Hole1)
+			elsif Random == 2
+				run background script PopUpVillager(Hole2)
+			elsif Random == 3
+				run background script PopUpVillager(Hole3)
+			elsif Random == 4
+				run background script PopUpVillager(Hole4)
+			elsif Random == 5
+				run background script PopUpVillager(Hole5)
+			else
+
+				while Random2 == Random3
+				Random2 = number from 1 to 16
+				end while
+
+				if Random2 == 1
+					HouseX = House1
+				elsif Random2 == 2
+					HouseX = House2
+				elsif Random2 == 3
+					HouseX = House3
+				elsif Random2 == 4
+					HouseX = House4
+				elsif Random2 == 5
+					HouseX = House5
+				elsif Random2 == 6
+					HouseX = House6
+				elsif Random2 == 7
+					HouseX = House7
+				end if
+
+				if Random3 == 1
+					HouseY = House1
+				elsif Random3 == 2
+					HouseY = House2
+				elsif Random3 == 3
+					HouseY = House3
+				elsif Random3 == 4
+					HouseY = House4
+				elsif Random3 == 5
+					HouseY = House5
+				elsif Random3 == 6
+					HouseY = House6
+				elsif Random3 == 7
+					HouseY = House7
+				end if
+				run background script PopUpVillagerRun(HouseY,HouseX)
+			end if
+
+			VillagersPopped ++
+
+			if VillagersCaught >=6 and VillagersCaught < 20
+				RandomWait = number from 0.5 to 2
+			elsif VillagersCaught >= 20
+				RandomWait = number from 0.5 to 1.5
+			else RandomWait = number from 0.5 to 2.5
+			end if
+
+			wait until RandomWait seconds
+
+			until VillagersPopped == 60
+
+		end while
+
+		if VillagersCaught == 0
+			begin cinema
+				eject evil spirit
+				say single line HELP_TEXT_WHACK_A_VILLAGER_03 // You're not doing so good, Boss.
+				wait until read
+			end cinema
+		end if
+
+		if VillagersCaught >=10 and VillagersCaught < 20
+			begin cinema
+				eject good spirit
+				say single line HELP_TEXT_WHACK_A_VILLAGER_04 // Not bad, but we'll need more. Try again.
+				wait until read
+			end cinema
+		end if
+
+		if VillagersCaught >=20 and VillagersCaught < 40
+			Finished = 1
+		end if
+
+		if VillagersCaught >= 40 and VillagersCaught <=60
+			Finished = 2
+		end if 
+
+	end while
+
+	if Finished == 1
+		begin cinema
+			eject evil spirit
+			say HELP_TEXT_WHACK_A_VILLAGER_05 // Pretty good, Boss.
+
+			wait until read
+			set Town player 1 relative belief 2
+
+			set camera position to [3246.327, 8.633, 3299.191] 
+			set camera focus to [3239.835, 21.826, 3293.867] 
+
+			wait until 10 seconds
+
+			set camera position to [3261.271, 25.843, 3338.265] 
+			set camera focus to [3253.040, 25.549, 3325.234]
+
+			eject good spirit
+
+			say HELP_TEXT_WHACK_A_VILLAGER_07 // The town now believes in you
+			wait until read
+
+			wait until 4 seconds
+		end cinema
+	end if
+
+	if Finished == 2
+		begin cinema
+			eject good spirit
+			say HELP_TEXT_WHACK_A_VILLAGER_06 // Fantastic !
+
+			wait until read
+			set Town player 1 relative belief 2
+
+			set camera position to [3246.327, 8.633, 3299.191] 
+			set camera focus to [3239.835, 21.826, 3293.867] 
+
+			wait until 10 seconds
+
+			set camera position to [3261.271, 25.843, 3338.265] 
+			set camera focus to [3253.040, 25.549, 3325.234]
+
+			eject good spirit
+
+			say HELP_TEXT_WHACK_A_VILLAGER_07 // The town now believes in you
+			wait until read
+
+			wait until 4 seconds
+		end cinema
+	end if
+
+
+end script WhackAVillager

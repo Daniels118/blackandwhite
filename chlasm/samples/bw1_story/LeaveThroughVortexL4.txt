@@ -1,0 +1,263 @@
+challenge LEAVE_THROUGH_VORTEX_LAND4
+
+
+begin script LeaveThroughVortexL4
+
+ExitVortex				= 0
+ExitVortexPos			= marker at [2060.180, 11.390, 2591.698]
+Highlight				= 0
+OpenVortexL4			= 0
+RumbleTimer				= 0
+TimerDelay				= 30			// set to 30						
+CameraPos				= 0
+OpenVortexRadius		= 100
+
+Distance				= 0
+DistanceFromVortex		= 0
+MaxDistance				= 500			// was 300
+Percentage				= 0
+Amplitude				= 0
+MaxAmplitude			= 3
+Time					= 0
+MaxTime					= 3
+
+FirstRumbleFelt			= 0
+FiveFourThreeTwoOne		= 5
+FiveRumblesOpenedVortex	= 0
+InitialTimerValue		= TimerDelay
+MessageSaid				= 0
+StartDecreasingTime		= 0
+	
+start
+	while OpenVortexL4 == 0
+
+		Distance = get distance from camera position to [ExitVortexPos]
+
+		// If you are within the radius of the rumble work out the magnitude of the rumble.
+		if Distance < MaxDistance
+			Percentage	= (MaxDistance - Distance) / MaxDistance
+			Amplitude	= MaxAmplitude * Percentage
+			Time		= MaxTime * Percentage
+
+			StartDecreasingTime		= 1
+
+			// Make sure there is a message from advisors when the first rumble is felt
+			if Distance < (MaxDistance - 50)
+				FirstRumbleFelt = 1
+			end if
+		end if
+
+		// Shake the screen
+		start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		shake camera at [ExitVortexPos] radius MaxDistance amplitude Amplitude time Time
+
+		// Do advisor comments on rumblings
+		if FirstRumbleFelt == 1
+			if MessageSaid == 0
+				MessageSaid = 1
+				if Amplitude > 1.5 and Amplitude < 2.5
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [ExitVortexPos]
+//						"Hell that was big.  It came from over here."
+//						EA:	That was big. It came from over there.
+						say single line HELP_TEXT_NEW_L4_VORTEX_01
+						wait until read
+						stop evil spirit pointing
+						send evil spirit home
+					end dialogue
+
+				elsif Amplitude	> 0.8 and Amplitude < 1.5
+					begin dialogue
+						eject good spirit
+						make good spirit point at [ExitVortexPos]
+//						"What was that rumble.  It originated here Leader."
+//						GA:	That was a mighty rumble. It came from here.
+						say single line HELP_TEXT_NEW_L4_VORTEX_02
+						wait until read
+						stop good spirit pointing
+						send good spirit home
+					end dialogue
+
+				elsif Amplitude > 0.3 and Amplitude < 0.8
+					begin dialogue
+						eject good spirit
+//						"Did you feel that rumbling Leader.  What could be causing that, I wonder?"
+//						GA:	Did you feel that rumble,  Leader? What could cause that?
+						say HELP_TEXT_NEW_L4_VORTEX_03
+						wait until read
+						make good spirit point at [ExitVortexPos]
+//						"It seemed to come from over there."
+//						GA:	It seemed to come from over there.
+						say HELP_TEXT_NEW_L4_VORTEX_04
+						wait until read
+						stop good spirit pointing
+						send good spirit home
+					end dialogue
+				end if
+			elsif TimerDelay == 25 or TimerDelay == 20 
+				if Amplitude > 0.8
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [ExitVortexPos]
+//						"The rumblings are still happening, Boss."
+//						EA:	Ooh. I got another rumble then. Boss.
+						say single line HELP_TEXT_NEW_L4_VORTEX_05
+						wait until read
+						stop evil spirit pointing
+						send evil spirit home
+					end dialogue
+				end if
+			elsif TimerDelay == 15 or TimerDelay == 10
+				if Amplitude > 0.8
+					begin dialogue
+						eject good spirit
+						make good spirit point at [ExitVortexPos]
+//						GA:	"These rumblings seem to be getting faster Leader."
+						say single line HELP_TEXT_NEW_L4_VORTEX_17
+						wait until read
+						stop good spirit pointing
+						send good spirit home
+					end dialogue
+				end if
+			elsif TimerDelay == 5
+				if Amplitude > 0.8
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [ExitVortexPos]
+//						EA:	"The rumblings really fast now, Boss."
+						say single line HELP_TEXT_NEW_L4_VORTEX_18
+						wait until read
+						stop evil spirit pointing
+						send evil spirit home
+					end dialogue
+				end if
+			end if
+		end if
+
+		// Start decreasing time down to 3 seconds between rumbles, once inside the MaxDistance.
+		if StartDecreasingTime == 1
+			if TimerDelay > 3
+				TimerDelay = TimerDelay - 1
+			end if
+
+			// Once you are down to 3 seconds between rumbles do 5 more rumbles then open the vortex.
+			if TimerDelay == 3
+				FiveFourThreeTwoOne = FiveFourThreeTwoOne - 1
+				if FiveFourThreeTwoOne == 0
+					OpenVortexL4 = 1
+					FiveRumblesOpenedVortex = 1
+				end if
+			end if
+		end if
+
+		// Reset the timer
+		RumbleTimer = create timer for TimerDelay seconds
+
+		// Check to see if you are within the open vortex radius, then open the vortex
+		while OpenVortexL4 == 0 and get RumbleTimer time remaining > 0
+			DistanceFromVortex = get distance from camera position to [ExitVortexPos]
+ 			if DistanceFromVortex < OpenVortexRadius
+				OpenVortexL4 = 1
+			end if
+		end while
+	end while
+
+	// Open Vortex
+	begin cinema
+		if FiveRumblesOpenedVortex == 1
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			set camera position to [ExitVortexPos] + [50, 30, 50]
+			set camera focus to [ExitVortexPos]
+			set fade in time 1
+			wait until fade ready
+			wait 1 seconds
+		else
+			CameraPos = marker at camera position
+			move camera position to [CameraPos] + [0, 10, 0] time 3
+			move camera focus to [ExitVortexPos] time 3
+		end if
+
+		ExitVortex = create VORTEX VORTEX_TYPE_IN at [ExitVortexPos]
+		wait 7 seconds
+		move camera position to [2075.800, 18.810, 2586.852] time 20
+		move camera focus to [2064.496, 12.530, 2590.183] time 20
+		
+//		"Not bad.."
+//		NEMESIS:	Ah yes. My adversary.
+		say HELP_TEXT_NEW_L4_VORTEX_06
+		wait until read
+//		"You have managed to get the second Creed."
+//		NEMESIS:	You have the second part of the Creed.
+		say HELP_TEXT_NEW_L4_VORTEX_07
+		wait until read
+//		"I am still more powerful than you can possibly imagine."
+//		NEMESIS:	But I am still more powerful than you can possibly imagine.
+		say HELP_TEXT_NEW_L4_VORTEX_08
+		wait until read
+		shake camera at [ExitVortexPos] radius 300.0 amplitude 0.03 time 10
+//		"I have opened a vortex to my realm."
+//		NEMESIS:	I have opened a vortex to my realm.
+		say HELP_TEXT_NEW_L4_VORTEX_09
+		wait until read
+//		"Come. Your destiny awaits."
+//		NEMESIS:	Come through. I invite you.
+		say HELP_TEXT_NEW_L4_VORTEX_10
+		wait until read
+//		"If you dare."
+//		NEMESIS:	Come and face your destiny.
+		say HELP_TEXT_NEW_L4_VORTEX_11
+		wait until read
+		move camera position to [2105.438, 27.961, 2578.896] time 6
+		move camera focus to [2052.015, 12.330, 2594.636] time 4
+		wait until camera ready
+//		set MyCreature creed properties hand HAND_GLOW_ABOVE scale 0.0 power 0.0 time 0.0
+//		release MyCreature
+	end cinema with dialogue
+		eject evil spirit
+//		"Oh yeah!  Time to take on the big guy."
+//		EA:	[TE pleased]Yeah. Time to take on Nemesis. I've been waiting for this.
+		say HELP_TEXT_NEW_L4_VORTEX_12
+		wait until read
+		eject good spirit
+//		"If we go through, there's no going back.  This is all or nothing."
+//		GA:	If we go through, there's no coming back.[TA shakehead] This is where we stand or fall.
+		say HELP_TEXT_NEW_L4_VORTEX_13
+		wait until read
+//		"Errrr.  Boss are you sure we're ready for this.  Maybe we can make a home here."
+//		EA:	Hey. You're right. [TA shrug]Boss, are we ready for this? I mean we' might die through there.
+		say HELP_TEXT_NEW_L4_VORTEX_14
+		wait until read
+//		"Leader.  If we do go through we need to be well prepared."
+//		GA:	[TA nodhead]We might. If we go through, we must be well prepared for what we face.
+		say HELP_TEXT_NEW_L4_VORTEX_15
+		wait until read
+//		"Make sure you put plenty of food, wood and followers into the Vortex."
+//		GA:	And we should send plenty of food, wood and followers into the vortex as well.
+		say HELP_TEXT_NEW_L4_VORTEX_16
+		wait until read
+		send evil spirit home
+		send good spirit home
+	end dialogue
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [ExitVortexPos]
+	ALTITUDE of Highlight = 20
+	run script ChallengeHighlightNotify(Highlight, ExitVortexPos, variable EVIL_ADVISOR, variable HELP_TEXT_NEW_L4_VORTEX_NOTIFIER)
+	begin cinema 
+		move camera position to [2100.055, 250.155, 2565.080] time 6
+		move camera focus to [2061.4419, 13.040, 2592.186] time 4
+		wait until camera ready
+		set fade red 0 green 0 blue 0 time 3
+		move camera position to [2061.944, 16.080, 2591.839] time 3
+		move camera focus to [2061.449, 13.041, 2592.186] time 4
+		wait until fade ready
+	end cinema
+	set fade in time 1
+	wait until fade ready
+
+	VortexOpen=0
+
+end script LeaveThroughVortexL4
+
+

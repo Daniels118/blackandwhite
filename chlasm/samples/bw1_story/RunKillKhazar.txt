@@ -1,0 +1,13 @@
+challenge RunKillKhazar
+
+run script RunKillKhazar
+
+begin script RunKillKhazar
+	
+start
+	
+	run script SetupLand2
+	run script KillKhazarMain
+	
+
+end script RunKillKhazar

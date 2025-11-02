@@ -1,0 +1,975 @@
+challenge CUP_FINAL
+
+//run script CupFinalMain
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CupFinalMain
+	BeginPos = 0
+	BeginFoc = 0
+
+	Referee = 0
+	AwayTeamPos = marker at [1239.7314, 73.0300, 3078.6990]
+	AwayTeam = 0
+	AwayTeamPlayers = 0
+	AwayPlayer1 = 0
+	AwayPlayer2 = 0
+	AwayPlayer3 = 0
+	AwayPlayer4 = 0
+	AwayPlayer5 = 0
+	AwaySub1 = 0
+	AwaySub2 = 0
+	AwayPlayer1Dead = 0
+	AwayPlayer2Dead = 0
+	AwayPlayer3Dead = 0
+	AwayPlayer4Dead = 0
+	AwayPlayer5Dead = 0
+	AwaySub1Dead = 0
+	AwaySub2Dead = 0
+	AwaySub1Pos = marker at [1231.1224, 73.0300, 3053.4380]
+	AwaySub2Pos = marker at [1227.1429, 73.0300, 3052.8721]
+	AwayTeamKilled = 0
+	AwaySubNumber = 0
+	AwayTeamDepLounge = marker at [1978.1399, 18.5570, 2586.6997]
+
+	HomeTeamPos = marker at [1245.1296, 73.9827, 2993.5032]
+	HomeTeam = 0
+	HomeTeamPlayers = 0
+	HomePlayer1 = 0
+	HomePlayer2 = 0
+	HomePlayer3 = 0
+	HomePlayer4 = 0
+	HomePlayer5 = 0
+	HomeSub1 = 0
+	HomeSub2 = 0
+	HomePlayer1Dead = 0
+	HomePlayer2Dead = 0
+	HomePlayer3Dead = 0
+	HomePlayer4Dead = 0
+	HomePlayer5Dead = 0
+	HomeSub1Dead = 0
+	HomeSub2Dead = 0
+	HomeSub1Pos = marker at [1232.8925, 73.0300, 3019.2378]
+	HomeSub2Pos = marker at [1236.4148, 73.0300, 3020.5142]
+	HomeTeamKilled = 0
+	HomeSubNumber = 0
+	HomeTeamDepLounge = marker at [1258.3699, 77.6426, 3022.5601]
+
+	CupPitchPos = marker at [1225.5649, 73.0300, 3035.8655]
+	CupPitch = 0
+	CupWinners = 0
+	MatchOver = 0
+	LocalTimer = 0
+	CeltsCheat = 0
+	BusHome = 0
+	Captain = 0
+	Victory = 0
+
+	HomeCrowd = 0
+	AwayCrowd = 0
+	CeltSupportPos = marker at [1238.4071, 73.0300, 3038.0833]
+	NorseSupportPos = marker at [1212.0629, 73.0300, 3035.3127]
+	CeltSupporter = 0
+	NorseSupporter = 0
+	NoMoreCelts = 0
+	NoMoreNorse = 0
+
+	HomeTeamDeleted = 0
+	AwayTeamDeleted = 0	
+	HomeCrowdDeleted = 0
+	AwayCrowdDeleted = 0
+	RefereeDeleted = 0
+
+	NeutralTownPos = marker at [2199.8899, 39.4526, 3091.4099]
+	HomeTeamTown = get TOWN at [HomeTeamDepLounge] radius 50
+	AwayTeamTown = get TOWN at [AwayTeamDepLounge] radius 50
+	NeutralTown = get TOWN at [NeutralTownPos] radius 50
+
+	AlignmentTotal = 0
+
+
+start
+	CupPitch = get football pitch in HomeTeamTown
+	
+	stop all games for CupPitch
+	enable CupPitch only for scripts
+
+	//wait until camera position not near [CupPitch] radius 150 and [CupPitch] not viewed
+	AwayTeam = flock at [AwayTeamPos]
+	set AwayTeam properties inner 15 outer 15
+
+	AwayPlayer1 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]
+	attach AwayPlayer1 to HomeTeamTown
+	attach AwayPlayer1 to AwayTeam
+	AwayPlayer2 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwayPlayer2 to HomeTeamTown
+	attach AwayPlayer2 to AwayTeam
+	AwayPlayer3 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwayPlayer3 to HomeTeamTown
+	attach AwayPlayer3 to AwayTeam
+	AwayPlayer4 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwayPlayer4 to HomeTeamTown
+	attach AwayPlayer4 to AwayTeam
+	AwayPlayer5 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwayPlayer5 to HomeTeamTown
+	attach AwayPlayer5 to AwayTeam
+	AwaySub1 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwaySub1 to HomeTeamTown
+	attach AwaySub1 to AwayTeam
+	AwaySub2 = create VILLAGER FOOTBALLER_1 at [AwayTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach AwaySub2 to HomeTeamTown
+	attach AwaySub2 to AwayTeam
+
+
+	HomeTeam = flock at [HomeTeamPos]
+	set HomeTeam properties inner 15 outer 15
+
+	HomePlayer1 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]
+	attach HomePlayer1 to HomeTeamTown
+	attach HomePlayer1 to HomeTeam
+	HomePlayer2 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomePlayer2 to HomeTeamTown
+	attach HomePlayer2 to HomeTeam
+	HomePlayer3 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomePlayer3 to HomeTeamTown
+	attach HomePlayer3 to HomeTeam
+	HomePlayer4 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomePlayer4 to HomeTeamTown
+	attach HomePlayer4 to HomeTeam
+	HomePlayer5 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomePlayer5 to HomeTeamTown
+	attach HomePlayer5 to HomeTeam
+	HomeSub1 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomeSub1 to HomeTeamTown
+	attach HomeSub1 to HomeTeam
+	HomeSub2 = create VILLAGER FOOTBALLER_2 at [HomeTeamPos]+[number from -1 to - 15,number from -1 to - 15]
+	attach HomeSub2 to HomeTeamTown
+	attach HomeSub2 to HomeTeam
+	set HomeTeam focus to [HomeTeamPos]+[15,15,15]
+
+	Referee = create VILLAGER VILLAGER_INFO_INDIAN_FORESTER_MALE at [CupPitchPos]
+	attach Referee to HomeTeamTown
+
+	//Set them all as controlled by script.
+	state HomeTeam LIVING_IN_SCRIPT 
+	state AwayTeam LIVING_IN_SCRIPT 
+	state Referee LIVING_IN_SCRIPT
+
+	// CELT SUPPORTERS
+	HomeCrowd = flock at [CeltSupportPos]
+	set HomeCrowd properties inner 15 outer 20
+	while size of HomeCrowd < 15 and NoMoreCelts == 0
+		CeltSupporter = get VILLAGER in HomeTeamTown excluding scripted
+		if CeltSupporter exists
+			attach CeltSupporter to HomeCrowd
+			set CeltSupporter position to [CeltSupportPos]+[number from -5 to 5, number from -12 to 12]
+			set CeltSupporter focus to [CupPitchPos]
+		else
+			NoMoreCelts = 1
+		end if
+	end while
+
+	// NORSE SUPPORTERS
+	AwayCrowd = flock at [NorseSupportPos]
+	set AwayCrowd properties inner 15 outer 20
+	while size of AwayCrowd < 15 and NoMoreNorse == 0
+		NorseSupporter = get VILLAGER in AwayTeamTown excluding scripted
+		if NorseSupporter exists
+			attach NorseSupporter to AwayCrowd
+			set NorseSupporter position to [NorseSupportPos]+[number from -5 to 5, number from -12 to 12]
+			set NorseSupporter focus to [CupPitchPos]
+		else
+			NoMoreNorse = 1
+		end if
+	end while
+
+	start CupPitch with Referee as referee
+	attach AwayPlayer1 to game CupPitch for away team
+	attach AwayPlayer2 to game CupPitch for away team
+	attach AwayPlayer3 to game CupPitch for away team
+	attach AwayPlayer4 to game CupPitch for away team
+	attach AwayPlayer5 to game CupPitch for away team
+
+	attach HomePlayer1 to game CupPitch for home team
+	attach HomePlayer2 to game CupPitch for home team
+	attach HomePlayer3 to game CupPitch for home team
+	attach HomePlayer4 to game CupPitch for home team
+	attach HomePlayer5 to game CupPitch for home team
+
+	move AwaySub1 position to [AwaySub1Pos]
+	move AwaySub2 position to [AwaySub2Pos]
+	move HomeSub1 position to [HomeSub1Pos]
+	move HomeSub2 position to [HomeSub2Pos]
+	
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CupPitch]
+		// "Hey boss, there's a crowd forming over there."
+		say HELP_TEXT_SOCCER_MATCH_33
+		wait until read
+		stop evil spirit pointing
+	end dialogue
+
+	LocalTimer=create timer for 300 seconds
+
+	while MatchOver == 0
+		// **** AWAY PLAYERS SUBSTITUTIONS ****
+		if HEALTH of AwayPlayer1 <= 0 and AwayPlayer1Dead == 0
+			detach AwayPlayer1 in game CupPitch from away team
+			AwayTeamKilled++
+			AwayPlayer1Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayPlayer1]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwayPlayer1 distance 15
+				wait until AwayPlayer1 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if AwaySubNumber == 0
+					attach AwaySub1 to game CupPitch for away team
+					set camera position to [AwaySub1]+[15,15,15]
+					set camera focus follow AwaySub1
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 1
+				elsif AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+
+		if HEALTH of AwayPlayer2 <= 0 and AwayPlayer2Dead == 0
+			detach AwayPlayer2 in game CupPitch from away team
+			AwayTeamKilled++
+			AwayPlayer2Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayPlayer2]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwayPlayer2 distance 15
+				wait until AwayPlayer2 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if AwaySubNumber == 0
+					attach AwaySub1 to game CupPitch for away team
+					set camera position to [AwaySub1]+[15,15,15]
+					set camera focus follow AwaySub1
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 1
+				elsif AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of AwayPlayer3 <= 0 and AwayPlayer3Dead == 0
+			detach AwayPlayer3 in game CupPitch from away team
+			AwayTeamKilled++
+			AwayPlayer3Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayPlayer3]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwayPlayer3 distance 15
+				wait until AwayPlayer3 is not FLYING
+				wait 2 seconds
+				//"EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if AwaySubNumber == 0
+					attach AwaySub1 to game CupPitch for away team
+					set camera position to [AwaySub1]+[15,15,15]
+					set camera focus follow AwaySub1
+					//"GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 1
+				elsif AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of AwayPlayer4 <= 0 and AwayPlayer4Dead == 0
+			detach AwayPlayer4 in game CupPitch from away team
+			AwayTeamKilled++
+			AwayPlayer4Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayPlayer4]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwayPlayer4 distance 15
+				wait until AwayPlayer4 is not FLYING
+				wait 2 seconds
+				//"EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if AwaySubNumber == 0
+					attach AwaySub1 to game CupPitch for away team
+					set camera position to [AwaySub1]+[15,15,15]
+					set camera focus follow AwaySub1
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 1
+				elsif AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of AwayPlayer5 <= 0 and AwayPlayer5Dead == 0
+			detach AwayPlayer5 in game CupPitch from away team
+			AwayTeamKilled++
+			AwayPlayer5Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayPlayer5]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwayPlayer5 distance 15
+				wait until AwayPlayer5 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if AwaySubNumber == 0
+					attach AwaySub1 to game CupPitch for away team
+					set camera position to [AwaySub1]+[15,15,15]
+					set camera focus follow AwaySub1
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 1
+				elsif AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					AwaySubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of AwaySub1 <= 0 and AwaySub1Dead == 0 and CeltsCheat == 0
+			if AwaySubNumber > 0
+				detach AwaySub1 in game CupPitch from away team
+			end if
+			AwayTeamKilled++
+			AwaySub1Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwaySub1]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwaySub1 distance 15
+				wait until AwaySub1 is not FLYING
+
+				if AwaySubNumber > 0
+					// "EA: That's gotta hurt! No foul called though."
+					say HELP_TEXT_SOCCER_MATCH_08
+					wait until read
+					wait 2 seconds
+				elsif AwaySubNumber == 0
+					// "EA: Oof. The substitute is injured before he had a chance to play."
+					say HELP_TEXT_SOCCER_MATCH_10
+					wait until read
+					wait 2 seconds
+				end if
+
+				if AwaySubNumber == 1
+					attach AwaySub2 to game CupPitch for away team
+					set camera position to [AwaySub2]+[15,15,15]
+					set camera focus follow AwaySub2
+					// "GA: Looks like a Norse substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_09
+					wait until read
+					wait 2 seconds
+				end if
+				move camera position to [BeginPos] time 2
+				move camera focus to [BeginFoc] time 2
+				wait until camera ready
+				send evil spirit home
+			end cinema
+			if AwaySubNumber == 0
+				AwaySubNumber = 1
+			end if
+		end if
+
+		if HEALTH of AwaySub2 <= 0 and AwaySub2Dead == 0
+			if AwaySubNumber > 0
+				detach AwaySub2 in game CupPitch from away team
+			end if
+			AwayTeamKilled++
+			AwaySub2Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwaySub2]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow AwaySub2 distance 15
+				wait until AwaySub2 is not FLYING
+
+				if AwaySubNumber > 1
+					// "EA: That's gotta hurt! No foul called though."
+					say HELP_TEXT_SOCCER_MATCH_08
+					wait until read
+					wait 2 seconds
+				elsif AwaySubNumber < 2
+					// "EA: Oof. The substitute is injured before he had a chance to play."
+					say HELP_TEXT_SOCCER_MATCH_10
+					wait until read
+					wait 2 seconds
+				end if
+			move camera position to [BeginPos] time 2
+			move camera focus to [BeginFoc] time 2
+			wait until camera ready
+			send evil spirit home
+			end cinema
+		end if
+		if AwaySubNumber == 1 and AwaySub2Dead == 1
+			AwaySubNumber = 2
+		end if
+
+		// **** HOME PLAYERS SUBSTITUTIONS ****
+		if HEALTH of HomePlayer1 <= 0 and HomePlayer1Dead == 0
+			detach HomePlayer1 in game CupPitch from home team
+			HomeTeamKilled++
+			HomePlayer1Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomePlayer1]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomePlayer1 distance 15
+				wait until HomePlayer1 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if HomeSubNumber == 0
+					attach HomeSub1 to game CupPitch for home team
+					set camera position to [HomeSub1]+[15,15,15]
+					set camera focus follow HomeSub1
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 1
+				elsif HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+
+		if HEALTH of HomePlayer2 <= 0 and HomePlayer2Dead == 0
+			detach HomePlayer2 in game CupPitch from home team
+			HomeTeamKilled++
+			HomePlayer2Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomePlayer2]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomePlayer2 distance 15
+				wait until HomePlayer2 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if HomeSubNumber == 0
+					attach HomeSub1 to game CupPitch for home team
+					set camera position to [HomeSub1]+[15,15,15]
+					set camera focus follow HomeSub1
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 1
+				elsif HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of HomePlayer3 <= 0 and HomePlayer3Dead == 0
+			detach HomePlayer3 in game CupPitch from home team
+			HomeTeamKilled++
+			HomePlayer3Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomePlayer3]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomePlayer3 distance 15
+				wait until HomePlayer3 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if HomeSubNumber == 0
+					attach HomeSub1 to game CupPitch for home team
+					set camera position to [HomeSub1]+[15,15,15]
+					set camera focus follow HomeSub1
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 1
+				elsif HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of HomePlayer4 <= 0 and HomePlayer4Dead == 0
+			detach HomePlayer4 in game CupPitch from home team
+			HomeTeamKilled++
+			HomePlayer4Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomePlayer4]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomePlayer4 distance 15
+				wait until HomePlayer4 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if HomeSubNumber == 0
+					attach HomeSub1 to game CupPitch for home team
+					set camera position to [HomeSub1]+[15,15,15]
+					set camera focus follow HomeSub1
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 1
+				elsif HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of HomePlayer5 <= 0 and HomePlayer5Dead == 0
+			detach HomePlayer5 in game CupPitch from home team
+			HomeTeamKilled++
+			HomePlayer5Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomePlayer5]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomePlayer5 distance 15
+				wait until HomePlayer5 is not FLYING
+				wait 2 seconds
+				// "EA: That's gotta hurt! No foul called though."
+				say HELP_TEXT_SOCCER_MATCH_08
+				wait until read
+				if HomeSubNumber == 0
+					attach HomeSub1 to game CupPitch for home team
+					set camera position to [HomeSub1]+[15,15,15]
+					set camera focus follow HomeSub1
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 1
+				elsif HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					// camera watches sub entering pitch. Advisor commentates
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+					move camera position to [BeginPos] time 2
+					move camera focus to [BeginFoc] time 2
+					wait until camera ready
+					HomeSubNumber = 2
+				end if
+				send evil spirit home
+			end cinema
+		end if
+
+		if HEALTH of HomeSub1 <= 0 and HomeSub1Dead == 0
+			if HomeSubNumber > 0
+				detach HomeSub1 in game CupPitch from home team
+			end if
+			HomeTeamKilled++
+			HomeSub1Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeSub1]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomeSub1 distance 15
+				wait until HomeSub1 is not FLYING
+
+				if HomeSubNumber > 0
+					// "EA: That's gotta hurt! No foul called though."
+					say HELP_TEXT_SOCCER_MATCH_08
+					wait until read
+					wait 2 seconds
+				elsif HomeSubNumber == 0
+					// "EA: Oof. The substitute is injured before he had a chance to play."
+					say HELP_TEXT_SOCCER_MATCH_10
+					wait until read
+					wait 2 seconds
+				end if
+
+				if HomeSubNumber == 1
+					attach HomeSub2 to game CupPitch for home team
+					set camera position to [HomeSub2]+[15,15,15]
+					set camera focus follow HomeSub2
+					// "GA: Looks like a Celtic substitution is taking place."
+					say HELP_TEXT_SOCCER_MATCH_11
+					wait until read
+					wait 2 seconds
+				end if
+				move camera position to [BeginPos] time 2
+				move camera focus to [BeginFoc] time 2
+				wait until camera ready
+				send evil spirit home
+			end cinema
+			if HomeSubNumber == 0
+				HomeSubNumber = 1
+			end if
+		end if
+
+		if HEALTH of HomeSub2 <= 0 and HomeSub2Dead == 0
+			if HomeSubNumber > 0
+				detach HomeSub2 in game CupPitch from home team
+			end if
+			HomeTeamKilled++
+			HomeSub2Dead = 1
+			start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HomeSub2]
+			start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [AwayCrowd]
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				eject evil spirit
+				set camera follow HomeSub2 distance 15
+				wait until HomeSub2 is not FLYING
+
+				if HomeSubNumber > 1
+					// "EA: That's gotta hurt! No foul called though."
+					say HELP_TEXT_SOCCER_MATCH_08
+					wait until read
+					wait 2 seconds
+				elsif HomeSubNumber < 2
+					// "EA: Oof. The substitute is injured before he had a chance to play."
+					say HELP_TEXT_SOCCER_MATCH_10
+					wait until read
+					wait 2 seconds
+				end if
+			move camera position to [BeginPos] time 2
+			move camera focus to [BeginFoc] time 2
+			wait until camera ready
+			send evil spirit home
+			end cinema
+		end if
+		if HomeSubNumber == 1 and HomeSub2Dead == 1
+			HomeSubNumber = 2
+		end if
+
+		if get LocalTimer time remaining <= 30 and CeltsCheat == 0 and AwaySub1Dead == 0
+			// kill AwaySub1 by setting light to him
+			enable AwaySub1 on fire 1
+			HEALTH of AwaySub1 = 0
+			AwayTeamKilled++
+			AwaySub1Dead = 1
+			if AwaySubNumber == 0
+				AwaySubNumber = 1
+			end if
+			CeltsCheat = 1
+		end if
+
+		if get LocalTimer time remaining <= 0 or HomeTeamKilled > 6 or AwayTeamKilled > 6
+			MatchOver = 1
+		end if
+	end while
+
+	// **** MATCH OVER ****
+	stop all games for CupPitch
+	attach AwayPlayer1 to AwayTeamTown
+	attach AwayPlayer2 to AwayTeamTown
+	attach AwayPlayer3 to AwayTeamTown
+	attach AwayPlayer4 to AwayTeamTown
+	attach AwayPlayer5 to AwayTeamTown
+	attach AwaySub2 to AwayTeamTown
+	attach AwaySub1 to AwayTeamTown
+	attach Referee to NeutralTown
+
+	disable CupPitch only for scripts
+
+	// send both teams home
+	move AwayTeam position to [AwayTeamDepLounge]
+	move HomeTeam position to [HomeTeamDepLounge]
+	move AwayCrowd position to [AwayTeamDepLounge]
+	move HomeCrowd position to [HomeTeamDepLounge]
+	move Referee position to [NeutralTownPos]+[10,0,10]
+
+	release Referee
+	release HomeTeam
+	release AwayTeam
+	release HomeCrowd
+	release AwayCrowd
+
+	delete HomePlayer1
+	delete HomePlayer2
+	delete HomePlayer3
+	delete HomePlayer4
+	delete HomePlayer5
+	delete AwayPlayer1
+	delete AwayPlayer2
+	delete AwayPlayer3
+	delete AwayPlayer4
+	delete AwayPlayer5
+/* 
+	while BusHome < 5
+
+		if camera position not near [Referee] radius 100 and [Referee] not viewed and RefereeDeleted == 0
+			delete Referee
+			Referee = 0
+			RefereeDeleted = 1
+			BusHome++
+		end if
+		
+		if AwayTeamDeleted == 0
+			if ((camera position not near [AwayTeam] radius 100) and ([AwayTeam] not viewed) and ([AwayTeam] near [AwayTeamDepLounge] radius 50)) or (size of AwayTeam <= 0)
+				if size of AwayTeam > 0
+					delete AwayPlayer1
+					AwayPlayer1 = 0
+					delete AwayPlayer2
+					AwayPlayer2 = 0
+					delete AwayPlayer3
+					AwayPlayer3 = 0
+					delete AwayPlayer4
+					AwayPlayer4 = 0
+					delete AwayPlayer5
+					AwayPlayer5 = 0
+					delete AwaySub1
+					AwaySub1 = 0
+					delete AwaySub2
+					AwaySub2 = 0
+				end if
+				delete AwayTeam
+				AwayTeam = 0
+				BusHome++
+				AwayTeamDeleted = 1
+			end if
+		end if
+
+		if HomeTeamDeleted == 0
+			if ((camera position not near [HomeTeam] radius 50) and ([HomeTeam] not viewed) and ([HomeTeam] near [HomeTeamDepLounge] radius 50)) or (size of HomeTeam <= 0)
+				if size of HomeTeam > 0
+					delete HomePlayer1
+					HomePlayer1 = 0
+					delete HomePlayer2
+					HomePlayer2 = 0
+					delete HomePlayer3
+					HomePlayer3 = 0
+					delete HomePlayer4
+					HomePlayer4 = 0
+					delete HomePlayer5
+					HomePlayer5 = 0
+					delete HomeSub1
+					HomeSub1 = 0
+					delete HomeSub2
+					HomeSub2 = 0
+				end if
+				delete HomeTeam
+				HomeTeam = 0
+				BusHome++
+				HomeTeamDeleted = 1
+			end if
+		end if
+
+		if HomeCrowdDeleted == 0
+			if [HomeCrowd] near [HomeTeamDepLounge] radius 100 or size of HomeCrowd <= 0
+				release HomeCrowd
+				BusHome++
+				HomeCrowdDeleted = 1
+			end if
+		end if
+
+		if AwayCrowdDeleted == 0
+			if [AwayCrowd] near [AwayTeamDepLounge] radius 100 or size of AwayCrowd <= 0
+				release AwayCrowd
+				BusHome++
+				AwayCrowdDeleted = 1
+			end if
+		end if
+
+	end while
+*/
+
+end script CupFinalMain

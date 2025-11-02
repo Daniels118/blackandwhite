@@ -1,0 +1,36 @@
+challenge THESIUS_PUZZLE_LAND_FOUR
+
+begin script ThesiusPuzzleLand4
+
+ThesiusPuzzle = 0
+ThesiusPuzzleTwo = 0
+ThesiusPuzzlePos = marker at [1901.4684, 88.4400, 2451.2112]
+ThesiusPuzzleDYKPos = marker at [1949.8163, 92.9861, 2470.9946]
+PuzzleInfluence = 0
+PuzzleInfluencePos = marker at [1916.0525, 88.4400, 2466.6672]
+DYK = 0
+DYKInfluence = 0
+
+start
+
+	ThesiusPuzzle = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_THESIUS1 at [ThesiusPuzzlePos]
+	PuzzleInfluence = create influence at [PuzzleInfluencePos] radius 20
+	run background script DidYouKnow(ThesiusPuzzleDYKPos,variable HELP_TEXT_DYK_RULES_09, variable DYK_MISC)
+
+	wait until ThesiusPuzzle played
+
+	delete ThesiusPuzzle
+	ThesiusPuzzleTwo = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_THESIUS2 at [ThesiusPuzzlePos]
+
+	wait until ThesiusPuzzleTwo played
+	
+	// delete signpost
+	DYK = get HIGHLIGHT HIGHLIGHT_TIPS at [ThesiusPuzzleDYKPos] radius 2
+	delete DYK with fade
+	
+	// Reward of Strength spell
+	run script rewardfromsky(variable REWARD_CREATURE_STRONG, ThesiusPuzzleDYKPos, HomeTownL4, 1)
+
+	DYKInfluence = create influence at [ThesiusPuzzleDYKPos] radius 2
+
+end script ThesiusPuzzleLand4

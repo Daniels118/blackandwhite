@@ -1,0 +1,14 @@
+challenge RunSimonSays
+
+run script RunSimonSays
+
+begin script RunSimonSays
+	
+start
+	
+	MyCreature = get player 1 creature
+	run script SetupLand4
+	run script Land4Puzzle
+	
+
+end script RunSimonSays

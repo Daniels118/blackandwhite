@@ -1,0 +1,13 @@
+run script RunShieldChallenge
+
+begin script RunShieldChallenge
+	
+start
+	
+	run script PhysicalShieldChallenge
+	
+
+end script RunShieldChallenge
+
+
+

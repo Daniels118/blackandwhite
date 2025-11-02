@@ -1,0 +1,23 @@
+challenge RunLandControl3
+
+run script RunLandControl3
+
+begin script RunLandControl3
+	
+start
+	
+	run script LandControl3
+	stop all scripts excluding files "RunLandControl3.txt"
+
+	load map "scripts/land4.txt"
+	set fade in time 3
+	run script LandControl4
+	stop all scripts excluding files "RunLandControl3.txt"
+
+	load map "scripts/land5.txt"
+	set fade in time 3
+	run script LandControl5
+	stop all scripts excluding files "RunLandControl3.txt"
+	
+
+end script RunLandControl3

@@ -1,0 +1,82 @@
+challenge NEMESIS_SPEAKS_1
+
+//run script NemesisSpeaks1
+
+begin script NemesisSpeaks1
+
+	BeginPos = 0
+	BeginFoc = 0
+	NemesisOriginalPos = 0
+		
+start
+
+		begin cinema
+
+			pause computer player 2
+
+			NemesisOriginalPos = marker at computer player 2 position
+
+			set computer player 2 position to [1645.156, 50, 3299.821] 
+
+			wait until 0.5 seconds
+
+			move computer player 2 to [1241.597, 100, 3505.638]	speed 25 
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+											 
+			set camera position to [1462.886, 46.025, 3431.517] 
+			set camera focus to [1645.156, 2.512, 3299.821]
+
+			move camera position to [1449.217, 82.018, 3400.705] time 8
+			move camera focus to [1648.815, 38.505, 3299.827] time 8
+
+			say HELP_TEXT_NEMESIS_SPEAKS_01	// Our battle gets ever more fierce.
+			wait until read
+
+			say HELP_TEXT_NEMESIS_SPEAKS_02	// And you are proving a worthy opponent.
+			wait until read
+
+			
+			move camera position to [1253.259, 83.036, 3504.217] time 18
+			move camera focus to [1492.761, 5.155, 3392.560] time 18
+
+			// if Player is Evil
+
+			move computer player 2 to [1260, 81, 3501]	speed 20
+
+			if alignment of player < 0
+				say HELP_TEXT_NEMESIS_SPEAKS_03	// But you are too evil. People will always respond to good.
+				wait until read
+				say HELP_TEXT_NEMESIS_SPEAKS_04	// You may be a god but ruling by fear is never right.
+				wait until read
+				say HELP_TEXT_NEMESIS_SPEAKS_05	// You will never truly have the spirit of the people on your side.
+				wait until read
+			end if
+
+			// if Player is Good
+
+			if alignment of player >= 0
+				say HELP_TEXT_NEMESIS_SPEAKS_06	// But your goodness is your weakness. People demand strength.
+				wait until read
+				say HELP_TEXT_NEMESIS_SPEAKS_07	// They understand force. They know pain.
+				wait until read
+				say HELP_TEXT_NEMESIS_SPEAKS_08	// You will never have true believers without fear.
+				wait until read
+			end if
+
+
+			say HELP_TEXT_NEMESIS_SPEAKS_09	// So do your worst and do your best. You can't win.
+			wait until read
+
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+
+			set computer player 2 position to [NemesisOriginalPos]  with fixed height
+
+			unpause computer player 2
+
+		end cinema
+				
+end script NemesisSpeaks1
+

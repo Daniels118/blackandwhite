@@ -1,0 +1,24 @@
+challenge LEAVE_THROUGH_VORTEX_LAND3
+
+begin script LeaveThroughVortexL3(VortexPos)
+	Vortex = 0
+	Highlight = 0
+start
+	Vortex = create VORTEX VORTEX_TYPE_IN at [VortexPos] 
+	Highlight = create highlight HIGHLIGHT_QUEST at [VortexPos]
+	ALTITUDE of Highlight = 20
+	run script ChallengeHighlightNotify(Highlight, VortexPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_LEAVE_THROUGH_VORTEX_03)
+	begin cinema
+		move camera position to [2237.934, 220.259, 2049.210] time 6
+		move camera focus to [2274.899, 31.131, 2042.212] time 4
+		wait until camera ready
+		set fade red 0 green 0 blue 0 time 8
+		move camera position to [2273.427, 38.665, 2042.491] time 8
+		move camera focus to [2274.899, 31.131, 2042.212] time 4
+		wait until fade ready
+		FinishedLand3=1
+	end cinema
+end script LeaveThroughVortexL3
+
+
+

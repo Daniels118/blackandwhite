@@ -1,0 +1,8 @@
+/*
+ *		This classic "Hello, world!" script re-defines the gaming experience.
+ */
+run script HelloWorld
+begin script HelloWorld
+start
+	say "Hello, world!"
+end script HelloWorld

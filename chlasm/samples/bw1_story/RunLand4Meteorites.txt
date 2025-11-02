@@ -1,0 +1,14 @@
+challenge RunLand4Meteorites
+
+run script RunLand4Meteorites
+
+begin script RunLand4Meteorites
+	
+start
+	
+	run script SetupLand4
+	run script BeginLand4(0)
+	run script PuzzleIntro
+	
+
+end script RunLand4Meteorites

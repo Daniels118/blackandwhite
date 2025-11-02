@@ -1,0 +1,12 @@
+challenge RunBigFish
+
+run script RunBigFish
+
+begin script RunBigFish
+	
+start
+	
+	run script BigFish
+	
+
+end script RunBigFish

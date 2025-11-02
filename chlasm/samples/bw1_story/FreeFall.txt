@@ -1,0 +1,27 @@
+/*
+ *	This script does a slo-motion set camera follow of whatever the user happens
+ *	to throw.  It's intended to be fun.  This requires a new form of the call
+ *	command (to get a reference to the currently held object).  At the moment,
+ *	it just gives you a rock to throw around.
+ */
+run script FreeFall
+begin script FreeFall
+	Object = create MALE VILLAGER at position of hand
+start
+	say "It's superman!"
+	set Object position to [Object]+[0,100,0]
+	begin camera
+		set camera position to [Object]+[0,20,0]
+	end camera
+	state Object VILLAGER_STATE_SCRIPT_WANDER_AROUND_POSITION position [Object] float 6 ulong 4, 20
+	wait until Object is FLYING
+	begin cinema
+		set camera focus follow Object
+		set camera position follow Object
+		wait until 2 seconds
+		set game speed to 0.1
+		say "SLO-MO"
+		wait until Object is not FLYING
+		set game speed to 1.0
+	end cinema
+end script FreeFall

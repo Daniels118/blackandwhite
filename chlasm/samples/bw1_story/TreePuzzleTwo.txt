@@ -1,0 +1,71 @@
+challenge TREE_PUZZLE_TWO
+
+begin script TreePuzzleTwo
+
+	TreePuzzleTwo				= 0
+	TreePuzzleTwoPos			= marker at [2689.892, 21.867, 3131.659]
+	TreePuzzleTwoDYKPos			= marker at [2718.1426, 24.5387, 3141.5591]
+	
+	PuzzleInfluence				= 0
+	PuzzleInfluencePos			= marker at [2699.8921, 22.4267, 3141.6589]
+
+	IndianTownOwned				= 0
+	IndianTownPos				= marker at [2805.0239, 20.0712, 2499.5864]
+	IndianTown					= get TOWN at [IndianTownPos] radius 100
+	IndianTownCentre			= marker at [2831.9900, 24.3933, 2547.2000]
+
+	FlockMiraclePos1			= marker at [2843.3542, 40.9384, 2578.7844]
+	FlockMiracleFoc1			= marker at [2839.8660, 19.3015, 2541.2952]
+	FlockMiraclePos2			= marker at [2851.2986, 29.1582, 2523.4631]
+	FlockMiracleFoc2			= marker at [2834.4316, 20.2079, 2550.5623]
+
+	WaypointPos					= marker at	[2861.9766, 93.6805, 2932.4543]
+	Highlight					= 0
+	StreetLantern				= 0
+
+start
+	// Wait until the Player owns the Indian Town before activating the Puzzle
+	while IndianTownOwned == 0
+		if get PLAYER of IndianTown == 1
+			IndianTownOwned = 1
+		end if
+		if IndianTown not exists
+			IndianTownOwned = 1
+		end if
+	end while
+
+	// Start Puzzle
+	PuzzleInfluence =  create influence at [PuzzleInfluencePos] radius 25
+	TreePuzzleTwo = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TREE_2 at [TreePuzzleTwoPos]
+	run background script DidYouKnow(TreePuzzleTwoDYKPos,variable HELP_TEXT_DYK_RULES_01, variable DYK_MISC)
+	wait until TreePuzzleTwo played
+
+	// delete signpost
+	Highlight = get HIGHLIGHT HIGHLIGHT_TIPS at [TreePuzzleTwoDYKPos] radius 2
+	delete Highlight with fade
+
+	// Reward - Drop chest and attach spell to Indian Town - CANNOT USE THIS CALL IN WIDESCREEN OR DIALOGUE
+	run script RewardOutsideWidescreenOrDialogue(variable REWARD_OBJECT_INFO_SPELL_SEED_FLOCK_FLYING, TreePuzzleTwoDYKPos, IndianTown, 1, 1)
+	delete PuzzleInfluence
+
+	// delete street lanterns
+	StreetLantern = get OBJECT MOBILE_STATIC_INFO_STREET_LANTERN at [PuzzleInfluencePos] radius 50
+	while StreetLantern exists
+		delete StreetLantern with fade
+		StreetLantern = get OBJECT MOBILE_STATIC_INFO_STREET_LANTERN at [PuzzleInfluencePos] radius 50
+	end while
+
+	// Zoom to view the reward in the Indian Town
+	begin cinema
+		move camera focus to [IndianTownCentre] time 2
+		wait until camera ready
+		move camera position to [WaypointPos] time 3
+		move camera focus to [FlockMiracleFoc1] time 3
+		wait until camera ready
+		move camera position to [FlockMiraclePos1] time 2
+		move camera position to [FlockMiraclePos2] time 5
+		move camera focus to [FlockMiracleFoc2] time 5
+		wait until camera ready
+	end cinema
+
+end script TreePuzzleTwo

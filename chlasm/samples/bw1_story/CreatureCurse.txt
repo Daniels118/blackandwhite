@@ -1,0 +1,406 @@
+challenge CREATURE_CURSE
+
+global OriginalStrengthOfMyCreature
+global OriginalSizeOfMyCreature
+global OriginalAlignmentOfMyCreature
+
+global WarpDone = 0
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script StrengthWarp(Creature)
+OriginalStrength = 0
+Wavelength = 2.0
+start
+	OriginalStrength = SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature
+	while WarpDone == 0	and Wavelength != 0
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.1*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.15*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.175*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.1875*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.175*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.15*Wavelength)
+		wait 0.1 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength + (0.1*Wavelength)
+		wait 0.1 seconds
+		
+		Wavelength *= -1
+		Wavelength *= 0.95
+	end while
+	SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of Creature = OriginalStrength
+end script StrengthWarp
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SizeWarp(Creature)
+OriginalSize = 0
+Wavelength = 1.0
+start
+	OriginalSize = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Creature
+	while WarpDone == 0 and Wavelength != 0
+		SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Creature = OriginalSize + (0.025*Wavelength)
+		Wavelength *= -1
+		Wavelength *= 0.95
+	end while
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Creature = OriginalSize  
+end script SizeWarp
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script AlignmentWarp(Creature)
+OriginalAlignment = 0
+Wavelength = 1.0
+start
+	OriginalAlignment = SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of Creature
+	while WarpDone == 0	and Wavelength != 0
+		SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of Creature = OriginalAlignment + (0.25*Wavelength)
+		wait 0.2 seconds
+		Wavelength *= -1
+		Wavelength *= 0.95
+	end while
+	SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of Creature = OriginalAlignment 
+end script AlignmentWarp
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureCurse(StrengthWonder, SizeWonder, AlignmentWonder, DrawWonder)
+DestinationAlignment = 0
+CurseActive = 0
+DrawCreaturePos = marker at [3123.7798, 9.3026, 2625.7500]
+Dust = 0
+start
+	MyCreature = get player 1 creature	 
+	if alignment of player < 0
+		DestinationAlignment = 1
+	else
+		DestinationAlignment = -1
+	end if
+
+	OriginalStrengthOfMyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature
+	OriginalSizeOfMyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	OriginalAlignmentOfMyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature
+	
+	CurseActive = 1
+	while CurseActive == 1
+		if ((get game time < 6) or (get game time > 18))
+			WarpDone = 0
+			MyCreature = get player 1 creature	 
+			Dust = create special effect SPOT_VISUAL_DUST at [MyCreature] time 8
+			SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 7.0								
+			if SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature > 0.2	and StrengthWonder exists
+				SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature -0.16
+				run background script StrengthWarp(MyCreature)
+			end if
+
+			if SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature	> 3 and SizeWonder exists
+				SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature - 1
+				run background script SizeWarp(MyCreature)
+			end if
+
+			if SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature > DestinationAlignment and AlignmentWonder exists
+				SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature - 0.4
+				run background script AlignmentWarp(MyCreature)
+			else  
+				SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature = SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature + 0.4
+				run background script AlignmentWarp(MyCreature)
+			end if 
+			
+			force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+			
+			begin dialogue
+				make good spirit cling across 0.0 down 0.5
+				make evil spirit cling across 1.0 down 0.5
+				//Changed to be from 3 to 6, as the creature doesn't really move too much into Nemesis's land.
+				say single line constant from HELP_TEXT_NEW_L5_CREATURE_CURSE_03 to HELP_TEXT_NEW_L5_CREATURE_CURSE_06
+				wait until read
+			end dialogue
+			
+			wait until MyCreature played
+			force MyCreature CREATURE_LOOK_AT_HAND MyCreature
+			wait until MyCreature played
+
+			if DrawWonder exists
+				if MyCreature leashed
+					force MyCreature CREATURE_LOOK_FOREVER DrawCreaturePos
+					wait 1 second
+					force MyCreature CREATURE_POINT_AT_OBJECT DrawCreaturePos
+					wait until MyCreature played
+					force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+					wait until MyCreature played
+					release MyCreature
+				else
+					move MyCreature position to [DrawCreaturePos]
+					//wait until MyCreature leashed or [MyCreature] near [DrawCreaturePos] radius 100 or get game time > 6
+					//release MyCreature
+				end if
+			end if 
+			WarpDone = 1
+			begin dialogue
+				eject good spirit
+				make good spirit point at [MyCreature]
+				//sy "He seems OK"
+				// "Phew! Our Creature seems to be all right."
+				say single line HELP_TEXT_NEW_L5_INTRO_13
+				wait until read
+				stop good spirit pointing
+				send good spirit home
+			end dialogue
+			release MyCreature
+			wait until get game time > 6 and get game time < 18
+		end if
+
+		if StrengthWonder not exists and SizeWonder not exists and AlignmentWonder not exists
+			CurseActive = 0
+		end if
+		
+	end while
+
+	while DrawWonder exists
+		if ((get game time < 6) or (get game time > 18))
+			MyCreature = get player 1 creature
+			if MyCreature leashed
+				force MyCreature CREATURE_LOOK_FOREVER DrawCreaturePos
+				wait 1 second
+				force MyCreature CREATURE_POINT_AT_OBJECT DrawCreaturePos
+				wait until MyCreature played
+				force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+				wait until MyCreature played
+				release MyCreature
+			else
+				move MyCreature position to [DrawCreaturePos]
+				//wait until MyCreature leashed or [MyCreature] near [DrawCreaturePos] radius 100 or get game time > 6
+				//release MyCreature
+			end if
+			wait until get game time > 6 and get game time < 18
+		end if
+	end while 
+end script CreatureCurse
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** DRAW CREATURE ****
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script DrawCreature
+
+ NemesisTownPos = marker at [3123.7798, 9.3026, 2625.7500]
+
+start
+
+	if MyCreature leashed
+		force MyCreature CREATURE_LOOK_FOREVER NemesisTownPos
+		wait 1 second
+		force MyCreature CREATURE_POINT_AT_OBJECT NemesisTownPos
+		wait until MyCreature played
+		force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+		wait until MyCreature played
+		release MyCreature
+	else
+		move MyCreature position to [NemesisTownPos]
+		wait until MyCreature leashed or [MyCreature] near [NemesisTownPos] radius 100
+		release MyCreature
+	end if
+
+end script DrawCreature
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MAIN ****
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script CreatureCurse2
+
+ Curse1 = 0
+ Curse2 = 0
+ Curse3 = 0
+ FirstNightCinema = 0
+ CurseActive = 0
+ Wonder1 = get HOUSE at [2662.947, 108.875, 3662.089] // Aztec
+ Wonder2 = get HOUSE at [2336.201, 38.860, 2579.996] //Greek
+ Wonder3 = get HOUSE at [1758.751, 95.554, 2337.428] //Tibetan
+ FirstEffect = 0
+ StrengthOfMyCreature = 0
+ FatnessOfMyCreature = 0
+ AlignmentOfMyCreature = 0
+// OriginalStrengthOfMyCreature = 0
+ OriginalFatnessOfMyCreature = 0
+// OriginalAlignmentOfMyCreature = 0
+ AlignmentModifier = 0
+ LastStrength = 0
+ LastFatness = 0
+ LastAlignment = 0
+ StrengthBonus = 0
+ FatnessBonus = 0
+ AlignmentBonus = 0
+ BeginPos = 0
+ BeginFoc = 0
+ NemesisTown = get TOWN at [3123.7798, 9.3026, 2625.7500] radius 100
+ NextHitTimer = create timer for 0 seconds
+
+start
+ OriginalStrengthOfMyCreature = STRENGTH of MyCreature
+ OriginalFatnessOfMyCreature = FATNESS of MyCreature
+ OriginalAlignmentOfMyCreature = ALIGNMENT of MyCreature
+
+	// sets the alignment modifier to morph the creature to Nemesis's alignment
+	if ALIGNMENT of MyCreature >= 0
+		AlignmentModifier = 0.2
+	else
+		AlignmentModifier = -0.2
+	end if
+
+	LastStrength = STRENGTH of MyCreature
+	LastFatness = FATNESS of MyCreature
+	LastAlignment = ALIGNMENT of MyCreature
+
+
+	while CurseActive == 0
+		wait 5 seconds
+
+		if STRENGTH of MyCreature > LastStrength
+			StrengthBonus += ((STRENGTH of MyCreature) - (LastStrength))
+		end if
+		if FATNESS of MyCreature > LastFatness
+			FatnessBonus += ((FATNESS of MyCreature) - (LastFatness))
+		end if
+		if ALIGNMENT of MyCreature > LastAlignment or ALIGNMENT of MyCreature < LastAlignment
+			AlignmentBonus += ((ALIGNMENT of MyCreature) - (LastAlignment))
+		end if
+
+
+		if ((get game time < 6) or (get game time > 18)) and get NextHitTimer time remaining <= 0
+			if FirstEffect == 0
+				if Wonder1 exists
+					// reduce strength
+					if STRENGTH of MyCreature > 0.2
+						STRENGTH of MyCreature -= 0.1
+					end if
+					StrengthOfMyCreature = STRENGTH of MyCreature
+				end if
+				if Wonder2 exists
+					// reduce Fatness
+					if FATNESS of MyCreature > 0.5
+						FATNESS of MyCreature -= 0.1
+					end if
+					FatnessOfMyCreature = FATNESS of MyCreature
+				end if
+				if Wonder3 exists
+					// modify alignment
+					if ALIGNMENT of MyCreature >= (AlignmentModifier * 5)
+						ALIGNMENT of MyCreature += AlignmentModifier
+					end if
+					AlignmentOfMyCreature = ALIGNMENT of MyCreature
+				end if
+
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [MyCreature]+[25,25,25]
+					set camera focus to [MyCreature]+[0,15,0]
+					eject evil spirit
+					make evil spirit point at [MyCreature]
+					//"Nemesis's curse has fucked up our creature a bit."
+					say single line HELP_TEXT_NEW_L5_CREATURE_CURSE_08
+					/// MAKE CREATURE SHUDDER
+					wait until read
+					stop evil spirit pointing
+					wait 1 second
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+				FirstEffect = 1
+			else
+				/// MAKE CREATURE SHUDDER
+
+				if Wonder1 exists
+					// reduce strength
+					if STRENGTH of MyCreature > 0.2
+						STRENGTH of MyCreature -= 0.1
+					end if
+					StrengthOfMyCreature = STRENGTH of MyCreature
+				end if
+				if Wonder2 exists
+					// reduce Fatness
+					if FATNESS of MyCreature > 0.5
+						FATNESS of MyCreature -= 0.1
+					end if
+					FatnessOfMyCreature = FATNESS of MyCreature
+				end if
+				if Wonder3 exists
+					// modify alignment
+					if ALIGNMENT of MyCreature >= (AlignmentModifier * 5)
+						ALIGNMENT of MyCreature += AlignmentModifier
+					end if
+					AlignmentOfMyCreature = ALIGNMENT of MyCreature
+				end if
+
+				run background script DrawCreature
+
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [MyCreature]
+					//"Nemesis's curse has fucked up our creature some more."
+					say HELP_TEXT_NEW_L5_CREATURE_CURSE_09
+					wait until read
+					stop evil spirit pointing
+					if not MyCreature leashed
+						//"He's heading into Nemesisville!"
+						say HELP_TEXT_NEW_L5_CREATURE_CURSE_10
+						wait until read
+					else
+						//"This must only happen at night."
+						say HELP_TEXT_NEW_L5_CREATURE_CURSE_11
+						wait until read
+					end if
+				end dialogue
+			end if
+
+			set NextHitTimer time to 60 seconds
+		end if
+
+		if Wonder1 not exists and Wonder2 not exists and Wonder3 not exists
+			CurseActive = 1
+		end if
+
+
+		LastStrength = STRENGTH of MyCreature
+		LastFatness = FATNESS of MyCreature
+		LastAlignment = ALIGNMENT of MyCreature
+
+	end while
+
+//	GulliversStrength = OriginalStrengthOfMyCreature + StrengthBonus
+//	GulliversFatness = OriginalFatnessOfMyCreature + FatnessBonus
+//	GulliversAlignment = OriginalAlignmentOfMyCreature + AlignmentBonus
+	
+
+	while CurseActive == 1
+		if ((get game time < 6) or (get game time > 18)) and get NextHitTimer time remaining <= 0
+			run background script DrawCreature
+			set NextHitTimer time to 60 seconds
+		end if
+
+		if PLAYER of NemesisTown == 1
+			CurseActive = 2
+		end if
+	end while
+
+end script CreatureCurse2
+
+
+
+

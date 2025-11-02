@@ -1,0 +1,1227 @@
+challenge FREE_THE_CREATURE
+
+global PrisonStatuesDeactivated
+global NumberOfFanaticsFinished
+global NumberOfFanaticsSaved
+global TotalFanatics = 16
+global GlobalFanaticCount = 1
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script WaitUntilTownTakenOver(Town)
+TownOwned = 0
+start
+	while TownOwned == 0
+		if get PLAYER of Town == 1
+			TownOwned = 1
+		end if
+		if Town not exists
+			TownOwned = 1
+		end if
+	end while
+end script WaitUntilTownTakenOver
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script GetRidOfWolf(Wolf)
+Cow = 0
+Effect = 0
+Delay = number from 1 to 4
+start
+	wait Delay seconds
+	move Wolf position to [Wolf]
+	Effect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Wolf] time 5
+	Cow = create ANIMAL BOVINE at [Wolf]
+	delete Wolf
+	release Cow
+end script GetRidOfWolf
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script WolfAttack
+Wolf = 0
+WolfPack = 0
+WolfPackPos = marker at [2464.678, 24.688, 2191.239]
+TargetPos = marker at [2774.974, 20.302, 2447.987]
+WolfPackArrived = 0
+Town = get TOWN at [2831.9900, 24.3933, 2547.2000] radius 100
+Monk = 0
+DeletedWolf = 0
+WolfStartCount = 20
+WolfCountAfterShaolin = 8
+start
+
+	// Make a seperate snapshot for the wolf attack
+	challenge WOLF_ATTACK
+
+	wait 300 seconds
+
+	run script WaitUntilTownTakenOver(Town)
+	if PrisonStatuesDeactivated != 3
+		WolfPack = flock at [WolfPackPos]
+		set WolfPack properties inner 5 outer 40
+
+		while size of WolfPack < WolfStartCount
+			Wolf = create ANIMAL ANIMAL_INFO_WOLF at [WolfPackPos]+[number from -20 to 20, number from -20 to 20]
+			attach Wolf to WolfPack
+		end while
+		
+		SPEED of WolfPack = 0.5
+		move WolfPack position to [TargetPos]
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_02
+			
+			set camera position to [2512.301, 33.021, 2258.650]
+			set camera focus to [WolfPack]
+			move camera focus follow WolfPack
+			say HELP_TEXT_L3_LETHYS_WOLVES_01
+			wait until read
+			say HELP_TEXT_L3_LETHYS_WOLVES_02
+			wait until read	
+			move camera position to [2499.993, 39.851, 2247.231] time 4
+			SPEED of WolfPack = 0.6
+			move WolfPack position to [TargetPos]
+
+			if MonkHasReachedEnd == 1
+				start music MUSIC_TYPE_TIBETAN_TOWN_GOOD
+				wait 4 seconds
+				Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [2522.070, 25.015, 2219.343] 
+				move camera position to [2522.740, 26.250, 2222.453] time 6 
+				move camera focus to [2522.267, 25.886, 2220.187] time 4 
+				set Monk focus to [2522.740, 26.250, 2222.453] 
+				wait until camera ready
+				Monk play ANM_P_AMBIENT2 loop 5
+				say HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_01
+				wait until read
+				say HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_02
+				wait until read
+				
+				//move WolfPack position to [WolfPack]
+				set camera position to [2636.963, 40.099, 2249.462] 
+				set camera focus to [WolfPack]
+				move camera focus follow WolfPack
+				//set camera position to [WolfPack]+[10, 10, 10]
+				//set camera focus to [WolfPack]
+				
+				while size of WolfPack > WolfCountAfterShaolin
+					DeletedWolf = detach from WolfPack
+					run background script GetRidOfWolf(DeletedWolf)
+				end while
+
+				say HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_03
+				wait until read
+				say HELP_TEXT_L3_MONK_19
+				wait until read
+				
+				//move camera position to [2512.220, 31.297, 2224.620] time 4
+				//move camera focus to [2537.478, 26.077, 2243.217] time 4
+				//wait until camera ready
+				delete Monk
+			else
+				wait 12 seconds
+			end if
+
+			close dialogue
+			wait 0.1 seconds
+			snapshot quest success 0 alignment 0 HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_02 StandardReminder(variable HELP_TEXT_BATTLE_ALERT_GA_05)
+			stop music
+		end cinema
+		Wolf = 0
+		while size of WolfPack > 0 and WolfPackArrived == 0
+			wait 5 seconds
+			Wolf = get ANIMAL ANIMAL_INFO_WOLF at [TargetPos] radius 25
+			if Wolf exists
+				release WolfPack
+				begin cinema
+					move camera position to [2757.205, 62.743, 2397.448] time 4
+					move camera focus to [TargetPos] time 2
+					wait until camera ready
+
+					// You have failed to save the town
+					snapshot quest success 1 alignment 0 HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_02 StandardReminder(variable HELP_TEXT_BATTLE_ALERT_GA_05)
+
+					eject good spirit	 
+					make good spirit point at [TargetPos]
+					say HELP_TEXT_L3_LETHYS_WOLVES_03 //"The wolves have reached the town!"
+					wait until read
+					say HELP_TEXT_L3_LETHYS_WOLVES_04 //The villagers are not impressed! You have lost their faith!"
+					wait until read
+					stop good spirit pointing
+					send good spirit home
+				end cinema
+				set Town player 2 relative belief 1.0		// Boost Computer player belief
+				set Town player 1 belief 0.3
+				WolfPackArrived = 1
+			end if
+		end while
+	end if
+
+	// You have saved the town  
+	update snapshot success 1 alignment 0 HELP_TEXT_L3_LETHYS_WOLVES_MONK_HELPS_02 StandardReminder(variable HELP_TEXT_BATTLE_ALERT_GA_05)
+	
+	// Reset back to the free the creature snapshot
+	challenge FREE_THE_CREATURE
+
+end script WolfAttack
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** FANATIC ATTACK ****
+begin script FanaticOnFire(Fanatic, FinalDestination)
+	RandomPosition = 0
+	RunLoop = 0 
+	SpeedOfFanatic = 0
+	FirstDestination = marker at [2886.344, 24.073, 2697.307] 
+	SecondDestination = marker at [2892.019, 24.128, 2758.634]+[number from -5 to 5, number from -5 to 5]
+	FirstDestinationReached = 0
+	MyFanaticNumber = 0
+	SaidIt = 0
+start
+	
+	// Make sure there is seperate snapshot for the fanatic attack
+	challenge FANATIC_ATTACK
+
+	MyFanaticNumber = GlobalFanaticCount
+	GlobalFanaticCount++
+	SpeedOfFanatic = number from 3 to 5
+	SPEED of Fanatic = SpeedOfFanatic/10
+	enable Fanatic on fire 1
+	
+	while RunLoop < 7
+		RandomPosition = marker at [Fanatic]+[number from -10 to 10, number from -10 to 10]
+		move Fanatic position to [RandomPosition] 
+		set Fanatic anim ANM_P_ON_FIRE_RUN
+		wait until [Fanatic] near [RandomPosition] radius 2
+		enable Fanatic on fire 1
+		RunLoop++
+	end while
+	move Fanatic position to [FirstDestination]
+	set Fanatic anim ANM_P_ON_FIRE_RUN
+	enable Fanatic on fire 1
+	
+	begin loop
+	
+		if FirstDestinationReached == 0
+			if [Fanatic] near [FirstDestination] radius 5
+				if MonkHasReachedEnd == 1
+					wait until MonkHelpWithFireFinished == 1
+				end if 
+				move Fanatic position to [SecondDestination]
+				set Fanatic anim ANM_P_ON_FIRE_RUN
+				FirstDestinationReached = 1
+			else
+				enable Fanatic on fire 1
+			end if 
+		elsif FirstDestinationReached == 1
+			if [Fanatic] near [SecondDestination] radius 5
+				move Fanatic position to [FinalDestination]
+				set Fanatic anim ANM_P_ON_FIRE_RUN
+				FirstDestinationReached = 2
+			end if 
+		elsif FirstDestinationReached == 2
+			if [Fanatic] near [FinalDestination] radius 2
+				wait 5 seconds
+				enable Fanatic hurt by fire
+			end if 
+		end if 
+
+		if Fanatic is HELD
+			wait until Fanatic is not HELD
+			if FirstDestinationReached == 2
+				move Fanatic position to [FinalDestination]
+			else
+				move Fanatic position to [SecondDestination]
+			end if
+			set Fanatic anim ANM_P_ON_FIRE_RUN
+		end if
+		if Fanatic is FLYING
+			wait until Fanatic is not FLYING
+			if FirstDestinationReached == 2
+				move Fanatic position to [FinalDestination]
+			else
+				move Fanatic position to [SecondDestination]
+			end if
+			set Fanatic anim ANM_P_ON_FIRE_RUN
+		end if 
+		
+		until not Fanatic exists
+		until not Fanatic on fire
+	end loop
+
+	//say "Fanatic Finished $d" with number MyFanaticNumber
+	//wait 4 seconds
+	
+	NumberOfFanaticsFinished++
+	if Fanatic exists
+		if HEALTH of Fanatic > 0
+			NumberOfFanaticsSaved++
+			attach Fanatic to JapTownL3
+			//Change to a better anim
+			//Fanatic play ANM_P_PANIC_MAN
+		//	wait 2 seconds
+		end if 
+	end if 
+
+	if NumberOfFanaticsFinished == TotalFanatics
+		begin cinema 
+			if Fanatic exists
+				if HEALTH of Fanatic > 0
+					move Fanatic position to [Fanatic]
+					set Fanatic focus to [Fanatic]+[10,10,10]
+					move camera position to [Fanatic]+[10,10,10] time 4
+					move camera focus to [Fanatic] time 2
+				end if
+			end if
+
+			if NumberOfFanaticsSaved == TotalFanatics
+				//"Thank you, mighty one! You saved us all!"
+				say single line HELP_TEXT_L3_LETHYS_FIREBALLS_06
+				wait until read
+				update snapshot success 1 alignment 1 HELP_TEXT_THROW_BLOKE_28 StandardReminder(variable HELP_TEXT_L3_LETHYS_FIREBALLS_05)
+			elsif NumberOfFanaticsSaved > 5
+				if Fanatic exists
+					if HEALTH of Fanatic > 0
+						//"Thank you! Although some of my friends died, you tried your best!"
+						say single line HELP_TEXT_L3_LETHYS_FIREBALLS_08
+						wait until read
+						update snapshot success 1 alignment 0 HELP_TEXT_THROW_BLOKE_28 StandardReminder(variable HELP_TEXT_L3_LETHYS_FIREBALLS_05)
+						SaidIt = 1
+					end if
+				end if
+				if SaidIt == 0
+					eject good spirit
+					//"Well, you saved some of them, but not all"
+					say single line HELP_TEXT_L3_LETHYS_FIREBALLS_09
+					wait until read
+					update snapshot success 1 alignment 0 HELP_TEXT_THROW_BLOKE_28 StandardReminder(variable HELP_TEXT_L3_LETHYS_FIREBALLS_05)
+					send good spirit home
+				end if 
+			else
+				eject evil spirit 
+				//"Well, you were a bit rubbish, really."
+				say single line HELP_TEXT_L3_LETHYS_FIREBALLS_07
+				wait until read
+				update snapshot success 1 alignment -0.8 HELP_TEXT_THROW_BLOKE_28 StandardReminder(variable HELP_TEXT_L3_LETHYS_FIREBALLS_05)
+				send evil spirit home
+			end if
+		end cinema
+	end if
+
+	if Fanatic exists
+		release Fanatic
+	end if
+
+	// Reset to the free the creature snapshot
+	challenge FREE_THE_CREATURE
+ 
+end script FanaticOnFire
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script FanaticAttack(Debug)
+	Fanatic1 = 0
+	Fanatic2 = 0
+	Fanatic3 = 0
+	Fanatic4 = 0
+	Fanatic5 = 0
+	Fanatic6 = 0
+
+	Fanatic7 = 0
+	Fanatic8 = 0
+	Fanatic9 = 0
+	Fanatic10 = 0
+	Fanatic11 = 0
+	Fanatic12 = 0
+	Fanatic13 = 0
+	Fanatic14 = 0
+	Fanatic15 = 0
+	Fanatic16 = 0
+
+	Fireball = 0
+	StartPos = marker at [2936.1108, 2.6800, 2596.2222]
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [StartPos]
+	//Town = get TOWN at [2829.1299, 41.7034, 2822.8000] radius 100
+	//StoragePit = get HOUSE at [2902.1230, 20.2884, 2825.0972]
+	//HouseOne = get HOUSE at [2867.5601, 28.1400, 2824.3301]
+	//Workshop = get HOUSE at [2893.2400, 21.8902, 2838.4399]
+	//FanaticDance = 0
+	LethysPos = marker at [3045.655, 50.0, 2573.824] 
+	Monk = 0
+
+	WaterSpell1 = 0
+	WaterSpell2 = 0
+	WaterSpell1Pos = marker at [2870.561, 28.260, 2718.009] 
+	WaterSpell2Pos = marker at [2872.954, 27.577, 2720.196]
+
+	TownCentre = marker at [2829.1299, 37.0908, 2822.8000]
+	JapaneseTempleX = marker at [2875.0400, 27.3520, 2798.3599]
+	JapaneseCreche = marker at [2826.4500, 32.4714, 2866.0400]
+	JapaneseStoragePit = marker at [2902.6599, 20.3748, 2823.2598]
+	WeatherCentre = marker at [2892.019, 24.128, 2758.634]
+
+start
+
+	// Make sure there is seperate snapshot for the fanatic attack
+	challenge FANATIC_ATTACK
+
+	if Debug == 0
+		wait 60 seconds	 
+	end if
+	if PrisonStatuesDeactivated != 3
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_NEMESIS
+			
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			pause computer player 2	
+			//TODO - put back in when we can compile with 'fixed height'
+			move computer player 2 to [LethysPos] speed 400	with fixed height
+			wait 2 seconds
+			set camera position to [2999.558, 47.449, 2638.544] 
+			set camera focus to [LethysPos] 
+			wait until camera ready
+			set fade in time 1
+			wait until fade ready
+
+			NumberOfFanaticsSaved = 0
+			NumberOfFanaticsFinished = 0
+
+			Fanatic1 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic2 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic3 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic4 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic5 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic6 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic7 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic8 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+
+			Fanatic7 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic8 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic9 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic10 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic11 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic12 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic13 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic14 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic15 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+			Fanatic16 = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [StartPos]+[number from -5 to 5, number from -5 to 5]
+
+
+			disable Fanatic1 hurt by fire
+			disable Fanatic2 hurt by fire
+			disable Fanatic3 hurt by fire
+			disable Fanatic4 hurt by fire
+			disable Fanatic5 hurt by fire
+			disable Fanatic6 hurt by fire
+			disable Fanatic7 hurt by fire
+			disable Fanatic8 hurt by fire
+			disable Fanatic9 hurt by fire
+			disable Fanatic10 hurt by fire
+			disable Fanatic11 hurt by fire
+			disable Fanatic12 hurt by fire
+			disable Fanatic13 hurt by fire
+			disable Fanatic14 hurt by fire
+			disable Fanatic15 hurt by fire
+			disable Fanatic16 hurt by fire
+
+			set Fanatic1 position to  [2935.085, 2.680, 2596.823] 
+			set Fanatic1 focus to [Campfire]
+			set Fanatic2 focus to [Campfire]
+			set Fanatic3 focus to [Campfire]
+			set Fanatic4 focus to [Campfire]
+			set Fanatic5 focus to [Campfire]
+			set Fanatic6 focus to [Campfire]
+			set Fanatic7 focus to [Campfire]
+			set Fanatic8 focus to [Campfire]
+			set Fanatic9 focus to [Campfire]
+			set Fanatic10 focus to [Campfire]
+			set Fanatic11 focus to [Campfire]
+			set Fanatic12 focus to [Campfire]
+			set Fanatic13 focus to [Campfire]
+			set Fanatic14 focus to [Campfire]
+			set Fanatic15 focus to [Campfire]
+			set Fanatic16 focus to [Campfire]
+			
+			Fanatic1 play ANM_P_PROD_CAMPFIRE loop -1
+			Fanatic2 play ANM_P_SITTING_DOWN2_SITTING loop -1
+			Fanatic3 play ANM_P_SITTING_DOWN1_SITTING loop -1
+			Fanatic4 play ANM_P_SLEEPING loop -1
+			Fanatic5 play ANM_P_YAWN loop -1
+			Fanatic6 play ANM_P_PUZZLED loop -1
+			Fanatic7 play ANM_P_PROD_CAMPFIRE loop -1
+			Fanatic8 play ANM_P_SITTING_DOWN2_SITTING loop -1
+			Fanatic9 play ANM_P_SITTING_DOWN1_SITTING loop -1
+			Fanatic10 play ANM_P_SLEEPING loop -1
+			Fanatic11 play ANM_P_YAWN loop -1
+			Fanatic12 play ANM_P_PUZZLED loop -1
+			Fanatic13 play ANM_P_PROD_CAMPFIRE loop -1
+			Fanatic14 play ANM_P_SITTING_DOWN2_SITTING loop -1
+			Fanatic15 play ANM_P_SITTING_DOWN1_SITTING loop -1
+			Fanatic16 play ANM_P_SLEEPING loop -1
+			
+
+			enable sound effects
+
+			//sy "I am Lethys! Look at how tough I am!"
+			say single line HELP_TEXT_L3_LETHYS_FIREBALLS_01 with interaction
+			wait until read
+			move camera focus to [Campfire] time 3
+			wait until camera ready
+			//"I notice some of your followers have strayed."
+			say HELP_TEXT_L3_LETHYS_FIREBALLS_02
+			
+			move camera position to [2948.981, 6.115, 2585.068] time 2
+			move camera focus to [Campfire] time 2
+			wait until read
+			wait 1 seconds
+
+			//Start the end bit.
+			set camera position to [2999.558, 47.449, 2638.544] 
+			set camera focus to [LethysPos] 
+
+			wait 1 seconds
+			//"They will DIE!! Ha Ha Ha !!!"
+			say HELP_TEXT_L3_LETHYS_FIREBALLS_03
+			wait until read
+
+			move camera position to [2917.143, 12.806, 2608.254] time 6
+			disable climate weather
+			delete all weather at [WeatherCentre] radius 150
+			wait 1.5 seconds
+			Fireball=cast SPELL_FIREBALL_LEVEL_1 spell at [2923.276, 6.302, 2602.000] from [LethysPos] radius 1.0 time 15 curl 0
+			Fireball=cast SPELL_FIREBALL_LEVEL_1 spell at [Campfire] from [LethysPos] radius 1.0 time 15 curl 0
+			Fireball=cast SPELL_FIREBALL_LEVEL_1 spell at [Fanatic3] from [LethysPos] radius 1.0 time 15 curl 0
+			//move camera focus follow Fireball
+			move  camera focus to [Campfire] time 4
+			wait until camera ready
+
+			MonkHelpWithFireFinished = 1
+			run background script FanaticOnFire(Fanatic1, TownCentre)
+			run background script FanaticOnFire(Fanatic2, JapaneseTempleX)
+			run background script FanaticOnFire(Fanatic3, JapaneseCreche)
+			run background script FanaticOnFire(Fanatic4, JapaneseStoragePit)
+			run background script FanaticOnFire(Fanatic5, TownCentre)
+			run background script FanaticOnFire(Fanatic6, JapaneseStoragePit)
+			run background script FanaticOnFire(Fanatic7, JapaneseStoragePit)
+			run background script FanaticOnFire(Fanatic8, TownCentre)
+			run background script FanaticOnFire(Fanatic9, TownCentre)
+			run background script FanaticOnFire(Fanatic10, TownCentre)
+			run background script FanaticOnFire(Fanatic11, JapaneseCreche)
+			run background script FanaticOnFire(Fanatic12, JapaneseStoragePit)
+			run background script FanaticOnFire(Fanatic13, JapaneseTempleX)
+			run background script FanaticOnFire(Fanatic14, JapaneseCreche)
+			run background script FanaticOnFire(Fanatic15, JapaneseStoragePit)
+			run background script FanaticOnFire(Fanatic16, TownCentre)
+			
+			wait 1 seconds
+			move camera position to [2908.105, 18.526, 2668.383] time 12
+			move camera focus to [2945.854, 3.818, 2604.430] time 4
+
+			close dialogue
+			wait 0.1 seconds
+			snapshot quest success 0 alignment 0 HELP_TEXT_THROW_BLOKE_28 StandardReminder(variable HELP_TEXT_L3_LETHYS_FIREBALLS_05)
+
+			eject good spirit
+			eject evil spirit
+			//"Ha! Your stupid villagers are running back to their homes!"
+			say HELP_TEXT_L3_LETHYS_FIREBALLS_05
+			wait until read
+			//"You'll have to be quick if you want to stop the iminnent inferno!"
+			say HELP_TEXT_L3_LETHYS_FIREBALLS_10
+
+			wait until read
+			close dialogue
+			wait until camera ready
+			
+			set fade red 0 green 0 blue 0 time 1
+			send good spirit home
+			send evil spirit home
+			wait until fade ready
+			
+			if MonkHasReachedEnd == 1
+				MonkHelpWithFireFinished = 0
+				set camera position to [2900.318, 25.373, 2720.446] 
+				set camera focus to [2913.408, 14.272, 2583.008] 
+				Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [2900.808, 24.379, 2715.447]  
+				set Monk focus to [2900.318, 25.373, 2720.446]
+				
+				WaterSpell1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_WATER at [WaterSpell1Pos]
+				WaterSpell2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_WATER at [WaterSpell2Pos]
+
+				Monk play ANM_P_AMBIENT2 loop 3
+				
+				wait until camera ready
+				set fade in time 1
+				wait until fade ready
+				say HELP_TEXT_L3_LETHYS_FIREBALLS_MONK_HELPS_01
+				wait until read
+				say HELP_TEXT_L3_LETHYS_FIREBALLS_MONK_HELPS_02
+				wait until read
+				move camera position to [2905.176, 31.234, 2725.706] time 4
+				move camera focus to [2880.473, 26.514, 2719.098] time 3
+				say HELP_TEXT_L3_LETHYS_FIREBALLS_MONK_HELPS_03
+				wait until read
+				say HELP_TEXT_L3_MONK_19
+				wait until read
+				wait until camera ready
+				wait 1 second
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				delete Monk
+			end if
+			
+			MonkHelpWithFireFinished = 1
+			set camera position to [2893.353, 41.250, 2779.501] 
+			set camera focus to [2893.955, 25.337, 2749.760] 
+			wait until camera ready
+			set fade in time 1
+			wait until fade ready
+			release computer player 2	
+		end cinema
+		while NumberOfFanaticsFinished < TotalFanatics
+		end while
+		stop music
+		enable climate weather
+	end if 
+
+	wait 20 seconds
+
+	// Reset to the free the creature snapshot
+	challenge FREE_THE_CREATURE
+
+end script FanaticAttack
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysCreatureActing (PrisonerPos)
+
+LethysCreature = get player 2 creature
+LethysCreatureStartPos = marker at [2039.2413, 88.7619, 2207.5432]
+LethysCreatureBlockPos = marker at [1963.800, 94.439, 2301.910]
+TortureCount = 0
+FreezeCount = 0
+Cattle = 0
+TenCount=0
+start
+	set LethysCreature position to [LethysCreatureStartPos]
+	set LethysCreature focus to [MyCreature]
+
+	while PrisonStatuesDeactivated < 3
+		EXHAUSTION of LethysCreature = 0
+		Cattle = get ANIMAL BOVINE at [LethysCreature] radius 50
+		if TenCount <= 0
+			start sound LH_SCRIPT_SAMPLE_CREATUREFROZENMOAN_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [MyCreature]
+			TenCount=10
+		else 
+			TenCount--
+		end if
+		if Cattle exists
+			// EAT COW
+			force LethysCreature CREATURE_STOMP_AND_EAT Cattle
+			wait until LethysCreature played
+		elsif [LethysCreature] near [MyCreature] radius 75
+			// Torture Sequence
+			if TortureCount == 0
+				ENERGY of LethysCreature = 1
+				// cast Fireball
+				force LethysCreature CREATURE_CAST_FIREBALL_PU1 MyCreature
+				TortureCount++
+			elsif TortureCount == 1
+				// cast lightning
+				ENERGY of LethysCreature = 1
+				force LethysCreature CREATURE_CAST_LIGHTNING_BOLT_PU1 MyCreature
+				TortureCount++
+			elsif TortureCount == 2
+				// cast itchy
+				ENERGY of LethysCreature = 1
+				force LethysCreature CREATURE_CAST_ITCHY_ON_CREATURE MyCreature
+				TortureCount = 0
+			end if
+			wait until LethysCreature played
+			wait 3 seconds
+		else
+			move LethysCreature position to [LethysCreatureStartPos]
+		end if
+	end while
+
+	LethysCreature play C_INDIVIDUAL_CONFUSED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_FRIGHTENED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_ANGRY
+	wait until LethysCreature played  
+	LethysCreature play C_INDIVIDUAL_CONFUSED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_FRIGHTENED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_ANGRY
+	wait until LethysCreature played  
+	LethysCreature play C_INDIVIDUAL_CONFUSED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_FRIGHTENED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_ANGRY
+	wait until LethysCreature played  
+	LethysCreature play C_INDIVIDUAL_CONFUSED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_FRIGHTENED
+	wait until LethysCreature played
+	LethysCreature play C_INDIVIDUAL_ANGRY
+	wait until LethysCreature played  
+
+
+	release LethysCreature	
+
+end script LethysCreatureActing
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//*** FREEZERAYSTATUE ****
+begin script FreezeRayStatue (Statue, Town, PrisonerPos, TownCameraPos, TownCameraFoc, StatueCameraPos)
+
+StatueActive = 0
+StatueHeight = 0
+FreezeRay = 0
+FreezeSpell = 0
+AwayFromCreaturePos = 0
+PlayerBelief = 0
+LethysBelief = 0
+BeliefDifference = 0
+StatuePos = marker at [Statue]+[0,8,0]
+BeginPos = 0
+BeginFoc = 0
+Dust = 0
+DustPos = marker at [Statue]+[0,0,0]
+Armageddon1 =0
+Armageddon2 =0
+Armageddon3 =0
+LongDownTextSeen = 0
+LongUpTextSeen = 0
+PlayerOfTown = 0
+LethysCreature = 0
+LethysAttackPos = marker at [2039.2413, 88.7619, 2207.5432]
+			
+CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature			// SPL
+
+start
+	while PrisonStatuesDeactivated < 3
+		wait 3 seconds
+		EXHAUSTION of MyCreature = 0
+
+		PlayerOfTown = get PLAYER of Town
+		if Town not exists									// Town destroyed
+			PlayerOfTown = 1
+		end if
+
+		if GlobalDebug == 1
+			StatueActive = 0
+			PlayerOfTown = 1
+		end if
+		
+		if PlayerOfTown == 1
+			if StatueActive == 0
+				PrisonStatuesDeactivated++
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				begin cinema
+					start music MUSIC_TYPE_SCRIPT_EPIC_03
+					if GlobalDebug == 0
+						move camera position to [TownCameraPos] time 4
+						move camera focus to [TownCameraFoc] time 4
+						wait until camera ready
+						wait 2 seconds
+
+						set fade red 0 green 0 blue 0 time 1
+						wait until fade ready
+						set camera position to [StatueCameraPos]
+// SPL Block
+						if Town == JapTownL3
+							set camera focus to [StatuePos] + [0, CreatureHeight / 4, 0]
+						else
+							set camera focus to [StatuePos]
+						end if
+// SPL Block End
+						wait until camera ready
+						
+						set fade in time 1
+						wait until fade ready
+
+// SPL - NOT NEEDED HERE						eject good spirit
+						eject evil spirit
+						
+						if PrisonStatuesDeactivated == 3
+					 		//Force the text to be seeen.
+							LongDownTextSeen = 1
+						else
+							make evil spirit point to Statue
+						end if
+
+						if LongDownTextSeen == 0
+							// EA: Look! When we took control of that Village, one of the Pillars fell.
+							say HELP_TEXT_L3_TAKE_OVER_TOWN_01
+						else
+							// EA: We've taken over the Village!
+							say HELP_TEXT_L3_TAKE_OVER_TOWN_05
+						end if
+
+						shake camera at [StatuePos] radius 150.0 amplitude 0.25 time 5
+						Dust = create special effect SPOT_VISUAL_SMOKE at [DustPos] time 5
+						SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 7.0					
+						start sound LH_SCRIPT_SAMPLE_CREATUREGATESTONEMOVE_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+						
+						while get ALTITUDE of Statue > -20
+							ALTITUDE of Statue-=0.25
+						end while
+
+						stop evil spirit pointing
+						wait until read
+// SPL Block
+						send evil spirit home
+
+						close dialogue
+						wait 0.5 seconds
+						snapshot quest success (PrisonStatuesDeactivated * 0.33) alignment 0 HELP_TEXT_L3_INTRO_10 StandardReminder(variable HELP_TEXT_L3_TAKE_OVER_TOWN_01)
+// SPL Block End						
+						if LongDownTextSeen == 0
+							eject good spirit						// SPL
+							// GA: If we manage to keep control of it, I reckon it will stay down!
+							say HELP_TEXT_L3_TAKE_OVER_TOWN_02
+							wait until read
+							if PrisonStatuesDeactivated == 1
+								// GA: There are two more pillars and two more Villages.  It's clear to me we should take those Villages, Leader.
+								say HELP_TEXT_EXTRA_GOOD_ADVISOR_02
+								wait until read
+							end if
+						end if
+					end if
+					
+					if PrisonStatuesDeactivated == 3
+						//Its free! Do the escape sequence.
+						// Lethys: Quickly, my Creature. Take that last Village back for me!
+						say HELP_TEXT_EXTRA_LETHYS_01
+						wait until read
+						move camera position to [2108.746, 145.771, 2286.125] time 4
+						move camera focus to [2019.605, 100.585, 2184.733] time 2
+						
+						eject good spirit							// SPL
+						eject evil spirit							// SPL
+
+						// GA: Our Creature's free but he's really hurt! Leash him and get him home. He needs rest.
+						say HELP_TEXT_EXTRA_GOOD_ADVISOR_03
+						wait until read
+						wait until camera ready
+
+						// EA: It's good to have the big guy back.
+						say HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_03
+						wait until read
+						
+						// GA: Yes. We're complete again.
+						say HELP_TEXT_EXTRA_GOOD_ADVISOR_04
+						wait until read
+
+						send good spirit home						// SPL
+						send evil spirit home						// SPL
+
+						LethysCreature = get player 2 creature
+/*						Armageddon1=cast SPELL_EXPLOSION_LEVEL_1 spell at [LethysCreature] from [LethysCreature]+[0,30,0]  radius 50.0 time 15 curl 0
+						wait 1 seconds
+						Armageddon2=cast SPELL_EXPLOSION_LEVEL_1 spell at [LethysCreature]+[11,0,3] from [LethysCreature]+[11,30,3]  radius 50.0 time 15 curl 0
+						wait 0.5 seconds
+						Armageddon3=cast SPELL_EXPLOSION_LEVEL_1 spell at [LethysCreature]+[4,0,20]  from [LethysCreature]+[4,30,20]  radius 50.0 time 15 curl 0
+*/
+						delete FreezeSpell
+						move camera focus to [PrisonerPos] time 4
+						force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+						wait until camera ready
+
+						close dialogue
+						wait 0.1 seconds
+						snapshot quest success 1 alignment 0 HELP_TEXT_L3_INTRO_10 StandardReminder(variable HELP_TEXT_L3_TAKE_OVER_TOWN_01)						
+
+						MyCreature play C_INDIVIDUAL_LOOK_AT_ME
+						wait until MyCreature played
+					 
+						move MyCreature position to [2215.423, 33.521, 2415.080]
+						move camera focus follow MyCreature
+						move camera position to [2276.174, 103.438, 2361.860] time 4
+						wait until camera ready
+
+						force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+						wait 1 seconds
+						MyCreature play C_INDIVIDUAL_FRIENDLY_WAVE
+						wait until MyCreature played
+						
+						// FREE THE CREATURE COMPLETELY FROM THE SCRIPT
+						release MyCreature
+						MyCreature = get player 1 creature
+						set computer player 2 personality "ReactToAggressiveCreature" 1 
+						ENERGY of MyCreature = 1
+						enable leash on MyCreature
+						enable creature in temple				
+					else
+						set fade red 0 green 0 blue 0 time 1
+						wait until fade ready
+						set camera position to [TownCameraPos]
+						set camera focus to [TownCameraFoc]
+						set fade in time 1
+						wait until fade ready
+					end if
+
+//	SPL				send good spirit home
+//	SPL				send evil spirit home
+					stop music
+					run SCRIPT_DEV_FUNCTION_CREATURE_HELP_OFF developer function 
+				end cinema
+				LongDownTextSeen = 1
+			end if
+			StatueActive = 1
+		else
+			if StatueActive == 1
+				PrisonStatuesDeactivated--
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				begin cinema
+					start music MUSIC_TYPE_SCRIPT_FAILURE
+					
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+					set camera position to [StatueCameraPos]
+
+					if Town == JapTownL3
+						set camera focus to [StatuePos] + [0, CreatureHeight / 4, 0]
+					else
+						set camera focus to [StatuePos]
+					end if
+
+					wait until camera ready
+					
+					set fade in time 1
+					wait until fade ready
+
+					eject good spirit
+					eject evil spirit
+					
+					make evil spirit point to Statue
+					
+					if LongUpTextSeen == 0
+						// GA: Disaster! We lost the Village!
+						say HELP_TEXT_L3_TAKE_OVER_TOWN_03
+					else
+						// GA: Oh no. A Village has been lost!
+						say HELP_TEXT_L3_TAKE_OVER_TOWN_06
+					end if
+
+					shake camera at [StatuePos] radius 150.0 amplitude 0.25 time 5
+					Dust = create special effect SPOT_VISUAL_SMOKE at [DustPos] time 5
+					SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 7.0					
+			
+					start sound LH_SCRIPT_SAMPLE_CREATUREGATESTONEMOVE_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+					while get ALTITUDE of Statue < 0
+						ALTITUDE of Statue+=0.25
+					end while
+
+					stop evil spirit pointing					
+					wait until read
+
+					if LongUpTextSeen == 0
+						// EA: The pillar's back, keeping our Creature imprisoned.
+						say HELP_TEXT_L3_TAKE_OVER_TOWN_04
+						wait until read
+					end if
+
+// SPL Block
+					send good spirit home
+					send evil spirit home
+
+					close dialogue
+					wait 0.5 seconds
+					snapshot quest success (PrisonStatuesDeactivated * 0.33) alignment 0 HELP_TEXT_L3_INTRO_10 StandardReminder(variable HELP_TEXT_L3_TAKE_OVER_TOWN_04)
+// SPL Block End
+					
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+					set fade in time 1
+					wait until fade ready
+	
+					stop music					
+					run SCRIPT_DEV_FUNCTION_CREATURE_HELP_OFF developer function 
+				end cinema
+				LongUpTextSeen = 1
+			end if
+			StatueActive = 0
+		end if
+
+		if StatueActive == 0 and [MyCreature] near [PrisonerPos] radius 15
+			/// get the position of the creature's chest then use that as the target
+			FreezeRay =  create special effect SPOT_VISUAL_MAGIC_BEAM on MyCreature time 3
+			start sound LH_SAMPLE_G_PLASMASMALL at [MyCreature]
+			add FreezeRay target on StatuePos
+			FreezeSpell = cast CREATURE_SPELL_FREEZE spell on MyCreature from [Statue] radius 0 time 3 curl 0
+		end if
+	end while
+	AwayFromCreaturePos = marker at get target from [PrisonerPos] to [Statue] distance 10 angle 0
+	set Statue focus to [AwayFromCreaturePos]
+	delete FreezeRay
+	delete FreezeSpell
+	stop sound LH_SAMPLE_G_PLASMASMALL
+end script FreezeRayStatue
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+// *** FREE THE CREATURE - MAIN ****
+begin script FreeTheCreature
+	LethysCreature = 0
+	Statue1 = get FEATURE FEATURE_INFO_PRISON_PILLAR_2 at [2067.0701, 80.8292, 2289.7700]
+	Statue2 = get FEATURE FEATURE_INFO_PRISON_PILLAR_3 at [2089.2600, 81.8892, 2254.0500]
+	Statue3 = get FEATURE FEATURE_INFO_PRISON_PILLAR_1 at [2041.8700, 84.6974, 2245.8601]
+	PrisonerPos = marker at [2062.2075, 83.7605, 2259.8464]
+	BeginPos = 0
+	BeginFoc = 0
+	WolfAttackActivated = 0
+	FanaticAttackActivated = 0
+	Town1CameraPos = marker at [2867.839, 84.282, 2796.466] 
+	Town1CameraFoc = marker at [2818.137, 41.048, 2833.104] 
+	Town2CameraPos = marker at [2827.757, 60.499, 2596.520]
+	Town2CameraFoc = marker at [2826.872, 19.634, 2527.063] 
+	Town3CameraPos = marker at [2242.499, 75.887, 2228.576]
+	Town3CameraFoc = marker at [2267.905, 27.757, 2178.495]
+	Statue1CameraPos = marker at [2073.003, 96.364, 2324.330]   
+	Statue2CameraPos = marker at [2121.658, 84.737, 2261.630] 
+	Statue3CameraPos = marker at [2020.365, 94.626, 2221.719] 
+	PlayerBelief = 0
+	LethysBelief = 0
+	LethysTown = get TOWN at [1846.9600, 120.9021, 2322.6499] radius 50
+	DustPos1 = marker at [Statue1]+[0,0,0]
+	DustPos2 = marker at [Statue2]+[0,0,0]
+	DustPos3 = marker at [Statue3]+[0,0,0]
+	Dust1 = 0
+	Dust2 = 0
+	Dust3 = 0
+	CreatureHeight = 0
+	VortexPos = marker at [2274.4810, 29.8098, 2043.0614]
+	CreatureFocusPos = marker at [2867.839, 84.282, 2796.466]
+	EnemyCitadel = get CITADEL at [1816.333, 145.390, 2090.176] radius 40
+	LethyTownInTrouble = 0
+	TargetBelief = 0
+start
+	LethysKilled = 0
+
+	enable Statue1 indestructible 
+	enable Statue2 indestructible 
+	enable Statue3 indestructible
+
+	PrisonStatuesDeactivated = 0
+
+	MyCreature = get player 1 creature
+	set MyCreature position to [PrisonerPos]
+	set MyCreature focus to [CreatureFocusPos]				// Towards my Citadel
+	disable leash on MyCreature
+	enable MyCreature indestructible
+	HEALTH of MyCreature = 0.1
+	LethysCreature = get player 2 creature
+	  
+	run background script FreezeRayStatue (Statue1, JapTownL3, PrisonerPos, Town1CameraPos, Town1CameraFoc, Statue1CameraPos)
+	run background script FreezeRayStatue (Statue2, IndianTownL3, PrisonerPos, Town2CameraPos, Town2CameraFoc, Statue2CameraPos)
+	run background script FreezeRayStatue (Statue3, EgyptTownL3, PrisonerPos, Town3CameraPos, Town3CameraFoc, Statue3CameraPos)
+	run background script LethysCreatureActing (PrisonerPos)
+
+	while PrisonStatuesDeactivated < 3
+		
+		if PrisonStatuesDeactivated == 1 and JapTownL3 exists and get PLAYER of JapTownL3 == 1
+			if FanaticAttackActivated == 0
+				run background script FanaticAttack(0)
+				FanaticAttackActivated = 1
+			end if 
+		end if
+		
+		if PrisonStatuesDeactivated == 2 and IndianTownL3 exists and get PLAYER of IndianTownL3 == 1
+			if WolfAttackActivated == 0
+				run background script WolfAttack
+				WolfAttackActivated = 1
+
+				if MonkHasReachedEnd == 1
+					run background script ShaolinGivesWonder
+				end if
+			end if
+		end if 
+	end while	 
+	
+	disable MyCreature indestructible
+	TargetBelief = get LethysTown belief for player 2
+	TargetBelief = TargetBelief/2
+	wait 300 seconds
+	while LethyTownInTrouble == 0
+		PlayerBelief = get LethysTown belief for player 1
+		LethysBelief = get LethysTown belief for player 2
+		if LethysBelief - PlayerBelief < TargetBelief
+			LethyTownInTrouble=1
+		elsif PlayerBelief > 400
+			LethyTownInTrouble=1
+		end if
+	end while
+	
+	//Temporary  stuff, in case we have cheated.
+	ALTITUDE of Statue1 = -20
+	ALTITUDE of Statue2 = -20
+	ALTITUDE of Statue3 = -20
+
+	set fade red 0 green 0 blue 0 time 1
+	wait until fade ready
+	wait until camera ready
+	
+	set LethysCreature position to [2266.074, 31.835, 2448.794]
+	set MyCreature position to [2266.074, 31.835, 2448.794]
+	
+	disable leash on MyCreature
+	disable leash on LethysCreature
+
+	enable MyCreature indestructible
+	pause computer player 2	
+	//TODO - put back in when we can compile with 'fixed height'
+	move computer player 2 to [PrisonerPos]+[0,20,0] speed 400  with fixed height
+
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	MyCreature = get player 1 creature
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_02
+		
+		set camera position to [2230.935, 75.425, 2396.991]	
+		set camera focus to [2027.801, 88.654, 2231.080] 
+		set fade in time 1
+		wait until fade ready
+		say single line HELP_TEXT_L3_LETHYS_GIVES_CREED_01
+		wait until read
+		move camera position to [2114.960, 122.567, 2296.021] time 7
+		move camera focus to [2046.008, 84.811, 2248.042] time 6
+		
+		shake camera at [PrisonerPos] radius 300.0 amplitude 0.25 time 5
+		
+		Dust1 = create special effect SPOT_VISUAL_SMOKE at [DustPos1] time 5
+		Dust2 = create special effect SPOT_VISUAL_SMOKE at [DustPos2] time 5
+		Dust3 = create special effect SPOT_VISUAL_SMOKE at [DustPos3] time 5
+
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust1 = 7.0					
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust2 = 7.0					
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust3 = 7.0					
+		
+		while get ALTITUDE of Statue1 < 0
+			ALTITUDE of Statue1+=0.25
+			ALTITUDE of Statue2+=0.25
+			ALTITUDE of Statue3+=0.25
+		end while
+		wait until camera ready
+		move camera position to [2114.960, 50.567, 2296.021] time 20
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_02
+		wait until read
+		move camera position to [2079.801, 103.315, 2271.556] time 3
+		wait until camera ready
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_03
+		wait until read
+		move  camera position to [2114.960, 122.567, 2296.021]	time 3
+		//TODO - put back in when we can compile with 'fixed height'
+		move computer player 2 to [2033.911, 93.434, 2188.468] speed 50 with fixed height
+		wait 2 seconds
+		set fade red 255 green 255 blue 255 time 1
+		wait until fade ready
+		wait until camera ready	   
+		
+		//Set the creature back into its orignal position.
+		set MyCreature position to [PrisonerPos]
+		set MyCreature focus to [CreatureFocusPos]
+		set MyCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 0.1 time 0.0
+		wait 1 second
+
+		set fade in time 1
+		wait until fade ready
+		move camera position to [2095.255, 76.847, 2297.360] time 8
+		move camera focus to [PrisonerPos]+[0,1.3*CreatureHeight,0] time 4
+		wait until camera ready
+		wait 2 seconds
+		set MyCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 1.0 time 0.0
+		move camera position to [2105.245, 78.381, 2271.109] time 20
+		wait 4 seconds
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_04
+		wait until read
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_05
+		wait until read
+		
+		//Create the vortex here.
+		run background script LeaveThroughVortexL3(VortexPos)
+		
+		move camera position to [2196.528, 133.908, 2180.823] time 5
+		move camera focus to [VortexPos] time 5
+		wait until camera ready
+		wait 2 seconds
+
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_06
+		wait until read
+		move camera focus to [2020.104, 98.841, 2191.016] time 3
+		wait until camera ready
+		move camera position to [2055.313, 109.787, 2185.447] time 10
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_07
+		wait until read
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_08
+		wait until read
+		set MyCreature creed properties hand HAND_GLOW_ABOVE scale 0.0 power 0.0 time 0.0
+		stop music
+	end cinema
+	disable MyCreature indestructible
+	release MyCreature
+	enable leash on MyCreature
+	enable leash on LethysCreature
+	release computer player 2
+
+	run script WaitUntilTownTakenOver(LethysTown)
+	
+	pause computer player 2	
+	begin cinema
+		//start music MUSIC_TYPE_SCRIPT_NEMESIS
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		move camera position to [1816.680, 153.411, 2286.196] time 4
+		move camera focus to [1865.086, 117.621, 2316.185] time 4
+		move computer player 2 to [1776.720, 165.375, 2185.003] speed 300 with fixed height
+		wait until camera ready	
+		wait 2 seconds
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera position to [1760.502, 183.478, 2198.443] 
+		set camera focus to [1807.156, 155.245, 2163.621] 
+		set fade in time 1
+		wait until fade ready
+
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_09
+		wait until read
+		say HELP_TEXT_L3_LETHYS_GIVES_CREED_10
+		wait until read
+
+		//Explode the citadel
+		delete EnemyCitadel with temple explode
+
+		set camera position to [1747.948, 225.850, 2164.309]
+		set camera focus to [1819.162, 146.002, 2089.207] 
+		wait 4 second 
+
+		set camera position to [1728.013, 217.779, 2013.370] 
+		set camera focus to [1821.198, 145.885, 2098.693] 
+		wait 6 second
+
+		set camera position to [1764.540, 183.295, 1988.758] 
+		set camera focus to [1836.488, 145.916, 2136.782] 
+		wait 16 second
+		disable computer player 2
+		stop music
+		say HELP_TEXT_EXTRA_GOOD_ADVISOR_05
+		wait until read
+		say HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_04
+		wait until read
+		say HELP_TEXT_EXTRA_GOOD_ADVISOR_06
+		wait until read
+	end cinema
+	LethysKilled = 1
+end script FreeTheCreature

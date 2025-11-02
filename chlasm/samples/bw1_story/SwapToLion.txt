@@ -1,0 +1,117 @@
+challenge SWAP_TO_LION
+
+//run script SwapToLion
+
+begin script SwapToLion
+	
+	FlockPosition = marker at [2472.4678, 23.4448, 2407.5295]
+	Tamer = create VILLAGER MALE at [FlockPosition] + [2,2]
+	Lion = create ANIMAL LION at [FlockPosition]
+	LionFinished = 0
+	MyTimer = create timer for 0 seconds
+	Cattle = 0
+	LionCreature = 0
+	LionMarker = 0
+	Approach = 0
+	SFX=0
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [Lion]
+
+
+start	 // This script should be placed outside of your influence, so that you are unable to pick up the lion. 
+
+	run script ChallengeHighlightNotify(Highlight, FlockPosition, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_28)
+
+		begin cinema
+			move camera position to [FlockPosition] + [10,10,10] time 4
+			move camera focus to [Tamer] time 3
+			eject good spirit
+			make evil spirit cling across 0.2 down 1
+			say HELP_TEXT_SWAP_TO_LION_01
+			wait until read
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_LION_02
+			wait until read
+			make good spirit cling across 0.8 down 1
+			say HELP_TEXT_SWAP_TO_LION_03
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_04
+			wait until read
+			eject good spirit
+			say HELP_TEXT_SWAP_TO_LION_05
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_06
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_07
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_08
+			wait until read
+		end cinema
+
+while LionFinished == 0
+
+	if HEALTH of Lion <= 0
+		begin cinema
+			say HELP_TEXT_SWAP_TO_LION_09
+			wait until read
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_LION_10
+			wait until read
+		end cinema
+		LionFinished = 1
+	end if
+	
+	if get MyTimer time remaining <= 0
+		Cattle  = get ANIMAL BOVINE at [Lion] radius 30
+		set MyTimer time to 3 seconds
+	end if
+
+	if Cattle exists and Approach == 0
+			move Lion position to [Cattle]
+			Approach = 1
+	end if
+	
+	if [Lion] not near [Tamer] radius 3 and Lion is HELD
+		begin dialogue
+			say "Picked up Lion"
+			wait until read
+		end dialogue
+	end if
+
+	if [Lion] not near [Tamer] radius 3 and Lion is not HELD and Lion is not FLYING and HEALTH of Lion == 1	and Tamer is not HELD
+		begin cinema
+			move camera position to [FlockPosition] + [4,4,4] time 4
+			move camera focus to [Cattle] time 3
+			say HELP_TEXT_SWAP_TO_LION_11
+			wait until read
+			LionMarker = marker at [Lion]
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [LionMarker] time 4
+			delete Lion
+			LionCreature = create CREATURE CREATURE_TYPE_LION at [LionMarker] 
+			say HELP_TEXT_SWAP_TO_LION_12
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_13
+			wait until read
+			say HELP_TEXT_SWAP_TO_LION_14
+			wait until read	 
+			eject good spirit
+			say HELP_TEXT_SWAP_TO_LION_15
+			wait until read
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_LION_16
+			wait until read
+		end cinema
+		LionFinished = 2
+	end if
+
+end while 
+
+	if LionFinished == 2
+		run script SwapCreatures(LionCreature)
+		snapshot challenge success 1.0 alignment 1.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_28)
+	else
+		snapshot challenge success 1.0 alignment -1.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_28)
+	end if
+
+end script SwapToLion
+

@@ -1,0 +1,12 @@
+challenge RunStormBrewing
+
+run script RunStormBrewing
+
+begin script RunStormBrewing
+	
+start
+	
+	run script StormBrewing
+	
+
+end script RunStormBrewing

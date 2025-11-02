@@ -1,0 +1,12 @@
+challenge RunRace
+
+run script RunRace
+
+begin script RunRace
+	
+start
+	
+	run script Race
+	
+
+end script RunRace

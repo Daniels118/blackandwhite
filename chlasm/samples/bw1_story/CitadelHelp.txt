@@ -1,0 +1,373 @@
+challenge CITADEL_HELP
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+global WorldRoomHelpBeenSeen
+global WorldRoomScrollHelpBeenSeen
+global CreatureRoomHelpBeenSeen
+global CreatureRoomHelpActionsLearntBeenSeen
+global CreatureRoomHelpMagicBeenSeen
+global CreatureRoomHelpLikesBeenSeen
+global CreatureRoomHelpAttributesBeenSeen
+global CreatureRoomAttackDummiesBeenSeen
+global CreatureRoomMagicPlinthsSeen
+global CreatureRoomLikesPlinthsSeen
+global SaveGameRoomHelpBeenSeen
+global SaveGameRoomLoadHelpBeenSeen
+global SaveGameRoomScrollHelpBeenSeen
+global ChallengeRoomHelpBeenSeen
+global ChallengeRoomScrollBeenSeen
+global CreditsRoomHelpBeenSeen
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelWorldRoomHelp
+	start
+		if WorldRoomHelpBeenSeen==0
+			WorldRoomHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_01
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_02
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_03
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_04
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_05
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_06
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_11
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_12
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_13
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelWorldRoomHelp
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelWorldRoomScrollHelp
+	start
+		if WorldRoomScrollHelpBeenSeen==0
+			WorldRoomScrollHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_09 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_10 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelWorldRoomScrollHelp				
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelWorldRoomNotAvailable
+	start
+		begin dialogue
+			eject good spirit
+			eject evil spirit
+			say HELP_TEXT_NEW_TEMPLE_WELCOME_14
+			wait until read
+			say HELP_TEXT_NEW_TEMPLE_WELCOME_15
+			wait until read
+			send good spirit home
+			send evil spirit home
+		end dialogue
+end script CitadelWorldRoomNotAvailable
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomHelp
+	start
+		if CreatureRoomHelpBeenSeen==0
+			CreatureRoomHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_30 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_31 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomHelp
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomActionsLearntScroll
+	start
+		if CreatureRoomHelpActionsLearntBeenSeen==0
+			CreatureRoomHelpActionsLearntBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_32 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_33 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomActionsLearntScroll
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomMagicScroll
+	start
+		if CreatureRoomHelpMagicBeenSeen==0
+			CreatureRoomHelpMagicBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_34 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_35 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomMagicScroll
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomLikesScroll
+	start
+		if CreatureRoomHelpLikesBeenSeen==0
+			CreatureRoomHelpLikesBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_36 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_37 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomLikesScroll
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomAttributesScroll
+	start
+		if CreatureRoomHelpAttributesBeenSeen==0
+			CreatureRoomHelpAttributesBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_38 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_39 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomAttributesScroll
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomAttackDummies
+	start
+		if CreatureRoomAttackDummiesBeenSeen==0
+			CreatureRoomAttackDummiesBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_42 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_43 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomAttackDummies
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomMagicPlinths
+	start 
+		if CreatureRoomMagicPlinthsSeen==0
+			CreatureRoomMagicPlinthsSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_44 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_45 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomMagicPlinths
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreatureRoomLikesPlinths
+	start
+		if CreatureRoomLikesPlinthsSeen==0
+			CreatureRoomLikesPlinthsSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_46 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_47 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreatureRoomLikesPlinths
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelChallengeRoomHelp
+	start
+		if ChallengeRoomHelpBeenSeen==0
+			ChallengeRoomHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_16 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_17 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_18 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_19 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelChallengeRoomHelp
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelChallengeRoomScrollHelp
+	start
+		if ChallengeRoomScrollBeenSeen==0
+			ChallengeRoomScrollBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_41
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_20 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelChallengeRoomScrollHelp
+		
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelSaveGameRoomHelp
+	start
+		if SaveGameRoomHelpBeenSeen==0
+			SaveGameRoomHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_21 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_22 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_23
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_24 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelSaveGameRoomHelp
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelSaveGameRoomLoadHelp
+	start
+		if SaveGameRoomLoadHelpBeenSeen==0
+			SaveGameRoomLoadHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_26 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_27 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelSaveGameRoomLoadHelp
+
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelSaveGameRoomScrollHelp
+	start
+		if SaveGameRoomScrollHelpBeenSeen==0
+			SaveGameRoomScrollHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_25 
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_40 
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if 
+end script CitadelSaveGameRoomScrollHelp
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+begin temple help script CitadelCreditsRoomHelp
+	start
+		if CreditsRoomHelpBeenSeen==0
+			CreditsRoomHelpBeenSeen=1
+			begin cinema
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_48
+				wait until read
+				say HELP_TEXT_NEW_TEMPLE_WELCOME_49
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end cinema
+		end if
+end script CitadelCreditsRoomHelp
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+

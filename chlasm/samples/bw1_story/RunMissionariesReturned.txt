@@ -1,0 +1,13 @@
+challenge RunMissionariesReturned
+
+run script RunMissionariesReturned
+
+begin script RunMissionariesReturned
+	
+start
+
+	ArkSailed = 1	
+	run script MissionariesReturned
+	
+
+end script RunMissionariesReturned

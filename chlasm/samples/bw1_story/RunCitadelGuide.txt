@@ -1,0 +1,10 @@
+run script RunCitadelGuide
+
+begin script RunCitadelGuide
+	
+start
+	run script SetupLand1
+	run background script CitadelGuide
+
+end script RunCitadelGuide
+

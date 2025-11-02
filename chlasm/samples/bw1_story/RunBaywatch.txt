@@ -1,0 +1,13 @@
+challenge RunBaywatch
+
+run script RunBaywatch
+
+begin script RunBaywatch
+	
+start
+	MyCreature=get player 1 creature
+	run script SetupLand2
+	run script BaywatchMain
+	
+
+end script RunBaywatch

@@ -1,0 +1,12 @@
+challenge RunTheStorm
+
+run script RunTheStorm
+
+begin script RunTheStorm
+	
+start
+	
+	run script TheStorm
+	
+
+end script RunTheStorm

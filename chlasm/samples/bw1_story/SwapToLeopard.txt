@@ -1,0 +1,58 @@
+challenge SWAP_TO_LEOPARD
+
+begin script SwapToLeopard
+	LeopardPos = marker at [3404, 12, 3659]
+	Leopard = 0
+	Highlight = 0
+
+start
+
+	MyCreature = get player 1 creature
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_29 StandardReminder(variable HELP_TEXT_REMINDER_27)
+
+	
+	wait until [LeopardPos] not viewed
+	Leopard = create CREATURE CREATURE_TYPE_LEOPARD at [LeopardPos]
+	force Leopard CREATURE_IDLE Leopard
+	set Leopard focus to [LeopardPos] + [8, 6, 2]
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [LeopardPos]
+	run script ChallengeHighlightNotify(Highlight, LeopardPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+
+	begin cinema
+		move camera focus to [LeopardPos] time 2
+		move camera position to [LeopardPos] + [8, 6, 2] time 4
+		wait until camera ready
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_SWAP_TO_LEOPARD_01
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_02
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_03
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_04
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_05
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_06
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_07
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_08
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_09
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_10
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_11
+		wait until read
+		say HELP_TEXT_SWAP_TO_LEOPARD_12
+		wait until read
+	end cinema
+
+	run background script SwapCreatures(Leopard)
+
+snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_29 StandardReminder(variable HELP_TEXT_REMINDER_27)
+
+end script SwapToLeopard

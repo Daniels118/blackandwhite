@@ -1,0 +1,28 @@
+run script RunLearnWorshipping
+
+begin script RunLearnWorshipping
+	Town = get TOWN at [3231, 3396] radius 5
+	VortexPos = marker at [3379.6926, 3239.9321]
+	FlockPos = marker at [3157.7632, 18.6187, 3226.7483]
+	CreaturePos = marker at [3366.689, 77.720, 3260.873] //change this if needed
+	Citadel=0
+
+start
+	run script SetupLand2
+
+	//Do what land 2 beginning does.
+	run script StartEnterLand2(Town)
+	begin cinema
+		run script OpenVortex(VortexPos, Town, FlockPos, CreaturePos)
+		run script GiveScaffold
+	end cinema
+	run script EndEnterLand2
+	Citadel = get CITADEL at [3361.2600, 77.0500, 3241.8501] radius 10
+	BUILT of Citadel = 1
+	release MyCreature
+	run script GiveOtherScaffolds
+	run script SetUpComputerPlayersAtStartOfLand2
+
+	run script LearnWorshipping
+
+end script RunLearnWorshipping

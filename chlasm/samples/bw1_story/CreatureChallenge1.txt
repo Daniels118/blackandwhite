@@ -1,0 +1,24 @@
+challenge CREATURE_CHALLENGE_1
+run script CreatureChallengeOne
+
+begin script CreatureChallengeOne
+	LittleCreature1 = create CREATURE CREATURE_TYPE_APE at [2528.38, 64.21, 3239.36]
+	LittleCreature2 = create CREATURE CREATURE_TYPE_APE at [2600.71, 93.83, 3180.77]
+	LittleCreature3 = create CREATURE CREATURE_TYPE_APE at [2554.65, 45.56, 3267.63]
+	BigCreature = create CREATURE CREATURE_TYPE_APE at [2503.11, 45.74, 3339.67]
+	Prize = create OBJECT ROCK at [2558.68, 58.08, 3384.56]
+	Rock1 = create OBJECT ROCK at [2526.26, 66.07, 3248.74]
+	Rock2 = create OBJECT ROCK at [2624.49, 95.60, 3198.44]
+	Rock3 = create OBJECT ROCK at [2634.64, 93.13, 3197.38]
+	MyCreature = get player 1 creature
+	MyCreatureStart = marker at [2525.33, 30.82, 3118.75]
+	Timer = 0
+start
+	set MyCreature position to [MyCreatureStart]
+	say "Challenge started!"
+	wait until read
+	Timer = create timer for 600 seconds
+	while get Timer time remaining > 0
+		wait 2 seconds
+	end while
+end script CreatureChallengeOne

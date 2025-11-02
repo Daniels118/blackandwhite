@@ -1,0 +1,21 @@
+challenge TAKE_CREED_1
+
+//run script TakeCreed1
+
+begin script TakeCreed1
+
+
+start
+
+	begin dialogue
+
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_TAKE_CREED1_01
+		wait until read
+		say HELP_TEXT_TAKE_CREED1_02
+		wait until read
+
+	end dialogue
+
+end script TakeCreed1

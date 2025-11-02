@@ -1,0 +1,34 @@
+challenge LandControl1SL
+
+run script LandControl1SL
+
+begin script LandControl1SL
+
+start
+    disable player 1 virtual influence 	
+	run background script SingingStonesA
+	//run script FollowUs
+
+	//run background script ThrowingStones
+	//run background script LostBrother
+
+	//run script ChooseYourCreature
+	//run background script HermitMain
+	run background script CreatureRetrieve
+	run background script TheLostFlock
+	run background script PiedPiper
+	run background script TheMissionaries
+
+	run background script CreatureSavingPeople
+	run background script BigFish
+	run background script Landslide
+	run background script CreatureGuardian
+
+	run	script TakeOverVillagesL1
+
+	//TODO wait until Aztec believe in you
+	run script Sacrifice
+	run script TheStorm
+	run script LeaveThroughVortexL1
+
+end script LandControl1SL

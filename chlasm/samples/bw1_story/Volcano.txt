@@ -1,0 +1,13 @@
+challenge VOLCANO
+
+begin script Volcano
+
+	VolcanoLocation = marker at [3920.2275, 119.9300, 2153.4255]
+	Vortex=0
+	
+start
+
+	Vortex=create VORTEX VORTEX_TYPE_VOLCANO at [VolcanoLocation]
+				
+end script Volcano
+

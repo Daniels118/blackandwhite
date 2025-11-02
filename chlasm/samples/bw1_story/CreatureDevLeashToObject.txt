@@ -1,0 +1,144 @@
+challenge CREATURE_DEV_LEASH_TO_OBJECT
+
+ run script CreatureDevLeashToObject
+
+
+begin script CreatureDevLeashToObject
+
+CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+CitadelPos = marker at [1915.0500, 18.0900, 2508.8899]
+
+CamPosStart = marker at [1889.0249, 24.6771, 2520.1731]
+//CamPos1 = marker at [1892.8262, 28.3515, 2523.9858]
+
+AtEntranceDoorway = marker at [1901.1814, 18.0900, 2518.2144]
+
+CreatureThirstInitial = 0
+CreatureThirstNow = 0
+BodgeTimer = 0
+DeleteTrainer = 0
+
+BeginPos = 0
+BeginFoc = 0
+
+Tree = 0
+TreePos = 0
+TreeRadius = 20
+
+MyCreaturePosNow = 0
+
+LeashWorn = 0
+LeashGeneralCamPos = marker at [1888.4222, 32.4572, 2548.1287]
+LeashGeneralFoc = marker at [1892.5463, 18.6684, 2529.1077]
+RopeLeashPos = marker at [1893.1687, 28.2529, 2539.7876]
+RopeLeashFoc = marker at [1892.8118, 18.7969, 2530.3342]
+AngerLeashPos = marker at [1901.2781, 27.4053, 2537.0754]
+AngerLeashFoc = marker at [1894.2542, 18.7437, 2529.9402]
+ChillLeashPos = marker at [1884.9207, 30.9381, 2540.8308]
+ChillLeashFoc = marker at [1890.8425, 18.7443, 2528.0415]
+
+
+start
+	disable Trainer moveable
+	disable Trainer pickup
+//	TreePos = marker at [MyCreature]+[10,10]
+	while Tree not exists
+		TreeRadius = TreeRadius + 5
+		Tree = get TREE at [MyCreature] radius TreeRadius
+	end while
+	disable Tree moveable
+	disable Tree pickup
+	
+	begin cinema
+		set camera position to [MyCreature]+[35,28,35]
+		set camera focus to [MyCreature]
+		MyCreaturePosNow = marker at [MyCreature]
+		force MyCreature CREATURE_SIT MyCreaturePosNow
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_01
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_02
+		wait until read
+		send good spirit home
+		send evil spirit home
+		move Trainer position to [AtEntranceDoorway]
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		wait 3 seconds
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_03
+		wait until read
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_04
+		wait until read
+		attach MyCreature leash to Tree
+		set camera position to [MyCreature]+[45,30,45]
+		set camera focus to [MyCreature]
+		begin dual camera to MyCreature Tree
+			say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_05
+			wait until read
+			say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_06
+			wait until read
+			detach MyCreature leash
+			wait 2 seconds
+			detach MyCreature leash
+			wait until camera ready
+		end dual camera
+	end cinema
+
+	/// BODGE TIMER!!
+	BodgeTimer = create timer for 60 seconds
+	while LeashWorn == 0 and get BodgeTimer time remaining > 0
+		wait 1 second
+		HEALTH of Trainer = 1
+/*
+		if MyCreature leashed to Trainer
+			LeashWorn = 1
+		end if
+*/
+	end while
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		wait 3 seconds
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_07
+		wait until read
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_08
+		wait until read
+		set camera position to [LeashGeneralCamPos]
+		set camera focus to [LeashGeneralFoc]
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_09
+		wait until read
+		move camera position to [RopeLeashPos] time 3
+		move camera focus to [RopeLeashFoc] time 3
+		wait until camera ready
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_10
+		wait until read
+		move camera position to [AngerLeashPos] time 3
+		move camera focus to [AngerLeashFoc] time 3
+		wait until camera ready
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_11
+		wait until read
+		move camera position to [ChillLeashPos] time 3
+		move camera focus to [ChillLeashFoc] time 3
+		wait until camera ready
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_OBJECT_12
+		wait until read
+		wait 1 second
+		move Trainer position to [CitadelPos]
+		detach MyCreature leash
+		wait 1 second
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		delete Trainer
+	end cinema
+
+end script CreatureDevLeashToObject

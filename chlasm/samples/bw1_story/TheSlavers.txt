@@ -1,0 +1,1346 @@
+challenge THE_SLAVERS
+
+//------------------------------------------------------------------------------------------------------------------------
+global SlaversAngry
+global ChiefGuard
+global SlaverFinished
+global SlaverCampPos
+global SlaverTotalLions
+global SlaverTotalTigers
+global SlaverTotalWolves
+global SlaverTotalLeopard
+global SlaverTotalTortoise
+global SlaverTotalZebra
+global SlaverTotalHorse
+global SlaverVictimCount
+
+//------------------------------------------------------------------------------------------------------------------------
+define script CreateSlavers(SlaverPosse)
+define script SlaverChiefGuard(Slaver)
+
+//------------------------------------------------------------------------------------------------------------------------
+// Slavers appear with a small flock of slaves. They come from Celt territory with some Celt slaves.
+// They set up a camp and offer to sell you slaves in return for rare animals.
+// If animals are placed in their camp a cinema shows the slavers evaluating the animal then paying you in slaves.
+// If you kill any of them the rest will leg it for town. If they get there they will kill 10 people before fleeing.
+// The Slavers are in an area without influence but the pen into which they want you to put the animals has an influence on it. This pen is empty.
+// There is one other pen that holds the Slave flock and another holds the animal flock they create with the living animals.
+//------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------------------------
+// Creates all the slavers den
+//------------------------------------------------------------------------------------------------------------------------
+//JAMIE: LEave this bollox for now. I have a plan for this using the editor, it'll be easy ;)
+//WE are going to need to create some animals in the map and also some better cages
+
+begin script CreateSlaversDen(SlaveFlock, InboxPenPos)
+	DepartureLounge = marker at [2254.4419, 52.9300, 1917.9126] // Circus pyramid position
+	InboxInfluence = create influence at [InboxPenPos] radius 20
+	PyramidCircus =0
+	Campfire = 0
+	Fencing =0
+	Size = 2
+	Slave=0
+	RareAnimalFlock1 = 0
+	RareAnimalFlock1Pos = marker at [2456.1826, 51.7680, 2046.8511]
+	
+start
+	PyramidCircus = create with angle 185 and scale 1 FEATURE FEATURE_INFO_EGPT_PYRAMID at [DepartureLounge]
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [SlaverCampPos]
+
+	//Create the fencing the slavers will create for animals.
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [5*Size,0]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [3.5*Size,3.5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [0,5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [-3.5*Size,3.5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [-5*Size,0]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [-3.5*Size,-3.5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [0,-5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [InboxPenPos] + [3.5*Size,-3.5*Size]
+	set Fencing focus to [InboxPenPos]
+	ANGLE of Fencing += 90
+
+	//The slave pen
+	Size = 1.3
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [5*Size,0]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [3.5*Size,3.5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [0,5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [-3.5*Size,3.5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [-5*Size,0]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [-3.5*Size,-3.5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [0,-5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [SlaveFlock] + [3.5*Size,-3.5*Size]
+	set Fencing focus to [SlaveFlock]
+	ANGLE of Fencing += 90
+	Size = 2
+
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [2237.040, 53.129, 1970.985] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.4 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [2236.659, 53.155, 1976.393] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.3 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [2231.573, 53.495, 1974.865] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.4 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_FISHERMAN_MALE at [2232.070, 53.464, 1975.720] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.5 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [2237.459, 53.103, 1977.608] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.6 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_FORESTER_MALE at [2232.149, 53.456, 1978.317] 
+	set Slave focus to [SlaveFlock]
+	AGE of Slave = 8
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.3 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_FISHERMAN_MALE at [2235.618, 53.226, 1977.099] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.4 seconds
+	Slave = create VILLAGER VILLAGER_INFO_GREEK_SHEPHERD_MALE at [2232.661, 53.414, 1969.885] 
+	set Slave focus to [SlaveFlock]
+	attach Slave to SlaveFlock
+	Slave play ANM_P_MOURNING loop -1
+	wait 0.2 seconds
+
+	// create both animal flocks
+	RareAnimalFlock1 = flock at [RareAnimalFlock1Pos]
+	set RareAnimalFlock1 properties inner 5 outer 30
+	populate RareAnimalFlock1 with 5 ANIMAL ANIMAL_INFO_LION
+	release RareAnimalFlock1
+
+end script CreateSlaversDen
+
+//------------------------------------------------------------------------------------------------------------------------
+// Slave is released and moves into Town
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaveReleased(PaySlave, Town)
+	Random = 0
+
+start
+	Random = number from 0.5 to 1.5
+	wait Random seconds
+	attach PaySlave to Town
+	SPEED of PaySlave = 0.5
+	move PaySlave position to [Town]
+	wait 20 seconds
+	release PaySlave
+
+end script SlaveReleased
+
+//------------------------------------------------------------------------------------------------------------------------
+// The Slavers Intro Sequence
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversIntro(SlaverPosse)
+	IntroVillagerPos = marker at [2185.520, 18.090, 2212.927]  // marker outside house  
+	VillagerStartPos  =  marker at [2182.220, 18.090, 2210.996] // marker inside house
+	IntroVillager =0
+	BeginPos =0
+	BeginFoc =0
+
+start
+	IntroVillager = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [VillagerStartPos]
+	
+	begin cinema
+
+		SPEED of IntroVillager = 0.1
+
+		enable IntroVillager high graphics detail
+
+		start music MUSIC_TYPE_SCRIPT_CIRCUS
+
+		//Have to do this in the cinema control.
+		run script CreateSlavers(SlaverPosse)
+		
+		move IntroVillager position to [IntroVillagerPos]
+		move ChiefGuard position to [2264.313, 53.176, 1993.697]
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [2196.697, 23.851, 2210.491] time 5 // move to look at hut
+		move camera focus to [2183.618, 18.470, 2209.543] time 3 
+
+		wait until camera ready
+
+		set IntroVillager focus to camera position
+
+		move camera position to [2185.113, 19.698, 2216.037] time 6
+		move camera focus to [2185.643, 19.382, 2213.107] time 6
+
+		IntroVillager play ANM_P_TALK_TO_NEIGHBOUR loop 1
+
+		//Some of our villagers are missing and it's not good...
+		say single line HELP_TEXT_SLAVERS_23
+		wait until 3 second
+
+		set IntroVillager focus to [SlaverCampPos]
+
+		IntroVillager play ANM_P_INTO_POINTING loop 1
+		wait until IntroVillager played
+
+		IntroVillager play ANM_P_TALKING_AND_POINTING loop 3
+		wait until IntroVillager played
+
+		IntroVillager play ANM_P_AMBIENT1
+		wait until read
+
+		close dialogue
+
+		wait until camera ready
+
+		move camera position to [2216.266, 76.888, 2124.016] time 6
+		move camera focus to [2240.693, 45, 2048.689] time 4
+
+		enable ChiefGuard high graphics detail
+
+		wait until 4 seconds
+		
+		move camera position to [2265.655, 54.565, 1997.297] time 4// Looks at ChiefGuard
+		move camera focus to [2262.890, 53.847, 1991.836] time 4
+
+		wait until camera ready
+
+		set ChiefGuard focus to camera position
+
+		move camera position to [2264.064, 54.355, 1996.042] time 12
+		move camera focus to [2263.600, 53.637, 1989.939] time 12
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_34)
+
+		ChiefGuard play ANM_P_GOSSIP_MAN loop 1
+		//We are simple folk who want to start a circus.
+		say HELP_TEXT_SLAVERS_01
+		wait until read
+
+		ChiefGuard play ANM_P_WAITING_IMPATEINTLY loop 1
+		//If you give us animals we can entertain the people around here.
+		say HELP_TEXT_SLAVERS_02
+		wait until read
+
+		move camera position to [2278.576, 66.076, 2019.509] time 5
+		move camera focus to [2272.370, 53.392, 1981.692] time 5
+
+		ChiefGuard play ANM_P_CONDUCT_MEETING loop 1
+
+		//If you put decent animals in this pen, we'll free the people over here:
+		say HELP_TEXT_SLAVERS_03
+		wait until 2 seconds
+		move camera focus to [2255.115, 53.221, 1978.051] time 5
+		wait until read
+
+		ChiefGuard play ANM_P_AMBIENT1 loop 1
+
+		wait until camera ready
+
+		close dialogue
+
+		disable IntroVillager high graphics detail 
+		delete IntroVillager with fade
+
+		move camera position to [BeginPos] time 5
+		move camera focus to [BeginFoc] time 5
+		
+		wait until camera ready
+
+		stop music
+
+	end cinema
+	run background script SlaverChiefGuard(ChiefGuard)
+
+
+end script SlaversIntro
+
+//------------------------------------------------------------------------------------------------------------------------
+// Moves the guard betwen two points and plays animations
+// This slaver patrols the slaves.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverGuardOne(Slaver)
+	HomePos = marker at [2239.933, 52.935, 1979.733]	
+	SecondPos = marker at [2236.607, 53.158, 1981.307]
+start
+	begin loop
+		move Slaver position to [SecondPos]
+		wait until [Slaver] near [SecondPos] radius 1 or 5 seconds
+		wait 1 second
+		Slaver play ANM_P_LOOKING_FOR_SOMETHING loop 2
+		wait until Slaver played
+		move Slaver position to [HomePos] 
+		wait until [Slaver] near [HomePos] radius 1 or 5 seconds
+		wait 1 second
+		Slaver play ANM_P_OVERWORKED2 loop 1
+		wait until Slaver played
+	until SlaverFinished == 1 or HEALTH of Slaver <= 0
+	end loop
+
+end script SlaverGuardOne
+
+//------------------------------------------------------------------------------------------------------------------------
+// The second guard who does a prisoner check, pyramid, then home pos at fire
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverGuardTwo(Slaver)
+	HomePos = marker at [2255.465, 52.930, 1972.892]   // fire 
+	SecondPos = marker at [2241.253, 52.930, 1969.747]
+	ThirdPos = marker at [2247.276, 52.930, 1950.186] 
+	DelayTimer = create timer for 0 seconds
+
+start
+	begin loop
+		move Slaver position to [SecondPos]
+		wait until [Slaver] near [SecondPos] radius 1 or 20 seconds
+		wait 1 second
+		Slaver play ANM_P_YAWN2 loop 1
+		wait until Slaver played
+		Slaver play ANM_P_LOOKING_FOR_SOMETHING loop 2
+		wait until Slaver played
+		move Slaver position to [ThirdPos]
+		wait until [Slaver] near [ThirdPos] radius 1 or 20 seconds
+		wait 1 second
+		set Slaver focus to camera position
+		wait 2 seconds
+		Slaver play ANM_P_LOOKING_FOR_SOMETHING loop 2
+		wait until Slaver played
+		move Slaver position to [HomePos]
+		wait until [Slaver] near [HomePos] radius 1 or 20 seconds
+		wait 1 second
+		Slaver play ANM_P_INSPECT_OBJECT_2 loop 1
+		wait until Slaver played
+		Slaver play ANM_P_PROD_CAMPFIRE loop 1
+		wait until Slaver played
+		wait 10 seconds
+	until HEALTH of Slaver <= 0 or SlaverFinished == 1
+	end loop
+end script SlaverGuardTwo
+
+//------------------------------------------------------------------------------------------------------------------------
+// This slaver who's the fire poker.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverGuardThree(Slaver)
+	HomePos = marker at [2251.769, 52.930, 1974.595]  // back to tree
+	SecondPos = marker at [2254.869, 52.930, 1975.129] // Right in front of fire
+
+start
+	begin loop
+		move Slaver position to [HomePos]
+		wait until [Slaver] near [HomePos] radius 1 or 20 seconds
+		wait 1 second
+		set Slaver focus to [SlaverCampPos]
+		Slaver play ANM_P_SITTING_DOWN1_INTO loop 1
+		wait until Slaver played
+		Slaver play ANM_P_SITTING_DOWN1_SITTING loop 6
+		wait until Slaver played
+		Slaver play	ANM_P_SITTING_DOWN1_OUT_OF loop 1
+		wait until Slaver played
+		move Slaver position to [SecondPos]
+		wait until [Slaver] near [SecondPos] radius 1 or 20 seconds
+		wait 1 second
+		Slaver play ANM_P_PROD_CAMPFIRE loop 2
+		wait until Slaver played
+	until HEALTH of Slaver <= 0 or SlaverFinished == 1
+	end loop
+
+end script SlaverGuardThree
+
+//------------------------------------------------------------------------------------------------------------------------
+// The slaver at the home pos at fire, who goes to animal pen and the pyramid
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverGuardFour(Slaver)
+	HomePos = marker at [2256.918, 52.930, 1974.371]   // fire
+	SecondPos = marker at [2262.651, 52.930, 1964.119]
+	ThirdPos = marker at [2255.893, 52.930, 1950.327] 
+
+start
+	begin loop
+		move Slaver position to [SecondPos]
+		wait until [Slaver] near [SecondPos] radius 1 or 20 seconds
+		wait 1 second
+		Slaver play ANM_P_WAITING_IMPATEINTLY loop 3
+		move Slaver position to [ThirdPos]
+		wait until [Slaver] near [ThirdPos] radius 1 or 20 seconds
+		wait 1 second
+		set Slaver focus to camera position
+		wait 2 seconds
+		Slaver play ANM_P_LOOKING_FOR_SOMETHING loop 1
+		wait until 	Slaver played
+		Slaver play ANM_P_YAWN2 loop 1
+		move Slaver position to [HomePos]
+		wait until [Slaver] near [HomePos] radius 1	or 20 seconds
+		wait 1 second
+		set Slaver focus to [SlaverCampPos]
+		wait 15 seconds
+	until HEALTH of Slaver <= 0 or SlaverFinished == 1
+	end loop
+
+end script SlaverGuardFour
+
+//------------------------------------------------------------------------------------------------------------------------
+// The chief guards movement, he's the animal tender.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverChiefGuard(Slaver)
+	MainSlaverFirePos = marker at [SlaverCampPos]+[2,2]
+	MainSlaverWatchPos = marker at [SlaverCampPos]+[10,10]
+
+start
+	begin loop
+		move Slaver position to [MainSlaverFirePos]
+		wait until [Slaver] near [MainSlaverFirePos] radius 1 or 10 seconds
+		wait 1 second
+		set Slaver focus to [SlaverCampPos]
+		Slaver play ANM_P_SITTING_DOWN1_INTO loop 1
+		wait until Slaver played
+		Slaver play ANM_P_SITTING_DOWN1_SITTING loop 10
+		wait until Slaver played
+		Slaver play	ANM_P_SITTING_DOWN1_OUT_OF loop 1
+		wait until Slaver played
+		move Slaver position to [MainSlaverWatchPos]
+		wait until [Slaver] near [MainSlaverWatchPos] radius 1 or 10 seconds
+		wait 1 second
+		Slaver play ANM_P_LOOKING_FOR_SOMETHING loop 1
+		wait until Slaver played
+	until HEALTH of Slaver <= 0 or SlaverFinished == 1
+	end loop
+
+end script SlaverChiefGuard
+
+//------------------------------------------------------------------------------------------------------------------------
+// Create the slaver guards.
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreateSlavers(SlaverPosse)
+	Slaver=0
+start
+	Slaver = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [SlaverCampPos]+[5,5]
+	disable Slaver hurt by fire
+	disable Slaver set on fire
+	attach Slaver to SlaverPosse
+	run background script SlaverGuardOne(Slaver)
+
+	Slaver = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [SlaverCampPos]+[-5,5]
+	disable Slaver hurt by fire
+	disable Slaver set on fire
+	attach Slaver to SlaverPosse
+	run background script SlaverGuardTwo(Slaver)	
+
+	Slaver = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [SlaverCampPos]+[5,-5]
+	disable Slaver hurt by fire
+	disable Slaver set on fire
+	attach Slaver to SlaverPosse
+	run background script SlaverGuardThree(Slaver)
+
+	Slaver = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [SlaverCampPos]+[-5,-5]
+	disable Slaver hurt by fire
+	disable Slaver set on fire
+	attach Slaver to SlaverPosse
+	run background script SlaverGuardFour(Slaver)
+
+	ChiefGuard = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [SlaverCampPos]
+	disable ChiefGuard hurt by fire
+	disable ChiefGuard set on fire
+	attach ChiefGuard to SlaverPosse
+end script CreateSlavers
+
+//------------------------------------------------------------------------------------------------------------------------
+// The slavers have killed 10 people
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversKilledEnough(SlaverPosse, SlaveFlock, Town)
+start
+	stop script "SlaverGoMad" //Stops ALL slavergomad scripts
+	wait 0.1 seconds
+	
+	state SlaverPosse LIVING_IN_SCRIPT  //Stop them moving.
+
+	if HEALTH of ChiefGuard <= 0
+		ChiefGuard = get VILLAGER in SlaverPosse
+	end if
+
+	if HEALTH of ChiefGuard <= 0 //Just in case
+		//JAMIE Do something!!!
+		//Attach the slavers and the slaves too to the town.
+	end if
+end script SlaversKilledEnough
+
+//------------------------------------------------------------------------------------------------------------------------
+// All the slavers are dead
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversDead(SlaveFlock)
+start
+	  //Jamie all yours. Slaves cheering?
+	  //Release them to the town.
+	  //say "Slavers dead"
+end script SlaversDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// A particular slaver goes mad and kills people
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverGoMad(Slaver, Town)
+	Victim = 0
+	SFX = 0
+start
+	begin loop
+		if Slaver is not HELD and Slaver is not FLYING and Slaver not in MyCreature hand
+			
+			Victim = get VILLAGER in Town at [Slaver] radius 100 excluding scripted
+			if Victim not exists
+				Victim = get VILLAGER in Town excluding scripted
+				if Victim not exists
+					Victim = get CHILD in Town excluding scripted
+				end if
+			end if
+
+			if Victim exists and Victim is not HELD
+				state Victim LIVING_IN_SCRIPT
+				//Jamie make the victim loop a scared anim.
+				move Slaver position to [Victim]
+				Victim play constant from ANM_P_SCARED_STIFF to ANM_P_SCARED_STIFF_2 loop -1
+				wait until [Slaver] near [Victim] radius 15 or Slaver is HELD or Slaver is FLYING or Slaver in MyCreature hand or Victim is HELD or Victim not exists
+				
+				if Slaver is not HELD and Slaver is not FLYING and Slaver not in MyCreature hand and Victim is not HELD and Victim exists
+					set Slaver focus to [Victim]
+					Slaver play ANM_PIED_PIPER_SUMMON loop 2
+					SFX = create special effect SPOT_VISUAL_MAGIC_BEAM on Slaver time 10
+					add SFX target on Victim
+					state Victim LIVING_IN_SCRIPT
+					Victim play ANM_P_CRAWL_INJURED_INTO loop 1
+					wait until Victim played or 5 seconds
+					Victim play ANM_P_DYING loop -1
+
+					wait 10 seconds or Slaver is HELD or Slaver is FLYING or Slaver in MyCreature hand or Victim is HELD or Victim not exists
+
+					if Slaver is not HELD and Slaver is not FLYING and Slaver not in MyCreature hand and Victim is not HELD and Victim exists
+						HEALTH of Victim = 0
+						Victim play ANM_P_DEAD1 loop -1
+						SlaverVictimCount++
+						move Slaver position to [Victim]
+						wait until [Slaver] near [Victim] radius 2 or Slaver is HELD or Slaver is FLYING or Slaver in MyCreature hand or Victim is HELD or Victim not exists
+						Slaver play ANM_P_INSPECT_OBJECT_1 loop 3
+						wait 15 seconds
+					end if
+					delete SFX
+				end if
+				release Victim
+			end if
+
+			wait (number from 1 to 10)/10 seconds
+		end if
+	until HEALTH of Slaver <= 0
+	end loop
+end script SlaverGoMad
+
+//------------------------------------------------------------------------------------------------------------------------
+// Sends the animals towards the town and sets them lose
+//------------------------------------------------------------------------------------------------------------------------
+begin script SetAnimalsLose(AnimalFlock, Town)
+start
+	if size of AnimalFlock > 0
+		SPEED of AnimalFlock = 0.5
+		move AnimalFlock position to [Town]
+		wait until [AnimalFlock] near [Town] radius 15
+		disband AnimalFlock
+	end if
+end script SetAnimalsLose
+
+//------------------------------------------------------------------------------------------------------------------------
+// Slavers run into town and start killing
+//------------------------------------------------------------------------------------------------------------------------
+begin script TownAttack(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+	LocalTownCentre = marker at [2248.6799, 16.6726, 2240.3601]
+	AnimalFlockSize = size of AnimalFlock
+	OnFireBuilding = 0
+	Slaver=0
+
+start
+	run background script SetAnimalsLose(AnimalFlock, Town)
+
+	set Highlight position to [2233.1670, 18.0900, 2231.1333]
+
+	SPEED of SlaverPosse = 0.5
+	state SlaverPosse LIVING_MOVE_IN_FLOCK
+	update snapshot success 0.5 alignment 0.2 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_48)
+	move SlaverPosse position to [LocalTownCentre]
+	wait until [SlaverPosse] near [LocalTownCentre] radius 15 or size of SlaverPosse <= 0
+	
+	if size of SlaverPosse > 0
+		//Stop the posse moving....
+		move SlaverPosse position to [SlaverPosse]
+
+		OnFireBuilding = get HOUSE at [SlaverPosse] radius 50
+		if OnFireBuilding exists
+			enable OnFireBuilding on fire 0.5
+		end if
+
+		begin dialogue
+			eject good spirit
+			make good spirit point at [SlaverPosse]
+			//The slavers are killing people in the village...
+			say single line HELP_TEXT_SLAVERS_21
+			wait until read
+			if AnimalFlockSize > 0
+				say single line HELP_TEXT_SLAVERS_22
+				wait until read
+			end if
+			send good spirit home
+		end dialogue
+
+		SlaverVictimCount=0
+
+		Slaver=get first in SlaverPosse
+		while Slaver exists
+			run background script SlaverGoMad(Slaver, Town)
+			Slaver=get next in SlaverPosse after Slaver
+		end while
+	end if
+
+	begin loop
+	until size of SlaverPosse == 0
+		run background script SlaversDead(SlaveFlock)
+		update snapshot success 1.0 alignment -0.65 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_34)
+	until SlaverVictimCount >= 10 or size of Town <= 0
+		run background script SlaversKilledEnough(SlaverPosse, SlaveFlock, Town)
+		update snapshot success 1.0 alignment -1.0 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_34)
+	end loop
+
+end script TownAttack
+
+//------------------------------------------------------------------------------------------------------------------------
+// Ok what's left of the Slavers are going to cause some trouble.
+//------------------------------------------------------------------------------------------------------------------------
+//JAMIE: This is just before they are going to run down the hill and attack the fuck out of the town.... 
+begin script SlaversVeryAngry(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+	BeginPos = 0
+	BeginFoc = 0
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		if HEALTH of ChiefGuard <= 0
+			ChiefGuard = get VILLAGER in SlaverPosse
+		end if
+			
+		state ChiefGuard LIVING_IN_SCRIPT
+		enable ChiefGuard high graphics detail
+
+		set camera lens 55
+		move camera position to [ChiefGuard] + [2,1.5,2] time 3
+		move camera focus to [ChiefGuard] + [0,1,0] time 3
+
+		wait until camera ready
+
+		set ChiefGuard focus to camera position
+
+		//So be it, it's war then
+		say single line HELP_TEXT_SLAVERS_20
+		ChiefGuard play ANM_P_CROWD_UNIMPRESSED_1 	loop 1
+		wait until read
+
+		ChiefGuard play ANM_P_AMBIENT1 loop 1
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+	end cinema
+
+	run background script TownAttack(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+	
+end script SlaversVeryAngry
+
+//------------------------------------------------------------------------------------------------------------------------
+// A slaver has been killed, or some slaves have been taken from them - they are not happy... time for some trouble....
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaverKilled(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+start
+	begin dialogue
+		//"EA: Nice one - Slaver killed."
+		eject evil spirit
+		say single line HELP_TEXT_SLAVERS_11
+		wait until read
+	end dialogue
+	state SlaverPosse LIVING_MOVE_IN_FLOCK
+	SlaverFinished=1
+	run background script SlaversVeryAngry(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+
+end script SlaverKilled
+
+//------------------------------------------------------------------------------------------------------------------------
+// You stole a slave - just a warning this time.
+//------------------------------------------------------------------------------------------------------------------------
+//JAMIE: Do your stuff
+begin script SlaversSlaveWarning
+	BeginPos =0
+	BeginFoc =0
+start
+	begin cinema
+		stop script "SlaverChiefGuard"
+		state ChiefGuard LIVING_IN_SCRIPT
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		enable ChiefGuard high graphics detail
+
+		move camera position to [ChiefGuard] + [2,1.5,2] time 4
+		move camera focus to [ChiefGuard]+ [0,1,0] time 3
+		wait until camera ready
+
+		update snapshot success 0.1 alignment 0.5 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_47)
+		set ChiefGuard focus to camera position
+
+		//Hey don't steal our slaves or there will be trouble.
+		say single line HELP_TEXT_SLAVERS_10
+		ChiefGuard play ANM_P_CONDUCT_MEETING loop 1
+		wait until read
+
+		ChiefGuard play ANM_P_AMBIENT1 loop 1
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+	run background script SlaverChiefGuard(ChiefGuard)
+
+end script SlaversSlaveWarning
+
+//------------------------------------------------------------------------------------------------------------------------
+// You have stolen an animal from them.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversAnimalWarning
+	BeginPos =0
+	BeginFoc =0
+start
+	begin cinema
+		stop script "SlaverChiefGuard"
+		state ChiefGuard LIVING_IN_SCRIPT
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		enable ChiefGuard high graphics detail
+
+		set camera lens 55
+		move camera position to [ChiefGuard] + [2,1.5,2] time 4
+		move camera focus to [ChiefGuard] + [0,1,0] time 3
+		wait until camera ready
+
+		update snapshot success 0.0 alignment -0.4 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_47)
+		set ChiefGuard focus to camera position
+
+		//Stop stealing animals or there will be trouble.
+		say single line HELP_TEXT_SLAVERS_09
+		ChiefGuard play ANM_P_TALK_TO_NEIGHBOUR loop 1
+		wait until read
+
+		ChiefGuard play ANM_P_AMBIENT2 loop 1
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+
+	end cinema
+	run background script SlaverChiefGuard(ChiefGuard)
+
+end script SlaversAnimalWarning
+
+//------------------------------------------------------------------------------------------------------------------------
+// You've already stolen an animal, or slave, so you're on your final warning.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversFinalWarning
+	BeginPos =0
+	BeginFoc =0
+start
+	begin cinema
+		stop script "SlaverChiefGuard"
+		state ChiefGuard LIVING_IN_SCRIPT
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		enable ChiefGuard high graphics detail
+
+		set camera lens 55
+		move camera position to [ChiefGuard] + [2,1.5,2] time 4
+		move camera focus to [ChiefGuard]+ [0,1,0] time 3
+
+		update snapshot success 0.2 alignment 0.5 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_47)
+
+		wait until camera ready
+		set ChiefGuard focus to camera position
+
+		// "We saw that! Steal one more thing off us and you'll regret it."
+		say single line HELP_TEXT_SLAVERS_26
+		ChiefGuard play ANM_P_WAITING_IMPATEINTLY loop 1
+		wait until read
+
+		ChiefGuard play ANM_P_AMBIENT1 loop 1
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+	end cinema
+	run background script SlaverChiefGuard(ChiefGuard)
+
+end script SlaversFinalWarning
+
+//------------------------------------------------------------------------------------------------------------------------
+//JAMIE: As above but you're going to get a reward or something so wait for me...
+begin script AllSlavesReleased(SlaverPosse, AnimalFlock, Town)
+	FireWorks = 0
+	FireWorks2 = 0
+	Slaver1 = 0
+	Slaver2 = 0
+	Slaver3 = 0
+	Slaver4 = 0
+	RewardPos = marker at [2252.1218, 52.9300, 1954.2427]
+start
+	detach ChiefGuard from SlaverPosse
+
+	Slaver1 = get VILLAGER in SlaverPosse
+	detach Slaver1 from SlaverPosse
+
+	Slaver2 = get VILLAGER in SlaverPosse
+	detach Slaver2 from SlaverPosse
+
+	Slaver3 = get VILLAGER in SlaverPosse
+	detach Slaver3 from SlaverPosse
+
+	Slaver4 = get VILLAGER in SlaverPosse
+	detach Slaver4 from SlaverPosse
+
+
+	begin cinema
+
+		set AnimalFlock position to [2237.105, 52.930, 1949.014]
+		make good spirit appear
+		say single line HELP_TEXT_SLAVERS_13
+		wait until read
+		make good spirit disappear
+
+		start music MUSIC_TYPE_SCRIPT_CIRCUS
+
+		enable ChiefGuard high graphics detail
+
+		//Slavers pos
+		set Slaver1 position to [2243.064, 52.930, 1946.539] 
+		set Slaver1 focus to [2237.417, 53.714, 1958.911]
+		set Slaver2 position to [2240.940, 52.930, 1954.256] 
+		set Slaver2 focus to [2237.417, 53.714, 1958.911]
+		set Slaver3 position to [2237.105, 52.930, 1949.014] 
+		set Slaver3 focus to [2237.417, 53.714, 1958.911]
+		set Slaver4 position to [2239.713, 52.930, 1952.098] 
+		set Slaver4 focus to [2237.417, 53.714, 1958.911]
+
+		set ChiefGuard position to [2244.596, 52.930, 1957.066] // ChiefGuard position 
+		
+
+		// Jamie : Cut to circus starting.
+
+		// cut to Guard
+
+		set camera position to [2240.890, 54.000, 1958.100] 
+		set camera focus to [2247.130, 54.000, 1956.640]  
+
+		set ChiefGuard focus to [2240.890, 54.000, 1958.100]
+
+		// "We've got all the animals we need now."
+		say single line HELP_TEXT_SLAVERS_08
+
+		ChiefGuard play ANM_P_THANK_YOU loop 1
+		wait until read
+
+		ChiefGuard play ANM_P_TALK2_MALE loop 1
+
+		// move to slavers, one juggling.
+		//TODO make the people do stuff with the animals???
+
+		set Slaver1 focus to [Slaver4]
+		Slaver1 play ANM_P_BLOW_RASPBERRY loop 4
+
+		Slaver2 play ANM_P_CROWD_WON loop 4
+		Slaver3 play ANM_P_CROWD_WON_2 loop 4
+		Slaver4	play ANM_P_DANCE_STAND loop 4
+
+		move camera position to [2237.417, 53.714, 1958.911] time 5	// Circus Group Stage 1
+		move camera focus to [2240.270, 54.282, 1953.172] time 5
+		wait until camera ready
+
+		// move to Guard
+
+		move camera position to [2240.890, 54.000, 1958.100] time 3
+		move camera focus to [2247.130, 54.000, 1956.640] time 3
+		wait until camera ready
+
+		// "We'll get this circus up and running in no time."
+		say single line HELP_TEXT_SLAVERS_25
+		ChiefGuard play	ANM_P_GOSSIP_MAN loop 1
+		wait until ChiefGuard played
+		ChiefGuard play	ANM_P_CONDUCT_MEETING loop 1
+		wait until read
+
+		close dialogue
+
+		start sound LH_SCRIPT_SAMPLE_DRUMROLL AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+
+		set Slaver1 position to [Slaver4] 
+		ALTITUDE of Slaver1 = 1.2
+		set Slaver1 focus to [ChiefGuard]
+		set Slaver2 position to [Slaver1] 
+		ALTITUDE of Slaver2 = 2.4
+		set Slaver2 focus to [ChiefGuard]
+		set Slaver3 position to [Slaver2] 
+		ALTITUDE of Slaver3 = 3.6
+		set Slaver3 focus to [ChiefGuard]
+		set Slaver4 focus to [ChiefGuard]
+
+		Slaver3 play ANM_P_TITANIC loop -1
+
+		// move to slavers balanced on top of each other, animals crowds etc..
+		move camera position to [2239.015, 53.996, 1956.146] time 5	// Circus Group Stage 2
+		move camera focus to [2241.868, 54.564, 1950.407] time 5
+		wait until camera ready
+
+		//pan up to man on top
+
+		move camera position to [2238.074, 57.184, 1955.819] time 6	// Circus Group Top
+		move camera focus to [2241.540, 57.752, 1950.428] time 6
+
+		wait until 4.2 seconds
+
+		stop sound LH_SCRIPT_SAMPLE_DRUMROLL AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		start sound LH_SCRIPT_SAMPLE_DRUMCRASH AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		
+
+		wait until camera ready
+
+		// much cheering
+
+		FireWorks = create special effect SPOT_VISUAL_TOWN_FIREWORKS  at [2270.389, 52.930, 1938.073]  time 60 
+		FireWorks2 = create special effect SPOT_VISUAL_TOWN_FIREWORKS  at [2230.953, 52.930, 1922.921]  time 60
+
+		snapshot challenge success 1.0 alignment 1.0 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_34)
+
+		ChiefGuard play ANM_P_AMBIENT1 loop 1
+		wait 2 seconds
+		set Slaver3 target [Slaver4] time 1
+
+		stop music
+
+		move camera position to [2215.913, 71.726, 1988.674] time 6
+		move camera focus to [2283.683, 53.111, 1913.501] time 5
+
+
+		wait 5 seconds
+
+		attach Slaver1 to Town
+		attach Slaver2 to Town
+		attach Slaver3 to Town
+		attach Slaver4 to Town
+		attach ChiefGuard to Town
+		release ChiefGuard
+
+		ALTITUDE of Slaver1 = 0
+		ALTITUDE of Slaver2 = 0
+		ALTITUDE of Slaver3 = 0
+
+		wait until camera ready
+
+	end cinema
+
+	// Reward
+	run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_FLOCK_GROUND, 180, 0, 120)
+
+end script AllSlavesReleased
+
+//------------------------------------------------------------------------------------------------------------------------
+// Recalculate Animal totals
+//------------------------------------------------------------------------------------------------------------------------
+begin script RecalculateAnimalCounts(AnimalFlock)
+	Animal=0
+	SubType=0
+
+start
+	SlaverTotalLions=0
+	SlaverTotalTigers=0
+	SlaverTotalWolves=0
+	SlaverTotalLeopard=0
+	SlaverTotalTortoise=0
+	SlaverTotalZebra=0
+	SlaverTotalHorse=0
+					
+	//Then go through all the temp flock and put them back in the animal flock, and figure what they are.
+	Animal = get first in AnimalFlock
+	while Animal exists
+		//Calculate Animal type and add.
+		SubType=variable get Animal sub type
+		
+		if SubType == variable ANIMAL_INFO_LION
+			SlaverTotalLions++
+		elsif SubType == variable ANIMAL_INFO_TIGER			
+			SlaverTotalTigers++
+		elsif SubType == variable ANIMAL_INFO_WOLF			
+			SlaverTotalWolves++
+		elsif SubType == variable ANIMAL_INFO_LEOPARD			
+			SlaverTotalLeopard++
+		elsif SubType == variable ANIMAL_INFO_ZEBRA			
+			SlaverTotalZebra++
+ 		elsif SubType == variable ANIMAL_INFO_TORTOISE			
+			SlaverTotalTortoise++
+ 		elsif SubType == variable ANIMAL_INFO_HORSE			
+			SlaverTotalHorse++
+		end if
+
+		Animal=get next in AnimalFlock after Animal
+	end while
+	
+
+end script RecalculateAnimalCounts
+
+//------------------------------------------------------------------------------------------------------------------------
+// Evaluate animal quality then free appropriate amount of slaves.
+//------------------------------------------------------------------------------------------------------------------------
+//JAMIE: OK the guy is getting an animal, I'd rather he walked to a specific point outside the pen,
+//than near the animal like at present. Don't worry about the conditions - though you should be able to understand it.
+begin script SlaverCheckAnimal(AnimalInPen, AnimalFlock, SlaveFlock, Town)
+	KodakMoment = marker at [2267.570, 53.268, 1995.053]
+	SFX=0
+	PaySlaves=0
+	GotTooMany=0
+	SubType=0
+	PaySlave=0
+	BeginPos = 0
+	BeginFoc = 0
+
+	OriginalSlaveFlockSize = 8
+	SuccessValue = 0
+
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		stop script "SlaverChiefGuard"
+
+		move camera position to [2278.740, 58.853, 2013.788] time 3
+		move camera focus to [2268.525, 52.979, 1968.888] time 3
+
+		//Stop the animal moving.
+		state AnimalInPen LIVING_IN_SCRIPT
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [AnimalInPen] time 5
+		move ChiefGuard position to [KodakMoment] 
+		wait until [ChiefGuard] near [KodakMoment] radius 1 or 5 seconds
+		set ChiefGuard focus to [AnimalInPen]
+		ChiefGuard play ANM_P_INTO_POINTING loop 1
+
+		//Ok do we want this animal?
+		if HEALTH of AnimalInPen <= 0
+			//"s'dead, don't want"
+			if number from 1 to 10 <= 5
+				//Animal useless - Get away!
+				say single line HELP_TEXT_SLAVERS_04
+			else
+				//I'm not paying for dead stuff.
+				say single line HELP_TEXT_SLAVERS_19
+				wait until read
+			end if
+			
+			//Do the zappy thing...
+			if AnimalInPen exists
+				SFX = create special effect SPOT_VISUAL_MAGIC_BEAM on ChiefGuard time -1
+				add SFX target on AnimalInPen
+				wait until 2 seconds
+				delete SFX
+				delete AnimalInPen with fade
+			end if
+		else
+			SubType=variable get AnimalInPen sub type
+			
+			if SubType == variable ANIMAL_INFO_LION
+				SlaverTotalLions++
+				if SlaverTotalLions < 3
+					PaySlaves=2
+				else
+					GotTooMany=1
+				end if
+			elsif SubType == variable ANIMAL_INFO_TIGER			
+				SlaverTotalTigers++
+				if SlaverTotalTigers < 3
+					PaySlaves=2
+				else
+					GotTooMany=1
+				end if
+			elsif SubType == variable ANIMAL_INFO_WOLF			
+				SlaverTotalWolves++
+				if SlaverTotalWolves < 3
+					PaySlaves=2
+				else
+					GotTooMany=1
+				end if
+			elsif SubType == variable ANIMAL_INFO_LEOPARD			
+				SlaverTotalLeopard++
+				if SlaverTotalLeopard < 3
+					PaySlaves=2
+				else
+					GotTooMany=1
+				end if
+			elsif SubType == variable ANIMAL_INFO_ZEBRA			
+				SlaverTotalZebra++
+				if SlaverTotalZebra < 3
+					PaySlaves=2
+				else
+					GotTooMany=1
+				end if
+ 			elsif SubType == variable ANIMAL_INFO_TORTOISE			
+				SlaverTotalTortoise++
+				if SlaverTotalTortoise < 3
+					PaySlaves=1
+				else
+					GotTooMany=1
+				end if
+ 			elsif SubType == variable ANIMAL_INFO_HORSE			
+				SlaverTotalHorse++
+				if SlaverTotalHorse < 3
+					PaySlaves=1
+				else
+					GotTooMany=1
+				end if
+
+
+
+			//Nothing for the following
+			//ANIMAL_INFO_SHEEP
+			//ANIMAL_INFO_GOAT
+			//ANIMAL_INFO_COW
+			//ANIMAL_INFO_PIG
+			end if
+
+			//Do payment action.
+			if PaySlaves == 0
+				if GotTooMany == 1
+					// "We've got more than enough of this species already. No Payment."
+					say single line HELP_TEXT_SLAVERS_27
+					wait until read
+				else
+					say single line HELP_TEXT_SLAVERS_05   //Shit animal
+					wait until read
+				end if
+
+				//Do the zappy thing...
+				if AnimalInPen exists
+					SFX = create special effect SPOT_VISUAL_MAGIC_BEAM on ChiefGuard time -1
+					add SFX target on AnimalInPen
+					wait until 2 seconds
+					delete SFX
+					delete AnimalInPen with fade
+				end if
+			else
+				//We'll keep this animal
+				attach AnimalInPen to AnimalFlock
+				state AnimalInPen LIVING_IN_SCRIPT
+				
+				if PaySlaves == 1
+					//Good animal have a slave
+					say single line HELP_TEXT_SLAVERS_06
+					wait until read
+				else	
+					//Great animal have two slaves
+					say single line HELP_TEXT_SLAVERS_07
+					wait until read
+				end if
+
+				//Release some slaves.
+				close dialogue
+
+				set camera position to [2224.906, 59.752, 1987.893] 
+				set camera focus to [2308.235, 60.878, 1913.678]
+
+				move camera position to [2226.232, 58.560, 1987.105] time 3
+				move camera focus to [2252.499, 50.594, 1963.712] time 3
+
+				while PaySlaves > 0 and size of SlaveFlock > 0
+					PaySlave = get VILLAGER in SlaveFlock
+					detach PaySlave from SlaveFlock
+					run background script SlaveReleased(PaySlave, Town)
+					PaySlaves--
+				end while
+
+				wait until camera ready
+				wait 3 seconds
+
+				SuccessValue = (((OriginalSlaveFlockSize - size of SlaveFlock) * 10))/100
+
+				//Snapshot here for steve.	   
+				snapshot challenge success SuccessValue alignment 0.1 HELP_TEXT_TITLE_36 StandardReminder(variable HELP_TEXT_REMINDER_34)
+			end if
+		end if 
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+	end cinema
+	run background script SlaverChiefGuard(ChiefGuard)
+
+end script SlaverCheckAnimal
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// The main control script for the slavers.
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheSlaversMain(Town)
+	Highlight = 0
+	VillagerHutPos = marker at [2182.600, 18.090, 2209.541] 
+	SlaverPosse=0
+	VillagerHut=0
+	
+	SlavePenPos = marker at [2234.8267, 53.2781, 1974.1627]
+	Escapee=0
+	EscapeCount=0
+	GivenFinalWarning=0
+	AnimalStolenCount=0
+	SlaveFlock=0
+	FreeAnimal=0
+	AnimalFlock=0
+	InboxPenPos = marker at [2276.1667, 55.9136, 2001.5179]
+	AnimalInPen=0
+	AnimalFlockSize=0
+	AnimalFlockOldSize=0
+	SlaveFlockSize=0
+	OldSlaveFlockSize=0
+	CircusMusic = 0
+
+start
+	SlaverCampPos = marker at [2255.874, 52.930, 1975.426]
+	VillagerHut = get HOUSE at [VillagerHutPos]	radius 5
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHut]
+	SlaverFinished=0
+	ALTITUDE of Highlight = 4
+		
+	run script ChallengeHighlightNotify(Highlight, VillagerHut, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_08)
+
+	SlaveFlock = flock at [SlavePenPos]
+	set SlaveFlock properties inner 5 outer 10
+
+	// AnimalFlock created without members so doesn't need creating on the fly
+	AnimalFlock = flock at [InboxPenPos]
+	set AnimalFlock properties inner 5 outer 10 calm 1
+
+
+	run background script CreateSlaversDen(SlaveFlock, InboxPenPos)
+	SlaverPosse = flock at [SlaverCampPos]
+	set SlaverPosse properties inner 5 outer 10
+
+	run script SlaversIntro(SlaverPosse)
+
+	OldSlaveFlockSize=size of SlaveFlock
+	CircusMusic = get FEATURE FEATURE_INFO_EGPT_PYRAMID at [2254.4419, 52.9300, 1917.9126]
+
+	attach music MUSIC_TYPE_SCRIPT_CIRCUS_3D to CircusMusic
+
+	//Logic
+	while SlaverFinished==0
+		if size of SlaverPosse < 5
+			SlaverFinished=1
+			run script SlaverKilled(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+		else 
+			//Look for a stolen animal Slave
+			Escapee = get SCRIPT_OBJECT_TYPE_VILLAGER in SlaveFlock not near [SlavePenPos] radius 10
+			SlaveFlockSize = size of SlaveFlock
+			if Escapee exists and not Escapee is HELD and Escapee not in MyCreature hand and not Escapee is FLYING or OldSlaveFlockSize > SlaveFlockSize
+				if Escapee exists and not Escapee is HELD and Escapee not in MyCreature hand and not Escapee is FLYING				
+					detach Escapee from SlaveFlock
+					attach Escapee to Town
+					release Escapee
+				end if
+				OldSlaveFlockSize=size of SlaveFlock
+				EscapeCount++
+				if EscapeCount == 1	and GivenFinalWarning != 1
+					//First time you steal a slave.
+					run script SlaversSlaveWarning
+				elsif EscapeCount == 2 and GivenFinalWarning != 1
+					run script SlaversFinalWarning
+					GivenFinalWarning=1
+				else
+					run script SlaversVeryAngry(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+				end if
+			else
+				//Look for a stolen animal
+				//Animals are removed from flocks automatically when picked up.
+				AnimalFlockSize = size of AnimalFlock
+
+				if AnimalFlockOldSize > AnimalFlockSize
+					AnimalStolenCount++
+					run script RecalculateAnimalCounts(AnimalFlock)
+					if AnimalStolenCount == 1 and GivenFinalWarning != 1
+						//First time you steal an animal .
+						run script SlaversAnimalWarning
+					elsif AnimalStolenCount == 2 and GivenFinalWarning != 1
+						run script SlaversFinalWarning
+						GivenFinalWarning=1
+					else
+						run script SlaversVeryAngry(SlaverPosse, AnimalFlock, Town, SlaveFlock, Highlight)
+					end if
+				else
+					//OK nothing stolen - lets see if we have been given anything.
+					AnimalInPen = get ANIMAL at [InboxPenPos] radius 10 excluding scripted
+					if AnimalInPen exists
+						if AnimalInPen viewed
+							run script SlaverCheckAnimal(AnimalInPen, AnimalFlock, SlaveFlock, Town)
+							SlaveFlockSize = size of SlaveFlock
+							OldSlaveFlockSize=SlaveFlockSize
+							if SlaveFlockSize <= 0
+								SlaverFinished=1
+								run script AllSlavesReleased(SlaverPosse, AnimalFlock, Town)
+							end if
+						end if
+					end if
+				end if
+				AnimalFlockOldSize=AnimalFlockSize
+			end if
+			wait 0.3 seconds
+		end if
+	end while
+
+end script TheSlaversMain

@@ -1,0 +1,266 @@
+challenge THROW_BLOKE
+
+//------------------------------------------------------------------------------------------------------------------------
+global Nutter
+global NutterDead
+global NutterOnFire
+global NutterDrenched
+
+//------------------------------------------------------------------------------------------------------------------------
+// This is the bloke doing stuff animations
+//------------------------------------------------------------------------------------------------------------------------
+begin script MakeNutterDo(NutterStartPos)
+	NutterDoing = 0
+	Waterfall = marker at [3031.9373, 3.5777, 3138.9238]
+
+start
+	begin loop
+		if Nutter exists
+			if NutterDoing == 0
+				if [Nutter] near [NutterStartPos] radius 2 and Nutter is not HELD and Nutter not in MyCreature hand and Nutter is not FLYING
+					wait 2 seconds
+					/// make nutter play fishing anim   ANM_P_FISHERMAN
+					set Nutter focus to [Waterfall]
+					Nutter play ANM_P_WHITTLING_AT_STICK loop -1
+					NutterDoing = 1
+				end if
+			end if
+
+			if NutterDoing == 1
+				if Nutter is HELD or Nutter is FLYING or Nutter in MyCreature hand
+					NutterDoing = 0
+				end if
+			end if
+		end if
+	end loop
+
+end script MakeNutterDo
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreateNewNutter(CreatePos)
+	Infl = 0
+start
+	Nutter = create VILLAGER VILLAGER_INFO_CELTIC_FISHERMAN_MALE at [CreatePos]
+	disable Nutter hurt by fire
+	enable Nutter indestructible
+	Infl = create influence on Nutter radius 5
+	release Infl
+	state Nutter LIVING_IN_SCRIPT	 
+end script CreateNewNutter
+
+//------------------------------------------------------------------------------------------------------------------------
+// The Nutter is flying so we have to process this
+//------------------------------------------------------------------------------------------------------------------------
+begin script EndOfFlyingNutter(NutterStartPos, TauntTimer)
+start
+	enable Nutter indestructible
+	HEALTH of Nutter = 0.6
+
+	wait until Nutter is not FLYING or Nutter is DROWNING
+
+	if Nutter is DROWNING and Nutter is not HELD and Nutter not in MyCreature hand // at sea
+		if NutterOnFire == 1
+			/// play steam in water sound
+			start say sound HELP_TEXT_THROW_BLOKE_30 at [Nutter] // "sigh. Phew."
+			NutterOnFire = 0
+		end if	
+		wait until [Nutter] not viewed or Nutter is HELD or Nutter in MyCreature hand
+
+		if Nutter is not HELD and Nutter not in MyCreature hand
+			//set Nutter position to [NutterStartPos]
+			delete Nutter
+			run script CreateNewNutter(NutterStartPos)
+			move Nutter position to [Nutter]+[1,0,0]
+			NutterDrenched = 1
+		end if
+	else
+		state Nutter LIVING_IN_SCRIPT
+		SPEED of Nutter = 0.5
+		move Nutter position to [NutterStartPos]
+		
+		if number from 1 to 2  < 2				
+			start say sound HELP_TEXT_THROW_BLOKE_05 at [Nutter]//"Didn't hurt a bit!"
+		else
+			start say sound HELP_TEXT_THROW_BLOKE_15 at [Nutter]
+		end if
+	end if
+	set TauntTimer time to 20 seconds
+end script EndOfFlyingNutter
+
+//------------------------------------------------------------------------------------------------------------------------
+// Main program
+//------------------------------------------------------------------------------------------------------------------------
+begin script ThrowBlokeMain
+	NutterStartPos = marker at [2796.2798, 2.7036, 3146.4014]
+	Finished = 0
+	NutterEaten = 0
+	CreatureButtPos = 0
+	ShitTarget = 0
+	TauntTimer = create timer for 0 seconds
+	PainTimer = create timer for 0 seconds
+	PickmeCount = 0
+	PickmeSpeech = 0
+	Campfire = 0
+	CampfirePos = marker at [2798.6548, 2.6800, 3144.3259]
+	NormalSpeed = 0
+	SlowmoTimer = create timer for 0 seconds
+	MyTime=0
+	MySpeed=0
+	NutterInHand = 0
+
+start
+	run script CreateNewNutter(NutterStartPos)
+
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [CampfirePos]
+
+	run background script MakeNutterDo(NutterStartPos)
+	MyCreature = get player 1 creature
+
+	begin loop
+		if Nutter in MyCreature hand
+			disable Nutter indestructible
+			start say sound HELP_TEXT_THROW_BLOKE_19 at [Nutter]// "Nutter: Argh let go of me you overgrown teddy bear!"
+			NutterInHand = 1
+
+			//Wait until the Nutter is not in the hand or is dead.
+			while NutterInHand == 1
+				if Nutter not exists
+					NutterInHand = 0
+				end if
+				if NutterInHand == 1 
+					if Nutter not in MyCreature hand
+						NutterInHand = 0
+					end if
+				end if
+			end while
+			
+			wait 10 seconds
+			
+			//The nutter has been eaten!
+			if Nutter not exists
+				NutterEaten = 1
+				// He's been eaten!!! Force creature to poo then recreate Nutter instead of poo.
+				MyCreature play C_INDIVIDUAL_NEED_A_POO
+				wait until MyCreature played
+				force MyCreature CREATURE_FART MyCreature
+				wait 4 seconds
+				//get bottom position and fire Nutter out of his arse :o)
+				CreatureButtPos = marker at arse position of MyCreature
+				ShitTarget = marker at [MyCreature]
+				run script CreateNewNutter(CreatureButtPos)
+				set Nutter target [ShitTarget] time 1
+			
+				while Nutter is FLYING and Nutter is not DROWNING
+					if HEALTH of Nutter < 0.55
+						HEALTH of Nutter = 0.6
+						if camera position near [Nutter] radius 150
+							if get PainTimer time remaining <= 0
+								start say sound constant from HELP_TEXT_THROW_BLOKE_06 to HELP_TEXT_THROW_BLOKE_14 at [Nutter]
+								set PainTimer time to 3 seconds
+							end if
+						end if
+					end if
+				end while
+
+				release MyCreature
+				if camera position near [Nutter] radius 150 and Nutter viewed
+					start say sound HELP_TEXT_THROW_BLOKE_20 at [Nutter]// "Nutter: Urgh. That was totally disgusting. I need a bath."
+				end if
+				state Nutter LIVING_IN_SCRIPT
+				move Nutter position to [NutterStartPos]
+			else 
+				//Nutter not eaten
+				run script EndOfFlyingNutter(NutterStartPos, TauntTimer)
+			end if
+		elsif Nutter is HELD
+			//Pick up sound effect
+			if Nutter on fire
+				start say sound HELP_TEXT_THROW_BLOKE_29 at [Nutter]// "Put out the fire! Please!"
+				NutterOnFire = 1
+			elsif NutterDrenched == 1
+				start say sound HELP_TEXT_THROW_BLOKE_02 at [Nutter] //"Great. I'd just dried my clothes too."
+				NutterDrenched = 0
+			elsif NutterEaten == 1
+				start say sound HELP_TEXT_THROW_BLOKE_18 at [Nutter] // "Nutter: Sorry about the smell."
+				NutterEaten = 0
+			else
+				PickmeCount = number from 1 to 6
+
+				if PickmeCount < 5
+					start say sound HELP_TEXT_THROW_BLOKE_03 at [Nutter] //"Please don't throw me!"
+				else
+					start say sound HELP_TEXT_THROW_BLOKE_16 at [Nutter]
+				end if
+			end if
+
+			wait until Nutter is not HELD
+			if Nutter is FLYING
+				begin cinema
+					set camera follow Nutter distance 10
+					set SlowmoTimer time to 3 seconds
+					set game speed to 0.32
+					NormalSpeed = 0
+					HEALTH of Nutter = 0.6
+					while Nutter is FLYING and Nutter is not DROWNING
+						if NormalSpeed == 0
+							MyTime=get SlowmoTimer time since set
+							if MyTime >= 3
+								if MyTime >= 6
+									set game speed to 1
+									NormalSpeed = 1
+								else
+									MySpeed=1-0.32
+									MySpeed*=((MyTime-3)/3)
+									MySpeed+=0.32
+									set game speed to MySpeed
+								end if
+							end if
+						end if
+
+						if HEALTH of Nutter < 0.55
+							HEALTH of Nutter = 0.6
+							if get PainTimer time remaining <= 0
+								start say sound constant from HELP_TEXT_THROW_BLOKE_06 to HELP_TEXT_THROW_BLOKE_14 at [Nutter]
+								set PainTimer time to 3 seconds
+							end if
+						end if
+					end while
+				end cinema
+			end if
+
+			run script EndOfFlyingNutter(NutterStartPos, TauntTimer)			
+		else //Ok lets just do the normal stuff then....
+			if camera position near [Nutter] radius 100
+				if get TauntTimer time remaining <= 0 
+					set TauntTimer time to 20 seconds
+
+					//First time pick me up speech
+					if PickmeSpeech == 0
+						start say sound HELP_TEXT_THROW_BLOKE_01 at [Nutter]		//"Please don't pick me up!"
+						PickmeSpeech = 1
+					elsif Nutter on fire
+						start say sound HELP_TEXT_THROW_BLOKE_28 at [Nutter]		// "Ooh ee ouch. I'm on fire."
+					else
+						PickmeCount = number from 1 to 6
+					
+						if PickmeCount == 6
+							start say sound HELP_TEXT_THROW_BLOKE_01 at [Nutter]	//Don't pick me up
+						elsif PickmeCount == 5
+							start say sound HELP_TEXT_THROW_BLOKE_17 at [Nutter]	//Leave me I'm not worth it.
+						else
+							start say sound constant from HELP_TEXT_THROW_BLOKE_21 to HELP_TEXT_THROW_BLOKE_27 at [Nutter]
+						end if
+					end if
+				end if 
+
+				if HEALTH of Nutter < 0.55
+					HEALTH of Nutter = 0.6
+					if get PainTimer time remaining <= 0
+						///start say sound constant from HELP_TEXT_THROW_BLOKE_06 to HELP_TEXT_THROW_BLOKE_14 //Did not hurt!
+						set PainTimer time to 3 seconds
+					end if
+				end if
+			end if
+		end if
+	end loop
+end script ThrowBlokeMain

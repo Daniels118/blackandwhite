@@ -1,0 +1,12 @@
+challenge RunBuildCitadel
+
+run script RunBuildCitadel
+
+begin script RunBuildCitadel
+	
+start
+	
+	run script BuildCitadel
+	
+
+end script RunBuildCitadel

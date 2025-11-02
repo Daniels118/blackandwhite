@@ -1,0 +1,12 @@
+challenge RunBeginLand5
+
+run script RunBeginLand5
+
+begin script RunBeginLand5
+	
+start
+	
+	run script BeginLand5
+	
+
+end script RunBeginLand5

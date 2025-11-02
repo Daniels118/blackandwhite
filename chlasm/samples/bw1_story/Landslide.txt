@@ -1,0 +1,172 @@
+challenge LANDSLIDE
+
+global LandslideFinished
+
+
+
+//run script Landslide
+
+
+begin script Landslide
+
+	Town = get TOWN at [2505.87,2636.32] radius 50
+	LandRock1 = 0
+	LandRock2 = 0
+	LandRock3 = 0
+	Stone = 0
+	Stone2 = 0
+	Stone3 = 0
+	Stone4 = 0
+	Stone5 = 0
+	Stone6 = 0
+	Stone7 = 0
+	Stone8 = 0
+	Stone9 = 0
+
+	Man4 = create VILLAGER VILLAGER_INFO_AZTEC_FISHERMAN_MALE at [2147.7686, 28.1400, 2819.7612]
+	Man1 = 0
+	Man2 = 0
+	Man3 = 0
+	BeginPos = 0
+	BeginFoc = 0
+
+	MyTimer = 0
+
+	Man1Uncovered = 0
+	Man2Uncovered = 0
+	Man3Uncovered = 0
+
+	LandRock1Pos = 0
+	LandRock2Pos = 0
+	LandRock3Pos = 0
+	Highlight=0
+
+start
+
+	
+	
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [Man4]
+	run script ChallengeHighlightNotify(Highlight, Man4, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_09)
+	
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_14 StandardReminder(variable HELP_TEXT_REMINDER_15)
+
+	LandRock1 = create with angle 0 and scale 0.5 OBJECT ROCK at [2161.8381, 28.2735, 2830.1687]
+	LandRock2 = create with angle 0 and scale 0.5 OBJECT ROCK at [2176.7993, 28.8100, 2835.5212]
+	LandRock3 = create with angle 0 and scale 0.5 OBJECT ROCK at [2162.5256, 28.1400, 2814.0010]
+
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+	
+	begin cinema
+		camera path TRACK00
+		shake camera at [Man4] radius 100.0 amplitude 0.3 time 4.0
+		Stone = create with angle 0 and scale 0.6 OBJECT ROCK at [2197.1975, 89.8690, 2813.8838]
+		wait until 0.5 seconds
+		Stone2 = create with angle 0 and scale 0.4 OBJECT ROCK at [2161.6167, 101.6646, 2874.7009]
+		wait until 1 second
+		Stone3 = create with angle 0 and scale 0.8 OBJECT ROCK at [2193.6440, 96.3858, 2806.2471]
+		wait until 2.5 second
+		Stone4 = create with angle 0 and scale 0.2 OBJECT ROCK at [2131.2222, 64.5398, 2863.3848]
+		Stone5 = create with angle 0 and scale 0.5 OBJECT ROCK at [2198.3499, 70.7923, 2826.8521]
+		Stone6 = create with angle 0 and scale 0.7 OBJECT ROCK at [2179.3577, 68.2824, 2873.1274]
+		wait until 1 second
+		Stone7 = create with angle 0 and scale 0.1 OBJECT ROCK at [2194.1753, 102.5728, 2802.9731]
+		Stone8 = create with angle 0 and scale 0.2 OBJECT ROCK at [2206.0208, 101.0234, 2812.5833]
+		Stone9 = create with angle 0 and scale 0.1 OBJECT ROCK at [2189.0664, 88.3065, 2806.6260]
+		say HELP_TEXT_LANDSLIDE_02
+		wait until read
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+		eject evil spirit
+		say HELP_TEXT_LANDSLIDE_03
+		wait until read
+		eject good spirit
+		make good spirit point to Man1
+		wait until 1 second
+		make good spirit point to Man2
+		wait until 1 second
+		make good spirit point to Man3
+		wait until 1 second
+		say HELP_TEXT_LANDSLIDE_04
+		wait until read
+		say HELP_TEXT_LANDSLIDE_05
+		wait until read
+		wait until camera ready
+	end cinema
+
+	MyTimer = create timer for 300 seconds
+
+	LandRock1Pos = marker at [LandRock1]
+	LandRock2Pos = marker at [LandRock2]
+	LandRock3Pos = marker at [LandRock3]
+
+while LandslideFinished == 0 
+
+	if (LandRock1 is HELD or [LandRock1] not near [LandRock1Pos]) and Man1Uncovered == 0
+		Man1 = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE  at [LandRock1Pos]
+		HEALTH of Man1 = 0.5
+		attach Man1 to Town
+		Man1Uncovered = 1
+	end if
+
+
+	if (LandRock2 is HELD or [LandRock2] not near [LandRock2Pos]) and Man2Uncovered == 0
+		Man2 = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE  at [LandRock2Pos]
+		HEALTH of Man2 = 0.5
+		attach Man2 to Town
+		Man2Uncovered = 1
+	end if
+
+	if (LandRock3 is HELD or [LandRock3] not near [LandRock3Pos]) and Man3Uncovered == 0
+		Man3 = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE  at [LandRock3Pos]
+		HEALTH of Man3 = 0.5
+		attach Man3 to Town
+		Man3Uncovered = 1
+	end if
+
+
+	if Man1Uncovered == 1 and Man2Uncovered == 1 and Man3Uncovered == 1
+		attach Man4 to Town
+		begin cinema
+			eject good spirit
+			eject evil spirit
+			say HELP_TEXT_LANDSLIDE_06
+			wait until read
+			say HELP_TEXT_LANDSLIDE_07
+			wait until read
+			say HELP_TEXT_LANDSLIDE_08
+			wait until read
+//			Set the alignment on the small Aztec town to you.
+			set Town player 1 relative belief 3
+			LandslideFinished = 1
+		end cinema
+	end if
+
+
+
+	if get MyTimer time remaining == 0
+	begin cinema
+		shake camera at [Man4] radius 100.0 amplitude 0.3 time 4.0
+		Stone4 = create with angle 0 and scale 0.2 OBJECT ROCK at [2131.2222, 64.5398, 2863.3848]
+		Stone5 = create with angle 0 and scale 0.5 OBJECT ROCK at [2198.3499, 70.7923, 2826.8521]
+		Stone6 = create with angle 0 and scale 0.7 OBJECT ROCK at [2179.3577, 68.2824, 2873.1274]
+		wait until 1 second
+		Stone7 = create with angle 0 and scale 0.1 OBJECT ROCK at [2194.1753, 102.5728, 2802.9731]
+		Stone8 = create with angle 0 and scale 0.2 OBJECT ROCK at [2206.0208, 101.0234, 2812.5833]
+		Stone9 = create with angle 0 and scale 0.1 OBJECT ROCK at [2189.0664, 88.3065, 2806.6260]
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_LANDSLIDE_09
+		wait until read
+		say HELP_TEXT_LANDSLIDE_10
+		wait until read
+		LandslideFinished = 2
+	end cinema
+	end if
+
+end while
+
+	set camera zones to "Land1Zone5.exc"
+
+end script Landslide
+

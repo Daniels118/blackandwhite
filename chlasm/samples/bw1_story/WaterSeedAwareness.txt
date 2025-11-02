@@ -1,0 +1,10 @@
+begin script WaterSeedAwareness (Seed)
+start
+
+	WaterMiracleAvailable = 1
+
+	wait until Seed not exists
+
+	WaterMiracleAvailable = 0
+
+end script WaterSeedAwareness

@@ -1,0 +1,489 @@
+challenge ChooseYourCreature
+
+global QuarryRockPresent
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script AdvisorSpotsGateKey2
+ KeepLooking = 0
+ DelayTimer = create timer for 0 seconds
+start
+	while KeepLooking == 0
+		if GateKey2 is HELD
+			KeepLooking = 1
+		elsif camera position near [GateKey2] radius 100 and [GateKey2] viewed and get DelayTimer time remaining  <= 0
+			begin dialogue
+				eject good spirit
+				make good spirit point at [GateKey2]
+				// "Look there's the GateKey we're searching for!"
+				say HELP_TEXT_FINAL_BEGINNING_35
+				wait until read
+				stop good spirit pointing
+			end dialogue
+			set DelayTimer time to 30 seconds
+		end if
+	end while
+end script AdvisorSpotsGateKey2
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//  Taken uncarved stone to gate keeper (reminder)
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script RemindAboutQuarryRock (GateKeyPost) 
+ WrongPlaceTimer = create timer for 0 seconds
+ EndingLoop = 0
+ Keeper = 0
+start
+	begin loop
+		set WrongPlaceTimer time to 180 seconds
+		wait until [QuarryRock] not near [GateKeyPost] radius 25 or QuarryRock is HELD or get WrongPlaceTimer time remaining <= 0
+		if get WrongPlaceTimer time remaining <= 0
+			wait until camera position near [GateKeyPost] radius 80 and [GateKeyPost] viewed
+			begin cinema
+				Keeper = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [1765.768, 33.416, 2818.760] // Keeper Position
+				enable Keeper high graphics detail
+				send good spirit home
+
+				move camera position to [1763.502, 32.369, 2809.818] time 5 		// Camera pos move to keeper
+				set camera focus follow Keeper						 				// Camera foc move to keeper
+				
+				move Keeper position to [1762.127, 33.233, 2816.975]				// Keeper walks to door
+				wait until [Keeper] near [1762.127, 33.233, 2816.975] radius 0.3		
+
+				move Keeper position to [1764.836, 32.649, 2811.268]				// Keeper walks to talk position
+				wait until [Keeper] near [1764.836, 32.649, 2811.268] radius 1
+				wait 0.5 seconds
+				set Keeper focus to camera position
+				wait 0.5 seconds
+
+				move camera focus to [1775.856, 35.763, 2818.354] time 7 			// Camera foc move to see gate
+
+				Keeper play ANM_P_GOSSIP_WOMAN_1 loop 1
+
+				// "That's no good, take it to the Sculptor first."
+				say HELP_TEXT_NEWEST_GET_CREATURE_28
+				wait until read
+
+				move camera position to [1763.502, 69.369, 2809.818] time 2 		// Camera pos look at lost sculptor 
+				move camera focus to [1762.148, 31.347, 2759.201] time 2 			// Camera foc look at lost sculptor
+
+				wait 1.2 seconds
+
+				move camera position to [1765.593, 69.976, 2821.325] time 3			// Camera pos move back a bit for composition
+
+				disable	Keeper high graphics detail
+
+			end cinema
+
+			move Keeper position to [1762.127, 33.233, 2816.975]					// Keeper walks back to door
+			wait 3 seconds
+			delete Keeper
+		else
+			EndingLoop = 1
+		end if
+	until EndingLoop == 1
+	end loop
+	QuarryRockPresent = 0
+end script RemindAboutQuarryRock
+
+//------------------------------------------------------------------------------------------------------------------------
+//  Start of Choose your creature - Meet the Creature trainer..... *************************************************
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ChooseYourCreature
+
+	CreatureCow = 0
+	CreatureApe = 0
+	CreatureTiger = 0
+	ApeMarker = marker at [0,0,0]
+	CowMarker = marker at [0,0,0]
+	TigerMarker = marker at [0,0,0]
+	SpiritReading = 0
+	HandOver = 0
+	ReadCount = 0
+	HighlightPos = marker at [1779.626, 32.270, 2805.829]
+	Keeper = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [1765.768, 33.416, 2818.760] // Keeper Position
+	KeeperFinished = 0
+	MyTimer = 0
+	NotStarted = 0
+	Highlight=0
+	specialfx=0
+	HomePos = marker at [1896.50, 29.48, 2520.06]
+	GateKeysAllPresent = 0
+	Plinth = get FEATURE at [1774.50,2793.30]
+	PlinthValue = 0
+	GateKeyPost = marker at [Plinth]
+	CreatureGates = get FEATURE at [1781.03,2810.63]
+	GatesHitSpeech = 0
+	ClueTimer = create timer for 0 seconds
+	Key2Clue = 0
+
+	CowFocusTimer = create timer for 0 seconds
+	ApeFocusTimer = create timer for 0 seconds
+	TigerFocusTimer = create timer for 0 seconds
+	SFX=0
+
+	CreatureCowClickedTwice = 0
+	CreatureApeClickedTwice = 0
+	CreatureTigerClickedTwice = 0
+
+	Ark = 0
+
+start
+
+   	//run background script ProtectGateKeys
+
+	ChooseYourCreatureFinished = 0
+
+//	run background script DidYouKnow(dyk27,variable HELP_TEXT_DYK_27, variable DYK_MISC)			// do the gold scrolls
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 14
+
+	run script ChallengeHighlightNotify(Highlight, HighlightPos, variable EVIL_ADVISOR, variable 		HELP_TEXT_GENERAL_CHALLENGE_START_01)
+ //start russ
+
+//------------------------------------------------------------------------------------------------------------------------
+// Found all stones - open gate sequence
+//------------------------------------------------------------------------------------------------------------------------
+
+	begin cinema
+		update snapshot success 0.75 alignment 0.0 HELP_TEXT_TITLE_43 StandardReminder(variable HELP_TEXT_REMINDER_54)
+
+		set camera zones to "Land1Zone3.exc"
+
+	CreatureCow = create CREATURE CREATURE_TYPE_COW at [2229.612, 16.080, 3154.966]     // Cow Position
+	CreatureApe = create CREATURE CREATURE_TYPE_APE at [2233.0173, 16.0800, 3152.3228]  // Ape Position
+	CreatureTiger = create CREATURE CREATURE_TYPE_TIGER at [2234.441, 16.080, 3148.074] // Tiger Position
+	//Ark = create FEATURE FEATURE_INFO_ARK_DRY_DOCK at [1881.0833, 8.1316, 3154.1094]
+
+		Keeper = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [1765.768, 33.416, 2818.760] // Keeper Position
+		enable Keeper high graphics detail
+		send good spirit home
+
+		move camera position to [1763.502, 32.369, 2809.818] time 5 		// Camera pos move to keeper
+		set camera focus follow Keeper						 				// Camera foc move to keeper
+			
+		move Keeper position to [1762.127, 33.233, 2816.975]				// Keeper walks to door
+		set Keeper anim ANM_P_WALK_WOMAN
+		wait until [Keeper] near [1762.127, 33.233, 2816.975] radius 0.3		
+
+		move Keeper position to [1764.836, 32.649, 2811.268]				// Keeper walks to talk position
+		set Keeper anim ANM_P_WALK_WOMAN
+		wait until [Keeper] near [1764.836, 32.649, 2811.268] radius 1
+		wait 0.5 seconds
+		set Keeper focus to camera position
+		wait 0.5 seconds
+
+		move camera focus to [1775.856, 35.763, 2818.354] time 7 			// Camera foc move to see gate
+
+		Keeper play ANM_P_CROWD_IMPRESSED_1 loop 1
+
+		// "Well done man, time to go and choose a beast I reckon"
+		say HELP_TEXT_NEWEST_GET_CREATURE_29
+		wait until read
+		
+		move camera position to [1767.286, 33.080, 2787.070] time 5 		// Camera pos  move to plynth
+		move camera focus to [1775.200, 41.978, 2793.792] time 5			// Camera foc move to plynth
+
+		wait until camera ready
+
+		start sound LH_SCRIPT_SAMPLE_CREATUREGATESTONEMOVE_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 									// Waiting for Russ to do sound effect 
+		shake camera at [1765.943, 40.312, 2786.516] radius 20.0 amplitude 0.1 time 7.0
+		wait 1 second
+		open Plinth															// Gate stones descend into plynth...
+
+		move camera position to [1765.943, 40.312, 2786.516] time 6 		// Camera pos  move on plynth
+		move camera focus to [1776.178, 37.813, 2795.115] time 6			// Camera foc move on plynth
+
+		wait until camera ready
+		wait 1 second
+
+		set camera position to [1753.323, 49.477, 2811.133]					// Camera pos look at gate chain
+		set camera focus to [1773.090, 46.713, 2817.859]					// Camera foc look at gate chain
+
+		open CreatureGates													// Gates open...
+		start sound LH_SCRIPT_SAMPLE_CREATUREGATEBOLT_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		move camera position to	[1754.990, 49.395, 2808.358] time 4			// Move cam pos on chain
+		move camera focus to [1773.183, 46.504, 2817.627] time 4			// Move cam foc on chain
+
+		wait 3  seconds
+
+		Keeper play ANM_P_BECKON loop 1
+		
+		set camera position to [1776.750, 34.728, 2798.577]					// Cam pos look at gates opening
+		set camera focus to [1778.713, 40.445, 2804.248]					// Cam foc look at gates opening
+		start sound LH_SCRIPT_SAMPLE_CREATUREGATEOPEN_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX					
+
+
+		move camera position to [1766.360, 50.648, 2770.927] time 4			// Move cam pos on gate opening
+		move camera focus to [1781.169, 47.111, 2809.349] time 4			// Move cam foc on gate opening
+
+		wait until camera ready
+
+
+
+		move camera to T00_000 time 3										// Fly to valley of creatures
+		wait until camera ready
+		start music MUSIC_TYPE_SCRIPT_GET_CREATURE
+		camera path TRACK00
+		wait until camera ready
+
+		move camera position to [2225.328, 17.080, 3146.622] time 4			// Camera pos move to creatures
+		move camera focus to [2238.217, 18.187, 3155.706] time 4 			// Camera foc move to creatures
+		set CreatureCow focus to camera position
+		set CreatureApe focus to camera position
+		set CreatureTiger focus to camera position 
+	
+		wait until CreatureCow played
+		set CreatureCow focus to camera position
+		wait until CreatureApe played
+		set CreatureApe focus to camera position
+		wait until CreatureTiger played
+		set CreatureTiger focus to camera position
+	
+		eject evil spirit
+		eject good spirit
+		CreatureCow play PICK_ME loop 1
+		say HELP_TEXT_NEWEST_GET_CREATURE_05
+		wait until read
+		CreatureApe play C_INDIVIDUAL_HAPPY
+		say HELP_TEXT_NEWEST_GET_CREATURE_06
+		wait until read
+		say HELP_TEXT_NEWEST_GET_CREATURE_07
+		CreatureTiger play C_INDIVIDUAL_ANGRY
+		wait until read 
+		say HELP_TEXT_NEWEST_GET_CREATURE_08
+		wait until CreatureCow played
+		CreatureCow play C_INDIVIDUAL_HAPPY 
+		wait until read
+		wait until CreatureApe played
+		CreatureApe play C_INDIVIDUAL_PICK_ME
+		say HELP_TEXT_NEWEST_GET_CREATURE_09
+		wait until read
+		wait until CreatureTiger played
+		CreatureTiger play C_INDIVIDUAL_HAPPY
+		say HELP_TEXT_NEWEST_GET_CREATURE_10
+		wait until read
+		say HELP_TEXT_NEWEST_GET_CREATURE_11
+		wait until read
+		send good spirit home
+		send evil spirit home
+		wait until CreatureCow played
+		CreatureCow play C_INDIVIDUAL_FRIENDLY_WAVE
+		move camera position to [2224.93, 20.1948, 3146.31] time 6 		// Camera pos move to creature select pos
+		move camera focus to [2234.93, 16.3918, 3153.02] time 6 		// Camera foc move to creature select pos
+		CreatureApe play C_INDIVIDUAL_FRIENDLY_WAVE
+		stop music
+	end cinema
+
+	set camera zones to "Land1Choose.exc"
+
+	begin loop
+
+		if hand position near [CreatureCow] radius 1
+
+			if CreatureCow played
+				CreatureCow play PICK_ME loop 1
+			end if
+
+			if read and HandOver != 1
+				begin dialogue
+				make good spirit point to CreatureCow
+				say HELP_TEXT_NEWEST_GET_CREATURE_12
+				wait until read
+				eject evil spirit
+				say HELP_TEXT_NEWEST_GET_CREATURE_13
+				wait until read
+				SpiritReading = 1
+				HandOver = 1
+				ReadCount = 0
+				end dialogue
+			end if
+		end if
+
+		if hand position near [CreatureApe] radius 1
+			if CreatureApe played
+				CreatureApe play PICK_ME loop 1
+			end if
+			if read and HandOver != 2
+				begin dialogue
+				make good spirit point to CreatureApe
+				say HELP_TEXT_NEWEST_GET_CREATURE_14
+				wait until read
+				SpiritReading = 1
+				HandOver = 2
+				ReadCount = 0
+				end dialogue
+			end if
+		end if
+
+		if hand position near [CreatureTiger] radius 1
+			if CreatureTiger played
+				CreatureTiger play PICK_ME loop 1
+			end if
+			if read and HandOver != 3
+				begin dialogue
+				make evil spirit point to CreatureTiger
+				say HELP_TEXT_NEWEST_GET_CREATURE_15
+				wait until read
+				SpiritReading = 1
+				HandOver = 3
+				ReadCount = 0
+				end dialogue
+			end if
+		end if
+
+		
+		if CreatureCow played and get CowFocusTimer time remaining <= 0
+			set CreatureCow focus to camera position
+			set CowFocusTimer time to 5 seconds
+		end if
+
+		if CreatureApe played and get ApeFocusTimer time remaining <= 0
+			set CreatureApe focus to camera position
+			set ApeFocusTimer time to 5 seconds
+		end if
+
+		if CreatureTiger played and get TigerFocusTimer time remaining <= 0
+			set CreatureTiger focus to camera position
+			set TigerFocusTimer time to 5 seconds
+		end if
+
+		if CreatureCow clicked
+			CreatureCowClickedTwice++
+			CreatureApeClickedTwice = 0
+			CreatureTigerClickedTwice = 0
+			if CreatureCowClickedTwice == 1
+				begin dialogue
+					eject good spirit
+					// "Are you sure you want this creature?"
+					say HELP_TEXT_CREATURE_SWAP_CONFIRM_03
+					wait until read
+				end dialogue
+			end if
+			clear clicked object
+		end if
+
+		if CreatureApe clicked
+			CreatureApeClickedTwice++
+			CreatureCowClickedTwice = 0
+			CreatureTigerClickedTwice = 0
+			if CreatureApeClickedTwice == 1
+				begin dialogue
+					eject good spirit
+					// "Are you sure you want this creature?"
+					say HELP_TEXT_CREATURE_SWAP_CONFIRM_03
+					wait until read
+				end dialogue
+			end if
+			clear clicked object
+		end if
+
+		if CreatureTiger clicked
+			CreatureTigerClickedTwice++
+			CreatureCowClickedTwice = 0
+			CreatureApeClickedTwice = 0
+			if CreatureTigerClickedTwice == 1
+				begin dialogue
+					eject good spirit
+					// "Are you sure you want this creature?"
+					say HELP_TEXT_CREATURE_SWAP_CONFIRM_03
+					wait until read
+				end dialogue
+			end if
+			clear clicked object
+		end if
+
+	until CreatureCowClickedTwice == 2					// Chosen the Cow !!!
+		begin cinema
+			move camera position to [2227.907, 19.081, 3153.790] time 10 	// Camera Pos Close_Up of Cow
+			move camera focus to [2250.468, 22.552, 3169.690] time 10 		// Camera Foc Close_Up of Cow
+			set CreatureCow focus to camera position
+			eject evil spirit
+			say HELP_TEXT_NEWEST_GET_CREATURE_16
+			wait 4 seconds
+
+			set fade red 0 green 0 blue 0 time 3
+			force CreatureCow CREATURE_LOOK_AT_CAMERA CreatureCow
+			wait 4 seconds
+
+			set player_creature to CreatureCow
+			set CreatureCow position to [HomePos]
+			set CreatureCow home position [HomePos]
+			delete CreatureApe
+			delete CreatureTiger
+			set camera zones to "Land1Zone4.exc"
+			release CreatureCow
+			ChooseYourCreatureFinished = 1
+			//run SCRIPT_DEV_FUNCTION_TURN_ON_MY_CREATURE_REACTIVITY developer function
+		end cinema
+
+
+	until CreatureApeClickedTwice == 2							// Chosen the Ape !!!
+		begin cinema
+			move camera position to [2231.781, 19.080, 3151.211] time 10 	// Camera Pos Close_Up of Ape
+			move camera focus to [2253.051, 17.125, 3165.918] time 10 	    // Camera Foc Close_Up of Ape
+			set CreatureApe focus to camera position
+			eject evil spirit
+			say HELP_TEXT_NEWEST_GET_CREATURE_16
+			wait 4 seconds
+
+			set fade red 0 green 0 blue 0 time 3
+			force CreatureApe CREATURE_LOOK_AT_CAMERA CreatureApe
+			wait 4 seconds
+
+			set player_creature to CreatureApe
+			set CreatureApe position to [HomePos]
+			set CreatureApe home position [HomePos]
+			delete CreatureCow
+			delete CreatureTiger
+			set camera zones to "Land1Zone4.exc"
+			release CreatureApe
+			ChooseYourCreatureFinished = 1
+			//run SCRIPT_DEV_FUNCTION_TURN_ON_MY_CREATURE_REACTIVITY developer function
+		end cinema
+
+
+	until CreatureTigerClickedTwice == 2							// Chosen the Tiger !!!
+		begin cinema
+			move camera position to [2233.126, 19.081, 3147.267] time 10 	// Camera Pos Close_Up of Tiger
+			move camera focus to [2256.574, 22.666, 3163.481] time 10 	    // Camera Foc Close_Up of Tiger
+			set CreatureTiger focus to camera position
+			eject evil spirit
+			say HELP_TEXT_NEWEST_GET_CREATURE_16
+			wait 4 seconds
+
+			set fade red 0 green 0 blue 0 time 3
+			force CreatureTiger CREATURE_LOOK_AT_CAMERA CreatureTiger
+			wait 4 seconds
+
+			set player_creature to CreatureTiger
+			set CreatureTiger position to [HomePos]
+			set CreatureTiger home position [HomePos]
+			delete CreatureCow
+			delete CreatureApe
+			set camera zones to "Land1Zone4.exc"
+			release CreatureTiger
+			ChooseYourCreatureFinished = 1
+		end cinema
+
+
+	when read and SpiritReading == 1
+		ReadCount++
+		if ReadCount > 4
+			SpiritReading = 0
+			ReadCount = 0
+		end if
+
+	end loop
+
+	wait until ChooseYourCreatureFinished == 1
+	run SCRIPT_DEV_FUNCTION_START_DEVELOPMENT_SCRIPTS developer function	
+	update snapshot success 1 alignment 0.0 HELP_TEXT_TITLE_43 StandardReminder(variable HELP_TEXT_NEW_REMINDER_09)
+end script ChooseYourCreature
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+

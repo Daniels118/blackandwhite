@@ -1,0 +1,12 @@
+challenge RunFollowUsGotOut
+
+run script RunFollowUsGotOut
+
+begin script RunFollowUsGotOut
+	
+start
+	
+	run script FollowUsGotOut
+	
+
+end script RunFollowUsGotOut

@@ -1,0 +1,1283 @@
+challenge SINGING_STONES_SONGS
+
+//------------------------------------------------------------------------------------------------------------------------
+// Tune tap globals
+//------------------------------------------------------------------------------------------------------------------------
+global	SSTap1
+global	SSTap2
+global	SSTap3
+global	SSTap4
+global	SSTap5
+global	SSTap6
+global	SSTap7
+global	SSTap8
+global	SSTap9
+global	SSTap10
+global	SSTap11
+global	SSTap12
+global	SSTap13
+global	SSTap14
+global	SSTapCount
+global	TinkleComplete
+global	FuneralComplete
+global	WhiteChristmasComplete 
+global	SSTapStone1
+global	SSTapStone2
+global	SSTapStone3
+global	SSTapStone4
+global	SSTapStone5
+global	SSTapStone6
+global	SSTapStone7
+global	SSTapStone8
+global	SSTapStone9
+global	SSMidnight = 0
+global	SSDoneBats=0
+global	SSBringBackToLifeActive=0
+
+
+//------------------------------------------------------------------------------------------------------------------------
+global	constant STONETAP_SFX = SPOT_VISUAL_COMMAND_SUCCEED
+
+//------------------------------------------------------------------------------------------------------------------------
+// Reminder Script
+//------------------------------------------------------------------------------------------------------------------------
+
+begin help script StoneSongReminder
+
+start
+	begin dialogue
+
+		eject good spirit
+		say HELP_TEXT_REMINDER_117
+		wait until read
+
+		eject evil spirit
+		say	HELP_TEXT_REMINDER_118
+		wait until read
+
+	end dialogue
+
+end script StoneSongReminder
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TwinkleSequence
+
+	Mist = 0
+	Center = marker at [2106.779, 9.597, 2997.927]
+	Bats = 0
+
+start
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_TWINKLE
+		if SSDoneBats == 0
+			Bats = flock at [Center]
+			set Bats properties inner 15 outer 30
+
+			populate Bats with 10 ANIMAL ANIMAL_INFO_BAT
+			SSDoneBats=1
+		end if
+
+		Mist = create mist at [2106.779, 9.597, 2997.927] scale 0.8 red 255 green 255 blue 255 transparency 0.1 height ratio 0.6 
+
+		move camera position to [2096.437, 13.611, 3003.126] time 5 
+		move camera focus to [2112.653, 9.999, 2999.120] time 4
+
+		move game time 23.00 time 10
+		enable game time
+
+		wait until camera ready
+
+		move camera position to [2096.440, 30, 3003.130] time 12
+		move camera focus to [2112.650, 30, 2999.120] time 12
+
+		wait until camera ready
+
+		move camera position to [2071.814, 35.057, 3017.850] time 4
+		move camera focus to [2131.962, 20.538, 2999.407] time 3
+
+		wait until camera ready
+
+		set Mist fade start scale 1 end scale 2 start transparency 50 end transparency 0 time 10
+		stop music
+	end cinema
+
+end script TwinkleSequence
+//------------------------------------------------------------------------------------------------------------------------
+begin script WhiteChristmasSequence
+
+	Snow = 0
+	Center = marker at [2106.779, 9.597, 2997.927] 
+
+start
+
+	Snow = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [Center] 
+			set Snow properties time 300 fade 5
+			set Snow properties degrees 0 rainfall 0 snowfall 1 overcast 0 fallspeed 1
+			set Snow properties clouds 10 shade 1 height 70
+			set Snow properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+			set Snow properties inner 200 outer 500
+			disable Snow affected by wind
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CHRISTMAS
+		move camera position to [2108.735, 17.990, 2979.272] time 5
+		move camera focus to [2100.943, 10.633, 3012.753] time 4
+
+		wait until camera ready
+
+		move camera position to [2124.607, 16.419, 2989.477] time 12
+		move camera focus to [2093.685, 11.138, 3006.367] time 12
+
+		wait 9 seconds
+
+		move camera position to [2125.807, 22.242, 3010.292] time 12
+		move camera focus to [2100.197, 6.055, 2997.558] time 12
+
+		wait 10 seconds
+
+		move camera position to [2103.948, 33.842, 3047.989] time 7
+		move camera focus to [2119.270, 11.020, 3000.095] time 6
+
+		wait until camera ready
+		
+	end cinema
+end script WhiteChristmasSequence
+
+//------------------------------------------------------------------------------------------------------------------------
+// Script to raise the dead during night after tune played.
+//------------------------------------------------------------------------------------------------------------------------
+begin script BringBackTheDead
+	SFX = 0
+	DeadThing=0
+	DeadThingPos=marker at [2103.497, 9.841, 3000.377]
+	CreatePos=marker at [2103.497, 9.841, 3000.377]
+	LocalTimer = create timer for 60*5 seconds
+	Type=0
+	SubType=0
+	SFX2 = 0
+	Age = 0
+	NearestTown=get town with id 11
+
+start
+
+	if SSBringBackToLifeActive == 0
+		SSBringBackToLifeActive=1
+		SFX=create special effect SPOT_VISUAL_SINGING_STONES_HEAL at [CreatePos] time 60*60
+		SCALE of SFX = 13.5	
+		begin loop
+			DeadThing=get dead at [CreatePos] radius 10
+			wait 0.3 seconds
+			if DeadThing exists
+								
+				SFX2=create special effect SPOT_VISUAL_STEAM at [DeadThing] time 1
+				start sound constant 18.0 AUDIO_SFX_BANK_TYPE_SPELL
+				HEALTH of DeadThing=1
+				Type = variable get DeadThing type
+				SubType = variable get DeadThing sub type
+
+				if Type == variable SCRIPT_OBJECT_TYPE_VILLAGER or Type == variable SCRIPT_OBJECT_TYPE_VILLAGER_CHILD
+					Age= AGE of DeadThing
+					set DeadThingPos position to [DeadThing]
+					delete DeadThing
+					DeadThing = create constant Type constant SubType at [DeadThingPos]
+					AGE of DeadThing=Age
+					enable DeadThing skeleton
+					if NearestTown exists
+						attach DeadThing to NearestTown
+					end if
+				else //Must be an animal
+					delete DeadThing
+					DeadThing = create constant Type constant SubType at [DeadThingPos]
+				end if
+				wait 3 second
+				HEALTH of DeadThing=1
+				release DeadThing
+			end if
+						
+		until get LocalTimer time remaining <= 0
+		end loop
+		SSBringBackToLifeActive=0
+		delete SFX
+	end if
+end script BringBackTheDead
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script FuneralSequence(Man)
+
+
+start
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_FUNERAL
+
+		move camera position to [2081.862, 23.483, 2995.535] time 5
+		move camera focus to [2112.743, 10.318, 3001.377] time 4
+
+		wait until camera ready
+
+		move camera position to [2102.096, 10.563, 2999.403] time 10
+		move camera focus to [2112.419, 13.427, 3000.378] time 12
+
+		if Man exists
+			move Man position to [2103.684, 9.804, 2999.995] 
+			wait until [Man] at [2103.684, 9.804, 2999.995]  
+			set Man focus to [2102.096, 10.563, 2999.403]
+		end if
+
+		wait 10 seconds
+
+		run background script BringBackTheDead
+
+		wait 1 second
+		if Man exists
+			say single line HELP_TEXT_MORE_SINGING_STONES_05 // The Dead shall live.
+			wait until read
+		end if
+
+		move camera position to [2103.948, 33.842, 3047.989] time 7
+		move camera focus to [2119.270, 11.020, 3000.095] time 6
+
+		wait until camera ready
+		stop music
+	end cinema
+end script FuneralSequence
+
+//------------------------------------------------------------------------------------------------------------------------
+// Twinkle Twinkle Whistler
+//------------------------------------------------------------------------------------------------------------------------
+begin script TwinklePath
+
+	Whistler1 = 0
+
+start
+
+	Whistler1 = create VILLAGER VILLAGER_INFO_PIED_PIPER at	[2010.766, 22.110, 3200.531]
+	attach music MUSIC_TYPE_SCRIPT_WHISTLE_TWINKLE to Whistler1
+	enable Whistler1 indestructible
+	disable Whistler1 hurt by fire
+	disable Whistler1 set on fire
+	
+	begin loop
+
+		move Whistler1 position to [1900.805, 2.680, 3231.033]
+		wait until [Whistler1] near [1900.805, 2.680, 3231.033] radius 5 or 60 seconds
+
+		move Whistler1 position to [1931.575, 2.335, 3261.295] 
+		wait until [Whistler1] near [1931.575, 2.335, 3261.295] radius 5 or 60 seconds
+
+		move Whistler1 position to [1968.760, 0.000, 3282.171] 
+		wait until [Whistler1] near [1968.760, 0.000, 3282.171] radius 5 or 60 seconds
+
+		move Whistler1 position to [1977.535, 2.010, 3301.567] 
+		wait until [Whistler1] near [1977.535, 2.010, 3301.567] radius 5 or 60 seconds
+
+		move Whistler1 position to [1968.885, 0.000, 3331.766] 
+		wait until [Whistler1] near [1968.885, 0.000, 3331.766] radius 5 or 60 seconds
+
+		// Sit down for a few minutes
+		Whistler1 play ANM_P_SITTING_DOWN_MALE1 loop -1
+		wait 2*60 seconds
+
+		move Whistler1 position to [2013.424, 0.000, 3339.316] 
+		wait until [Whistler1] near [2013.424, 0.000, 3339.316] radius 5 or 60 seconds
+
+		move Whistler1 position to [2028.331, 2.230, 3380.614] 
+		wait until [Whistler1] near [2028.331, 2.230, 3380.614] radius 5 or 60 seconds
+
+		move Whistler1 position to [1998.416, 1.905, 3438.711] 
+		wait until [Whistler1] near [1998.416, 1.905, 3438.711] radius 5 or 60 seconds
+
+		move Whistler1 position to [1985.855, 0.000, 3480.389]
+		wait until [Whistler1] near [1985.855, 0.000, 3480.389] radius 5 or 60 seconds
+
+		move Whistler1 position to [1993.165, 0.848, 3601.369] 
+		wait until [Whistler1] near [1993.165, 0.848, 3601.369] radius 5 or 60 seconds
+
+		move Whistler1 position to [1996.778, 0.701, 3634.174]
+		wait until [Whistler1] near [1996.778, 0.701, 3634.174] radius 5 or 60 seconds
+
+		move Whistler1 position to [2032.215, 0.932, 3656.561] 
+		wait until [Whistler1] near [2032.215, 0.932, 3656.561] radius 5 or 60 seconds
+
+		move Whistler1 position to [2155.635, 0.900, 3631.019]
+		wait until [Whistler1] near [2155.635, 0.900, 3631.019] radius 5 or 60 seconds
+
+		move Whistler1 position to [2191.467, 0.576, 3617.872] 
+		wait until [Whistler1] near [2191.467, 0.576, 3617.872] radius 5 or 60 seconds
+
+		move Whistler1 position to [2260.074, 0.304, 3618.888] 
+		wait until [Whistler1] near [2260.074, 0.304, 3618.888] radius 5 or 60 seconds
+
+		move Whistler1 position to [2313.479, 1.748, 3569.543]
+		wait until [Whistler1] near [2313.479, 1.748, 3569.543] radius 5 or 60 seconds
+
+		move Whistler1 position to [2318.471, 2.345, 3512.848] 
+		wait until [Whistler1] near [2318.471, 2.345, 3512.848] radius 5 or 60 seconds
+
+		move Whistler1 position to [2375.396, 2.031, 3472.456]
+		wait until [Whistler1] near [2375.396, 2.031, 3472.456] radius 5 or 60 seconds
+
+		move Whistler1 position to [2452.254, 0.000, 3427.771] 
+		wait until [Whistler1] near [2452.254, 0.000, 3427.771] radius 5 or 60 seconds
+
+		move Whistler1 position to [2454.580, 2.680, 3313.237]
+		wait until [Whistler1] near [2454.580, 2.680, 3313.237] radius 5 or 60 seconds
+
+		move Whistler1 position to [2465.783, 1.131, 3294.443] 
+		wait until [Whistler1] near [2465.783, 1.131, 3294.443] radius 5 or 60 seconds
+
+		move Whistler1 position to [2451.174, 0.000, 3267.549]
+		wait until [Whistler1] near [2451.174, 0.000, 3267.549] radius 5 or 60 seconds
+
+		move Whistler1 position to [2446.013, 1.078, 3223.445] 
+		wait until [Whistler1] near [2446.013, 1.078, 3223.445] radius 5 or 60 seconds
+
+		move Whistler1 position to [2394.735, 1.036, 3183.889] 
+		wait until [Whistler1] near [2394.735, 1.036, 3183.889] radius 5 or 60 seconds
+
+		move Whistler1 position to [2361.415, 2.261, 3139.864] 
+		wait until [Whistler1] near [2361.415, 2.261, 3139.864] radius 5 or 60 seconds
+
+		move Whistler1 position to [2337.783, 2.680, 3123.087]
+		wait until [Whistler1] near [2337.783, 2.680, 3123.087] radius 5 or 60 seconds
+
+		move Whistler1 position to [2280.857, 11.291, 3152.813] 
+		wait until [Whistler1] near [2280.857, 11.291, 3152.813] radius 5 or 60 seconds
+
+		move Whistler1 position to [2247.832, 22.110, 3205.263]
+		wait until [Whistler1] near [2247.832, 22.110, 3205.263] radius 5 or 60 seconds
+
+		move Whistler1 position to [2188.423, 22.377, 3234.452] 
+		wait until [Whistler1] near [2188.423, 22.377, 3234.452] radius 5 or 60 seconds
+
+		move Whistler1 position to [2110.805, 22.283, 3203.711] 
+		wait until [Whistler1] near [2110.805, 22.283, 3203.711] radius 5 or 60 seconds
+
+		move Whistler1 position to [2010.766, 22.110, 3200.531]     
+		wait until [Whistler1] near [2010.766, 22.110, 3200.531] radius 5 or 60 seconds
+
+	end loop
+end script TwinklePath
+
+//------------------------------------------------------------------------------------------------------------------------
+// Funeral March Whistler
+//------------------------------------------------------------------------------------------------------------------------
+begin script FuneralPath
+
+	Whistler2 = 0
+
+start  
+
+	Whistler2 = create VILLAGER VILLAGER_INFO_PIED_PIPER at	[2386.745, 0.000, 1839.640]
+	attach music MUSIC_TYPE_SCRIPT_WHISTLE_FUNERAL to Whistler2
+	enable Whistler2 indestructible
+	disable Whistler2 hurt by fire
+	disable Whistler2 set on fire
+
+	begin loop
+
+		move Whistler2 position to [2391.105, 0.293, 1848.459] 
+		wait until [Whistler2] near [2391.105, 0.293, 1848.459] radius 5 or 60 seconds
+
+		move Whistler2 position to [2388.564, 26.865, 1876.717] 
+		wait until [Whistler2] near [2388.564, 26.865, 1876.717] radius 5 or 60 seconds
+
+		move Whistler2 position to [2346.946, 68.403, 1894.675]
+		wait until [Whistler2] near [2346.946, 68.403, 1894.675] radius 5 or 60 seconds
+
+		move Whistler2 position to [2294.346, 55.267, 1898.242]
+		wait until [Whistler2] near [2294.346, 55.267, 1898.242] radius 5 or 60 seconds
+
+		move Whistler2 position to [2272.406, 52.930, 1957.059]
+		wait until [Whistler2] near [2272.406, 52.930, 1957.059] radius 5 or 60 seconds
+
+		move Whistler2 position to [2240.196, 22.890, 2109.009] 
+		wait until [Whistler2] near [2240.196, 22.890, 2109.009] radius 5 or 60 seconds
+
+		move Whistler2 position to [2174.449, 17.488, 2143.433] 
+		wait until [Whistler2] near [2174.449, 17.488, 2143.433] radius 5 or 60 seconds
+
+		move Whistler2 position to [2132.204, 0.586, 2158.485]
+		wait until [Whistler2] near [2132.204, 0.586, 2158.485] radius 5 or 60 seconds
+
+		move Whistler2 position to [2135.237, 0.000, 2134.513]  
+		wait until [Whistler2] near [2135.237, 0.000, 2134.513] radius 5 or 60 seconds
+
+		move Whistler2 position to [2154.859, 1.298, 2110.674] 
+		wait until [Whistler2] near [2154.859, 1.298, 2110.674] radius 5 or 60 seconds
+
+		move Whistler2 position to [2148.687, 0.544, 2087.984] 
+		wait until [Whistler2] near [2148.687, 0.544, 2087.984] radius 5 or 60 seconds
+
+		move Whistler2 position to [2120.419, 1.110, 2085.874]
+		wait until [Whistler2] near [2120.419, 1.110, 2085.874] radius 5 or 60 seconds
+
+		move Whistler2 position to [2091.653, 0.827, 2096.937]
+		wait until [Whistler2] near [2091.653, 0.827, 2096.937] radius 5 or 60 seconds
+
+		move Whistler2 position to [2040.957, 2.680, 2096.485]
+		wait until [Whistler2] near [2040.957, 2.680, 2096.485] radius 5 or 60 seconds
+
+		move Whistler2 position to [2024.470, 14.070, 2079.590] // take a rest 
+		wait until [Whistler2] near [2024.470, 14.070, 2079.590] radius 5 or 60 seconds
+
+		// Sit down for a few minutes
+		Whistler2 play ANM_P_SITTING_DOWN_MALE1 loop -1
+		wait 2*60 seconds
+
+		move Whistler2 position to [2045.721, 1.455, 2061.147]  
+		wait until [Whistler2] near [2045.721, 1.455, 2061.147] radius 5 or 60 seconds
+
+		move Whistler2 position to [2108.245, 0.848, 2043.174]   
+		wait until [Whistler2] near [2108.245, 0.848, 2043.174] radius 5 or 60 seconds
+
+		move Whistler2 position to [2122.580, 0.858, 2020.638]  
+		wait until [Whistler2] near [2122.580, 0.858, 2020.638] radius 5 or 60 seconds
+
+		move Whistler2 position to [2123.443, 1.131, 1974.240]  
+		wait until [Whistler2] near [2123.443, 1.131, 1974.240] radius 5 or 60 seconds
+
+		move Whistler2 position to [2178.698, 0.555, 1946.635]
+		wait until [Whistler2] near [2178.698, 0.555, 1946.635] radius 5 or 60 seconds
+
+		move Whistler2 position to [2182.092, 0.555, 1874.307] 
+		wait until [Whistler2] near [2182.092, 0.555, 1874.307] radius 5 or 60 seconds
+
+		move Whistler2 position to [2276.249, 1.392, 1808.984] 
+		wait until [Whistler2] near [2276.249, 1.392, 1808.984] radius 5 or 60 seconds
+
+		move Whistler2 position to [2334.836, 0.000, 1839.432]  
+		wait until [Whistler2] near [2334.836, 0.000, 1839.432] radius 5 or 60 seconds
+
+		move Whistler2 position to [2386.745, 0.000, 1839.640] 
+		wait until [Whistler2] near [2386.745, 0.000, 1839.640] radius 5 or 60 seconds
+
+	end loop
+
+end script FuneralPath
+
+//------------------------------------------------------------------------------------------------------------------------
+// Move Man along Path down to stones
+//------------------------------------------------------------------------------------------------------------------------
+begin script MoveAlong(Man)
+
+start
+	SPEED of Man = 0.3
+	move Man position to [2133.312, 16.080, 3019.634]
+	
+	wait until [Man] near [2133.312, 16.080, 3019.634] radius 2
+	move Man position to [2128.030, 16.080, 3023.438] 
+
+	wait until [Man] near [2128.030, 16.080, 3023.438] radius 2
+	move Man position to [2113.768, 9.856, 3007.122]
+
+	wait until [Man] near [2113.768, 9.856, 3007.122] radius 2
+
+	SPEED of Man = 0.5
+	move Man position to [2107.279, 9.563, 2999.030] 
+
+end script MoveAlong
+
+//------------------------------------------------------------------------------------------------------------------------
+// Introduction to the Challenge
+//------------------------------------------------------------------------------------------------------------------------
+begin script Introduction(Hut, Man)
+
+start
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_04
+
+		enable Man high gfx detail
+
+		move camera position to [2121.4226, 24.6476, 3023.7588] time 4
+		move camera focus to [2132.5823, 16.7010, 3015.3787] time 3
+
+		SPEED of Man = 0.2
+
+		move Man position to [2132.524, 16.326, 3013.854] 
+
+		wait until 2.5 seconds
+
+		run background script MoveAlong(Man)
+
+		move camera position to [2113.564, 23.146, 3026.127] time 6
+		move camera focus to [2125.729, 16.331, 3017.430] time 6
+
+		wait until 4 seconds
+
+
+		move camera position to [2087.400, 18.904, 3002.976] time 8
+		move camera focus to [2112.051, 10.041, 2999.067] time 6
+
+		wait until 6 seconds
+
+		move camera position to [2106.115, 10.575, 3003.080] time 4
+		move camera focus to [2106.765, 10.354, 3001.013] time 4
+
+		wait until camera ready
+
+		move camera position to [2102.216, 11.326, 2996.456] time 18
+		move camera focus to [2103.895, 11.139, 2997.772] time 18
+
+		set Man focus to [2106.115, 10.575, 3003.080]
+
+		say HELP_TEXT_MORE_SINGING_STONES_01
+		Man play ANM_P_GOSSIP_WOMAN_2 loop 1
+		wait until Man played
+		Man play ANM_P_GOSSIP_WOMAN_3 loop -1
+		wait until read
+
+		set Man focus to [2102.216, 11.326, 2996.456]
+
+		say HELP_TEXT_MORE_SINGING_STONES_02
+		wait until read
+																	  
+		set Man focus to [2102.216, 11.326, 2996.456]
+
+		say HELP_TEXT_MORE_SINGING_STONES_03
+		move camera position to [2104.998, 11.094, 2997.200] time 7
+		move camera focus to [2106.677, 10.907, 2998.516] time 7
+
+		wait until read
+
+		set Man focus to [2102.216, 11.326, 2996.456]
+
+		say HELP_TEXT_MORE_SINGING_STONES_04
+		wait until read
+
+		wait until camera ready
+
+		close dialogue
+
+		move camera position to [2081.347, 23.811, 3005.942] time 4
+		move camera focus to [2115.021, 10.319, 2997.035] time 3
+
+		disable Man high gfx detail
+
+		wait until camera ready
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_44 StoneSongReminder
+		stop music
+
+	end cinema
+
+end script Introduction
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script ClearStones
+start
+	TinkleComplete=0
+	FuneralComplete=0
+	WhiteChristmasComplete=0
+	SSTap1=0
+	SSTap2=0
+	SSTap3=0
+	SSTap4=0
+	SSTap5=0
+	SSTap6=0
+	SSTap7=0
+	SSTap8=0
+	SSTap9=0
+	SSTap10=0
+	SSTap11=0
+	SSTap12=0
+	SSTap13=0
+	SSTap14=0
+	SSTapCount=0
+end script ClearStones
+
+//------------------------------------------------------------------------------------------------------------------------
+// Checks for twinkle twinkle little star
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckForTwinkle
+	StartPos=1
+	Value=0
+	CheckValue=0
+	OnTarget=0
+	TargetCount=1
+	Target=0
+	LoopCount=1
+
+start
+	begin loop
+		StartPos=LoopCount
+		//Get the start value
+		TargetCount=1
+		OnTarget=1
+		while OnTarget == 1 and TargetCount <= 14
+			//Get the Tune value
+			if TargetCount == 1
+			   Target = 1
+			elsif TargetCount == 2
+			   Target = 1
+			elsif TargetCount == 3
+			   Target = 8
+			elsif TargetCount == 4
+			   Target = 8
+			elsif TargetCount == 5
+			   Target = 9
+			elsif TargetCount == 6
+			   Target = 9
+			elsif TargetCount == 7
+			   Target = 8
+			elsif TargetCount == 8
+			   Target = 6
+			elsif TargetCount == 9
+			   Target = 6
+			elsif TargetCount == 10
+			   Target = 5
+			elsif TargetCount == 11
+			   Target = 5
+			elsif TargetCount == 12
+			   Target = 3
+			elsif TargetCount == 13
+			   Target = 3
+			elsif TargetCount == 14
+			   Target = 1
+			end if
+
+			//Get Tap note
+			if StartPos == 1
+			   Value = SSTap1
+			elsif StartPos == 2
+			   Value = SSTap2
+			elsif StartPos == 3
+			   Value = SSTap3
+			elsif StartPos == 4
+			   Value = SSTap4
+			elsif StartPos == 5
+			   Value = SSTap5
+			elsif StartPos == 6
+			   Value = SSTap6
+			elsif StartPos == 7
+			   Value = SSTap7
+			elsif StartPos == 8
+			   Value = SSTap8
+			elsif StartPos == 9
+			   Value = SSTap9
+			elsif StartPos == 10
+			   Value = SSTap10
+			elsif StartPos == 11
+			   Value = SSTap11
+			elsif StartPos == 12
+			   Value = SSTap12
+			elsif StartPos == 13
+			   Value = SSTap13
+			elsif StartPos == 14
+			   Value = SSTap14
+			   StartPos=0
+			end if
+
+			if Value != Target
+				OnTarget=0
+			end if
+			
+			TargetCount++
+			StartPos++
+			//wait 1 second
+		end while
+		
+		if OnTarget == 1
+			TinkleComplete = 1
+		end if
+
+		//Increase first tune
+		LoopCount++
+		if LoopCount > 14
+			LoopCount=1
+		end if
+	end loop
+end script CheckForTwinkle
+
+//------------------------------------------------------------------------------------------------------------------------
+// Checks for Funeral March
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckForFuneral
+	StartPos=1
+	Value=0
+	CheckValue=0
+	OnTarget=0
+	TargetCount=1
+	Target=0
+	LoopCount=1
+	LastNote=0
+	Difference=0
+
+start
+	begin loop
+		if SSMidnight == 1
+			StartPos=LoopCount
+			//Get the start value
+			TargetCount=1
+			OnTarget=1
+			while OnTarget == 1 and TargetCount <= 11
+				//Get Tap note
+				if StartPos == 1
+				   Value = SSTap1
+				elsif StartPos == 2
+				   Value = SSTap2
+				elsif StartPos == 3
+				   Value = SSTap3
+				elsif StartPos == 4
+				   Value = SSTap4
+				elsif StartPos == 5
+				   Value = SSTap5
+				elsif StartPos == 6
+				   Value = SSTap6
+				elsif StartPos == 7
+				   Value = SSTap7
+				elsif StartPos == 8
+				   Value = SSTap8
+				elsif StartPos == 9
+				   Value = SSTap9
+				elsif StartPos == 10
+				   Value = SSTap10
+				elsif StartPos == 11
+				   Value = SSTap11
+				elsif StartPos == 12
+				   Value = SSTap12
+				elsif StartPos == 13
+				   Value = SSTap13
+				elsif StartPos == 14
+				   Value = SSTap14
+				   StartPos=0
+				end if
+
+				//Get the Tune value
+				if TargetCount == 1
+				   Target = 0
+				   LastNote = Value	//Copy the first note as the Last note
+				elsif TargetCount == 2
+				   Target = 0
+				elsif TargetCount == 3
+				   Target = 0
+				elsif TargetCount == 4
+				   Target = 0
+				elsif TargetCount == 5
+				   Target = 3
+				elsif TargetCount == 6
+				   Target = -1
+				elsif TargetCount == 7
+				   Target = 0
+				elsif TargetCount == 8
+				   Target = -2
+				elsif TargetCount == 9
+				   Target = 0
+				elsif TargetCount == 10
+				   Target = -1
+				elsif TargetCount == 11
+				   Target = 1
+				end if
+
+				Difference=Value-LastNote
+
+				if Difference != Target
+					OnTarget=0
+				end if
+				
+				LastNote=Value
+				TargetCount++
+				StartPos++
+				//wait 1 second
+			end while
+			
+			if OnTarget == 1
+				FuneralComplete = 1
+			end if
+
+			//Increase first tune
+			LoopCount++
+			if LoopCount > 14
+				LoopCount=1
+			end if
+		end if
+	end loop
+end script CheckForFuneral
+
+//------------------------------------------------------------------------------------------------------------------------
+// Checks for White Christmas
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckForWhiteChristmas
+	StartPos=1
+	Value=0
+	CheckValue=0
+	OnTarget=0
+	TargetCount=1
+	Target=0
+	LoopCount=1
+	LastNote=0
+	Difference=0
+
+start
+	begin loop
+		StartPos=LoopCount
+		//Get the start value
+		TargetCount=1
+		OnTarget=1
+		while OnTarget == 1 and TargetCount <= 8
+			//Get Tap note
+			if StartPos == 1
+			   Value = SSTap1
+			elsif StartPos == 2
+			   Value = SSTap2
+			elsif StartPos == 3
+			   Value = SSTap3
+			elsif StartPos == 4
+			   Value = SSTap4
+			elsif StartPos == 5
+			   Value = SSTap5
+			elsif StartPos == 6
+			   Value = SSTap6
+			elsif StartPos == 7
+			   Value = SSTap7
+			elsif StartPos == 8
+			   Value = SSTap8
+			elsif StartPos == 9
+			   Value = SSTap9
+			elsif StartPos == 10
+			   Value = SSTap10
+			elsif StartPos == 11
+			   Value = SSTap11
+			elsif StartPos == 12
+			   Value = SSTap12
+			elsif StartPos == 13
+			   Value = SSTap13
+			elsif StartPos == 14
+			   Value = SSTap14
+			   StartPos=0
+			end if
+
+			//Get the Tune value
+			if TargetCount == 1
+			   Target = 0
+			   LastNote = Value	//Copy the first note as the Last note
+			elsif TargetCount == 2
+			   Target = 1
+			elsif TargetCount == 3
+			   Target = -1
+			elsif TargetCount == 4
+			   Target = -1
+			elsif TargetCount == 5
+			   Target = 1
+			elsif TargetCount == 6
+			   Target = 1
+			elsif TargetCount == 7
+			   Target = 1
+			elsif TargetCount == 8
+			   Target = 1
+			end if
+
+			Difference=Value-LastNote
+
+			if Difference != Target
+				OnTarget=0
+			end if
+			
+			LastNote=Value
+			TargetCount++
+			StartPos++
+			//wait 1 second
+		end while
+		
+		if OnTarget == 1
+			WhiteChristmasComplete = 1
+		end if
+
+		//Increase first tune
+		LoopCount++
+		if LoopCount > 14
+			LoopCount=1
+		end if
+	end loop
+end script CheckForWhiteChristmas
+
+//------------------------------------------------------------------------------------------------------------------------
+// Add Tap to the tune
+//------------------------------------------------------------------------------------------------------------------------
+begin script AddTap(StoneVal)
+start
+	SSTapCount++
+	if SSTapCount > 14
+		SSTapCount=1
+	end if
+
+	if SSTapCount == 1
+		SSTap1=StoneVal
+	elsif SSTapCount == 2
+		SSTap2=StoneVal
+	elsif SSTapCount == 3
+		SSTap3=StoneVal
+	elsif SSTapCount == 4
+		SSTap4=StoneVal
+	elsif SSTapCount == 5
+		SSTap5=StoneVal
+	elsif SSTapCount == 6
+		SSTap6=StoneVal
+	elsif SSTapCount == 7
+		SSTap7=StoneVal
+	elsif SSTapCount == 8
+		SSTap8=StoneVal
+	elsif SSTapCount == 9
+		SSTap9=StoneVal
+	elsif SSTapCount == 10
+		SSTap10=StoneVal
+	elsif SSTapCount == 11
+		SSTap11=StoneVal
+	elsif SSTapCount == 12
+		SSTap12=StoneVal
+	elsif SSTapCount == 13
+		SSTap13=StoneVal
+	elsif SSTapCount == 14
+		SSTap14=StoneVal
+	end if
+
+
+//	SSTap1[3]=3
+
+end script AddTap
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckForTap
+	SFX=0
+	ClickedObject=0
+
+start
+	begin loop
+		ClickedObject=get object clicked
+		
+		//Check all objects
+		if SSTapStone1 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone1]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone1]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone1 time 0.1
+			clear clicked object
+			run background script AddTap(1)
+		elsif SSTapStone2 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone2]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone2]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone2 time 0.1
+			clear clicked object
+			run background script AddTap(2)
+		elsif SSTapStone3 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone3]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone3]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone3 time 0.1
+			clear clicked object
+			run background script AddTap(3)
+		elsif SSTapStone4 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone4]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone4]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone4 time 0.1
+			clear clicked object
+			run background script AddTap(4)
+		elsif SSTapStone5 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone5]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone5]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone5 time 0.1
+			clear clicked object
+			run background script AddTap(5)
+		elsif SSTapStone6 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_06 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone6]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_06 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone6]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone6 time 0.1
+			clear clicked object
+			run background script AddTap(6)
+		elsif SSTapStone7 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone7]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone7]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone7 time 0.1
+			clear clicked object
+			run background script AddTap(7)
+		elsif SSTapStone8 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_08 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone8]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_08 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone8]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone8 time 0.1
+			clear clicked object
+			run background script AddTap(8)
+		elsif SSTapStone9 == ClickedObject
+			if SSMidnight > 0
+				start sound LH_SCRIPT_SAMPLE_STONEFUNERAL_09 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone9]
+			else
+				start sound LH_SCRIPT_SAMPLE_STONETWINKLE_09 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSTapStone9]
+			end if
+
+			SFX=create special effect STONETAP_SFX on SSTapStone9 time 0.1
+			clear clicked object
+			run background script AddTap(9)
+		end if
+		ClickedObject=0
+	end loop
+
+end script CheckForTap
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Main Script
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingStonesSongsMain
+
+	Marker1 = marker at [2108.5923, 9.9886, 3010.0273]
+	Marker2 = marker at [2111.9290, 9.7746, 3008.0898]
+	Marker3 = marker at [2115.0037, 9.6589, 3005.1694]
+	Marker4 = marker at [2116.4893, 10.1038, 3000.9282]
+	Marker5 = marker at [2117.0657, 9.9746, 2996.4011]
+	Marker6 = marker at [2114.1128, 9.5301, 2992.7598]
+	Marker7 = marker at [2110.3665, 9.2879, 2990.1528]
+	Marker8 = marker at [2105.9641, 9.7235, 2989.0859]
+	Marker9 = marker at [2101.9155, 10.3208, 2989.3716]
+
+	StoneFocus = marker at [2104.9343, 9.6247, 3000.3174]
+
+	Base1 = 0
+	Base2 = 0	  
+	Base3 = 0
+	Base4 = 0
+	Base5 = 0
+	Base6 = 0
+	Base7 = 0
+	Base8 = 0
+	Base9 = 0
+
+	Scale = 0.75
+
+	Hut = get HOUSE at [2134.7000, 15.7136, 3010.7100]
+
+	Highlight = 0
+
+	Murdered = 0
+	Man = 0
+	Time = 0
+
+	SuccessValue = 1
+	TwinkleDoneOnce = 0
+	FuneralDoneOnce = 0
+	ChristmasDoneOnce = 0
+
+start
+
+	SSTapStone1 = create with angle -10 and scale Scale OBJECT SINGINGSTONE1 at [Marker1]
+	SSTapStone2 = create with angle -27 and scale Scale OBJECT SINGINGSTONE1 at [Marker2]
+	SSTapStone3 = create with angle -44 and scale Scale OBJECT SINGINGSTONE1 at [Marker3]
+	SSTapStone4 = create with angle -70 and scale Scale OBJECT SINGINGSTONE1 at [Marker4]
+	SSTapStone5 = create with angle -100 and scale Scale OBJECT SINGINGSTONE1 at [Marker5]
+	SSTapStone6 = create with angle -130 and scale Scale OBJECT SINGINGSTONE1 at [Marker6]
+	SSTapStone7 = create with angle -140 and scale Scale OBJECT SINGINGSTONE1 at [Marker7]
+	SSTapStone8 = create with angle -160 and scale Scale OBJECT SINGINGSTONE1 at [Marker8]
+	SSTapStone9 = create with angle -180 and scale Scale OBJECT SINGINGSTONE1 at [Marker9]
+
+	Base1 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker1]
+	Base2 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker2]
+	Base3 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker3]
+	Base4 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker4]
+	Base5 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker5]
+	Base6 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker6]
+	Base7 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker7]
+	Base8 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker8]
+	Base9 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Marker9]
+
+	disable SSTapStone1 pickup
+	disable SSTapStone1 moveable
+	disable SSTapStone2 pickup
+	disable SSTapStone2 moveable
+	disable SSTapStone3 pickup
+	disable SSTapStone3 moveable
+	disable SSTapStone4 pickup
+	disable SSTapStone4 moveable
+	disable SSTapStone5 pickup
+	disable SSTapStone5 moveable
+	disable SSTapStone6 pickup
+	disable SSTapStone6 moveable
+	disable SSTapStone7 pickup
+	disable SSTapStone7 moveable
+	disable SSTapStone8 pickup
+	disable SSTapStone8 moveable
+	disable SSTapStone9 pickup
+	disable SSTapStone9 moveable
+
+	run background script TwinklePath
+	run background script FuneralPath
+	run background script CheckForTap
+	
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [Hut]
+	run script ChallengeHighlightNotify(Highlight,Hut, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+
+	Man = create SCRIPT_OBJECT_TYPE_VILLAGER PRIEST at [Hut]
+
+	run script Introduction(Hut, Man)
+
+	run script ClearStones
+	run background script CheckForTwinkle
+	run background script CheckForFuneral	
+	run background script CheckForWhiteChristmas
+
+	SPEED of Man = 0.2
+
+	state Man WANDER_AROUND
+		position [2106.779, 9.597, 2997.927]
+		float 6
+		ulong 4, 30
+																		   
+	begin loop
+
+		if TinkleComplete == 1
+			if TwinkleDoneOnce == 0
+				update snapshot success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_TITLE_44 StoneSongReminder			
+				SuccessValue++
+				TwinkleDoneOnce = 1
+			end if
+			run script ClearStones
+			run script TwinkleSequence
+		elsif FuneralComplete == 1
+			if FuneralDoneOnce == 0
+				update snapshot success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_TITLE_44 StoneSongReminder
+				SuccessValue++
+				FuneralDoneOnce = 1
+			end if
+			run script ClearStones
+			run script FuneralSequence(Man)
+		elsif WhiteChristmasComplete == 1
+			if ChristmasDoneOnce == 0
+				update snapshot success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_TITLE_44 StoneSongReminder
+				SuccessValue++
+				ChristmasDoneOnce = 1
+			end if
+			run script ClearStones
+			run script WhiteChristmasSequence
+		end if
+
+		// Done all songs at least once
+		if SuccessValue == 4
+			update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_44 StoneSongReminder
+		end if 
+
+		if HEALTH of Man <=0 and Murdered == 0
+			begin dialogue
+				eject evil spirit
+				//"Ahh.... now thats what I call music."
+				say single line HELP_TEXT_MORE_SINGING_STONES_06
+				wait until read
+			end dialogue
+			Murdered = 1
+		end if
+
+		Time = get game time
+		if (Time > 22.00 or Time < 5.20) 
+			if SSMidnight == 0
+				delete SSTapStone1 with fade
+				delete SSTapStone2 with fade
+				delete SSTapStone3 with fade
+				delete SSTapStone4 with fade
+				delete SSTapStone5 with fade
+				delete SSTapStone6 with fade
+				delete SSTapStone7 with fade
+				delete SSTapStone8 with fade
+				delete SSTapStone9 with fade
+				SSTapStone1 = create with angle -10 and scale Scale FEATURE TOMBSTONE at [Marker1]
+				SSTapStone2 = create with angle -27 and scale Scale FEATURE TOMBSTONE at [Marker2]
+				SSTapStone3 = create with angle -44 and scale Scale FEATURE TOMBSTONE at [Marker3]
+				SSTapStone4 = create with angle -70 and scale Scale FEATURE TOMBSTONE at [Marker4]
+				SSTapStone5 = create with angle -100 and scale Scale FEATURE TOMBSTONE at [Marker5]
+				SSTapStone6 = create with angle -130 and scale Scale FEATURE TOMBSTONE at [Marker6]
+				SSTapStone7 = create with angle -140 and scale Scale FEATURE TOMBSTONE at [Marker7]
+				SSTapStone8 = create with angle -160 and scale Scale FEATURE TOMBSTONE at [Marker8]
+				SSTapStone9 = create with angle -180 and scale Scale FEATURE TOMBSTONE at [Marker9]
+				disable SSTapStone1 pickup
+				disable SSTapStone1 moveable
+				disable SSTapStone2 pickup
+				disable SSTapStone2 moveable
+				disable SSTapStone3 pickup
+				disable SSTapStone3 moveable
+				disable SSTapStone4 pickup
+				disable SSTapStone4 moveable
+				disable SSTapStone5 pickup
+				disable SSTapStone5 moveable
+				disable SSTapStone6 pickup
+				disable SSTapStone6 moveable
+				disable SSTapStone7 pickup
+				disable SSTapStone7 moveable
+				disable SSTapStone8 pickup
+				disable SSTapStone8 moveable
+				disable SSTapStone9 pickup
+				disable SSTapStone9 moveable
+				SSMidnight = 1
+				run script ClearStones
+			end if
+		else
+			if SSMidnight == 1 and SSBringBackToLifeActive == 0
+				delete SSTapStone1 with fade
+				delete SSTapStone2 with fade
+				delete SSTapStone3 with fade
+				delete SSTapStone4 with fade
+				delete SSTapStone5 with fade
+				delete SSTapStone6 with fade
+				delete SSTapStone7 with fade
+				delete SSTapStone8 with fade
+				delete SSTapStone9 with fade
+				SSTapStone1 = create with angle -10 and scale Scale OBJECT SINGINGSTONE1 at [Marker1]
+				SSTapStone2 = create with angle -27 and scale Scale OBJECT SINGINGSTONE1 at [Marker2]
+				SSTapStone3 = create with angle -44 and scale Scale OBJECT SINGINGSTONE1 at [Marker3]
+				SSTapStone4 = create with angle -70 and scale Scale OBJECT SINGINGSTONE1 at [Marker4]
+				SSTapStone5 = create with angle -100 and scale Scale OBJECT SINGINGSTONE1 at [Marker5]
+				SSTapStone6 = create with angle -130 and scale Scale OBJECT SINGINGSTONE1 at [Marker6]
+				SSTapStone7 = create with angle -140 and scale Scale OBJECT SINGINGSTONE1 at [Marker7]
+				SSTapStone8 = create with angle -160 and scale Scale OBJECT SINGINGSTONE1 at [Marker8]
+				SSTapStone9 = create with angle -180 and scale Scale OBJECT SINGINGSTONE1 at [Marker9]
+				disable SSTapStone1 pickup
+				disable SSTapStone1 moveable
+				disable SSTapStone2 pickup
+				disable SSTapStone2 moveable
+				disable SSTapStone3 pickup
+				disable SSTapStone3 moveable
+				disable SSTapStone4 pickup
+				disable SSTapStone4 moveable
+				disable SSTapStone5 pickup
+				disable SSTapStone5 moveable
+				disable SSTapStone6 pickup
+				disable SSTapStone6 moveable
+				disable SSTapStone7 pickup
+				disable SSTapStone7 moveable
+				disable SSTapStone8 pickup
+				disable SSTapStone8 moveable
+				disable SSTapStone9 pickup
+				disable SSTapStone9 moveable
+				SSMidnight = 0
+				run script ClearStones
+			end if
+		end if
+	end loop
+
+end script SingingStonesSongsMain

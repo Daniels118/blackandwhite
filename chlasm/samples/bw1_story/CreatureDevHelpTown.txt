@@ -1,0 +1,85 @@
+challenge CREATURE_DEV_HELP_TOWN
+
+run script CreatureDevHelpTown
+
+begin script CreatureDevHelpTown
+	MyCreature = get player 1 creature
+	StoragePit = get STORE at [1810.0366, 28.1400, 2703.1677]
+	FriendTownPos = marker at [1836.4991, 38.8600, 2749.7629]
+	MyCreatureTownPos = marker at [1854.0369, 38.8600, 2741.0989]
+	Tree = get TREE at [FriendTownPos] radius 25
+	TreeRadius = 25
+
+	BeginPos = 0
+	BeginFoc = 0
+start
+	while Tree not exists
+		TreeRadius = TreeRadius + 5
+		Tree = get TREE at [FriendTownPos] radius TreeRadius
+	end while
+
+	if not Friendly exists
+		Friendly = create_creature_from_creature MyCreature 1.0 at [FriendTownPos] CREATURE_TYPE_COW
+	end if
+	set Friendly position to [FriendTownPos]
+	force Friendly CREATURE_LOOK_FOREVER MyCreature
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+		Friendly play C_INDIVIDUAL_SUMMON loop 1
+		force MyCreature CREATURE_LOOK_FOREVER Friendly
+		wait until Friendly played
+		wait 3 seconds
+
+
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		set set camera focus follow MyCreature
+		eject good spirit
+		move MyCreature position to [MyCreatureTownPos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_01
+		wait until read
+		send good spirit home
+		wait 3 seconds
+/// Fade Out
+		set MyCreature position to [MyCreatureTownPos]
+		force MyCreature CREATURE_LOOK_FOREVER  Friendly
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+/// Fade In
+
+		wait 2 seconds
+		begin dual camera to Friendly StoragePit
+			force Friendly CREATURE_POINT_AT_OBJECT StoragePit
+			wait 2 seconds
+			force MyCreature CREATURE_LOOK_FOREVER  StoragePit
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_02
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_03
+			wait until read
+			wait 2 seconds
+			wait until Friendly played
+
+			/// Throw tree at pos.
+			force Friendly CREATURE_HURL StoragePit with Tree
+			wait until Friendly played
+			wait 3 seconds
+
+			force Friendly CREATURE_LOOK_FOREVER MyCreature
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_04
+			wait until read
+			wait 2 seconds
+			force MyCreature CREATURE_LOOK_FOREVER StoragePit
+		end dual camera
+	end cinema
+
+
+	//wait until MyCreature helps town!!!
+	//begin dialogue
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_05
+			//wait until read
+	//end dialogue
+end script CreatureDevHelpTown

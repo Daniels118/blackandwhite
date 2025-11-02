@@ -1,0 +1,15 @@
+begin script RebuildVillage
+
+
+
+
+start
+
+
+end script RebuildVillage
+
+
+
+
+
+

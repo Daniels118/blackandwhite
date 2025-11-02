@@ -1,0 +1,12 @@
+challenge RunSwapToWolf
+
+run script RunSwapToWolf
+
+begin script RunSwapToWolf
+	
+start
+	
+	run script SwapToWolf
+	
+
+end script RunSwapToWolf

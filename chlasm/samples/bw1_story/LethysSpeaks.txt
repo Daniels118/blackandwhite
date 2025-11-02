@@ -1,0 +1,103 @@
+challenge LETHYS_SPEAKS
+
+//run script LethysSpeaks
+
+begin script LethysSpeaks
+	
+MyCreaturePos1 = marker at [2268.3091, 31.4010, 2473.0635]
+CreedPos = marker at [2219.1428, 34.8400, 2387.2524]
+Creed = 0
+Sparkle = 0
+CamPos = marker at [2274.4810, 29.8098, 2043.0614] + [50.0,40.0,50.0]
+CamPosIn = marker at [2274.4810, 29.8098, 2043.0614]
+LethysTown = get TOWN at [1846.9600, 120.9021, 2322.6499] radius 50
+LethysCitadelPos = marker at [1810.5206, 2085.7249]
+BeginPos = 0
+BeginFoc = 0
+Spell = 0
+
+start
+	MyCreature = get player 1 creature
+//Creed = create OBJECT CREED at [CreedPos]
+
+	// Triggered once the player has nearly taken over Lethys last town
+	begin cinema
+		move camera position to [CreedPos]+[25,25,25] time 3
+		move camera focus to [CreedPos] time 3
+		wait until camera ready
+		make evil spirit cling across 0.2 down 1
+		make good spirit cling across 0.8 down 1
+		say HELP_TEXT_LETHYS_SPEAKS2_01
+		wait until read
+		say HELP_TEXT_LETHYS_SPEAKS2_02
+		wait until read
+		say HELP_TEXT_LETHYS_SPEAKS2_03
+		Creed = create OBJECT CREED at [CreedPos]
+		Sparkle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CreedPos] time 3
+		set MyCreature position to [MyCreaturePos1]
+		move MyCreature position to [Creed]
+		wait until read
+		wait until [MyCreature] near [Creed] radius 10
+		wait 2 seconds
+		eject good spirit
+		eject evil spirit
+		make evil spirit point at [MyCreature]
+		say HELP_TEXT_TAKE_CREED1_01
+		wait until read
+		stop evil spirit pointing
+		force MyCreature CREATURE_HOLD_OBJECT Creed
+		say HELP_TEXT_TAKE_CREED1_02
+		wait until read
+		wait until Creed in MyCreature hand
+		release MyCreature
+		MyCreature = get player 1 creature
+		say HELP_TEXT_LETHYS_SPEAKS2_04 // and wait. I know another creed
+		wait until read
+		say HELP_TEXT_LETHYS_SPEAKS2_05 // I'll open Vortex
+		move camera focus to [CamPosIn] time 3
+		move camera position to [CamPos] time 4
+		run background script LeaveThroughVortexL3
+		wait until read
+		say HELP_TEXT_LETHYS_SPEAKS2_06 // please. I've done all this ....
+		wait until read
+		wait until camera ready
+	end cinema
+
+	// wait until Lethys killed or Player leaves land
+	wait until PLAYER of LethysTown == 1
+
+	// Triggered if the player kills off Lethys
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [LethysTown]+[50,50,50]
+		set camera focus to [LethysTown]
+		//"You dirty fugger! Without followers I'm toast"
+		say HELP_TEXT_LETHYS_SPEAKS2_07
+		wait until read
+		wait 1 second
+		set camera position to [LethysCitadelPos]+[-75,50,-75]
+		set camera focus to [LethysCitadelPos]
+		wait 1 second
+		// explode Lethys' citadel
+		Spell=cast SPELL_EXPLOSION_LEVEL_1 spell at [LethysCitadelPos] from [LethysCitadelPos]+[0,150,0]  radius 50.0 time 30 curl 0
+		wait 4 seconds
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+	end cinema
+
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+
+		say HELP_TEXT_TAKE_LETHYS_VILLAGE_01
+		wait until read
+
+		say HELP_TEXT_TAKE_LETHYS_VILLAGE_02
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+	end dialogue
+
+end script LethysSpeaks

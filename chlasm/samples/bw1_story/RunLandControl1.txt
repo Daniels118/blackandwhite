@@ -1,0 +1,11 @@
+challenge RunLandControl1
+
+run script RunLandControl1
+
+begin script RunLandControl1
+	
+start
+	
+	run script LandControlAll
+
+end script RunLandControl1

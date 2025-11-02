@@ -1,0 +1,357 @@
+challenge PLAGUE
+
+//------------------------------------------------------------------------------------------------------------------------
+global PlagueIntroTriggered=0
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlagueMain
+
+	StoragePit = 0
+	StoragePitFood = 0
+	Villager = 0
+	VillagerHut = 0
+	VillagerPos = marker at [2807.633, 50.920, 3048.362] 
+	BeginPos = 0
+	BeginFoc = 0
+	VillagerHealedComment = 0
+	VillagerRepoisoned = 0
+	StorageHealed = 0
+	HealedDude = 0
+	FirstPermHeal = 0
+	VillageHall = get SCRIPT_OBJECT_TYPE_ABODE at [2785.1802, 50.7289, 3116.4600]
+	Town = 0
+	TownTotalNow = 0
+	TownTotalInitial = 0
+	TownHealed = 0
+	TownPoisoned = 0
+
+	RewardPos = marker at [VillagerPos]+[-8,0,-8]
+
+	ObjectInHand = 0
+	FoodHandled = 0
+	HalfDeadSpeech = 0
+	AllDeadSpeech = 0
+	FirstVictim1 = 0
+	FirstVictim2 = 0
+	FirstVictim3 = 0
+	FirstVictim4 = 0
+	FirstVictim5 = 0
+	DeadPeep = 0
+	DeadFlock = 0
+
+	//BodgeRock = 0
+	//BodgeHeld = 0
+
+	Highlight = 0
+
+	LethysPoisonTimer = create timer for 30 seconds
+	LethyPos = 0
+
+	IndianTownPos = marker at [2785.0000, 50.9200, 3085.9800]
+	IndianTown = get TOWN at [IndianTownPos] radius 100
+	RewardCameraPos = marker at [2763.0857, 62.6855, 3075.3599]
+	RewardCameraFoc = marker at	[2784.8623, 51.3590, 3083.2463]
+
+start
+	while StoragePit not exists or VillagerHut not exists
+		VillagerHut =  get SCRIPT_OBJECT_TYPE_ABODE at [2810.9800, 50.9200, 3043.5103]
+		StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [2754.8000, 50.9200, 3106.6799]
+		wait 5 seconds
+	end while
+
+	
+	// We need Lethys to cast some poisoning spell at this stage. if he isn't dead.
+	if LethysGone == 0
+		wait until computer player 3 ready and (LethysInScript == 0 or LethysGone != 0)
+		if LethysGone == 0
+			pause computer player 3
+
+			LethysInScript=1
+			move computer player 3 to [2759.9255, 50.6635, 3113.8521] speed 200 with fixed height
+
+			wait until computer player 3 ready
+
+			while get LethysPoisonTimer time remaining != 0
+				until camera position near [StoragePit] radius 200 and [StoragePit] viewed
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [2759.9255, 50.6635, 3113.8521]
+						say single line HELP_TEXT_PLAGUE_19
+						wait until read
+					end dialogue
+				until LethysGone == 1
+			end while
+		
+			if LethysGone == 0
+				release computer player 3
+			end if
+			LethysInScript=0
+		end if
+	end if
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHut]
+	ALTITUDE of Highlight = 6
+
+	run script ChallengeHighlightNotify(Highlight, VillagerHut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+
+	Town = get TOWN at [VillageHall] radius 50
+	DeadFlock = flock at [Town]
+	set DeadFlock properties inner 5 outer 20
+
+	add resource RESOURCE_TYPE_FOOD 5000 to StoragePit
+
+	enable Town poisoned
+	
+	TownTotalInitial = size of Town
+	TownTotalInitial = (TownTotalInitial / 2)
+	Villager = create SCRIPT_OBJECT_TYPE_VILLAGER INDIAN_TRADER at [VillagerHut]
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		enable Villager high gfx detail
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move Villager position to [VillagerPos]
+		move camera position to [2774.836, 69.580, 3071.128] time 4
+		move camera focus to [2808.841, 51.340, 3051.211] time 3
+		wait until [Villager] near [VillagerPos] radius 1
+		wait 1 second
+		
+		set Villager focus to camera position
+
+		Villager play ANM_P_POISONED loop 1
+
+		eject evil spirit
+
+		say HELP_TEXT_PLAGUE_01	// Whats got into him ?
+
+		move camera position to [2804.748, 52.140, 3049.460] time 8
+		move camera focus to [2813.639, 50.300, 3045.874] time 8
+
+		wait until read
+
+		send evil spirit home
+
+		close dialogue
+		wait 0.1 seconds
+
+		wait until camera ready
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_NEW_REMINDER_37)
+
+		wait until Villager played
+		set Villager focus to camera position
+		Villager play ANM_P_STAND_DESPAIR_1 loop 2
+
+		say HELP_TEXT_PLAGUE_02	// We've been poisoned ! We can't work, we can't pray and we can't worship you. Please help us !
+		wait until read
+
+		move camera position to [BeginPos] time 14
+		move camera focus to [BeginFoc] time 14
+
+		eject good spirit
+		eject evil spirit
+
+		wait 1 second
+
+		say HELP_TEXT_PLAGUE_20	// We should stop this plague from spreading.
+		wait until read
+
+		say HELP_TEXT_PLAGUE_21	// Let's find the source of this sickness and heal the ill.
+		wait until read
+		
+		send good spirit home
+		send evil spirit home
+		wait until camera ready
+
+		enable Villager poisoned
+		release Villager
+
+		disable Villager high gfx detail
+		stop music
+	end cinema
+
+	enable StoragePit poisoned
+ 
+	while StorageHealed < 2	
+
+		TownPoisoned = poisoned size of Town
+		TownTotalNow = size of Town
+		TownHealed = TownTotalNow - TownPoisoned
+		if TownTotalNow < TownTotalInitial and HalfDeadSpeech == 0
+			wait until camera position near [VillagerPos] radius 100 and [VillagerPos] viewed
+			HalfDeadSpeech = 1
+			begin cinema
+				Villager = create SCRIPT_OBJECT_TYPE_VILLAGER INDIAN_TRADER at [VillagerHut]
+				move Villager position to [VillagerPos]
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				move camera position to [VillagerPos]+[-12,8,-12] time 3
+				move camera focus to [VillagerPos] time 2
+				wait until camera ready
+				wait until [Villager] near [VillagerPos] radius 1
+				wait 1 second
+				set Villager focus to camera position
+				snapshot challenge success 1.0 alignment -0.4 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_REMINDER_20)
+				say single line HELP_TEXT_PLAGUE_06	// Call yourself a greater power ? You did nothing and now we're almost wiped out ! The survivors won't forget this !
+				wait until read
+				wait 1 second
+				move camera position to [BeginPos] time 3
+				move camera focus to [BeginFoc] time 3
+				wait until camera ready
+			end cinema
+			release Villager
+			StorageHealed = 2
+		end if
+
+		if size of Town <= 0 and AllDeadSpeech == 0
+			begin dialogue
+				eject good spirit
+				make good spirit point at [VillagerPos]
+				say HELP_TEXT_PLAGUE_16	// Take people from your other Village. Everyone here has died.
+				wait until read
+				say HELP_TEXT_PLAGUE_17 // But you'll need to cure this Plague, though, Leader.
+				wait until read
+			end dialogue
+			AllDeadSpeech = 1
+		end if
+
+
+		if TownHealed > 0 and VillagerHealedComment == 0
+			// store who the healed dude is as HealedDude
+			HealedDude = get not poisoned VILLAGER in Town
+			begin dialogue
+				eject good spirit
+				say single line HELP_TEXT_PLAGUE_09	// You healed one. That's good.
+				wait until read
+				send good spirit home
+			end dialogue
+			VillagerHealedComment = 1
+		end if
+
+		//check to see if HealedDude is poisoned
+		if HealedDude exists
+			if VillagerHealedComment == 1 and HealedDude poisoned and VillagerRepoisoned == 0
+				begin dialogue
+					say single line HELP_TEXT_PLAGUE_07	// Godly begin, stop healing and find the source of the sickness !
+					wait until read
+				end dialogue
+				update snapshot success 0.0 alignment 0.4 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_NEW_REMINDER_39)
+				VillagerRepoisoned = 1
+			end if
+		end if
+
+		if StorageHealed == 0 and FoodHandled == 0
+			ObjectInHand = get object held
+			if ObjectInHand exists
+				if ObjectInHand poisoned and ObjectInHand type STORE POT_INFO_HAND_FOOD
+					begin dialogue
+					eject good spirit
+					say single line HELP_TEXT_PLAGUE_14	// Ugh. That food looks rancid.
+					wait until read
+					send good spirit home
+					end dialogue
+					FoodHandled = 1
+				end if
+			end if
+		end if
+
+		if StoragePit exists
+			StoragePitFood = get resource FOOD in StoragePit
+			if StoragePitFood == 0 and StorageHealed == 0
+				StorageHealed = 1
+				begin dialogue
+					eject good spirit
+					say single line HELP_TEXT_PLAGUE_11	// The poison's source is the Village Stor. We can heal them now.
+					wait until read
+					update snapshot success 0.5 alignment 0.3 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_NEW_REMINDER_38)
+					VillagerHealedComment = 1
+					send good spirit home
+				end dialogue
+			end if
+		elsif StorageHealed == 0
+				StorageHealed = 1
+				begin dialogue
+					eject good spirit
+					say single line HELP_TEXT_PLAGUE_11	// The poison's source is the Village Stor. We can heal them now.
+					wait until read
+					update snapshot success 0.5 alignment 0.3 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_NEW_REMINDER_38)
+					VillagerHealedComment = 1
+					send good spirit home
+				end dialogue
+		end if
+
+		if TownHealed > 0 and StorageHealed == 1 and FirstPermHeal == 0
+			begin dialogue
+				update snapshot success 0.75 alignment 0.3 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_PLAGUE_12)
+				eject good spirit
+				eject evil spirit
+				say HELP_TEXT_PLAGUE_10	// You're healing more now, Leader. Fantastic.
+				wait until read
+				say HELP_TEXT_PLAGUE_12	// Lovely. The poison's source is gone and the people you heal will survive.
+				wait until read
+				say HELP_TEXT_PLAGUE_13	// And those survivors can get a little worship done.
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end dialogue
+			FirstPermHeal = 1
+		end if
+
+
+		if StorageHealed == 1 and (TownPoisoned <= (TownTotalNow/4)) and size of Town > 0
+			wait until camera position near [VillagerPos] radius 100 and [VillagerPos] viewed
+			Villager = create SCRIPT_OBJECT_TYPE_VILLAGER INDIAN_TRADER at [VillagerHut]
+			move Villager position to [VillagerPos]			
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				move camera position to [VillagerPos]+[-5,3,-5] time 3
+				move camera focus to [VillagerPos] time 2
+				wait until camera ready
+				set Villager focus to camera position
+				Villager play ANM_P_PRAY loop 3
+				update snapshot success 1.0 alignment 0.4 HELP_TEXT_TITLE_21 StandardReminder(variable HELP_TEXT_REMINDER_20)
+				say single line HELP_TEXT_PLAGUE_08	// Praise be to you, godliness ! We're going to make it ! Although we've sufferec, our faith and your genius have endured !
+				wait until read
+				wait 2 seconds
+				release Villager
+			end cinema
+
+			// Enable the lightning bolt in the Indian Town
+			enable spell SPELL_LIGHTNING_LEVEL_1 in IndianTown
+
+			// Pan to town to show reward 
+			begin cinema
+				move camera position to [RewardCameraPos] time 5
+				move camera focus to [RewardCameraFoc] time 2
+				wait until camera ready
+			end cinema with dialogue
+				eject evil spirit
+				say HELP_TEXT_NEW_REWARD_01
+				wait until read
+			end dialogue
+
+			StorageHealed = 2
+		end if
+
+	end while
+
+	if size of Town < 10
+		begin dialogue
+			eject evil spirit
+			make evil spirit point at [VillagerPos]
+			say single line HELP_TEXT_PLAGUE_18	// There aren't many people here Boss. Take some from your other Village.
+			wait until read
+			stop evil spirit pointing
+		end dialogue
+	end if
+
+
+	disable StoragePit poisoned
+	disable Town poisoned
+
+end script PlagueMain

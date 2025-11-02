@@ -1,0 +1,12 @@
+challenge RunTreePuzzleOne
+
+run script RunTreePuzzleOne
+
+begin script RunTreePuzzleOne
+	
+start
+	
+	run script TreePuzzleOne
+	
+
+end script RunTreePuzzleOne

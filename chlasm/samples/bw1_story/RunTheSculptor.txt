@@ -1,0 +1,16 @@
+challenge RunTheSculptor
+
+run script RunTheSculptor
+
+begin script RunTheSculptor
+	
+start
+	
+	run script SetupLand1
+	ProtectGateKeysFlag = 1
+	run background script ProtectGateKeys
+	QuarryRock = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos] radius 30
+	run script TheSculptor
+	
+
+end script RunTheSculptor

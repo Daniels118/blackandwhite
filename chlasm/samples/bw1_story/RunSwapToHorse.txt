@@ -1,0 +1,12 @@
+challenge RunSwapToHorse
+
+run script RunSwapToHorse
+
+begin script RunSwapToHorse
+	
+start
+	
+	run script SwapToHorse
+	
+
+end script RunSwapToHorse

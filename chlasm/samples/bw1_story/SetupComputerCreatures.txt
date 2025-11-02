@@ -1,0 +1,327 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script HealFightVictorOverTime(Creature)
+
+IncreaseHealth = 1
+
+start	
+	// Rejuvinate a creatures health between fights until max health is reached. Takes 10 mins from 0% to 100%
+	if Creature exists
+		while HEALTH of Creature < 1.0 and IncreaseHealth == 1
+			if Creature fighting
+				IncreaseHealth = 0
+			else
+				HEALTH of Creature += 0.01
+				wait 6 seconds
+			end if
+		end while
+	end if
+
+end script HealFightVictorOverTime
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+begin script SetupKhazarCreature(PlayerNumber, CreaturePos, CreatureSize)
+
+ComputerCreature = 0
+
+start
+
+	// LOAD THE COMPUTER CREATURE
+	// T_LOAD T_CREATURE constant string T_PLAYER expression T_AT coord_expression
+    load creature CREATURE_TYPE_TORTOISE "KhazarCreature" player PlayerNumber at [CreaturePos]
+	ComputerCreature = get player PlayerNumber creature
+
+	// Set the computer creature name to 'Khalen'
+	set ComputerCreature name HELP_TEXT_KHAZAR_CREATURE_NAME_01
+
+	// Make the computer creature fully mature
+	set ComputerCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			
+	// Set the size of the computer creature
+	enable ComputerCreature auto scale CreatureSize
+	
+	// Set the computer creatures normal abilities
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_BUILD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_FIELD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_TOTEM SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_STORAGE_PIT SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_FISH SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_DANCE SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_LAST SCRIPT_TRUE
+
+	// Set the computer creatures magical abilities
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_TWO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_TWO SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TELEPORT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOREST SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN_LIGHTNING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TORNADO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_PHYSICAL_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_FLYING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_GROUND SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FREEZE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_SMALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_BIG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_WEAK SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_STRONG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FAT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_INVISIBLE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_COMPASSION SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ANGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_HUNGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FRIGHTENE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_TIRED SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ILL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIRSTY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ITCHY SCRIPT_TRUE
+
+	// Give computer creatures their physical attributes (between 0 and 1)
+	SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_WARMTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FATNESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ENERGY of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ITCHINESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_AMOUNT_OF_POO of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_EXHAUSTION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_DEHYDRATION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FIGHT_HEALTH of ComputerCreature = 0.2
+
+	// Release him into the world
+	release ComputerCreature
+
+	// Set the alignment of the computer creature
+	while not MyCreature exists
+		MyCreature = get player 1 creature
+		wait 5 seconds
+	end while
+
+	ALIGNMENT of ComputerCreature = ALIGNMENT of MyCreature
+	enable ComputerCreature friends with MyCreature
+
+	// Release him into the world again
+	release ComputerCreature
+
+end script SetupKhazarCreature
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+begin script SetupLethysCreature(PlayerNumber, CreaturePos, CreatureSize)
+
+ComputerCreature = 0
+
+start
+
+    // LOAD THE COMPUTER CREATURE
+	// T_LOAD T_CREATURE constant string T_PLAYER expression T_AT coord_expression
+	load creature CREATURE_TYPE_WOLF "LethysCreature" player PlayerNumber at [CreaturePos]
+	ComputerCreature = get player PlayerNumber creature
+
+	// Set the computer creature name to 'Laetes'
+	set ComputerCreature name HELP_TEXT_LETHYS_CREATURE_NAME_01
+
+	// Make the computer creature fully mature
+	set ComputerCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			
+	// Set the size of the computer creature
+	enable ComputerCreature auto scale CreatureSize
+
+	// Set the computer creatures normal abilities
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_BUILD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_FIELD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_TOTEM SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_STORAGE_PIT SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_FISH SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_DANCE SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_LAST SCRIPT_TRUE
+
+	// Set the computer creatures magical abilities
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_TWO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_TWO SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TELEPORT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOREST SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN_LIGHTNING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TORNADO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_PHYSICAL_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_FLYING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_GROUND SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FREEZE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_SMALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_BIG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_WEAK SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_STRONG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FAT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_INVISIBLE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_COMPASSION SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ANGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_HUNGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FRIGHTENE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_TIRED SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ILL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIRSTY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ITCHY SCRIPT_TRUE
+
+	// Give computer creatures their physical attributes (between 0 and 1)
+	SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_WARMTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FATNESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ENERGY of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ITCHINESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_AMOUNT_OF_POO of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_EXHAUSTION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_DEHYDRATION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FIGHT_HEALTH of ComputerCreature = 0.2
+
+	// Release him into the world
+	release ComputerCreature
+
+	// Set the alignment of the computer creature
+	while not MyCreature exists
+		MyCreature = get player 1 creature
+		wait 5 seconds
+	end while
+
+	ALIGNMENT of ComputerCreature = - ALIGNMENT of MyCreature
+
+	// Release him into the world again
+	release ComputerCreature
+
+end script SetupLethysCreature
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+begin script SetupNemesisCreature(PlayerNumber, CreaturePos, CreatureSize)
+
+ComputerCreature = 0
+
+start
+
+    // LOAD THE COMPUTER CREATURE
+	// T_LOAD T_CREATURE constant string T_PLAYER expression T_AT coord_expression
+	load creature CREATURE_TYPE_LION "NemesisCreature" player PlayerNumber at [CreaturePos]
+	ComputerCreature = get player PlayerNumber creature
+
+	// Set the computer creature name to 'Ichor'
+	set ComputerCreature name HELP_TEXT_NEMESIS_CREATURE_NAME_01
+
+	// Make the computer creature fully mature
+	set ComputerCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+		
+	// Set the size of the computer creature
+	enable ComputerCreature auto scale CreatureSize
+
+	// Set the computer creatures normal abilities
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_BUILD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_FIELD SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_TOTEM SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_USE_STORAGE_PIT SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_FISH SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_DANCE SCRIPT_TRUE
+	teach ComputerCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_LAST SCRIPT_TRUE
+
+	// Set the computer creatures magical abilities
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FIREBALL_PU_TWO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_LIGHTNING_BOLT_PU_TWO SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE SCRIPT_TRUE
+//	teach ComputerCreature MAGICAL MAGIC_TYPE_EXPLOSION_ONE_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TELEPORT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOREST SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FOOD_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_STORM_WIND_RAIN_LIGHTNING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_TORNADO SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_PHYSICAL_SHIELD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WOOD SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_WATER_PU_ONE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_FLYING SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_FLOCK_GROUND SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FREEZE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_SMALL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_BIG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_WEAK SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_STRONG SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FAT SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIN SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_INVISIBLE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_COMPASSION SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ANGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_HUNGRY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_FRIGHTENE SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_TIRED SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ILL SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_THIRSTY SCRIPT_TRUE
+	teach ComputerCreature MAGICAL MAGIC_TYPE_CREATURE_SPELL_ITCHY SCRIPT_TRUE
+
+	// Give computer creatures their physical attributes (between 0 and 1)
+	SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_WARMTH of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FATNESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ENERGY of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_ITCHINESS of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_AMOUNT_OF_POO of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_EXHAUSTION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_DEHYDRATION of ComputerCreature = 0.2
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FIGHT_HEALTH of ComputerCreature = 0.2
+
+	// Release him into the world
+	release ComputerCreature
+
+	// Set the alignment of the computer creature
+	while not MyCreature exists
+		MyCreature = get player 1 creature
+		wait 5 seconds
+	end while
+
+	ALIGNMENT of ComputerCreature = - ALIGNMENT of MyCreature
+
+	// Release him into the world again
+	release ComputerCreature
+
+
+end script SetupNemesisCreature
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

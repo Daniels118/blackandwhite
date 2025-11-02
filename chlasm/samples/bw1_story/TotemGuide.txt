@@ -1,0 +1,96 @@
+challenge TOTEM_GUIDE
+
+//run script TotemGuide
+
+begin help script TotemGuide
+
+// CitadelPos = marker at [1920.9600, 22.1100, 2524.0000]
+// EntrancePos = marker at [1909.0479, 22.1100, 2530.2783]
+
+ BeginPos = 0
+ BeginFoc = 0
+
+ CamPos1 = marker at [1851.0364, 23.8016, 2521.8606] // Low, looking at worship site entrance
+ CamFoc1 = marker at [1902.8315, 22.1416, 2513.4858]
+
+ CamPos2 = marker at [1888.7013, 39.3093, 2490.1448] // Looking down into worship site
+ CamFoc2 = marker at [1893.2206, 22.7082, 2511.9597]
+
+ CamPos3 = marker at [1899.7366, 79.7690, 2663.7175] // Looking down onto TownCentre
+ CamFoc3 = marker at [1914.4736, 48.8360, 2702.5254]
+
+ CamPos4 = marker at [1920.8019, 65.3199, 2695.5015] // Close up of totem.
+ CamFoc4 = marker at [1917.3649, 48.0517, 2726.6536]
+
+ CamPos5 = marker at [1940.8562, 50.7740, 2700.2905] // Low looking up at belief sun/moon thang
+ CamFoc5 = marker at [1902.1598, 75.2740, 2717.7065]
+
+ TotemPos = marker at [1920.0601, 52.7296, 2711.8501] // Statue pos
+
+ CamTime = 3
+
+start
+	if camera position not near [CamPos1] radius 100
+		CamTime = 5
+	end if
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [CamPos1] time CamTime
+		move camera focus to [CamFoc1] time CamTime
+		wait until camera ready
+		eject evil spirit
+		eject good spirit
+		// "GA: The Worship site is complete!"
+		say HELP_TEXT_TOTEM_GUIDE_01
+		wait until read
+		// "EA: Excellent now we can get them worshipping."
+		say HELP_TEXT_TOTEM_GUIDE_02
+		wait until read
+		move camera position to [CamPos2] time 4
+		move camera focus to [CamFoc2] time 4
+		// "GA: Yes. Villagers come here to worship you."
+		say HELP_TEXT_TOTEM_GUIDE_03
+		wait until read
+		// "EA: Blah. Whatever. Probably another text line here."
+		say HELP_TEXT_TOTEM_GUIDE_04
+		wait until read
+		wait 1 second
+		set camera position to [CamPos3]
+		set camera focus to [CamFoc3]
+		// "GA: This is the town centre."
+		say HELP_TEXT_TOTEM_GUIDE_05
+		wait until read
+		move camera position to [CamPos4] time 6
+		move camera focus to [CamFoc4] time 6
+		// "EA: It is the religious centre of a town"
+		say HELP_TEXT_TOTEM_GUIDE_06
+		wait until read
+		wait until camera ready
+		make good spirit point at [TotemPos]+[0,8,0]
+		// "GA: Pull this totem up to call villagers to worship."
+		say HELP_TEXT_TOTEM_GUIDE_07
+		wait until read
+		stop good spirit pointing
+		// "GA: The higher it is the more villagers will go to the worship site."
+		say HELP_TEXT_TOTEM_GUIDE_08
+		wait until read
+		move camera position to [CamPos5] time 2
+		move camera focus to [CamFoc5] time 2
+		make evil spirit point at [TotemPos]+[0,15,0]
+		// "EA: I bet you're wondering what this is."
+		say HELP_TEXT_TOTEM_GUIDE_09
+		wait until read
+		stop evil spirit pointing
+		wait until camera ready
+		// "EA: It symbolises how much belief the villagers have in you."
+		say HELP_TEXT_TOTEM_GUIDE_10
+		wait until read
+		send good spirit home
+		send evil spirit home
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+
+end script TotemGuide

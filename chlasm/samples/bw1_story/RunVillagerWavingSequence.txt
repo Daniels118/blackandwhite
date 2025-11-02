@@ -1,0 +1,11 @@
+challenge RunVillagerWavingSequence
+
+run script RunVillagerWavingSequence
+
+begin script RunVillagerWavingSequence
+
+start
+	run script SetupLand5
+	run script VillageWavingSequence
+	// set fade in time 5
+end script RunVillagerWavingSequence

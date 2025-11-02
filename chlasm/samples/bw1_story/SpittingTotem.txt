@@ -1,0 +1,80 @@
+//challenge SPITTING_TOTEM
+
+//	When TotemObject is hit (by rock etc) it will eject into the sky an EjectObject
+//	EjectType1-4 can be a one_shot or -1. -1 means
+//	Count is number of ejects it will do in total.
+
+//*****************************************************************************
+//	Eject a single object
+//*****************************************************************************
+begin script EjectAnObject(TotemObject, EjectObjectType)
+	RandX = 0
+	RandZ = 0
+	RandVelocity = 0
+	EjectObject = 0
+	SpecialEffect = 0
+
+	DirectionPos = marker at [0,0]
+	EffectPos = marker at [0,0]
+
+start
+	RandX = number from -40 to 40
+	RandZ = number from -40 to 40
+	RandVelocity = number from 30 to 60
+	set DirectionPos position to ([TotemObject] + [RandX, RandVelocity, RandZ])
+	set EffectPos position to ([TotemObject] + [0, 14, 0])
+
+	SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [EffectPos] time 3
+	wait 1 second
+	EjectObject = create ONE_SHOT constant EjectObjectType at [TotemObject]
+	set EjectObject velocity heading [DirectionPos] speed RandVelocity
+
+end script EjectAnObject
+
+//*****************************************************************************
+//	Ejects one of upto 4 types of Spell Seed. Type -1
+//*****************************************************************************
+begin script SpittingTotem(Pos, EjectType1, EjectType2, EjectType3, EjectType4, Count)
+	TotemObject = 0
+	EjectObjectType = 0
+	TypeCount = 0
+	EjectNum = 0
+
+start
+
+	TotemObject = create FEATURE FEATURE_INFO_EGPT_NEEDLE at [Pos]
+
+	// How many to choose from
+	if EjectType2 == variable SPELL_SEED_TYPE_NONE
+		TypeCount=1
+	elsif EjectType3 == variable SPELL_SEED_TYPE_NONE
+		TypeCount=2
+	elsif EjectType4 == variable SPELL_SEED_TYPE_NONE
+		TypeCount=3
+	else
+		TypeCount=4
+	end if
+
+	while Count > 0
+		if TotemObject hit
+			EjectNum  = number from 1 to TypeCount
+			if EjectNum == 1
+				EjectObjectType = EjectType1
+			elsif EjectNum == 2
+				EjectObjectType = EjectType2
+			elsif EjectNum == 3
+				EjectObjectType = EjectType3
+			elsif EjectNum == 4
+				EjectObjectType = EjectType4
+			end if
+
+			if EjectObjectType != variable SPELL_SEED_TYPE_NONE
+				run script EjectAnObject(TotemObject, EjectObjectType)
+				Count--
+			end if
+			wait 5 seconds
+			clear hit object
+		end if
+	end while
+	
+end script SpittingTotem

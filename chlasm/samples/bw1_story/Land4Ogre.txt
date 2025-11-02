@@ -1,0 +1,749 @@
+challenge LAND_4_OGRE
+
+global Ogre
+global GremlinsKilled
+global GremlinsHealed
+global LaunchGremlins
+global GremlinWarningActive
+global OgreInFightSequence
+global OgreScale = 0.9
+global OgreHeight
+
+
+define script ControlGremlin (Gremlin)
+define script GremlinsAllGone (NumberOfGremlins)
+define script GremlinAttackWarning
+define script OgreFamilyControl
+define script FightEndCinema(Interrupted)
+
+
+//*****************************************************************************
+//	Makes sure the creature doesn't go near the Ogre on his own.
+//	This stops the player getting pulled away from what they are doing
+//*****************************************************************************
+
+begin script KeepCreatureAwayFromOgre
+
+OgrePos		= marker at [1705.7167, 10.0500, 2790.1104]
+x = 0
+nearogrepos=0
+isnotleashed=0
+notnearfightpos=0
+OgreFightIntroPos = marker at [1597.958, 37.407, 2689.638]
+
+start
+	
+	wait until MyCreature exists
+
+	while LighteningMeteorBroken == 0
+		x = 0
+		nearogrepos = 0
+		isnotleashed = 0
+		notnearfightpos = 0
+
+		if [MyCreature] near [OgrePos] radius 150 and CreatureVenturedTooFar == 0
+			CreatureVenturedTooFar = 1						// Global
+		end if
+
+		if [MyCreature] near [OgreFightIntroPos] radius 250
+			x = x + 1
+			nearogrepos=1
+		elsif [MyCreature] near [OgrePos] radius 100
+			x = x + 1
+			nearogrepos=1
+		end if
+		if not MyCreature leashed
+			x = x + 1
+			isnotleashed=1
+		end if
+		if [MyCreature] near [OgreFightIntroPos] radius 150
+			x = x + 0
+		else
+			x = x + 1
+			notnearfightpos=1
+		end if
+
+		if x == 3
+			//ay "SENDING HOME!!!!!!!!!!!!!!!!!!!!!!!"
+			//wait until read
+			move MyCreature position to [HomeTownL4] radius 50
+			wait 3 seconds
+			release MyCreature
+		end if
+	end while
+
+end script KeepCreatureAwayFromOgre
+
+//*****************************************************************************
+//	Main Ogre Control Script
+//	Create the Big Ogre and the Meteor he is protecting - call Family Control
+//*****************************************************************************
+begin script Land4Ogre 
+	OgreSeen = 0
+	OgrePosition = marker at [1705.7167, 10.0500, 2790.1104]
+	OriginalCameraPos = 0
+	OriginalCameraFoc = 0
+	Smoke = 0
+	NemesisPart = 0
+	MeteorPos =  marker at [1700.620, 10.050, 2794.435] 
+	Explosion = 0
+	Flash = 0
+	OgreFightStartPos = marker at [1634.228, 15.588, 2809.306]
+	OgreFightIntroPos = marker at [1597.958, 37.407, 2689.638]
+	WaitFightTimer = create timer for 0 seconds
+	WaitForFight = 0
+	KeepWaiting = 0
+	Strength=0
+start
+	MyCreature = get player 1 creature
+	while MyCreature not exists
+		MyCreature = get player 1 creature
+		wait 3 seconds
+	end while
+
+	Ogre = create_creature_from_creature MyCreature OgreScale at [OgrePosition] CREATURE_TYPE_OGRE	
+	set Ogre name HELP_TEXT_OGRE_NAME_02
+	set Ogre all desires SCRIPT_FALSE
+	set Ogre desire CREATURE_DESIRE_TO_BE_FRIENDS SCRIPT_FALSE
+	set Ogre desire HUNGER to 0.0
+	set Ogre desire maximum HUNGER to 0.0
+	set Ogre desire ANGER SCRIPT_TRUE
+	set Ogre desire ANGER to 0.2
+	set Ogre desire maximum ANGER to 0.3
+	enable Ogre auto scale 1.1
+	Strength=STRENGTH of MyCreature
+	Strength*=1.3
+	if Strength > 1.0
+		Strength = 1.0
+	end if
+	STRENGTH of Ogre=Strength
+	HEALTH of Ogre = 1
+
+	ALIGNMENT of Ogre = -1
+	SPEED of Ogre = 0.2
+	//SCALE of Ogre = SCALE of MyCreature
+	OgreHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Ogre
+	OgreHeight = OgreHeight * OgreScale
+	OgreDefeated = 0
+
+	NemesisPart = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_METEOR at [MeteorPos]						  
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of NemesisPart=0.3
+	ALTITUDE of NemesisPart = 2
+	enable NemesisPart indestructible
+	disable NemesisPart moveable
+	disable NemesisPart pickup
+	
+	Smoke = create special effect SPOT_VISUAL_BONFIRE at [MeteorPos] time 2000000
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke = 25
+
+	run background script OgreFamilyControl						// Create his kids
+	
+	while OgreDefeated == 0
+		set Ogre position to [OgrePosition]
+		set Ogre focus to [1749.309, 56.428, 2853.129] 
+		wait 2 seconds
+		
+		Ogre play C_STATIC_SIT
+		OgreInFightSequence=0
+		KeepWaiting = 1
+		while KeepWaiting == 1
+			if [MyCreature] near [OgreFightIntroPos] radius 150
+				KeepWaiting = 0
+			end if
+			if [MyCreature] near [OgrePosition] radius 80
+				KeepWaiting = 0
+			end if
+
+			if Ogre played
+				Ogre play C_STATIC_SIT
+			end if
+		end while
+		OgreInFightSequence=1
+//		HEALTH of MyCreature = 0
+		detach MyCreature leash
+		move MyCreature position to [1535.906, 35.510, 2624.728] radius 10
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_SLEG
+			move camera position to [1594.297, 38.484, 2684.131] time 6
+			move camera focus to [1597.958, 37.407, 2689.638]+[0,OgreHeight,0] time 4
+			wait 2 seconds
+			set Ogre position to [OgreFightStartPos] 
+			move Ogre position to [OgreFightIntroPos] 
+			wait until camera ready
+			if OgreSeen == 0
+				OgreSeen = 1
+				wait until [Ogre] near [OgreFightIntroPos] radius 1
+				set Ogre focus to [1535.906, 35.510, 2624.728]
+				wait 5 seconds
+
+				set Ogre focus to [1535.906, 35.510, 2624.728] 
+				move camera position to camera position+[-6,OgreHeight,-6] time 6
+				wait until camera ready
+
+				set MyCreature position to [1535.906, 35.510, 2624.728]
+				set MyCreature focus to [Ogre]
+//				"My name is SlegWebley!"
+//				OGRE:	I am Sleg.
+				say	HELP_TEXT_NEW_L4_OGRE_01
+				wait until read
+//				"I have one of the Guardian Stones."
+//				OGRE:	And yes, I have a Guardian Stone.
+				say HELP_TEXT_NEW_L4_OGRE_02
+				wait until read
+				set camera position to [1616.822, 39.331+OgreHeight, 2685.494] 
+				//marker at [1590.603, 38.742+OgreHeight, 2706.049] 
+				//set camera position to [1609.057, 38.776+OgreHeight, 2687.239] 
+				set camera focus to [1535.906, 35.510, 2624.728]
+				move camera position to [1590.603, 38.742+OgreHeight, 2706.049]	time 20
+//				"If you want it you will have to fight me!"
+//				OGRE:	If you want it, you must be prepared to fight.
+				say HELP_TEXT_NEW_L4_OGRE_03
+				wait until read
+//				"I have never been defeated!"
+//				OGRE:	Many have tried but I have never been defeated.
+				say HELP_TEXT_NEW_L4_OGRE_04
+				wait until read
+				wait until camera ready
+			else
+				wait until [Ogre] near [1597.958, 37.407, 2689.638] radius 1
+				set Ogre focus to [1535.906, 35.510, 2624.728] 
+				set MyCreature position to [1535.906, 35.510, 2624.728]
+				set MyCreature focus to [Ogre]
+				wait 3 seconds
+				set MyCreature position to [1535.906, 35.510, 2624.728]
+				set MyCreature focus to [Ogre]
+//				"My name is SlegWebley, and I have never been defeated!"
+//				OGRE:	My name is Sleg and I am undefeated.
+				say single line HELP_TEXT_NEW_L4_OGRE_05
+				wait until read
+				set camera position to [1658.323, 77.574, 2690.633] 
+				set camera focus to [1537.872, 45.334, 2639.628] 
+			end if
+			stop music
+		end cinema
+
+		disable leash on MyCreature
+		force Ogre CREATURE_FIGHT MyCreature
+//		force MyCreature CREATURE_FIGHT Ogre		// Not needed anymore
+		WaitForFight = 1
+		set WaitFightTimer time to 45 seconds
+		while WaitForFight == 1
+			if MyCreature fighting
+				WaitForFight=0
+			elsif get WaitFightTimer time remaining <= 0
+				WaitForFight=0
+			end if
+		end while
+		enable leash on MyCreature
+		//wait until MyCreature fighting
+		while MyCreature fighting
+		end while
+		if FIGHTHEALTH of Ogre < 0.1 or FIGHTHEALTH of MyCreature < 0.1		// Fight Concluded
+			if FIGHTHEALTH of MyCreature > FIGHTHEALTH of Ogre			// We Win
+				OgreDefeated = 1
+				release MyCreature
+			else														// We Lose
+				HEALTH of MyCreature = 0
+				force MyCreature CREATURE_DEAD MyCreature
+				run script FightEndCinema(0)
+				run background script HealFightVictorOverTime(Ogre)
+			end if
+		else
+			run script FightEndCinema(1)
+		end if
+	end while
+	
+	// Ogre finished
+	update snapshot success 1 alignment 0 HELP_TEXT_TITLE_110 StandardReminder(variable HELP_TEXT_REMINDER_103)
+	if OgreHighlight exists
+		delete OgreHighlight
+	end if
+
+	begin cinema
+		wait 2 seconds
+		eject evil spirit
+		make evil spirit point at [Ogre]
+//		"Well done boss! You kicked his butt!"
+//		EA:	Oh boy, You told him, Boss. Oh yeah.
+		say single line HELP_TEXT_NEW_L4_OGRE_06	// WRONG - Line needs improving
+		wait until read
+		close dialogue
+		OriginalCameraPos = marker at camera position
+		OriginalCameraFoc = marker at camera focus
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		
+		set camera position to [1702.602, 11.262, 2804.543] 
+		set camera focus to [NemesisPart]
+		delete Ogre
+		make evil spirit point at [NemesisPart]
+		set fade in time 1
+		wait until fade ready
+//		"You got the Guardian Stone by defeating him."
+//		EA:	The Guardian Stone is yours.
+		say single line HELP_TEXT_NEW_L4_OGRE_07
+		wait until read
+
+		send evil spirit home
+
+		wait 3 seconds
+		close dialogue
+		start music MUSIC_TYPE_SCRIPT_GUARDIAN_STONES
+		shake camera at [NemesisPart] radius 300.0 amplitude 0.1 time 5
+		set camera focus follow NemesisPart
+		while get ALTITUDE of NemesisPart < 20
+			ALTITUDE of NemesisPart+=0.1
+		end while
+		Explosion = create special effect SPOT_VISUAL_BANG at [NemesisPart] time 6
+		Flash = create special effect SPOT_VISUAL_FLASH at [NemesisPart] time 6
+		delete NemesisPart with explode
+		start sound LH_SCRIPT_SAMPLE_GUARDIANSTONEEXPLODE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait 2 seconds
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera position to [1890.667, 37.003, 2664.305] 
+		set camera focus to [1843.570, 141.686, 2648.609] 
+		set fade in time 1
+		wait until fade ready
+		
+		wait 3 seconds
+		LighteningMeteorBroken = 1
+		wait 2 seconds
+		
+		eject good spirit
+		eject evil spirit
+//		"Look! The lightning! Its stopping!"
+//		GA:	The lightning is stopping. See?
+		say HELP_TEXT_NEW_L4_OGRE_08
+		wait until read
+//		"The rain is stopping too."
+//		EA:	And it's not raining! Huh. I hate rain. It cools me down.
+		say HELP_TEXT_NEW_L4_OGRE_09
+		wait until read
+		send good spirit home
+		send evil spirit home
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera position to [OriginalCameraPos]
+		set camera focus to [OriginalCameraFoc]
+		set fade in time 1
+		wait until fade ready
+		stop music
+	end cinema
+	delete Smoke
+end script Land4Ogre
+
+//*****************************************************************************
+//	Fight has ended cinema - release Creature and Laugh
+//*****************************************************************************
+begin script FightEndCinema(Interrupted)
+	CreatureEndPos = marker at [2269.5383, 28.2107, 2618.9695]
+start
+	begin cinema
+		move camera focus to [Ogre]+[0,OgreHeight,0] time 4
+		set Ogre focus to camera position
+		wait until camera ready
+		Ogre play C_INDIVIDUAL_HAPPY loop 1
+		wait until Ogre played
+		move Ogre position to [1632.684, 13.528, 2827.951]
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+
+		set camera position to [2235.468, 84.928, 2605.229] 
+		set camera focus to [CreatureEndPos]
+		set MyCreature position to [CreatureEndPos]
+
+		set fade in time 1
+		release MyCreature
+		wait until fade ready
+	end cinema
+end script FightEndCinema
+//*****************************************************************************
+//	Creates all the little Ogre Gremlins
+//*****************************************************************************
+begin script OgreFamilyControl
+
+	NumberOfGremlins = 0
+	Gremlin = 0
+	OgreEating = 0
+	OgreHomePos = marker at [1705.7167, 10.0500, 2790.1104]
+	GremlinAttackTimer = create timer for 0 seconds
+	GremlinRetreatTimer = create timer for 0 seconds
+	OgreEatenTimer = create timer for 0 seconds
+	MoveTimer = create timer for 0 seconds
+	StartupTimer = create timer for 600 seconds
+	Victim = 0
+	MonsterLoopDone = 0
+
+start
+	
+	// Create all the kiddy Gremlins
+	wait until ManHasExplainedAboutNemesis == 1
+	while NumberOfGremlins < 4
+		Gremlin = create_creature_from_creature MyCreature 1.2 at [OgreHomePos]+[number from -15 to 15, number from -15 to 15] CREATURE_TYPE_OGRE
+		SCALE of Gremlin = 0.3
+		ALIGNMENT of Gremlin = -1
+		enable Gremlin friends with Ogre
+		enable Ogre friends with Gremlin
+		disable Gremlin pickup
+		NumberOfGremlins++
+		run background script ControlGremlin(Gremlin)
+	end while
+
+	run background script GremlinsAllGone (NumberOfGremlins)					// Checks to see status of Gremlins
+	run background script GremlinAttackWarning									// Warns the player when appropriate
+	
+	// Control Loop
+	begin loop
+		set GremlinAttackTimer time to 30 seconds
+		
+		//while [MyCreature] not near [Ogre] radius 50 and OgreInFightSequence == 0
+		while OgreInFightSequence == 0
+			if get GremlinAttackTimer time remaining <= 0 and LaunchGremlins == 0 and size of HomeTownL4 > 10 and get StartupTimer time remaining <= 0 and FireMeteorWaveActive == 0
+				set GremlinRetreatTimer time to 150 seconds
+				LaunchGremlins = 1
+			end if
+
+			if LaunchGremlins == 1
+				if get GremlinRetreatTimer time remaining <= 0
+					set GremlinAttackTimer time to 300 seconds
+					LaunchGremlins = 0
+				end if
+			end if
+
+			// Ogre eats Gremlin's offerings
+			if [MyCreature] not near [Ogre] radius 150			// and OgreInFightSequence == 0
+				if OgreEating == 0
+					if Victim exists and get OgreEatenTimer time remaining <= 0
+						if Victim is not FLYING
+							force Ogre CREATURE_EAT_ALIVE Victim
+							OgreEating = 1
+						end if
+					else
+						Victim = get VILLAGER at [Ogre] radius 50
+						if Victim not exists and [Ogre] not near [OgreHomePos] radius 10 and get MoveTimer time remaining <= 0
+							move Ogre position to [OgreHomePos]
+							set MoveTimer time to 10 seconds
+						end if
+					end if
+				elsif OgreEating == 1
+					if Victim not exists
+					elsif Victim in Ogre hand
+						OgreEating = 2
+					end if
+				elsif OgreEating == 2
+					if Victim not exists
+						OgreEating = 0
+						set OgreEatenTimer time to 20 seconds
+					end if
+				end if
+			else
+				force Ogre CREATURE_LOOK_FOREVER MyCreature
+			end if
+			wait 1 second
+		end while
+
+		wait until widescreen ready
+		until OgreDefeated == 1
+
+	end loop
+	LaunchGremlins = 0
+
+end script OgreFamilyControl
+
+
+//*****************************************************************************
+//	Control each of the Gremlins
+//*****************************************************************************
+begin script ControlGremlin (Gremlin)
+
+	Victim = 0
+	GremlinSchedule = 0
+	GremlinOnRun = 0
+	HumanReplacement = 0
+	RetreatPos = 0
+	GeneralTimer = create timer for 0 seconds
+	InitialSecondsTimer = create timer for 0 seconds
+	EndGremlin = 0
+	Exorcise = 0
+	GremlinChillSpot = marker at [1680.4583, 21.2018, 2841.1338]
+	GremlinWP1 = marker at [1628.3521, 35.5100, 2634.6323]
+	GremlinWP2 = marker at [1917.4199, 27.0198, 2664.0027]
+	GremlinWPCount = 0
+	SetWP = 0
+	DestPos = 0
+	DestRadius = 0
+
+start
+
+	begin loop
+		wait 1 second
+
+		///if Gremlin healed
+			// Create effect and turn gremlin into human
+			// attach HumanReplacement to HomeTown
+			// dialogue highlighting resolution
+			// GremlinsHealed++
+			// EndGremlin = 1
+		//end if
+
+		if HEALTH of Gremlin < 0.3 and get InitialSecondsTimer time remaining <= 0
+			// Kill gremlin for good and turn him into HumanReplacement's body
+			HumanReplacement = create VILLAGER MALE at [Gremlin]
+			Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Gremlin] time 3
+			Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Gremlin]+[5,5] time 3
+			Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Gremlin]+[5,-5] time 3
+			Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Gremlin]+[-5,5] time 3
+			Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Gremlin]+[-5,-5] time 3
+			delete Gremlin
+			HEALTH of HumanReplacement = 0
+			release HumanReplacement
+			wait 2 seconds
+			// dialogue highlighting resolution
+			begin dialogue
+				eject good spirit
+				make good spirit point at [HumanReplacement]
+//				"Oh no. That little ogre changed into a human when it died."
+//				GA:	Oh no. That little ogre turned into a human when it died.	
+				say single line HELP_TEXT_NEW_L4_OGRE_10
+				wait until read
+				send good spirit home
+			end dialogue
+			GremlinsKilled++
+			EndGremlin = 1
+		elsif HEALTH of Gremlin < 0.3
+			HEALTH of Gremlin = 0.9
+		end if
+
+		if EndGremlin == 0
+			if [MyCreature] near [Gremlin] radius 50
+				RetreatPos = marker at get target from [MyCreature] to [Gremlin] distance 50 angle 0
+				move Gremlin position to [RetreatPos] radius 20
+				GremlinOnRun = 1
+				wait 3 seconds
+			elsif [MyCreature] not near [Gremlin] radius 51 and GremlinOnRun == 1
+				GremlinOnRun = 0
+				set GeneralTimer time to 5 seconds
+			elsif [MyCreature] not near [Gremlin] radius 51 and GremlinOnRun == 0
+				if GremlinSchedule == 0 // Chilling at home.
+					if get GeneralTimer time remaining <= 0
+						// move to random position around Ogre
+						move Gremlin position to [GremlinChillSpot]+[number from -20 to 20, number from -20 to 20] radius 5
+						if [Gremlin] not near [GremlinChillSpot] radius 100
+							set GeneralTimer time to 20 seconds
+						else
+							set GeneralTimer time to 15 seconds
+						end if
+					end if
+
+					if LaunchGremlins == 1
+						GremlinSchedule = 1
+						GremlinWPCount = 0
+						SetWP = 1
+						set GeneralTimer time to 0 seconds
+					end if
+				elsif GremlinSchedule == 1 // Fetching victim.
+					if Victim exists
+						if Victim not in Gremlin hand and get GeneralTimer time remaining <=0
+							// pick him up
+							if [Gremlin] not near [Victim] radius 45
+								release Victim
+								Victim = 0
+							else
+								move Victim position to [Victim]
+								force Gremlin CREATURE_HOLD_OBJECT Victim
+								set GeneralTimer time to 7 seconds
+							end if
+						elsif Victim in Gremlin hand
+							set GeneralTimer time to 0 seconds
+							GremlinSchedule = 2
+							SetWP = 0
+						end if
+					else 
+						Victim = get VILLAGER in HomeTownL4 at [Gremlin] radius 45 excluding scripted
+						if Victim not exists
+							if SetWP == 1
+								if GremlinWPCount == 0
+									DestPos = GremlinWP1
+									move Gremlin position to [DestPos] radius 10
+									DestRadius = 12
+									set GeneralTimer time to 40 seconds
+								elsif GremlinWPCount == 1
+									DestPos = marker at [GremlinWP2]+[number from -5 to 5, number from -5 to 5]
+									move Gremlin position to [DestPos] radius 10
+									DestRadius = 12
+									set GeneralTimer time to 40 seconds
+								else 
+									DestPos = marker at [HomeTownL4]+[number from -20 to 20, number from -20 to 20]
+									move Gremlin position to [DestPos] radius 25
+									DestRadius = 30
+									set GeneralTimer time to 40 seconds
+								end if
+								SetWP = 0
+							end if
+
+							if [Gremlin] near [DestPos] radius DestRadius
+								GremlinWPCount++
+								SetWP = 1
+							elsif [Gremlin] not near [DestPos] radius DestRadius and get GeneralTimer time remaining <=0
+								move Gremlin position to [DestPos] radius DestRadius
+								set GeneralTimer time to 40 seconds
+							end if
+						else
+							set GeneralTimer time to 0 seconds
+						end if
+					end if
+				elsif GremlinSchedule == 2 // Giving victim to Ogre then chillin again
+					if Ogre exists
+						// Move back to Ogre
+						if [Gremlin] not near [Ogre] radius 30 and get GeneralTimer time remaining <= 0
+							if SetWP == 0
+								move Gremlin position to [GremlinWP2]+[number from -5 to 5, number from -5 to 5] radius 10
+								set GeneralTimer time to 40 seconds
+								SetWP = 1
+							else
+								move Gremlin position to [Ogre]
+								set GeneralTimer time to 40 seconds
+							end if
+						elsif [Gremlin] near [Ogre] radius 30
+							if Victim exists and Victim in Gremlin hand
+								// Throw Victim at Ogre
+								force Gremlin CREATURE_HURL Ogre with Victim
+								wait until Victim not in Gremlin hand or 10 seconds
+								wait 2 seconds
+								HEALTH of Victim = 0.1
+								Victim = 0
+								GremlinSchedule = 0
+							else
+								Victim = 0
+								GremlinSchedule = 0
+							end if
+						end if
+					else
+						GremlinSchedule = 0
+					end if
+				end if
+			end if
+
+			if LaunchGremlins == 0 and GremlinSchedule == 1
+				move Gremlin position to [GremlinChillSpot]+[number from -20 to 20, number from -20 to 20] radius 20
+				set GeneralTimer time to 20 seconds
+				GremlinSchedule = 0
+			end if
+		end if
+
+		until EndGremlin == 1
+	end loop
+
+
+end script ControlGremlin
+
+//*****************************************************************************
+//	Handle the fact that all the Gremlins have been killed
+//*****************************************************************************
+begin script GremlinsAllGone (NumberOfGremlins)
+GremlinsGoneSpeech = 0
+start
+
+	while GremlinsGoneSpeech == 0
+
+		if GremlinsKilled >= NumberOfGremlins and GremlinsGoneSpeech == 0
+			begin dialogue
+				eject good spirit
+//				"All the townsfolk who were turned into gremlins have been killed."
+//				GA:	All the people who were turned into gremlins have been killed.
+				say single line HELP_TEXT_NEW_L4_OGRE_11
+				wait until read
+				send good spirit home
+			end dialogue
+			GremlinsGoneSpeech = 1
+		end if
+
+		if GremlinsHealed >= NumberOfGremlins and GremlinsGoneSpeech == 0
+			begin dialogue
+				eject good spirit
+//				"You have cured all of the cursed villagers"
+//				GA:	You've cured all the cursed villagers.
+				say HELP_TEXT_NEW_L4_OGRE_12
+				wait until read
+//				"They have recovered fully."
+//				GA:	They've recovered fully,
+				say HELP_TEXT_NEW_L4_OGRE_13
+				wait until read
+				send good spirit home
+			end dialogue
+			GremlinsGoneSpeech = 1
+		end if
+
+		if ((GremlinsHealed + GremlinsKilled) >= NumberOfGremlins) and GremlinsGoneSpeech == 0
+			begin dialogue
+				eject good spirit
+//				"All the little ogres have been dealt with."
+//				GA:	All those little ogres have been dealt with.
+				say HELP_TEXT_NEW_L4_OGRE_14
+				wait until read
+//				"You have only cured some of the cursed villagers"
+//				GA:	You haven't cured all the cursed villagers.
+				say HELP_TEXT_NEW_L4_OGRE_15
+				wait until read
+				send good spirit home
+			end dialogue
+			GremlinsGoneSpeech = 1
+		end if
+		wait 5 seconds
+	end while
+
+	GremlinWarningActive = 1
+
+end script GremlinsAllGone
+
+//*****************************************************************************
+//	Warn the player that little gremlins are attacking
+//*****************************************************************************
+begin script GremlinAttackWarning
+
+SeenGremlin = 0
+GremlinTimer = create timer for 0 seconds
+WarningActive = 0
+FirstTime = 0
+
+start
+	while GremlinWarningActive == 0
+		if get GremlinTimer time remaining <= 0
+			SeenGremlin = get CREATURE CREATURE_TYPE_OGRE at [HomeTownL4] radius 75
+			if SeenGremlin exists
+				if FirstTime == 0
+					begin dialogue
+						eject good spirit
+						make good spirit point at [SeenGremlin] in world
+//						"Our HomeTown is under attack from Gremlins for first time."
+//						GA:	Our village is under attack from gremlins!
+						say single line HELP_TEXT_NEW_L4_OGRE_16
+						wait until read
+						stop good spirit pointing
+					end dialogue
+					FirstTime = 1
+					set GremlinTimer time to 240 seconds
+				else
+					begin dialogue
+						eject good spirit
+						make good spirit point at [SeenGremlin]
+//						"Our HomeTown is under attack from Gremlins again"
+//						GA:	The gremlins are attacking our village again!
+						say single line HELP_TEXT_NEW_L4_OGRE_17
+						wait until read
+						stop good spirit pointing
+					end dialogue
+					set GremlinTimer time to 240 seconds
+				end if
+			end if
+		end if
+		wait 5 seconds
+	end while
+
+end script GremlinAttackWarning
+

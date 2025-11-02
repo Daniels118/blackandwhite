@@ -1,0 +1,13 @@
+challenge RunSwapToApe
+
+run script RunSwapToApe
+
+begin script RunSwapToApe
+	
+start
+	
+	run script SetupLand3
+	run script SwapToApe
+	
+
+end script RunSwapToApe

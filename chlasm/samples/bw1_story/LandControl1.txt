@@ -1,0 +1,109 @@
+challenge LandControl1
+
+begin script LandControl1
+
+ dyk76 = marker at [1751.1938, 0.0000, 2466.3926]				// fish farms
+ MyCitadel = 0
+ CreatureGates = 0
+
+start
+	run script SetupLand1
+		run background script SingingStoneCircle							// Places Stones and wait until SingingStonesStart == 1
+
+	if IsSkippingToCreatureSelect == 0
+		run script FollowUs
+		run script CitadelGuide
+	else
+		build building at [1915.05,2508.89] desire 1.0
+		MyCitadel = get CITADEL at [1915.05,2508.89] radius 5
+		BUILT of MyCitadel = 1
+	end if
+
+	run background script DidYouKnow(dyk76,variable HELP_TEXT_DYK_76, variable DYK_VILLAGE_LIFE)			// fish farms
+
+		run background script ThrowingStones
+		ThrowingStonesStart = 1
+		run background script TheLostFlock
+	
+	if IsSkippingToCreatureSelect == 0
+		run script ChooseYourCreature
+	else
+		GateKey1 = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_APE at [LostBrotherHouse] radius 20
+		delete GateKey1
+		GateKey2 = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [FollowUsCrowdPosition] radius 30
+		delete GateKey2
+		QuarryRock = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos] radius 30
+		delete QuarryRock
+		if IsKeepingOldCreature == 0
+			run script CreaturesInGlade
+		else
+			set game time 15.40
+			enable game time
+			set camera zones to "Land1Zone5.exc"
+			CreatureGates = get FEATURE at [1781.03,2810.63]
+			open CreatureGates
+			ChooseYourCreatureFinished = 1
+			load my_creature at [1850.00, 1300.00]  // arbitrary position
+		end if
+	end if
+		run background script RunCreatureBreederLand(1)
+		run background script TheMissionaries
+	if IsSkippingCreatureGuide == 0
+		run background script MoveTheGuideAround
+	end if
+
+//	run script CreatureDevelopmentSet
+
+	run script CreatureDevSeeHome
+	if IsSkippingCreatureGuide == 0
+		run script CreatureDevLearnToEat
+		run script CreatureDevPunishment
+	else
+		MyCreature = get player 1 creature
+		set MyCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+		run SCRIPT_DEV_FUNCTION_ROPE_LEASH_ENABLED developer function
+		run SCRIPT_DEV_FUNCTION_OTHER_LEASHES_ENABLED developer function
+		disable MyCreature development script
+		release MyCreature
+	end if
+		run background script MagicMushroom
+		SingingStonesStart = 1
+
+	if IsSkippingCreatureGuide == 0
+		run script CreatureDevLeashIntro
+	end if
+
+		run background script HermitMain
+
+	if IsSkippingCreatureGuide == 0
+		run script CreatureDevLeashAttachToHouse
+	end if
+
+		LostFlockWanted = 1
+		run background script CreatureSavingPeople							// This waits until creature big enough
+//	run script CreatureGuideSet
+
+	if IsSkippingCreatureGuide == 0
+		run script MeetTheGuide
+		run script GuideAsksToMeetYourCreature
+		run script GuideImpressTownLesson
+	end if
+
+		run background script PiedPiper
+
+	if IsSkippingCreatureGuide == 0
+		run script GuideImpressTownNextLesson
+		run script CreatureDevGuideTeachesFight
+	end if
+
+		run background script CreatureGuardian								
+		run background script LeaveThroughVortexL1							// This waits until OpenVortexL1 == 1 (set in TheStorm)
+
+	if IsSkippingCreatureGuide == 0
+		run script TheStorm	
+	else
+		wait until LeaveLandNow == 1
+	end if
+
+end script LandControl1
+

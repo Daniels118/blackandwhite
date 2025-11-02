@@ -1,0 +1,12 @@
+challenge runThrowThroughShield
+
+run script runThrowThroughShield
+
+begin script runThrowThroughShield
+	
+start
+	
+	run script ThrowThroughShield
+	
+
+end script runThrowThroughShield

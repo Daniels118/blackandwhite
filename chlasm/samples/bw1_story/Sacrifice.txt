@@ -1,0 +1,480 @@
+challenge SACRIFICE
+
+//------------------------------------------------------------------------------------------------------------------------
+global SacrificeFinished
+
+//------------------------------------------------------------------------------------------------------------------------
+// Introduction to Sacrifice
+//------------------------------------------------------------------------------------------------------------------------
+begin script SacrificeIntro(Boy, Priest, Priestess, Altar)
+
+	Away = marker at [2188.886, 29.548, 3135.653] 
+
+start
+	
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GREGORIAN
+
+		enable Boy high gfx detail
+		enable Priest high gfx detail
+		enable Priestess high gfx detail
+
+		move Priest position to [2189.050, 22.110, 3187.862] 
+		move Priestess position to [2189.914, 22.110, 3187.351] 
+
+		SPEED of Boy = 0.1
+		move Boy position to [2189.936, 22.110, 3187.990] 
+
+		move camera position to [2185.606, 25.110, 3187.375] time 5
+		move camera focus to [2192.116, 22.448, 3190.897] time 4 
+
+		wait until camera ready
+
+		move camera position to [2187.223, 23.025, 3186.241] time 6
+		move camera focus to [2190.125, 22.674, 3188.056] time 5
+
+		wait 5 seconds
+
+		//"Greetings almighty presence."
+		say HELP_TEXT_SACRIFICE_20
+		Priest play ANM_P_GOSSIP_MAN loop -1
+		Boy play ANM_P_SCARED_STIFF loop -1
+		Priestess play ANM_P_AMBIENT1 loop -1
+
+		wait until read
+
+		move camera position to [2188.103, 23.215, 3185.232] time 5
+		move camera focus to [2189.759, 22.865, 3188.132] time 5
+
+		//"As a gesture of gratitude from our people, we have a gift for you."
+		say HELP_TEXT_SACRIFICE_21
+		wait until read
+		close dialogue
+
+		wait until camera ready
+
+		SPEED of Boy = 0.2
+		move Boy position to [Away] 
+		move Priest position to [Away]
+		move Priestess position to [Away]
+
+		move camera position to [2166.661, 41.888, 3181.444] time 7
+		move camera focus to [2199.875, 22.611, 3179.553] time 6
+
+		wait 4 seconds
+
+		move camera position to [2166.661, 80, 3181.444] time 8
+		move camera focus to [2199.875, 74, 3179.553] time 8
+
+		wait 4 seconds
+
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+
+		set camera position to [3337.130, 80.575, 3213.324]
+		set camera focus to [3342.193, 82.958, 3219.230]
+
+		set Boy position to [3340.7705, 77.7200, 3216.5757]
+		set Priest position to [3339.730, 77.702, 3220.159] 
+		set Priestess position to[3342.677, 77.720, 3217.855]
+
+		move Boy position to [3340.7705, 77.7200, 3217.5757]
+		move Priest position to [3339.730, 77.702, 3219.159] 
+		move Priestess position to[3342.677, 77.720, 3216.855]
+
+		
+
+		set fade in time 2
+
+		wait 1 second
+
+		set Priest focus to camera position 
+		set Priestess focus to camera position
+
+		Boy play ANM_P_MOURNING loop -1
+ 		set Boy focus to [3337.730, 77.566, 3213.646]
+		wait until fade ready
+
+		move camera position to [3337.130, 80.575, 3213.324] time 8
+		move camera focus to [3342.189, 78.031, 3219.225] time 8
+
+		wait 2 seconds
+
+		//We are a spiritual tribe with mad customs...
+		say single line HELP_TEXT_SACRIFICE_01
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		wait until camera ready
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+		
+		set Priest focus to [Boy]
+		set Priestess focus to [Boy]
+		wait until read
+
+		//If you place anthing on this altar, it's life force iss added to the chant store
+		say HELP_TEXT_SACRIFICE_02 
+		wait until read
+
+		say HELP_TEXT_SACRIFICE_03 with interaction
+		wait until read
+
+		clear dialogue
+
+		move camera position to [3323.770, 87.295, 3197.739] time 3
+		move camera focus to [3342.188, 78.031, 3219.223] time 3
+
+		wait until camera ready
+
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_SACRIFICE_04
+		wait until read
+		make evil spirit point at [Altar]
+		say HELP_TEXT_SACRIFICE_05 with interaction
+		wait until read
+		
+
+		disable Boy high gfx detail
+		disable Priest high gfx detail
+		disable Priestess high gfx detail
+		stop music
+	end cinema
+
+end script SacrificeIntro
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script Sacrifice(Town, Altar)
+
+	RewardPos = marker at [3326.1411, 77.2463, 3200.9478]
+	
+	Crying = 0
+	Highlight=0
+	BeginPos = 0
+	BeginFoc = 0
+	House = marker at [2195.354, 22.110, 3197.774]
+
+	Boy = 0
+	
+	Difference=0
+	OldSacrificeValue=0
+	StartSacrificeValue=0
+	SacrificeTotal=0
+	NewSacrificeValue=0
+	EvilSaid=0
+	BoyReleased=0
+	ManInHand=0
+	WomanInHand=0
+	BoyInHand=0
+	HandObject=0
+	Man = 0 
+	Woman = 0
+	WorshipSite=0
+
+	IndianTown = get TOWN at [2862.5801, 34.4605, 3448.2700] radius 50
+
+start
+
+	WorshipSite = get WORSHIP at [Altar] radius 30
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [House]
+
+	run script ChallengeHighlightNotify(Highlight, House, variable EVIL_ADVISOR, variable HELP_TEXT_SACRIFICE_13)
+
+	Boy = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [House]
+	Man = create VILLAGER PRIEST at [House] 
+	Woman = create VILLAGER PRIESTESS at [House]
+	attach Boy to Town
+	attach Man to Town
+	attach Woman to Town
+
+	AGE of Boy = 6
+
+	run script SacrificeIntro(Boy, Man, Woman, Altar)
+
+	set Highlight position to [3337.6362, 77.2201, 3202.5454]
+
+	Crying = create timer for 0 seconds
+
+	OldSacrificeValue = get WorshipSite sacrifice total
+	StartSacrificeValue=OldSacrificeValue
+
+	while SacrificeFinished == 0
+
+		if HEALTH of Boy > 0 and get Crying time remaining == 0
+   			start sound constant from LH_SCRIPT_SAMPLE_CHILD_CRY_NORMAL_01 to LH_SCRIPT_SAMPLE_CHILD_CRY_NORMAL_11 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Boy]
+			Crying = create timer for 4 seconds
+   		end if
+
+ 		NewSacrificeValue = get WorshipSite sacrifice total
+
+		//Sacrifice values of 01/02/2001
+		//Tree-250-1000
+		//Decent animals are 700-2000
+		//10-20,000 is a human.
+		//So required is about 4K.
+
+
+		if NewSacrificeValue > OldSacrificeValue
+			SacrificeTotal+=NewSacrificeValue-OldSacrificeValue
+			Difference=NewSacrificeValue-OldSacrificeValue
+			OldSacrificeValue=NewSacrificeValue
+
+			if HEALTH of Man > 0
+				wait 2 seconds
+				begin dialogue
+					if Difference < 700
+						if EvilSaid==0
+							//EA: Bah humbug
+							say single line HELP_TEXT_HIDDEN_SCRIPTS_12
+							wait until read
+							EvilSaid=1						
+						end if
+						//MAN: Hmmm... not much power from that
+						say single line HELP_TEXT_SACRIFICE_07
+						wait until read
+					elsif Difference <= 2000
+						//Man: Yes feel the power
+						say single line HELP_TEXT_SACRIFICE_11
+						wait until read
+					else
+						//MAN: That's a whole load of sacrifice. A whole heap of power
+						say single line HELP_TEXT_SACRIFICE_06
+						wait until read
+					end if
+				end dialogue
+			else
+				wait 2 seconds
+				if EvilSaid==0
+					begin dialogue
+						//EA: Bah humbug
+						say single line HELP_TEXT_HIDDEN_SCRIPTS_12
+						wait until read
+					end dialogue
+					EvilSaid=1						
+				end if
+			end if
+
+			if NewSacrificeValue-StartSacrificeValue >= 4000
+				NewSacrificeValue=4000+StartSacrificeValue
+			end if
+
+		end if
+
+		//You killed the man
+		if HEALTH of Man <= 0
+			//Sacrificed?
+			if Man not exists and ManInHand==1
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+					set Boy focus to [Woman]
+					Boy play ANM_P_BLOW_RASPBERRY loop 1
+					set Woman focus to camera position
+					Woman play ANM_P_CROWD_UNIMPRESSED_1 loop 2
+					//Woman: You sacrifced the man. it's what he would have wanted.
+					say single line HELP_TEXT_SACRIFICE_17 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment 1 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+			else
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+					set Boy focus to [Woman]
+					Boy play ANM_P_BLOW_RASPBERRY loop 1
+					set Woman focus to camera position
+					Woman play ANM_P_CROWD_UNIMPRESSED_1 loop 2
+					//Woman: You killed my husband, but he was a good priest
+					say single line HELP_TEXT_SACRIFICE_16 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment 0.5 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+			end if
+
+			SacrificeFinished = 1
+		elsif HEALTH of Woman <=0
+			//Wife dead:
+			
+			//Sacrificed?
+			if Woman not exists and WomanInHand==1
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+					set Boy focus to [Man]
+
+					Boy play ANM_P_BLOW_RASPBERRY loop 1
+
+					set Man focus to camera position
+					Man play ANM_P_CROWD_UNIMPRESSED_1 loop 2
+					// Ah, so you thought my wife'd make a better sacrifice. Interesting,
+					say single line HELP_TEXT_SACRIFICE_15 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema		
+			else
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+					//Man: You killed the wife, mad you are!
+					set Man focus to camera position
+					Man play ANM_P_CROWD_UNIMPRESSED_1 loop 2
+					say single line HELP_TEXT_SACRIFICE_14 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment -0.2 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+			end if
+			SacrificeFinished = 1
+
+		elsif HEALTH of Boy <= 0
+			//Sacrificed?
+			if Boy not exists and BoyInHand==1
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+					set Man focus to camera position
+					set Woman focus to camera position
+					Man play ANM_P_CROWD_IMPRESSED_1 loop 1
+					Woman play ANM_P_CROWD_UNIMPRESSED_1 loop 2
+					//Man: Killing my boy was good stuff.
+					say single line HELP_TEXT_SACRIFICE_19 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment -1 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+			else
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					set camera position to [3337.130, 80.575, 3213.324]
+					set camera focus to [3342.189, 78.031, 3219.225]
+
+					set Man focus to camera position
+
+					//Man: You were suppposed to kill him on the alter. What a waste
+					say single line HELP_TEXT_SACRIFICE_18 with interaction
+					Man play ANM_P_CROWD_LOST loop 1
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment -1 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+				end cinema
+			end if
+			SacrificeFinished = 1
+
+		else
+			//You released the boy
+			if BoyReleased == 0
+				if [Boy] not near [Altar] radius 100 and Boy is not HELD and Boy is not FLYING
+					begin cinema
+						set camera position to [3337.130, 80.575, 3213.324]
+						set camera focus to [3342.189, 78.031, 3219.225]
+						Man play ANM_P_WAITING_IMPATEINTLY loop 1
+						//MAn: We are awaiting a sacrifice
+						say single line HELP_TEXT_SACRIFICE_08 with interaction
+						wait until read
+						close dialogue
+						wait 0.1 seconds
+						snapshot challenge success 0 alignment 0.5 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+						BoyReleased = 1
+						release Boy
+					end cinema
+				end if
+			end if
+ 
+			update snapshot success ((NewSacrificeValue-StartSacrificeValue) / 4000) alignment 0 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+
+			if NewSacrificeValue-StartSacrificeValue >= 4000
+				begin cinema
+
+					move camera position to [3337.130, 80.575, 3213.324] time 4
+					move camera focus to [3342.189, 78.031, 3219.225] time 4
+					
+					wait 2 seconds
+					set Boy focus to [Man]
+					Boy play ANM_P_BLOW_RASPBERRY loop 1
+					wait until camera ready
+
+					set Man focus to camera position
+					set Woman focus to camera position
+
+					//We've done enough!
+
+					//Man: The power from that sacrifice will remain until you need it.
+					say HELP_TEXT_SACRIFICE_10
+					set Boy focus to camera position
+					Man play ANM_P_GOSSIP_MAN loop -1
+					//Man: You spared my son.
+					Man play ANM_P_PRAY loop 2
+					Boy play ANM_P_DANCE_PISS_TAKE_ loop -1
+					Woman play ANM_P_CROWD_IMPRESSED_1 loop -1
+					wait until read
+
+					say  HELP_TEXT_SACRIFICE_12 with interaction
+					wait until read
+					close dialogue
+					wait 0.1 seconds
+					snapshot challenge success 1 alignment 1 HELP_TEXT_TITLE_23 StandardReminder(variable HELP_TEXT_SACRIFICE_09)
+				end cinema
+
+				SacrificeFinished = 1
+				run script rewardfromsky(variable REWARD_HEAL, RewardPos, IndianTown, 1)
+			else
+				//Store who was in the hand
+				HandObject=get object held
+				
+				ManInHand=0
+				WomanInHand=0
+				BoyInHand=0
+
+				if HandObject exists
+					if HandObject == Boy
+						BoyInHand=1
+					elsif HandObject == Woman
+						WomanInHand=1
+					elsif HandObject == Man
+						ManInHand=1
+					end if
+				end if
+			end if
+		end if
+
+	end while
+
+	SacrificeCompleted = 1
+
+end script Sacrifice
+

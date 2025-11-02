@@ -1,0 +1,12 @@
+challenge RunTheMeeting
+
+run script RunTheMeeting
+
+begin script RunTheMeeting
+	
+start
+	
+	run script TheMeeting
+	
+
+end script RunTheMeeting

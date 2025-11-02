@@ -1,0 +1,12 @@
+challenge RunSwapToTurtle
+
+run script RunSwapToTurtle
+
+begin script RunSwapToTurtle
+	
+start
+	
+	run script SwapToTurtle
+	
+
+end script RunSwapToTurtle

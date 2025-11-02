@@ -1,0 +1,13 @@
+//challenge RunVortexEntry
+
+run script RunSpittingTotem
+
+begin script RunSpittingTotem
+
+	TotemPos = marker at hand position
+
+start
+	run script SpittingTotem(TotemPos, variable SPELL_SEED_TYPE_FIRE, variable SPELL_SEED_TYPE_HEAL, -1, -1, 5)
+	
+
+end script RunSpittingTotem

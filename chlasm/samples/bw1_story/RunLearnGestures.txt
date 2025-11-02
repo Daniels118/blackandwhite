@@ -1,0 +1,13 @@
+challenge RunLearnGestures
+
+run script RunLearnGestures
+
+begin script RunLearnGestures
+	Town1 = get town with id 12				//Nearest Town (Norse) Used For Learn Gestures & idol pyre
+	
+start
+	
+	run script LearnGestures(Town1)
+	
+
+end script RunLearnGestures

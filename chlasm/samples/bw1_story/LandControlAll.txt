@@ -1,0 +1,634 @@
+challenge LandControlAll
+
+//------------------------------------------------------------------------------------------------------------------------
+//This is being taken out as it is triggered in game code. - Jonty
+//run script LandControlAll
+//------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LandControlAll
+	
+start
+
+	run script LandControl1
+	stop all scripts excluding files "LandControlAll.txt"
+
+	load map "scripts/land2.txt"
+//	set fade in time 3					Handled in OpenVortex (BeginLand2.txt)
+	run script LandControl2
+	stop all scripts excluding files "LandControlAll.txt"
+
+	load map "scripts/land3.txt"
+	set fade in time 3
+	run script LandControl3
+	stop all scripts excluding files "LandControlAll.txt"
+
+	load map "scripts/land4.txt"
+	run script LandControl4
+	stop all scripts excluding files "LandControlAll.txt"
+
+	load map "scripts/land5.txt"
+	run script LandControl5
+	stop all scripts excluding files "LandControlAll.txt"
+
+end script LandControlAll
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// The section below IS needed otherwise the game will not work.
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlayHiddenSelectionMessage(PhoneBoxLand1, PhoneBoxLand2, PhoneBoxLand3, PhoneBoxLand4)
+	Sample=0
+	Random=number from 1 to 3
+start
+	//When selected:
+	if Random == 1
+		Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_05
+	elsif Random == 2
+		Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_06
+	else
+		Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_09
+	end if
+					
+	start sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+	wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+
+	start sound constant Sample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+	wait until not sound constant Sample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+
+	start sound LH_SCRIPT_SAMPLE_G_PHONEPUTDOWN AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+	//Lower phonebox.
+	while ALTITUDE of PhoneBoxLand1 > -2.4	and ALTITUDE of PhoneBoxLand2 > -2.4 and ALTITUDE of PhoneBoxLand3 > -2.4 and ALTITUDE of PhoneBoxLand4 > -2.4
+		ALTITUDE of PhoneBoxLand1 -= 0.1
+		ALTITUDE of PhoneBoxLand2 -= 0.1
+		ALTITUDE of PhoneBoxLand3 -= 0.1
+		ALTITUDE of PhoneBoxLand4 -= 0.1
+	end while
+
+end script PlayHiddenSelectionMessage
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlayHiddenMessage(RandomSample, PhoneBox)
+	Sample=0
+start
+	begin known cinema
+		open PhoneBox
+		start sound LH_SAMPLE_G_OPENCHEST
+		wait until not sound LH_SAMPLE_G_OPENCHEST playing
+		wait 0.5 seconds
+
+		if RandomSample == 1
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_07
+		elsif RandomSample == 2
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_18
+		elsif RandomSample == 3
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_15
+		elsif RandomSample == 4
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_19
+		elsif RandomSample == 5
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_16
+		elsif RandomSample == 6
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_17
+		elsif RandomSample == 7
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_08
+		elsif RandomSample == 8
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_10
+		elsif RandomSample == 9
+			Sample=variable LH_SCRIPT_SAMPLE_PHONEBOX_20
+		else
+			Sample=variable LH_SCRIPT_SAMPLE_G_PHONEBOX_GB
+		end if
+
+		detach sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from PhoneBox
+		
+		start sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+					
+		//We could play a phone sample here... 
+		start sound constant Sample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		wait until not sound constant Sample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+		start sound LH_SCRIPT_SAMPLE_G_PHONEPUTDOWN AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		//We could do a birthday check too.			
+
+		wait 1 seconds
+		
+		close PhoneBox
+	end known cinema
+end script PlayHiddenMessage
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script HiddenToLands(Value)
+	
+start
+/*	stop script "HiddenScript"
+	stop script "LandControlAll"
+	set MyCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+
+	stop all scripts excluding files "LandControlAll.txt"
+	
+	if Value < 3
+		load map "scripts/land2.txt"
+		set fade in time 3
+		run script LandControl2
+		stop all scripts excluding files "LandControlAll.txt"
+	end if
+
+	if Value < 4
+		load map "scripts/land3.txt"
+		set fade in time 3
+		run script LandControl3
+		stop all scripts excluding files "LandControlAll.txt"
+	end if
+
+	if Value < 5
+		load map "scripts/land4.txt"
+		run script LandControl4
+		stop all scripts excluding files "LandControlAll.txt"
+	end if
+
+	load map "scripts/land5.txt"
+	run script LandControl5
+	stop all scripts excluding files "LandControlAll.txt"
+*/
+	set fade in time 3
+	wait until fade ready
+	
+	begin dialogue
+		say single line "Sorry, the boss got the cheat removed"
+		wait until read
+	end dialogue
+end script HiddenToLands
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script HiddenScript
+	PhoneBox=0
+	PhoneBoxLand1=0
+	PhoneBoxLand2=0
+	PhoneBoxLand3=0
+	PhoneBoxLand4=0
+	PhoneBoxLand5=0
+	CreatePos=marker at [3130.035, 3.921, 1639.275] 
+	BeginPos = 0
+	BeginFoc = 0
+	Storm = 0
+	Dust = 0
+	SaidIntro=0
+	RandomSample=0
+	PlayedSample=0
+
+start
+	PhoneBox=get FEATURE at [CreatePos]
+
+	//Don't want this to run twice.
+	if not PhoneBox exists
+		PhoneBox=create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [CreatePos]
+		
+		disable PhoneBox moveable
+		enable PhoneBox indestructible
+		disable PhoneBox pickup
+
+		attach 3d sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to PhoneBox
+
+		//Intro to trigger.
+		begin dialogue
+			make evil spirit appear
+			make good spirit appear
+			say HELP_TEXT_HIDDEN_SCRIPTS_01
+			wait until read
+			say HELP_TEXT_HIDDEN_SCRIPTS_05
+			wait until read
+			say HELP_TEXT_HIDDEN_SCRIPTS_04
+			wait until read
+			say HELP_TEXT_HIDDEN_SCRIPTS_02
+			wait until read
+			make evil spirit disappear
+			make good spirit disappear
+		end dialogue
+
+		//Dialogue until phone box is clicked - explaining the boring story ;)
+		begin loop
+			wait 20 seconds
+
+			if SaidIntro == 0
+				SaidIntro = 1
+				start sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+							
+				//Got a phone box... sure lets write a script...
+				start sound LH_SCRIPT_SAMPLE_PHONEBOX_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_PHONEBOX_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+				
+				start sound LH_SCRIPT_SAMPLE_PHONEBOX_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_PHONEBOX_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+
+				start sound LH_SCRIPT_SAMPLE_G_PHONEPUTDOWN AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPUTDOWN AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+			
+				wait 15 seconds
+				
+				start sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+				
+				start sound LH_SCRIPT_SAMPLE_PHONEBOX_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				wait until not sound LH_SCRIPT_SAMPLE_PHONEBOX_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+
+				start sound LH_SCRIPT_SAMPLE_G_PHONEPUTDOWN AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			end if
+
+		until PhoneBox clicked
+			stop sound LH_SCRIPT_SAMPLE_PHONEBOX_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			stop sound LH_SCRIPT_SAMPLE_PHONEBOX_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			stop sound LH_SCRIPT_SAMPLE_PHONEBOX_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		end loop
+
+		clear clicked object
+		RandomSample = number from 1 to 10
+
+		//Intro....
+		begin cinema
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [CreatePos] 
+			set Storm properties time 60 fade 5
+			set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1
+			set Storm properties clouds 10 shade 1 height 70
+			set Storm properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+			set Storm properties inner 20 outer 50
+			disable Storm affected by wind
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			move camera position to [3134.2524, 2.4461, 1632.0315] time 5 // Nice Position
+			move camera focus to [3100.0930, 3.1991, 1663.4565] time 5
+			wait until camera ready
+			
+			make evil spirit appear
+			make good spirit appear
+			
+			//Found script
+			say HELP_TEXT_HIDDEN_SCRIPTS_05
+			wait until read
+			//One of the lionhead people
+			say HELP_TEXT_HIDDEN_SCRIPTS_09
+			wait until read
+			//Listen carefully.
+			say HELP_TEXT_HIDDEN_SCRIPTS_06
+			wait until read
+			make evil spirit disappear
+			make good spirit disappear
+
+			clear dialogue
+
+			run script PlayHiddenMessage(RandomSample, PhoneBox)
+
+			move camera position to [BeginPos] time 4
+			move camera focus to [BeginFoc] time 4
+			wait until camera ready
+
+		end cinema
+
+		//Make sure they hear at least 3 samples.
+		PlayedSample=1
+		while PlayedSample < 3
+			attach 3d sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to PhoneBox
+			RandomSample++
+			if RandomSample > 10
+				RandomSample=1
+			end if
+			 
+			clear clicked object
+			wait until PhoneBox clicked
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+				move camera position to [3134.2524, 2.4461, 1632.0315] time 5 // Nice Position
+				move camera focus to [3100.0930, 3.1991, 1663.4565] time 5
+
+				make good spirit appear
+				say single line constant from HELP_TEXT_HIDDEN_SCRIPTS_03 to HELP_TEXT_HIDDEN_SCRIPTS_04
+				wait until read
+				close dialogue
+				make good spirit disappear
+
+				run script PlayHiddenMessage(RandomSample, PhoneBox)
+
+				move camera position to [BeginPos] time 4
+				move camera focus to [BeginFoc] time 4
+				wait until camera ready
+			end cinema
+			PlayedSample++
+		end while
+
+		clear clicked object
+		wait until PhoneBox clicked
+			
+		// We create the 5 other phone boxes here:
+		begin cinema
+			delete Storm
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [CreatePos] 
+			set Storm properties time 60 fade 5
+			set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1
+			set Storm properties clouds 10 shade 1 height 70
+			set Storm properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+			set Storm properties inner 20 outer 50
+			disable Storm affected by wind
+
+			move camera position to [3129.368, 8.103, 1618.936]	time 3
+			move camera focus to [3129.099, 2.036, 1635.962] time 3
+
+			start sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			wait until not sound LH_SCRIPT_SAMPLE_G_PHONEPICKUP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+				
+			//Three and a half years...
+			start sound LH_SCRIPT_SAMPLE_PHONEBOX_11 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			wait until not sound LH_SCRIPT_SAMPLE_PHONEBOX_11 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX playing
+			wait until camera ready
+
+			Dust = create special effect SPOT_VISUAL_SMOKE at [CreatePos] - [0,0.5,0] time 1
+
+			start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			shake camera at [CreatePos] radius 300.0 amplitude 0.03 time 10
+
+			while ALTITUDE of PhoneBox > -2.4
+				ALTITUDE of PhoneBox -= 0.2
+			end while
+
+			clear clicked object	
+
+			delete PhoneBox
+			PhoneBoxLand1 = create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [3124.9204, 3.3343, 1644.2760]	// Land1
+			disable PhoneBoxLand1 moveable
+			disable PhoneBoxLand1 pickup
+			enable PhoneBoxLand1 indestructible
+			ALTITUDE of PhoneBoxLand1 = -2 
+			PhoneBoxLand2 = create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [3127.4368, 3.7845, 1644.2347]	// Land2
+			disable PhoneBoxLand2 moveable
+			disable PhoneBoxLand2 pickup
+			enable PhoneBoxLand2 indestructible
+			ALTITUDE of PhoneBoxLand2 = -2
+			PhoneBoxLand3 = create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [3129.9468, 4.2791, 1644.1172]	// Land3
+			disable PhoneBoxLand3 moveable
+			disable PhoneBoxLand3 pickup
+			enable PhoneBoxLand3 indestructible
+			ALTITUDE of PhoneBoxLand3 = -2
+			PhoneBoxLand4 = create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [3132.4819, 4.4414, 1643.8359]	// Land4
+			disable PhoneBoxLand4 moveable
+			disable PhoneBoxLand4 pickup
+			enable PhoneBoxLand4 indestructible
+			ALTITUDE of PhoneBoxLand4 = -2
+			PhoneBoxLand5 = create SCRIPT_OBJECT_TYPE_ANIMATED_STATUE ANIMATED_STATIC_INFO_PHONE_BOX at [3134.9253, 4.5932, 1643.6624]	// Land5
+			disable PhoneBoxLand5 moveable
+			disable PhoneBoxLand5 pickup
+			enable PhoneBoxLand5 indestructible
+			ALTITUDE of PhoneBoxLand5 = -2
+
+			while ALTITUDE of PhoneBoxLand1 < 0	and ALTITUDE of PhoneBoxLand2 < 0 and ALTITUDE of PhoneBoxLand3 < 0 and ALTITUDE of PhoneBoxLand4 < 0 and ALTITUDE of PhoneBoxLand5 < 0
+				ALTITUDE of PhoneBoxLand1 += 0.1
+				ALTITUDE of PhoneBoxLand2 += 0.1
+				ALTITUDE of PhoneBoxLand3 += 0.1
+				ALTITUDE of PhoneBoxLand4 += 0.1
+				ALTITUDE of PhoneBoxLand5 += 0.1
+			end while
+
+		end cinema
+
+		attach 3d sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to PhoneBoxLand1
+
+		//Wait for them to click a level phone box....
+		begin loop
+			if PhoneBoxLand1 clicked
+				// Go to Land 1 would be pointless so lets just continue the random samples here
+				RandomSample++
+				if RandomSample > 10
+					RandomSample=1
+				end if
+			 
+				clear clicked object
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+
+					move camera position to [3129.1538, 13.6847, 1629.2223]	time 3
+					move camera focus to [3129.5642, 4.7516, 1643.3647] time 3
+					
+					make good spirit appear
+					say single line constant from HELP_TEXT_HIDDEN_SCRIPTS_03 to HELP_TEXT_HIDDEN_SCRIPTS_04
+					wait until read
+					close dialogue
+					make good spirit disappear
+					
+					run script PlayHiddenMessage(RandomSample, PhoneBoxLand1)
+
+					move camera position to [BeginPos] time 3
+					move camera focus to [BeginFoc] time 3
+					wait until camera ready
+				end cinema
+				attach 3d sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to PhoneBoxLand1
+			end if				
+				
+		until PhoneBoxLand2 clicked
+			detach sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from PhoneBoxLand1
+			// Go to Land 2
+			begin cinema
+				move camera position to [3129.1538, 13.6847, 1629.2223]	time 3
+				move camera focus to [3129.5642, 4.7516, 1643.3647] time 3
+				run script PlayHiddenSelectionMessage(PhoneBoxLand1, PhoneBoxLand3, PhoneBoxLand4, PhoneBoxLand5)
+				wait until camera ready
+				move camera position to [3127.563, 1.773, 1643.388] time 3
+				move camera focus to [3126.834, 1.542, 1648.793] time 3
+				open PhoneBoxLand2
+				start sound LH_SAMPLE_G_OPENCHEST
+				wait until not sound LH_SAMPLE_G_OPENCHEST playing
+				set fade red 0 green 0 blue 0 time 2							// Fade to Black
+				wait until fade ready
+			end cinema
+			// Load land 2
+			run script HiddenToLands(2)
+		until PhoneBoxLand3 clicked
+			detach sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from PhoneBoxLand1
+			// Go to Land 3
+			begin cinema
+				move camera position to [3129.1538, 13.6847, 1629.2223]	time 3
+				move camera focus to [3129.5642, 4.7516, 1643.3647] time 3
+				run script PlayHiddenSelectionMessage(PhoneBoxLand1, PhoneBoxLand2, PhoneBoxLand4, PhoneBoxLand5)
+				wait until camera ready
+				move camera position to [3130.045, 1.406, 1642.942] time 3
+				move camera focus to [3129.316, 1.175, 1648.347] time 3
+				open PhoneBoxLand3
+				start sound LH_SAMPLE_G_OPENCHEST
+				wait until not sound LH_SAMPLE_G_OPENCHEST playing
+				set fade red 0 green 0 blue 0 time 2							// Fade to Black
+				wait until fade ready
+			end cinema
+			//Load land 3
+			run script HiddenToLands(3)
+																							   
+		until PhoneBoxLand4 clicked
+			detach sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from PhoneBoxLand1
+			// Go to Land 4
+			begin cinema
+				move camera position to [3129.1538, 13.6847, 1629.2223]	time 3
+				move camera focus to [3129.5642, 4.7516, 1643.3647] time 3
+				run script PlayHiddenSelectionMessage(PhoneBoxLand1, PhoneBoxLand2, PhoneBoxLand3, PhoneBoxLand5)
+				wait until camera ready
+				move camera position to [3132.673, 1.823, 1642.894] time 3
+				move camera focus to [3131.944, 1.592, 1648.299] time 3
+				open PhoneBoxLand4
+				start sound LH_SAMPLE_G_OPENCHEST
+				wait until not sound LH_SAMPLE_G_OPENCHEST playing
+				set fade red 0 green 0 blue 0 time 2							// Fade to Black
+				wait until fade ready
+			end cinema
+			//Load land 4
+			run script HiddenToLands(4)
+
+		until PhoneBoxLand5 clicked
+			detach sound tag LH_SCRIPT_SAMPLE_G_PHONEBOXRING AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from PhoneBoxLand1
+			// Go to Land 5
+			begin cinema
+				move camera position to [3129.1538, 13.6847, 1629.2223]	time 3
+				move camera focus to [3129.5642, 4.7516, 1643.3647] time 3
+				run script PlayHiddenSelectionMessage(PhoneBoxLand1, PhoneBoxLand2, PhoneBoxLand3, PhoneBoxLand4)
+				wait until camera ready
+				move camera position to [3135.132, 2.448, 1642.621] time 3
+				move camera focus to [3134.403, 2.218, 1648.026] time 3
+				open PhoneBoxLand5
+				start sound LH_SAMPLE_G_OPENCHEST
+				wait until not sound LH_SAMPLE_G_OPENCHEST playing
+				set fade red 0 green 0 blue 0 time 2							// Fade to Black
+				wait until fade ready
+			end cinema
+			//Load land 5
+			run script HiddenToLands(5)
+
+		end loop
+	else
+		begin dialogue
+			say single line "Already done"
+			wait 5 seconds
+		end dialogue
+	end if
+
+end script HiddenScript

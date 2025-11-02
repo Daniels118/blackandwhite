@@ -1,0 +1,86 @@
+challenge CREATURE_DEV_LEARN_TO_EAT
+
+ run script CreatureDevLearnToEat
+
+
+begin script CreatureDevLearnToEat
+
+CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+CitadelPos = marker at [1915.0500, 18.0900, 2508.8899]
+
+CamPosStart = marker at [1895.2290, 35.7275, 2497.7000]
+CamPos1 = marker at [1894.2354, 28.8333, 2508.1797]
+//CamPos2 = marker at [1895.4841, 30.4460, 2522.5950]
+
+AtEntranceDoorway = marker at [1901.1814, 18.0900, 2518.2144]
+
+CreatureEnergyInitial = 0
+CreatureEnergyNow = 0
+
+
+start
+	
+	CreatureEnergyInitial = get ENERGY of MyCreature
+	begin cinema
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		set MyCreature position to [MyCreaturePos]
+		move Trainer position to [TrainerPos]
+		move camera position to [CamPos1] time 8
+		set MyCreature focus to [CamPos1]
+		wait until [Trainer] near [TrainerPos] radius 2
+		wait 2 seconds
+		set Trainer focus to [CamPos1]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_01
+		MyCreature play C_INDIVIDUAL_HUNGRY
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_02
+		move camera focus to [MyCreature] time 4
+		wait until read
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_03
+		wait until read
+		send good spirit home
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_04
+		wait until read
+		move camera focus to [Trainer] time 4
+		//move camera position to [CamPos2] time 12
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_05
+		wait until read
+		move Trainer position to [CitadelEntrancePos]
+		move camera focus to [MyCreature] time 4
+		wait until [Trainer] near [CitadelEntrancePos] radius 2
+		delete Trainer
+		wait until camera ready
+		release MyCreature
+	end cinema
+	MyCreature = get player 1 creature
+	
+	while CreatureEnergyNow <= CreatureEnergyInitial
+		CreatureEnergyNow = get ENERGY of MyCreature
+	end while
+
+	begin cinema
+		Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+		move Trainer position to [AtEntranceDoorway]
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		wait 3 seconds
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_06
+		wait until read
+		move Trainer position to [CitadelEntrancePos]
+		move camera position to [CamPos1] time 4
+		wait until camera ready
+		wait until [Trainer] near [CitadelEntrancePos] radius 1
+		delete Trainer
+	end cinema
+
+
+
+end script CreatureDevLearnToEat

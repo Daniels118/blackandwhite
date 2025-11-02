@@ -1,0 +1,2042 @@
+// ----------------------------------------------------------------------------
+// Global definitions
+// ----------------------------------------------------------------------------
+global ECreature
+global ECreatureStartFightPos
+global MyCreatureStartFightPos
+global ECreatureDefeated
+global LostFightResetPos
+global ArenaPos
+global CitadelHeart
+global CLHighlight
+global Freeze
+global Explosion 
+global FightCamPos
+global FightCamFoc
+global Plinth01
+global Plinth01Pos
+global Plinth02
+global Plinth02Pos
+global Plinth03
+global Plinth03Pos
+global Plinth04
+global Plinth04Pos
+global Plinth05
+global Plinth05Pos
+global Plinth06
+global Plinth06Pos
+global Plinth07
+global Plinth07Pos
+global Plinth08
+global Plinth08Pos
+global Plinth09
+global Plinth09Pos
+global Plinth10
+global Plinth10Pos
+global Plinth11
+global Plinth11Pos
+global Plinth12
+global Plinth12Pos
+global Plinth13
+global Plinth13Pos
+global Plinth14
+global Plinth14Pos
+global Plinth15
+global Plinth15Pos
+
+// ----------------------------------------------------------------------------
+// Run script from here
+// ----------------------------------------------------------------------------
+run script CreatureLadder
+
+// ----------------------------------------------------------------------------
+// Define scripts
+// ----------------------------------------------------------------------------
+define script PlacePlinths
+define script Level01
+define script Level02
+define script Level03
+define script Level04
+define script Level05
+define script Level06
+define script Level07
+define script Level08
+define script Level09
+define script Level10
+define script Level11
+define script Level12
+define script Level13
+define script Level14
+define script Level15
+define script GiveReward
+define script StartCreaturesFighting
+
+// ----------------------------------------------------------------------------
+// Controls flow of script
+// ----------------------------------------------------------------------------
+begin script CreatureLadder
+
+start			
+
+	ArenaPos					= marker at [3722.34, 0.0, 2617.00]
+	CitadelHeart				= marker at [2391.0500, 83.0800, 2688.1499]
+	ECreatureStartFightPos		= marker at [3759.8032, 22.7800, 2615.9419]	
+	MyCreatureStartFightPos		= marker at [3685.8032, 22.7800, 2615.9419]
+	LostFightResetPos			= marker at [3586.7629, 22.1807, 2634.3291]
+	FightCamPos					= marker at [3618.1133, 75.1034, 2611.3115]
+	FightCamFoc					= marker at [3712.5046, 23.2615, 2614.8225]
+	
+	run script PlacePlinths
+	run script Level01				// Sheep			CREATURE_TYPE_SHEEP
+	run script Level02				// Chimp			CREATURE_TYPE_CHIMP
+	run script Level03				// Cow				CREATURE_TYPE_COW
+	run script Level04				// Ape				CREATURE_TYPE_APE
+	run script Level05				// Zebra			CREATURE_TYPE_ZEBRA
+	run script Level06				// Horse			CREATURE_TYPE_HORSE
+	run script Level07				// Mandrill			CREATURE_TYPE_MANDRILL
+	run script Level08				// Tortoise			CREATURE_TYPE_TORTOISE
+	run script Level09				// Wolf				CREATURE_TYPE_WOLF
+	run script Level10				// Gorilla			CREATURE_TYPE_GORILLA
+	run script Level11				// Leopard			CREATURE_TYPE_LEOPARD
+	run script Level12				// Bear				CREATURE_TYPE_BEAR
+	run script Level13				// Polar Bear		CREATURE_TYPE_POLAR_BEAR
+	run script Level14				// Tiger			CREATURE_TYPE_TIGER
+	run script Level15				// Lion				CREATURE_TYPE_LION
+
+	run script GiveReward			// Black belt tatto
+
+end script CreatureLadder
+
+//-----------------------------------------------------------------------------
+// SHEEP
+//-----------------------------------------------------------------------------
+begin script Level01
+
+start					
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth01] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth01Pos] CREATURE_TYPE_SHEEP	
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.6
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.066
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth01 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth01Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth01Pos] radius 1
+			move ECreature position to [Plinth01Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth01Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level01
+
+//-----------------------------------------------------------------------------
+// CHIMP
+//-----------------------------------------------------------------------------
+begin script Level02
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth15] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth15Pos] CREATURE_TYPE_CHIMP
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.6
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.132
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth15 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth15Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth15Pos] radius 1
+			move ECreature position to [Plinth15Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+		
+		wait 1 seconds
+		
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth15Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+		
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+		
+		wait 1 seconds
+		
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+		
+	release MyCreature
+
+end script Level02
+
+//-----------------------------------------------------------------------------
+// COW
+//-----------------------------------------------------------------------------
+begin script Level03
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth02] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth02Pos] CREATURE_TYPE_COW	
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.7
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.198
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth02 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth02Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth02Pos] radius 1
+			move ECreature position to [Plinth02Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+		
+		wait 1 seconds
+		
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth02Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+		
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+		
+		wait 1 seconds
+		
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+		
+	release MyCreature
+
+end script Level03
+
+//-----------------------------------------------------------------------------
+// APE
+//-----------------------------------------------------------------------------
+begin script Level04
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth14] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth14Pos] CREATURE_TYPE_APE	
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.7
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.264
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth14 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth14Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth14Pos] radius 1
+			move ECreature position to [Plinth14Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+		
+		wait 1 seconds
+		
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth14Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+		
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+		
+		wait 1 seconds
+		
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+		
+	release MyCreature
+
+end script Level04
+
+//-----------------------------------------------------------------------------
+// ZEBRA
+//-----------------------------------------------------------------------------
+begin script Level05
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth03] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth03Pos] CREATURE_TYPE_ZEBRA	
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.8
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.33
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth03 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth03Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth03Pos] radius 1
+			move ECreature position to [Plinth03Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+		
+		wait 1 seconds
+		
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth03Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+		
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+		
+		wait 1 seconds
+		
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+		
+	release MyCreature
+
+end script Level05
+
+//-----------------------------------------------------------------------------
+// HORSE
+//-----------------------------------------------------------------------------
+begin script Level06
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth13] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth13Pos] CREATURE_TYPE_HORSE	
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.8
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.396
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth13 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth13Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth13Pos] radius 1
+			move ECreature position to [Plinth13Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth13Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level06
+
+//-----------------------------------------------------------------------------
+// MANDRILL
+//-----------------------------------------------------------------------------
+begin script Level07
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth04] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth04Pos] CREATURE_TYPE_MANDRILL
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.9
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.462
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth04 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth04Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth04Pos] radius 1
+			move ECreature position to [Plinth04Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth04Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level07
+
+//-----------------------------------------------------------------------------
+// TORTOISE
+//-----------------------------------------------------------------------------
+begin script Level08
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth12] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth12Pos] CREATURE_TYPE_TORTOISE
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 0.9
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.528
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth12 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth12Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth12Pos] radius 1
+			move ECreature position to [Plinth12Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth12Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level08
+
+//-----------------------------------------------------------------------------
+// WOLF
+//-----------------------------------------------------------------------------
+begin script Level09
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth05] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth05Pos] CREATURE_TYPE_WOLF
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.0
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.594
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth05 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth05Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth05Pos] radius 1
+			move ECreature position to [Plinth05Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth05Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level09
+
+//-----------------------------------------------------------------------------
+// GORILLA
+//-----------------------------------------------------------------------------
+begin script Level10
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth11] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth11Pos] CREATURE_TYPE_GORILLA
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.0
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.66
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth11 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth11Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth11Pos] radius 1
+			move ECreature position to [Plinth11Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth11Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level10
+
+//-----------------------------------------------------------------------------
+// LEOPARD
+//-----------------------------------------------------------------------------
+begin script Level11
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth06] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth06Pos] CREATURE_TYPE_LEOPARD
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.1
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.726
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth06 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth06Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth06Pos] radius 1
+			move ECreature position to [Plinth06Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth06Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level11
+
+//-----------------------------------------------------------------------------
+// BEAR
+//-----------------------------------------------------------------------------
+begin script Level12
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth10] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth10Pos] CREATURE_TYPE_BEAR
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.1
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.792
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth10 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth10Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth10Pos] radius 1
+			move ECreature position to [Plinth10Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth10Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level12
+
+//-----------------------------------------------------------------------------
+// POLAR BEAR
+//-----------------------------------------------------------------------------
+begin script Level13
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth07] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth07Pos] CREATURE_TYPE_POLAR_BEAR
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.2
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.858
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth07 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth07Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth07Pos] radius 1
+			move ECreature position to [Plinth07Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth07Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level13
+
+//-----------------------------------------------------------------------------
+// TIGER
+//-----------------------------------------------------------------------------
+begin script Level14
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth09] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth09Pos] CREATURE_TYPE_TIGER
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.2
+			
+			ALIGNMENT of ECreature = -1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 0.924
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth09 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth09Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth09Pos] radius 1
+			move ECreature position to [Plinth09Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth09Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level14
+
+//-----------------------------------------------------------------------------
+// LION
+//-----------------------------------------------------------------------------
+begin script Level15
+
+start
+
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [ArenaPos] radius 100
+	
+	// Create Highlight
+	CLHighlight = create highlight HIGHLIGHT_CHALLENGE at [ArenaPos]
+	run script ChallengeHighlightNotify(CLHighlight, ArenaPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	delete CLHighlight
+
+	// Send player creature to fight position if he is near the arena when the scroll is clicked on
+	if [MyCreature] near [ArenaPos] radius 90
+		set MyCreature focus to [MyCreatureStartFightPos]							
+		move MyCreature position to [MyCreatureStartFightPos] radius 1						
+	end if
+
+	// Setup before fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [Plinth08] time 3
+		wait until camera ready		
+
+		if MyCreature exists
+			ECreature = create_creature_from_creature MyCreature 1 at [Plinth08Pos] CREATURE_TYPE_LION
+			
+			set ECreature fade in time 6
+			set ECreature focus to [ArenaPos]
+			enable ECreature auto scale 1.3
+			
+			ALIGNMENT of ECreature = 1			
+			
+			set ECreature DEVELOPMENT_PHASE_FULLY_MATURE development
+			STRENGTH of ECreature = 1.0
+			teach ECreature everything
+						
+			wait 6 seconds
+
+			delete Plinth08 with fade
+			
+			set ECreature focus to [ECreatureStartFightPos]
+
+			while [ECreature] not near [ECreatureStartFightPos]	radius 1
+				move ECreature position to [ECreatureStartFightPos] radius 1
+				move camera focus to [ECreature] time 1
+			end while
+
+			// Set creatures focus to each other if player creature is near his fight start pos, else make enemy creature look at the arena centre 
+			if [MyCreature] near [MyCreatureStartFightPos] radius 1
+				set ECreature focus to [MyCreature]
+				set MyCreature focus to [ECreature]
+			else
+				set ECreature focus to [CitadelHeart]
+			end if			
+		end if
+
+		move camera position to [FightCamPos] time 3
+		move camera focus to [FightCamFoc] time 3
+		wait until camera ready		
+	end cinema
+
+	ECreatureDefeated = 0
+
+	// Start creatures fighting
+	while ECreatureDefeated == 0
+		if [MyCreature] near [ArenaPos] radius 50		
+			run script StartCreaturesFighting
+		end if
+	end while
+
+	// After winning fight
+	begin cinema
+		move camera position to [MyCreatureStartFightPos] + [0, 50, 0] time 3
+		move camera focus to [ECreature] time 3
+		wait until camera ready		
+	
+		set ECreature focus to [Plinth08Pos]
+		set MyCreature focus to [MyCreatureStartFightPos]
+		
+		move MyCreature position to [MyCreatureStartFightPos] radius 1				
+
+		while [ECreature] not near [Plinth08Pos] radius 1
+			move ECreature position to [Plinth08Pos] radius 1
+			move camera focus to [ECreature] time 1
+		end while
+
+		set ECreature focus to [ArenaPos]
+		
+		wait 2 seconds
+
+		force ECreature CREATURE_IDLE ECreature
+		ECreature play C_MISC_PRAY
+
+		wait 1 seconds
+
+		Freeze = cast CREATURE_SPELL_FREEZE spell on ECreature from [Plinth08Pos] radius 0 time 3 curl 0
+		
+		wait 7 seconds
+
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ECreature] from [ECreature]+[0,30,0]  radius 50.0 time 15 curl 0	
+
+		wait 1 seconds
+
+		delete ECreature
+		
+		move camera position to [FightCamPos] time 6
+		move camera focus to [FightCamFoc] time 6
+		wait until camera ready
+	end cinema
+
+	release MyCreature
+
+end script Level15
+
+// ----------------------------------------------------------------------------
+// Finds a victor of the fight
+// ----------------------------------------------------------------------------
+begin script StartCreaturesFighting
+
+LostFightCamPos		= marker at [3524.9561, 87.3064, 2666.1670]
+LostFightCamFoc		= marker at [3664.3713, 23.1737, 2616.4734]
+
+start
+	force ECreature CREATURE_FIGHT MyCreature
+	force MyCreature CREATURE_FIGHT ECreature
+	
+	detach MyCreature leash	
+
+	wait until MyCreature fighting
+
+	wait until not MyCreature fighting
+	wait until not ECreature fighting
+
+	if FIGHTHEALTH of MyCreature > FIGHTHEALTH of ECreature				// You won
+		ECreatureDefeated = 1	
+	else																// You lost
+		HEALTH of MyCreature = 0
+		force MyCreature CREATURE_DEAD MyCreature
+		
+		begin cinema
+			move camera position to [LostFightCamPos] time 6
+			move camera focus to [LostFightCamFoc] time 6
+			
+			move ECreature position	to [ECreatureStartFightPos] radius 1
+			move MyCreature position to [LostFightResetPos] radius 1
+			wait until [ECreature] near [ECreatureStartFightPos] radius 1
+			set ECreature focus to [CitadelHeart]
+			HEALTH of ECreature = 1
+			FIGHTHEALTH of ECreature = 1
+			wait until [MyCreature] near [LostFightResetPos] radius 1
+			set MyCreature focus to [ArenaPos]
+
+			wait until camera ready
+			release MyCreature
+		end cinema		
+	end if
+
+end script StartCreaturesFighting
+
+// ----------------------------------------------------------------------------
+// Places a plinth for each creature type in a semi circle around the arena pos
+// ----------------------------------------------------------------------------
+begin script PlacePlinths
+
+Point1				= marker at [3700.34, 0.0, 2617.00]
+Distance			= 80
+LastPlinthFaces		= 0
+
+Lantern				= 0
+LanternPos			= 0
+
+start
+
+	Plinth01Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 84
+	Plinth02Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 72
+	Plinth03Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 60
+	Plinth04Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 48
+	Plinth05Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 36
+	Plinth06Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 24
+	Plinth07Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 12
+	Plinth08Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 0.0
+	Plinth09Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -12
+	Plinth10Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -24
+	Plinth11Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -36
+	Plinth12Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -48
+	Plinth13Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -60
+	Plinth14Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -72
+	Plinth15Pos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -84
+	LastPlinthFaces	= marker at get target from [Point1] to [ArenaPos] distance Distance angle -96
+
+//	LanternPos	= marker at get target from [Point1] to [ArenaPos] distance Distance angle 0
+	
+//	Placing a lantern by using the following. Put one between each statue
+//	Lantern = create with angle 0 and scale 0 OBJECT MOBILE_STATIC_INFO_STREET_LANTERN at [LanternPos]
+
+//	Also may use. Needs Jonty to find out why object is not appearing in map 	
+//	MOBILE_STATIC_INFO_COUNTRY_LANTERN
+//	MOBILE_STATIC_INFO_STREET_LANTERN
+//	MOBILE_STATIC_INFO_BONFIRE
+//	-22.7800 - This is the altitude the street lanterns are being placed at, ie. under ground
+//	There is also no flame on the torch
+	//ALTITUDE of Lantern = 0
+
+	Plinth01 = create with angle 0 and scale 1.0 FEATURE FEATURE_INFO_STONE_ICON_SHEEP at [Plinth01Pos]
+	Plinth02 = create with angle 0 and scale 1.2 FEATURE FEATURE_INFO_STONE_ICON_COW at [Plinth02Pos]
+	Plinth03 = create with angle 0 and scale 1.4 FEATURE FEATURE_INFO_STONE_ICON_ZEBRA at [Plinth03Pos]
+	Plinth04 = create with angle 0 and scale 1.6 FEATURE FEATURE_INFO_STONE_ICON_APE at [Plinth04Pos]
+	Plinth05 = create with angle 0 and scale 1.8 FEATURE FEATURE_INFO_STONE_ICON_WOLF at [Plinth05Pos]
+	Plinth06 = create with angle 0 and scale 2.0 FEATURE FEATURE_INFO_STONE_ICON_LEOPARD at [Plinth06Pos]
+	Plinth07 = create with angle 0 and scale 2.2 FEATURE FEATURE_INFO_STONE_ICON_POLARBEAR at [Plinth07Pos]
+	Plinth08 = create with angle 0 and scale 2.4 FEATURE FEATURE_INFO_STONE_ICON_LION at [Plinth08Pos]
+	Plinth09 = create with angle 0 and scale 2.2 FEATURE FEATURE_INFO_STONE_ICON_TIGER at [Plinth09Pos]
+	Plinth10 = create with angle 0 and scale 2.0 FEATURE FEATURE_INFO_STONE_ICON_BEAR at [Plinth10Pos]
+	Plinth11 = create with angle 0 and scale 1.8 FEATURE FEATURE_INFO_STONE_ICON_APE at [Plinth11Pos]
+	Plinth12 = create with angle 0 and scale 1.6 FEATURE FEATURE_INFO_STONE_ICON_TORTOISE at [Plinth12Pos]
+	Plinth13 = create with angle 0 and scale 1.4 FEATURE FEATURE_INFO_STONE_ICON_HORSE at [Plinth13Pos]
+	Plinth14 = create with angle 0 and scale 1.2 FEATURE FEATURE_INFO_STONE_ICON_APE at [Plinth14Pos]
+	Plinth15 = create with angle 0 and scale 1.0 FEATURE FEATURE_INFO_STONE_ICON_APE at [Plinth15Pos]
+	
+	set Plinth01 focus to [Plinth02]
+	set Plinth02 focus to [Plinth03]
+	set Plinth03 focus to [Plinth04]
+	set Plinth04 focus to [Plinth05]
+	set Plinth05 focus to [Plinth06]
+	set Plinth06 focus to [Plinth07]
+	set Plinth07 focus to [Plinth08]
+	set Plinth08 focus to [Plinth09]
+	set Plinth09 focus to [Plinth10]
+	set Plinth10 focus to [Plinth11]
+	set Plinth11 focus to [Plinth12]
+	set Plinth12 focus to [Plinth13]
+	set Plinth13 focus to [Plinth14]
+	set Plinth14 focus to [Plinth15]
+	set Plinth15 focus to [LastPlinthFaces]
+
+	enable Plinth01 indestructible
+	enable Plinth02 indestructible
+	enable Plinth03 indestructible
+	enable Plinth04 indestructible
+	enable Plinth05 indestructible
+	enable Plinth06 indestructible
+	enable Plinth07 indestructible
+	enable Plinth08 indestructible
+	enable Plinth09 indestructible
+	enable Plinth10 indestructible
+	enable Plinth11 indestructible
+	enable Plinth12 indestructible
+	enable Plinth13 indestructible
+	enable Plinth14 indestructible
+	enable Plinth15 indestructible
+	
+end script PlacePlinths
+
+// ----------------------------------------------------------------------------
+// Get a reward of a unique tattoo for your creature
+// ----------------------------------------------------------------------------
+begin script GiveReward
+
+start
+
+end script GiveReward
+

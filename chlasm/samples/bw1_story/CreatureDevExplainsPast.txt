@@ -1,0 +1,95 @@
+challenge CREATURE_DEV_EXPLAINS_PAST
+
+run script CreatureDevExplainsPast
+
+
+begin script CreatureDevExplainsPast
+
+MyCreature = get player 1 creature
+
+Guide = 0
+GuidePos = marker at [MyCreature] + [10,10]
+Mountain = marker at [2320.8396, 138.6900, 2497.6670]
+Distance = marker at [2326.7031, 138.6900, 2507.6943]
+Pos1 = marker at [1936.5057, 18.0900, 2551.9902]
+
+start
+
+	Guide = create CREATURE CREATURE_TYPE_HORSE at [GuidePos]
+	begin cinema
+	begin dual camera to MyCreature Guide
+
+		force Guide CREATURE_POINT_AT_OBJECT Guide
+		wait until Guide played
+		force Guide CREATURE_BE_SAD Guide
+		wait until Guide played
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_01
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_02
+		wait until read
+
+		move Guide position to [Pos1]
+		move MyCreature position to [Pos1]
+		wait until 8 seconds
+
+		set fade red 0 green 0 blue 0 time 4
+
+	end dual camera
+	end cinema
+
+
+	begin cinema
+		
+		set camera position to [2353.5327, 150.3018, 2524.4343]
+		set camera focus to [1741.0797, 2.4745, 2184.8940]
+
+		set fade in time 4
+		set Guide position to [2334.0327, 138.4204, 2514.7627]
+		set MyCreature position to [2321.1228, 137.0072, 2529.1230]
+
+		move Guide position to [2320.5620, 138.8235, 2488.0229]
+		move MyCreature position to [2317.1633, 138.6900, 2512.7754]
+		wait until fade ready
+
+		move camera position to [2342.0544, 143.6500, 2531.7488] time 20
+		move camera focus to [271.2607, 0.0483, 379.5781] time 20
+
+		force Guide CREATURE_POINT_AT_OBJECT Distance
+		wait until Guide played
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_03
+		
+		force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH Distance
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_04
+		Guide play C_INDIVIDUAL_SAD
+		wait until Guide played
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_05
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_06
+		Guide play C_INDIVIDUAL_CONFUSED
+		wait until Guide played
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_07
+		Guide play C_INDIVIDUAL_SAD
+		wait until Guide played
+		wait until read
+
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_08
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_09
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_EXPLORE_WITH_GUIDE_10
+		wait until read
+
+	end cinema
+
+
+
+end script CreatureDevExplainsPast

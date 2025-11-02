@@ -1,0 +1,17 @@
+challenge RunExplainsHistory
+
+run script RunExplainsHistory
+
+begin script RunExplainsHistory
+	
+start
+	
+	IntroFlybyFinished = 1
+	run script SetupLand4
+	run background script Land4Ogre	
+	run background script Land4Nomad
+	run background script Land4Puzzle
+	run script ManExplainsAboutNemesis
+	
+
+end script RunExplainsHistory

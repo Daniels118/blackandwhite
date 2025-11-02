@@ -1,0 +1,458 @@
+challenge BAYWATCH
+
+global BaywatchHomeCounter
+global BaywatchSwimmingCounter
+global BaywatchMurder
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script BaywatchSwimmingLaugh(SwimPos)
+	Amount=0
+
+start
+	while BaywatchSwimmingCounter >= 1
+		Amount = 250/(BaywatchSwimmingCounter)
+		if number from 0 to Amount == 0
+			start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SwimPos]
+		end if
+	end while
+end script BaywatchSwimmingLaugh
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script BaywatchSwimmingBoy(Boy, VillagerHutPos)
+
+	Murdered = 0
+	InWater = 1
+	LookAt = marker at [2962.9587, 0.0000, 3079.3020]
+	Random = 0
+
+start
+
+	AGE of Boy = 11
+	Random = number from 1 to 4
+	wait Random seconds
+	Boy play ANM_P_SWIM2 loop -1
+	set Boy focus to [LookAt]
+
+	while [Boy] not near [VillagerHutPos] radius 5 and Murdered == 0
+
+		if Boy is HELD or Boy in MyCreature hand
+			if InWater == 1
+				BaywatchSwimmingCounter--
+			end if
+			InWater=0
+			wait until (Boy is not HELD and not Boy in MyCreature hand) and Boy is not FLYING
+
+			if HEALTH of Boy > 0 and (Boy is not HELD and not Boy in MyCreature hand)
+				if land height at [Boy] > 0	
+					Boy play ANM_P_CROWD_LOST_2 loop 1
+
+					begin dialogue
+						say single line HELP_TEXT_BAYWATCH_25
+						wait until read
+					end dialogue
+
+					wait until Boy played
+					SPEED of Boy = 0.5
+
+					move Boy position to [VillagerHutPos]
+					
+				elsif land height at [Boy] <= 0
+					set Boy position to [Boy]
+					Boy play ANM_P_SWIM2 loop -1
+					BaywatchSwimmingCounter++
+					InWater=1
+				end if
+			end if
+		end if
+
+		if HEALTH of Boy <= 0
+			if BaywatchMurder == 0
+				begin dialogue
+					eject evil spirit
+					say HELP_TEXT_BAYWATCH_31
+					wait until read
+
+					eject good spirit
+					say HELP_TEXT_BAYWATCH_32
+					wait until read
+
+				end dialogue
+			end if
+
+			BaywatchMurder ++
+			Murdered = 1
+			if InWater == 1
+				BaywatchSwimmingCounter--
+			end if
+		end if
+
+	end while
+
+	if Murdered == 0
+		BaywatchHomeCounter ++
+	end if
+
+end script BaywatchSwimmingBoy
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script BaywatchMain
+
+	VillagerHutPos = marker at [2781.1104, 50.9200, 3053.4900]
+	SwimPos = marker at [2964.223, 0.000, 3084.874]
+	SwimPos2 = marker at [2968.614, 0.000, 3089.957]
+	SwimPos3 = marker at [2969.778, 0.000, 3082.155]
+	SwimPos4 = marker at [2962.422, 0.000, 3078.884]  
+	SwimPos5 = marker at [2960.591, 0.000, 3084.722]
+
+
+	ShorePos = marker at [2943.603, 0.000, 3095.944]
+	Mother = 0
+	MotherDead = 0
+	Influence = 0
+	Highlight = 0
+	BaywatchReward = 0
+	BaywatchFinished = 0
+	SoapBox = marker at [2786.5073, 50.9200, 3064.3250]
+	Fun = 0
+
+	Boy1 = 0
+	Boy2 = 0
+	Boy3 = 0
+	Boy4 = 0
+	Boy5 = 0 
+
+	RewardPos = marker at [2854.7266, 50.3966, 3056.9429]
+	RewardCameraPos = marker at [2825.0017, 66.7546, 3067.1838]
+	RewardCameraFoc = marker at [2854.1843, 50.8918, 3054.0120]
+
+start
+	BaywatchSwimmingCounter=5
+
+	Influence=create anti influence at position [SwimPos] radius 30
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
+	run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
+
+	Mother = create VILLAGER VILLAGER_INFO_INDIAN_HOUSEWIFE_FEMALE at [VillagerHutPos]
+
+	BaywatchHomeCounter = 0
+
+	Boy1 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos]
+	Boy2 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos2]
+	Boy3 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos3]
+	Boy4 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos4]
+	Boy5 = create VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [SwimPos5]
+
+	run background script BaywatchSwimmingBoy(Boy1, VillagerHutPos)
+	run background script BaywatchSwimmingBoy(Boy2, VillagerHutPos)
+	run background script BaywatchSwimmingBoy(Boy3, VillagerHutPos)
+	run background script BaywatchSwimmingBoy(Boy4, VillagerHutPos)
+	run background script BaywatchSwimmingBoy(Boy5, VillagerHutPos)
+	run background script BaywatchSwimmingLaugh(SwimPos)
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_03
+		enable Mother high gfx detail
+
+		move camera position to [2790.691, 53.522, 3069.138] time 3
+		move camera focus to [2783.190, 50.229, 3058.410] time 3
+
+		SPEED of Mother = 0.5
+		move Mother position to [SoapBox]
+
+		wait until camera ready
+
+		Mother play ANM_P_LOOKING_FOR_SOMETHING loop 1
+
+		move camera position to [2787.182, 54.323, 3070.434] time 6
+		move camera focus to [2785.620, 51.201, 3059.870] time 6
+
+		say single line HELP_TEXT_BAYWATCH_22
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		// Cut to children swimming
+
+		set camera position to [2960.404, 6.550, 3114.483] 
+		set camera focus to [2958.053, 3.424, 3097.387] 
+
+		snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+		say single line HELP_TEXT_BAYWATCH_23
+		
+		move camera position to [2965.097, 2.745, 3092.632] time 6
+		move camera focus to [2962.747, -0.381, 3075.535] time 6
+		wait until read
+
+		wait until camera ready
+
+		// Cut back to Mother
+
+		set camera position to [2790.691, 53.522, 3069.138]
+		set camera focus to [2783.190, 50.229, 3058.410]
+
+		SPEED of Mother = 0.2
+
+		move camera position to [2772.9670, 69.8213, 3093.4985]	time 4
+		move camera focus to [2787.7322, 51.4469, 3067.7637] time 3
+
+		wait until camera ready
+
+		disable Mother high gfx detail
+		stop music
+	end cinema
+
+	state Mother WANDER_AROUND
+		position [SoapBox]
+		float 6
+		ulong 4, 20
+
+	wait 5 seconds
+
+	while BaywatchFinished == 0
+
+		if BaywatchHomeCounter == 5	and HEALTH of Mother > 0
+			begin cinema
+				set camera position to [2794.7925, 58.5139, 3067.1104]
+				set camera focus to [2784.4382, 51.3200, 3054.3350]
+				say single line HELP_TEXT_BAYWATCH_27
+				wait until read
+				close dialogue
+				BaywatchFinished = 1
+
+				// Reward - Big Spell Dispenser
+				run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_CREATURE_SPELL_BIG, 180, 1, 0)
+				move camera position to [RewardCameraPos] time 5
+				move camera focus to [RewardCameraFoc] time 2
+				wait until camera ready
+				snapshot challenge success 1 alignment 1 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+			end cinema 
+
+		elsif BaywatchSwimmingCounter == 0 and BaywatchMurder < 5 and BaywatchHomeCounter == 5 - BaywatchMurder and HEALTH of Mother > 0
+			begin cinema
+				set camera position to [2794.7925, 58.5139, 3067.1104]
+				set camera focus to [2784.4382, 51.3200, 3054.3350]
+				update snapshot success 1 alignment -0.2 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+				say single line HELP_TEXT_BAYWATCH_28
+				wait until read
+
+				BaywatchFinished = 3
+			end cinema
+
+		elsif BaywatchMurder == 5 and HEALTH of Mother > 0
+
+			begin cinema
+				set camera position to [2794.7925, 58.5139, 3067.1104]
+				set camera focus to [2784.4382, 51.3200, 3054.3350]
+
+				update snapshot success 1 alignment -0.6 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+				say	single line HELP_TEXT_BAYWATCH_29
+				wait until read
+
+				eject evil spirit
+				say single line HELP_TEXT_BAYWATCH_30
+				wait until read
+
+				BaywatchFinished = 2
+
+			end cinema
+
+		elsif BaywatchMurder == 5 and HEALTH of Mother <= 0
+
+			begin dialogue
+
+				eject evil spirit
+
+				//"A whole family slaughtered, nice going!"
+				say single line HELP_TEXT_BAYWATCH_33
+
+				update snapshot details success 1 alignment -1 HELP_TEXT_TITLE_01 
+
+				wait until read
+
+				BaywatchFinished = 3
+
+			end dialogue
+
+		elsif BaywatchSwimmingCounter == 0 and BaywatchMurder < 5 and BaywatchHomeCounter == 5 - BaywatchMurder and HEALTH of Mother <= 0
+
+			begin cinema
+
+				set camera position to [2794.7925, 58.5139, 3067.1104]
+				set camera focus to [2784.4382, 51.3200, 3054.3350]
+
+				update snapshot success 1 alignment -0.8 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+				eject good spirit
+
+				//"Oh how terrible.. orphans."
+				say single line HELP_TEXT_BAYWATCH_34
+				wait until read
+
+				BaywatchFinished = 4
+
+			end cinema
+		end if
+
+
+		if camera position near [SwimPos] radius 20 and SwimPos viewed and Fun == 0
+
+			begin dialogue
+
+				say single line HELP_TEXT_BAYWATCH_24
+				wait until read
+
+				Fun = 1
+
+			end dialogue
+		end if
+
+		if BaywatchSwimmingCounter == 5 and [Mother] near [SwimPos] radius 40 and Mother is not HELD and not Mother in MyCreature hand
+
+			if HEALTH of Mother > 0
+
+				begin cinema
+
+					set camera position to [2963.1555, 11.8798, 3055.2534]
+					set camera focus to [2962.0737, 0.8419, 3081.0688]
+
+					say single line HELP_TEXT_BAYWATCH_26
+					wait until read
+
+					set fade red 0 green 0 blue 0 time 2
+					wait until fade ready
+
+					set Mother position to [SoapBox]
+
+					if HEALTH of Boy1 > 0
+						set Boy1 position to [SoapBox] + [0,0,1]
+						Boy1 play ANM_P_AMBIENT1 loop -1
+					end if
+
+					if HEALTH of Boy2 > 0
+						set Boy2 position to [SoapBox] + [1,0,1]
+						Boy2 play ANM_P_AMBIENT2 loop -1
+					end if
+
+					if HEALTH of Boy3 > 0
+						set Boy3 position to [SoapBox] + [1,0,0]
+						Boy3 play ANM_P_AMBIENT1 loop -1
+					end if
+
+					if HEALTH of Boy4 > 0
+						set Boy4 position to [SoapBox] + [-1,0,1]
+						Boy4 play ANM_P_CROWD_LOST loop -1
+					end if
+
+					if HEALTH of Boy5 > 0
+						set Boy5 position to [SoapBox] + [-1,0,0]
+						Boy5 play ANM_P_CROWD_UNIMPRESSED_1 loop -1
+					end if
+
+					set camera position to [2789.8372, 54.1367, 3066.6670]
+					set camera focus to [2786.7651, 51.4744, 3064.1111]
+
+					set Mother focus to camera position
+
+					set fade in time 2
+					wait until fade ready
+
+					say single line HELP_TEXT_BAYWATCH_27
+					wait until read
+
+					close dialogue
+					wait 0.1 seconds
+
+					snapshot challenge success 1 alignment 0.8 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+					move camera position to [2803.6526, 68.4681, 3074.7102] time 4
+					move camera focus to [2784.4626, 51.4354, 3053.8333] time 4
+
+					wait until camera ready
+
+					BaywatchFinished = 1
+
+				end cinema
+
+			elsif HEALTH of Mother <= 0
+
+				begin cinema
+
+					set camera position to [2963.1555, 11.8798, 3055.2534]
+					set camera focus to [2962.0737, 0.8419, 3081.0688]
+
+					//"AAaahhh !!!!"
+					say single line HELP_TEXT_BAYWATCH_35
+					wait until read
+
+					set fade red 0 green 0 blue 0 time 2
+					wait until fade ready
+
+					set Mother position to [SoapBox]
+					Mother play ANM_P_DEAD1 loop -1
+
+					if HEALTH of Boy1 > 0
+						set Boy1 position to [SoapBox] + [0,0,1]
+						set Boy1 focus to [Mother]
+						Boy1 play ANM_P_INSPECT_OBJECT_1 loop -1
+					end if
+
+					if HEALTH of Boy2 > 0
+						set Boy2 position to [SoapBox] + [0,0,-1]
+						set Boy2 focus to [Mother]
+						Boy2 play ANM_P_INSPECT_OBJECT_2 loop -1
+					end if
+
+					if HEALTH of Boy3 > 0
+						set Boy3 position to [SoapBox] + [-1,0,-1]
+						set Boy3 focus to [Mother]
+						Boy3 play ANM_P_MOURNING loop -1
+					end if
+
+					if HEALTH of Boy4 > 0
+						set Boy4 position to [SoapBox] + [1,0,-1]
+						set Boy4 focus to [Mother]
+						Boy4 play ANM_P_OVERWORKED1 loop -1
+					end if
+
+					if HEALTH of Boy5 > 0
+						set Boy5 position to [SoapBox] + [1,0,1]
+						set Boy5 focus to [Mother]
+						Boy5 play ANM_P_SCARED_STIFF loop -1
+					end if
+
+					set camera position to [2789.8372, 54.1367, 3066.6670]
+					set camera focus to [2786.7651, 51.4744, 3064.1111]
+
+					set fade in time 2
+					wait until fade ready
+
+					close dialogue
+					wait 0.1 seconds
+
+					snapshot challenge success 1 alignment -0.5 HELP_TEXT_TITLE_01 StandardReminder(variable HELP_TEXT_BAYWATCH_36)
+
+					move camera position to [2803.6526, 68.4681, 3074.7102]	time 4
+					move camera focus to [2784.4626, 51.4354, 3053.8333] time 4
+
+					wait until camera ready
+
+					BaywatchFinished = 4
+
+				end cinema
+			end if
+
+		end if
+
+	end while
+
+	stop script "BaywatchSwimmingBoy"
+	stop script "BaywatchSwimmingLaugh"
+
+
+end script BaywatchMain
+

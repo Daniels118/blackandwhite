@@ -1,0 +1,12 @@
+challenge RunThesiusPuzzleLand4
+
+run script RunThesiusPuzzleLand4
+
+begin script RunThesiusPuzzleLand4
+	
+start
+	
+	run script ThesiusPuzzleLand4
+	
+
+end script RunThesiusPuzzleLand4

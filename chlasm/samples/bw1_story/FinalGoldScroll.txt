@@ -1,0 +1,219 @@
+challenge END_LAND_2
+
+//------------------------------------------------------------------------------------------------------------------------
+global LethysTownTotal=3
+global TownOnLeftRequired=1
+global TownOnRightRequired=1
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script UpdateLethysTownTotal
+	NearTown=get town with id 4
+	LeftTown=get town with id 3
+	RightTown=get town with id 5
+start
+	LethysTownTotal=0
+	if PLAYER of LeftTown == 3
+		LethysTownTotal++
+		TownOnLeftRequired=1
+	else
+		TownOnLeftRequired=0
+	end if
+	
+	if PLAYER of RightTown == 3
+		LethysTownTotal++
+		TownOnRightRequired=1
+	else
+		TownOnRightRequired=0
+	end if
+
+	if PLAYER of NearTown == 3
+		LethysTownTotal++
+	end if
+
+end script UpdateLethysTownTotal
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script Land2FinalScrollCinema
+	MyText1=0
+	MyText2=0
+	BeginPos = 0
+	BeginFoc = 0
+start
+	begin cinema
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		
+		move camera position to [2605.269, 40.503, 3068.436] time 3
+		move camera focus to [2442.283, 0.323, 3073.737] time 3
+
+		eject evil spirit
+
+		if LethysTownTotal > 0
+			//EA We gotta destroy his temple
+			say single line HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_02
+			wait until read
+			send evil spirit home
+
+			move camera position to [1907.666, 121.670, 2963.764] time 5
+			move camera focus to [1697.455, 62.973, 3046.686] time 5
+
+		   	//Do fly over the first town irrespective of ownership
+			wait 2 seconds
+			eject good spirit
+			//GE We need to take over some towns
+			say single line HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_06
+			wait until read
+			send good spirit home
+			close dialogue
+			wait 0.5 seconds
+			snapshot quest success ((3-LethysTownTotal)/3) alignment 0 HELP_TEXT_RANDOM_ADVISOR_13 Land2FinalScrollCinema
+
+			if TownOnLeftRequired == 1
+				//Fly over to town on the left
+				
+				move camera position to [1375.070, 104.931, 2989.612] time 5
+				move camera focus to [1283.747, 73.290, 3062.586] time 5
+				wait 3 seconds				
+				//Random advisor line
+				MyText1=variable constant from HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_01 to HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_05
+				
+				if good spirit speaks constant MyText1
+					eject good spirit
+				else
+					eject evil spirit
+				end if
+				
+				say single line constant MyText1 with interaction
+				wait until read
+				close dialogue
+				send evil spirit home
+				send good spirit home
+			end if
+
+			if TownOnRightRequired == 1
+				//Fly over town on the right
+				move camera position to [1382.490, 126.663, 3299.700] time 5
+				move camera focus to [1293.160, 106.011, 3400.527] time 5
+
+				wait 3 seconds
+				MyText2=variable constant from HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_01 to HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_05
+				
+				while MyText2 == MyText1
+					MyText2=variable constant from HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_01 to HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_05
+				end while
+								
+				MyText1=MyText2
+				if good spirit speaks constant MyText1
+					eject good spirit
+				else
+					eject evil spirit
+				end if
+
+				say single line constant MyText1 with interaction
+				wait until read
+				send good spirit home
+			end if
+
+			if good spirit speaks constant MyText1
+				//EA = I want this town NOW!!!
+				eject evil spirit
+				say single line HELP_TEXT_TAKE_OVER_TOWN_RANDOM_ADVISOR_07
+				wait until read
+				send evil spirit home
+			end if
+
+			close dialogue
+
+		else
+			//Fly to the citadel.
+
+			move camera position to [1048.100, 150.832, 3622.894] time 5
+			move camera focus to [1024.012, 160.436, 3652.690] time 5
+			
+			wait 2 seconds
+
+			//EA We gotta destroy his temple
+			say single line HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_02
+			wait until read
+
+		end if
+
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+
+	set camera position to [BeginPos] 
+	set camera focus to [BeginFoc] 
+
+	end cinema
+
+	set fade in time 1
+	wait until fade ready
+
+
+end script Land2FinalScrollCinema
+
+//------------------------------------------------------------------------------------------------------------------------
+// Gold scroll notifier until Land 2 is over.
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script ChallengeHighlightNotifyL2FinalScroll(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked or Location clicked or DoneExitLethysVortex != 0
+	end loop
+	enable Highlight active
+end script ChallengeHighlightNotifyL2FinalScroll
+
+//------------------------------------------------------------------------------------------------------------------------
+// Script which creates the final gold scroll on land 2
+//------------------------------------------------------------------------------------------------------------------------
+begin script Land2FinalScroll
+	HighlightPos=marker at [2571.770, 20.419, 3068.290]
+	Highlight=0
+start
+	if DoneExitLethysVortex == 0
+		Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+
+		run script ChallengeHighlightNotifyL2FinalScroll(Highlight, Highlight, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_14)
+
+		run script UpdateLethysTownTotal
+
+		if DoneExitLethysVortex == 0
+			run script Land2FinalScrollCinema
+
+//			snapshot quest success ((3-LethysTownTotal)/3) alignment 0 HELP_TEXT_RANDOM_ADVISOR_13 Land2FinalScrollCinema
+
+			begin loop
+				wait 5 seconds
+
+				//Calculate the success of the player...
+				run script UpdateLethysTownTotal
+				update snapshot success ((3-LethysTownTotal)/3) alignment 0 HELP_TEXT_RANDOM_ADVISOR_13 Land2FinalScrollCinema
+
+			until DoneExitLethysVortex != 0
+			end loop
+		end if
+	end if
+end script Land2FinalScroll
+

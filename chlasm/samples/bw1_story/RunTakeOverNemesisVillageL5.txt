@@ -1,0 +1,12 @@
+challenge RunTakeOverNemesisVillageL5
+
+run script RunTakeOverNemesisVillageL5
+
+begin script RunTakeOverNemesisVillageL5
+	
+start
+	
+	run script TakeOverNemesisVillageL5
+	
+
+end script RunTakeOverNemesisVillageL5

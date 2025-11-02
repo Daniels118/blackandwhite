@@ -1,0 +1,12 @@
+challenge RunBeginLand2
+
+run script RunBeginLand2
+
+begin script RunBeginLand2
+	
+start
+	
+	run script EnterLand2
+	
+
+end script RunBeginLand2

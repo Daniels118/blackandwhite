@@ -1,0 +1,52 @@
+//challenge LAND_4_METEORITES
+
+global LighteningMeteorBroken
+global DarknessMeteorBroken
+global FireMeteorBroken
+global WomanNotNearMiserableBastard
+
+global HomeTownL4
+global JapaneseTown
+global AztecTownL4
+global Gates
+
+global OgreHighlight
+global IntroFlybyFinished
+global CreedL4
+global FightPosition
+
+global FireMeteorWaveActive
+global L4HomeTownCentre
+global L4HomeWorship
+global L4Citadel
+global L4CitadelPos
+global ManHasExplainedAboutNemesis
+global WorkshopL4
+global OgreDefeated
+global CreatureVenturedTooFar
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SetupLand4
+	
+
+start
+	LandNumber=4
+	Gates = get FEATURE at [2164.2515, 31.4900, 2889.9802]
+	open Gates
+
+	HomeTownL4 = get TOWN at [2245.58,2662.99] radius 150
+	JapaneseTown = get TOWN at [2590.363, 2.680, 3196.893] radius 50
+	AztecTownL4 = get TOWN at [3385.63,3100.74] radius 50
+
+	FightPosition = marker at [1537.990, 36.753, 2666.526] 
+	L4CitadelPos = marker at [2292.83,2576.86]
+
+	set HomeTownL4 desire boost TOWN_DESIRE_INFO_FOR_SLEEP -0.5
+	set HomeTownL4 desire boost TOWN_DESIRE_INFO_FOR_FOOD -0.2
+	
+end script SetupLand4
+
+
+
+

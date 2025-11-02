@@ -1,0 +1,12 @@
+challenge RunSwapToLeopard
+
+run script RunSwapToLeopard
+
+begin script RunSwapToLeopard
+	
+start
+	
+	run script SwapToLeopard
+	
+
+end script RunSwapToLeopard

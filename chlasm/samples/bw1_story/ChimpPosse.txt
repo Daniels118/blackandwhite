@@ -1,0 +1,490 @@
+challenge CHIMP_POSSE
+
+global NemesisRevenge
+global NemesisToy
+global ChimpsActive
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script ChimpsLookingAtToy (Chimp1, Chimp2, Chimp3, NemesisToyStartPos, ChimpHomePos)
+AnmNum1 = 0
+AnmNum2 = 0
+AnmNum3 = 0
+
+start
+	while [NemesisToy] near [NemesisToyStartPos] radius 10
+		/// make all 3 chimps stare forever at the toy
+		
+		
+		
+		if Chimp1 played
+			if AnmNum1 == 0
+				set Chimp1 focus to [NemesisToyStartPos]
+				force Chimp1 CREATURE_POINT_AT_OBJECT NemesisToy
+				AnmNum1 = 1
+			else
+				set Chimp1 focus to [NemesisToyStartPos]
+				force Chimp1 CREATURE_LOOK_CONFUSED Chimp1
+				AnmNum1 = 0
+			end if
+		end if
+
+		if Chimp2 played
+			if AnmNum2 == 0
+				set Chimp2 focus to [NemesisToyStartPos]
+				Chimp2 play C_INDIVIDUAL_SAD
+				AnmNum2 = 1
+			else
+				set Chimp2 focus to [NemesisToyStartPos]
+				Chimp2 play C_INDIVIDUAL_EMBARRASSED
+				AnmNum2 = 0
+			end if
+		end if
+
+		if Chimp3 played
+			if AnmNum3 == 0
+				set Chimp3 focus to [NemesisToyStartPos]
+				Chimp3 play C_INDIVIDUAL_ANGRY
+				AnmNum3 = 1
+			else
+				set Chimp3 focus to [NemesisToyStartPos]
+				force Chimp3 CREATURE_LOOK_CONFUSED Chimp3
+				AnmNum3 = 0
+			end if
+		end if
+
+	end while
+
+	release Chimp1
+	release Chimp2
+	release Chimp3
+
+	// the rest of this script merely maintains their energy levels to ensure spellcasting
+	while ChimpsActive == 0
+		ENERGY of Chimp1 = 1
+		ENERGY of Chimp2 = 1
+		ENERGY of Chimp3 = 1
+		wait 1 second
+	end while
+
+
+end script ChimpsLookingAtToy
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script NemesisToyRevenge (NemesisCreature, ChimpHomePos)
+
+ Revenge = 0
+ NemesisToyHeld = 0
+ JustOutsideNemesisCitadel = marker at [3927.1436, 55.6100, 2301.2805]
+
+start
+
+	while Revenge == 0
+		while NemesisToyHeld == 0
+			force NemesisCreature CREATURE_HOLD_OBJECT NemesisToy
+			wait 10 seconds
+			if NemesisToy in NemesisCreature hand
+				NemesisToyHeld = 1
+			end if
+
+			if [NemesisCreature] near [ChimpHomePos] radius 200
+				begin dialogue
+					eject good spirit
+					make good spirit point at [NemesisCreature]
+					// "I don't think the toy belongs to the chimps."
+					say HELP_TEXT_CHIMP_POSSE_11
+					wait until read
+					// "Nemesis' Creature looks mighty pissed."
+					say HELP_TEXT_CHIMP_POSSE_12
+					wait until read
+					stop good spirit pointing
+				end dialogue
+			end if
+		end while
+
+		move NemesisCreature position to [JustOutsideNemesisCitadel]
+		while [NemesisCreature] not near [JustOutsideNemesisCitadel] radius 5
+			move NemesisCreature position to [JustOutsideNemesisCitadel]
+			wait 20 seconds
+		end while
+
+		if NemesisToy in NemesisCreature hand
+			wait 2 seconds
+			set NemesisCreature focus to [JustOutsideNemesisCitadel]+[5,0]
+			force NemesisCreature CREATURE_PUT_DOWN NemesisToy
+		end if
+	end while
+
+	release NemesisCreature
+	NemesisRevenge = 3
+
+end script NemesisToyRevenge
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script ChimpPosse
+
+ ChimpHomePos = marker at [2674.3179, 77.7200, 2379.8760]
+ EdgePos1 = marker at [2710.6799, 38.8600, 2415.7969]
+ EdgePos2 = marker at [2694.8965, 36.5386, 2425.1501]
+ EdgePos3 = marker at [2682.7119, 40.1634, 2427.8167]
+ Chimp1 = create CREATURE CREATURE_TYPE_CHIMP at [EdgePos1]
+ Chimp2 = create CREATURE CREATURE_TYPE_CHIMP at [EdgePos2]
+ Chimp3 = create CREATURE CREATURE_TYPE_CHIMP at [EdgePos3]
+
+ NemesisToyStartPos = marker at [2754.1167, 2.6800, 2579.6909]
+ //NemesisToy = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_BALL at [NemesisToyStartPos]
+ ChimpDice = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_DIE at [ChimpHomePos]+[-5,5]
+ ChimpTeddy = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [ChimpHomePos]+[5,-5]
+
+ NemesisCreature = get player 2 creature
+ ChimpsFriendly = 0
+ Comment1 = 0
+ Comment2 = 0
+ NemesisRevengeTimer = create timer for 0 seconds
+ NearToy = marker at [2809.8010, 2.7271, 2638.8621]
+ BigFightArenaPos = marker at [3067.7754, 4.2137, 2650.6882]
+ BeginPos = 0
+ BeginFoc = 0
+ ToyDropped = 0
+ NemesisToyFirstReturned = 0
+ Toy1Missing = 1
+ Toy2Missing = 0
+ Toy3Missing = 0
+		 
+start
+ NemesisToy = marker at [NemesisToyStartPos]
+ SCALE of Chimp1 = 0.5
+ SCALE of Chimp2 = 0.5
+ SCALE of Chimp3 = 0.5
+ 
+
+ set Chimp1 all desire TRUE 
+ set Chimp2 all desire TRUE 
+ set Chimp3 all desire TRUE 
+
+ set Chimp1 DEVELOPMENT_PHASE_FULLY_MATURE development
+ teach Chimp1 MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+ teach Chimp1 MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+ set Chimp2 DEVELOPMENT_PHASE_FULLY_MATURE development
+ teach Chimp2 MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+ teach Chimp2 MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+ set Chimp3 DEVELOPMENT_PHASE_FULLY_MATURE development
+ teach Chimp3 MAGICAL MAGIC_TYPE_FIREBALL SCRIPT_TRUE
+ teach Chimp3 MAGICAL MAGIC_TYPE_LIGHTNING_BOLT SCRIPT_TRUE
+
+ enable Chimp1 friends with Chimp2
+ enable Chimp1 friends with Chimp3
+ enable Chimp2 friends with Chimp1
+ enable Chimp2 friends with Chimp3
+ enable Chimp3 friends with Chimp1
+ enable Chimp3 friends with Chimp2
+
+ set Chimp1 only desire CREATURE_DESIRE_ANGER
+ set Chimp2 only desire CREATURE_DESIRE_ANGER
+ set Chimp3 only desire CREATURE_DESIRE_ANGER
+
+ set Chimp1 desire CREATURE_DESIRE_TO_PLAY to 1.0
+ set Chimp2 desire CREATURE_DESIRE_TO_PLAY to 1.0
+ set Chimp3 desire CREATURE_DESIRE_TO_PLAY to 1.0
+
+ set Chimp1 desire CREATURE_DESIRE_TO_BE_FRIENDS to 1.0
+ set Chimp2 desire CREATURE_DESIRE_TO_BE_FRIENDS to 1.0
+ set Chimp3 desire CREATURE_DESIRE_TO_BE_FRIENDS to 1.0
+
+ enable Chimp1 confined to [ChimpHomePos] radius 75
+ enable Chimp2 confined to [ChimpHomePos] radius 75
+ enable Chimp3 confined to [ChimpHomePos] radius 75
+
+ release Chimp1
+ release Chimp2
+ release Chimp3
+
+ run background script ChimpsLookingAtToy (Chimp1, Chimp2, Chimp3, NemesisToyStartPos, ChimpHomePos)
+
+ wait until camera position near [ChimpHomePos] radius 100 and [ChimpHomePos] viewed
+
+ begin cinema
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+	move camera position to [Chimp2]+[-20,20,-20] time 3
+	move camera focus to [Chimp2] time 3
+	wait until camera ready
+	NemesisToy = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_BALL at [NemesisToyStartPos]
+	eject good spirit
+	make good spirit point at [Chimp2]
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_104 StandardReminder(variable HELP_TEXT_REMINDER_50)
+	// "Oooh look at that. A group of chimps. Aaah sweet."
+	say HELP_TEXT_CHIMP_POSSE_01
+	wait until read
+	stop good spirit pointing
+	wait 2 seconds
+	move camera position to [NemesisToyStartPos]+[-15,15,-15] time 4
+	move camera focus to [NemesisToy] time 3
+	eject evil spirit
+	make evil spirit point at [NemesisToy]
+	// "Ahh diddums. They seem to have lost their ball in the neighbours garden."
+	say HELP_TEXT_CHIMP_POSSE_02
+	wait until read
+	stop evil spirit pointing
+	wait until camera ready
+	set NemesisCreature position to [NearToy]
+	wait 0.2 seconds
+	force NemesisCreature CREATURE_HOLD_OBJECT NemesisToy
+	move camera focus follow NemesisCreature
+	move camera position to [NemesisToyStartPos]+[-15,60,-15] time 12
+	wait until NemesisToy in NemesisCreature hand
+	move NemesisCreature position to [BigFightArenaPos]
+	// "Uh Oh. Getting the ball back for the chimps has just got harder."
+	say HELP_TEXT_CHIMP_POSSE_13
+	wait 4 seconds
+	wait until read
+	move camera position to [BeginPos] time 4
+	move camera focus to [BeginFoc] time 3
+	wait until camera ready
+ end cinema
+
+ while ChimpsActive == 0
+
+	if NemesisToy not exists
+		NemesisToy = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_BALL at [ChimpHomePos]
+	end if
+
+	if ChimpDice not exists
+		ChimpDice = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_DIE at [ChimpHomePos]+[-5,5]
+	end if
+
+	if ChimpTeddy not exists
+		ChimpTeddy = create with angle 0 and scale 0.5 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [ChimpHomePos]+[5,-5]
+	end if
+
+	if [NemesisCreature] near [BigFightArenaPos] radius 20 and ToyDropped == 0
+		force NemesisCreature CREATURE_PUT_DOWN NemesisToy
+		ToyDropped = 1
+		while NemesisToy in NemesisCreature hand
+		end while
+		release NemesisCreature
+	end if
+
+	if [MyCreature] near [ChimpHomePos] radius 50 and ChimpsFriendly == 0 and Comment1 == 0 and NemesisToy not in MyCreature hand
+		begin dialogue
+			eject evil spirit
+			make evil spirit point at [MyCreature]
+			// "Woah. The Chimps aren't very friendly."
+			say HELP_TEXT_CHIMP_POSSE_03
+			wait until read
+			stop evil spirit pointing
+		end dialogue
+		Comment1 = 1
+	end if
+
+
+// NEMESIS TOY CHECKS
+	if [NemesisToy] near [ChimpHomePos] radius 50 and Toy1Missing == 1 and NemesisToy is not HELD and NemesisToy not in NemesisCreature hand
+		Toy1Missing = 0
+		if NemesisToyFirstReturned == 0
+			update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_104 StandardReminder(variable HELP_TEXT_REMINDER_56)
+			NemesisToyFirstReturned = 1
+		end if
+
+		if Toy2Missing == 0 and Toy3Missing == 0
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_CHIMP_POSSE_05
+				wait until read
+				say HELP_TEXT_CHIMP_POSSE_06
+				wait until read
+			end dialogue
+		else
+			begin dialogue
+				eject good spirit
+				// "The chimps will only be happy with you if ALL of the toys are returned."
+				say HELP_TEXT_CHIMP_POSSE_14
+				wait until read
+			end dialogue
+		end if
+	end if
+
+	if Toy1Missing == 0 and [NemesisToy] not near [ChimpHomePos] radius 100
+		Toy1Missing = 1
+		if NemesisToy in MyCreature hand or NemesisToy is HELD
+			begin dialogue
+				eject good spirit
+				// "The chimps are not happy with you."
+				say HELP_TEXT_CHIMP_POSSE_07
+				wait until read
+				// "They want the toy back."
+				say HELP_TEXT_CHIMP_POSSE_08
+				wait until read
+			end dialogue
+
+		elsif NemesisToy in NemesisCreature hand
+			begin dialogue
+				eject good spirit
+				make good spirit point at [NemesisCreature]
+				// "Oh dear. Nemesis' Creature has taken back his toy from the chimps."
+				say HELP_TEXT_CHIMP_POSSE_09
+				wait until read
+				// "They're not happy about it either"
+				say HELP_TEXT_CHIMP_POSSE_10
+				stop good spirit pointing
+			end dialogue
+		end if
+	end if
+
+// TOY 2 CHECKS
+	if [ChimpDice] near [ChimpHomePos] radius 50 and Toy2Missing == 1 and ChimpDice is not HELD and ChimpDice not in NemesisCreature hand
+		Toy2Missing = 0
+
+		if Toy1Missing == 0 and Toy3Missing == 0
+			update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_104 StandardReminder(variable HELP_TEXT_REMINDER_56)
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_CHIMP_POSSE_05
+				wait until read
+				say HELP_TEXT_CHIMP_POSSE_06
+				wait until read
+			end dialogue
+		else
+			begin dialogue
+				eject good spirit
+				// "The chimps will only be happy with you if ALL of the toys are returned."
+				say HELP_TEXT_CHIMP_POSSE_14
+				wait until read
+			end dialogue
+		end if
+	end if
+
+	if Toy2Missing == 0 and [ChimpDice] not near [ChimpHomePos] radius 100
+		Toy2Missing = 1
+		if ChimpDice in MyCreature hand or ChimpDice is HELD
+			begin dialogue
+				eject good spirit
+				// "The chimps are not happy with you."
+				say HELP_TEXT_CHIMP_POSSE_07
+				wait until read
+				// "They want the toy back."
+				say HELP_TEXT_CHIMP_POSSE_08
+				wait until read
+			end dialogue
+
+		elsif ChimpDice in NemesisCreature hand
+			begin dialogue
+				eject good spirit
+				make good spirit point at [NemesisCreature]
+				// "Oh dear. Nemesis' Creature has taken back his toy from the chimps."
+				say HELP_TEXT_CHIMP_POSSE_09
+				wait until read
+				// "They're not happy about it either"
+				say HELP_TEXT_CHIMP_POSSE_10
+				stop good spirit pointing
+			end dialogue
+		end if
+	end if
+
+// TOY 3 CHECKS
+	if [ChimpTeddy] near [ChimpHomePos] radius 50 and Toy3Missing == 1 and ChimpTeddy is not HELD and ChimpTeddy not in NemesisCreature hand
+		Toy3Missing = 0
+
+		if Toy1Missing == 0 and Toy2Missing == 0
+			update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_104 StandardReminder(variable HELP_TEXT_REMINDER_56)
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_CHIMP_POSSE_05
+				wait until read
+				say HELP_TEXT_CHIMP_POSSE_06
+				wait until read
+			end dialogue
+		else
+			begin dialogue
+				eject good spirit
+				// "The chimps will only be happy with you if ALL of the toys are returned."
+				say HELP_TEXT_CHIMP_POSSE_14
+				wait until read
+			end dialogue
+		end if
+	end if
+
+	if Toy3Missing == 0 and [ChimpTeddy] not near [ChimpHomePos] radius 100
+		Toy3Missing = 1
+		if ChimpTeddy in MyCreature hand or ChimpTeddy is HELD
+			begin dialogue
+				eject good spirit
+				// "The chimps are not happy with you."
+				say HELP_TEXT_CHIMP_POSSE_07
+				wait until read
+				// "They want the toy back."
+				say HELP_TEXT_CHIMP_POSSE_08
+				wait until read
+			end dialogue
+
+
+		elsif ChimpTeddy in NemesisCreature hand
+			begin dialogue
+				eject good spirit
+				make good spirit point at [NemesisCreature]
+				// "Oh dear. Nemesis' Creature has taken back his toy from the chimps."
+				say HELP_TEXT_CHIMP_POSSE_09
+				wait until read
+				// "They're not happy about it either"
+				say HELP_TEXT_CHIMP_POSSE_10
+				stop good spirit pointing
+			end dialogue
+		end if
+	end if
+
+// FRIEND OR FOE
+	if Toy1Missing == 0 and Toy2Missing == 0 and Toy3Missing == 0 and ChimpsFriendly == 0
+		ChimpsFriendly = 1
+		enable Chimp1 friends with MyCreature
+		enable Chimp2 friends with MyCreature
+		enable Chimp3 friends with MyCreature
+		enable MyCreature friends with Chimp1
+		enable MyCreature friends with Chimp2
+		enable MyCreature friends with Chimp3
+		release Chimp1
+		release Chimp2
+		release Chimp3
+		release MyCreature
+
+
+	elsif (Toy1Missing == 1 or Toy2Missing == 1 or Toy3Missing == 1) and ChimpsFriendly == 1
+		ChimpsFriendly = 0
+		disable Chimp1 friends with MyCreature
+		disable Chimp2 friends with MyCreature
+		disable Chimp3 friends with MyCreature
+		disable MyCreature friends with Chimp1
+		disable MyCreature friends with Chimp2
+		disable MyCreature friends with Chimp3
+		release Chimp1
+		release Chimp2
+		release Chimp3
+		release MyCreature
+	end if
+
+// NEMESIS REVENGE STUFF
+
+	if ChimpsFriendly == 1 and NemesisRevenge == 0
+		NemesisRevenge = 1
+		set NemesisRevengeTimer time to 120 seconds
+	end if
+
+	if NemesisRevenge == 1 and get NemesisRevengeTimer time remaining <= 0
+		run background script NemesisToyRevenge (NemesisCreature, ChimpHomePos)
+		NemesisRevenge = 2
+	end if
+
+	if NemesisRevenge == 3 and ChimpsFriendly == 1
+		ChimpsActive = 1
+	end if
+
+ end while
+
+	update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_104 StandardReminder(variable HELP_TEXT_REMINDER_50)
+ 
+end script ChimpPosse
+

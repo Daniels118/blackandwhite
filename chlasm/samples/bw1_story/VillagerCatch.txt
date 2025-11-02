@@ -1,0 +1,230 @@
+challenge VILLAGER_CATCH
+
+begin script VillagerCatch
+	
+	VillagersEjected = 0
+
+	Person = 0
+	
+	VillagerCatchFinished = 0
+
+	EjectPoint = marker at [3245.0,0.0,3325.0]
+	HeadingPoint = marker at [3219.3640, 17.3755, 3374.0774]
+
+	CatchPos = marker at [3212.3420, 27.5583, 3429.1504]
+	CatchFoc = marker at [3214.4617, 2.5737, 2843.2461]
+	Random = 0
+	Counted = 0
+
+	//PlayerCamera = marker at camera position 
+
+	//OldCamPosition = marker at camera position
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HeadingPoint]
+
+	NemesisTownPos = marker at [3216.7185, 14.1380, 3331.0522]
+	//NemesisTown = get TOWN at [NemesisTownPos] radius 100
+	GetReady = 0
+	ObjectInHand = 0
+
+
+start
+	VillagerScore = 0
+
+	while GetReady == 0
+		wait 1 second
+		ObjectInHand = get object held
+		if camera position near [NemesisTownPos] radius 100 and [NemesisTownPos] viewed and ObjectInHand not exists
+			GetReady = 1
+		end if
+	end while
+
+	//run script ChallengeHighlightNotify(Highlight, HeadingPoint, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_09)
+	VillagerCatchCompleted = 1	// Ken added this in. It's the global that the control script uses
+
+	// TODO, zoom to the town
+
+	begin cinema 
+
+
+		say HELP_TEXT_VILLAGER_CATCH_01	// You want the souls in this town? Catch!
+		wait until read
+
+		eject good spirit
+
+		say HELP_TEXT_VILLAGER_CATCH_02	// Quick! Save them!
+		wait until read
+
+		send good spirit home
+
+
+	end cinema
+
+while VillagersEjected != 10
+
+	if VillagersEjected != 0
+		Random = number from 1 to 8 
+		wait until Random seconds
+	end if
+
+	Person = create VILLAGER MALE at [EjectPoint]
+	
+
+	set Person velocity heading [HeadingPoint] + [number from -10 to 10,200, number from -10 to 10] speed number from 100 to 150 //15 to 35
+	VillagersEjected ++
+	
+	
+	//OldCamPosition = marker at camera position
+
+	begin cinema
+
+		//set camera follow Person distance 60
+		//wait until 3 seconds
+
+		set camera position to [CatchPos]
+		set camera focus follow Person
+		// "Heeeeeeeeeeeeeeeeelp!"  // need several choices and randomly pick one
+		start say sound constant from HELP_TEXT_VILLAGER_CATCH_17 to HELP_TEXT_VILLAGER_CATCH_21
+		wait until 3 seconds
+
+	//	set camera focus to [CatchFoc]
+
+	end cinema
+
+	while Person is FLYING
+
+
+	end while
+
+	if Person is HELD 
+
+		wait until Person is not HELD
+
+		wait 1 seconds
+
+		begin cinema
+			if Person is FLYING
+				set camera follow Person distance 20
+				wait until Person is not FLYING
+			end if
+		end cinema
+
+		if HEALTH of Person > 0.0
+			// "Thanks you!" // need several choices and randomly pick one
+			start say sound constant from HELP_TEXT_VILLAGER_CATCH_22 to HELP_TEXT_VILLAGER_CATCH_26
+			wait until read
+			VillagerScore++
+		else
+			// "argh Damn you!" // need several choices and randomly pick one
+			start say sound constant from HELP_TEXT_VILLAGER_CATCH_27 to HELP_TEXT_VILLAGER_CATCH_31
+			wait until read
+		end if
+		
+		Person = 0
+			
+	end if
+
+		
+
+end while
+
+/*	
+	begin dialogue
+		"Game completed"
+		wait until read
+	end dialogue
+*/
+
+
+if VillagerScore >= 1 and VillagerScore < 5
+
+	begin dialogue
+
+		eject good spirit
+		eject evil spirit
+
+		say HELP_TEXT_VILLAGER_CATCH_03	// You'll have to be faster than that.
+		wait until read
+		say HELP_TEXT_VILLAGER_CATCH_04	// Oh this is terrible.
+		wait until read
+
+		// "NEMESIS COMMENT REQUIRED ALSO"
+		say HELP_TEXT_VILLAGER_CATCH_32
+		wait until read
+
+		send evil spirit home
+		send good spirit home
+
+	end dialogue
+
+end if
+
+if VillagerScore >= 5 and VillagerScore < 10
+
+	begin dialogue
+
+		eject good spirit
+		eject evil spirit
+
+		say HELP_TEXT_VILLAGER_CATCH_05	// Impressive stuff.
+		wait until read
+		say HELP_TEXT_VILLAGER_CATCH_06	// All those saved people. Lovely.
+		wait until read
+
+		// "NEMESIS COMMENT REQUIRED ALSO"
+		say HELP_TEXT_VILLAGER_CATCH_33
+		wait until read
+
+		send evil spirit home
+		send good spirit home
+
+	end dialogue
+
+end if
+
+if VillagerScore == 0
+
+	begin dialogue
+
+		eject good spirit
+
+		say HELP_TEXT_VILLAGER_CATCH_07	// Tragic. You haven't caught a single person.
+		wait until read
+
+		// "NEMESIS COMMENT REQUIRED ALSO"
+		say HELP_TEXT_VILLAGER_CATCH_34
+		wait until read
+
+		send good spirit home
+
+	end dialogue
+
+end if
+
+if VillagerScore == 10
+
+	begin dialogue
+
+		eject evil spirit
+
+		say HELP_TEXT_VILLAGER_CATCH_08	// OK. So you're a hotshot at catching. Whatever.
+		wait until read
+
+		// "NEMESIS COMMENT REQUIRED ALSO"
+		say HELP_TEXT_VILLAGER_CATCH_35
+		wait until read
+
+		send evil spirit home
+
+	end dialogue
+
+end if
+
+
+VillagerCatchCompleted = 2 // Ken again.
+
+end script VillagerCatch
+
+
+
+

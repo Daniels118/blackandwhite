@@ -1,0 +1,7 @@
+run script RunLethysAI
+
+begin script RunLethysAI
+	
+start
+	run script LethysTauntAI
+end script RunLethysAI

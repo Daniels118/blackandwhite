@@ -1,0 +1,148 @@
+//------------------------------------------------------------------------------------------------------------------------
+//Quick Parse File Type for Menu Generation.
+//Only // Comments supported at the start of the line.
+//Single words without a no of dependancies create a submenu
+//Words with a dependancy count with a following list files to compile - create a script compile and 
+//run command list, 
+//compiling the file on the left of the dependancies after the list of dependancies on the right.
+//If the value is -1 then the dependancies are parsed from a list of files to parse.
+//You just need to make it non zero for dependancies, -1 for dependancy file to parse, 0 for no dependancy or no number for a submenu
+//GlobalChallenges.txt is parsed and compiled by default with all scripts.																																											  
+//------------------------------------------------------------------------------------------------------------------------
+
+Control
+RunLandControl1 -1				Land1Challenges Land2Challenges Land3Challenges Land4Challenges Land5Challenges XmenuExtraChallenges
+RunLandControl2 -1				Land2Challenges Land3Challenges Land4Challenges Land5Challenges
+RunLandControl3 -1				Land3Challenges Land4Challenges Land5Challenges
+RunLandControl4 -1				Land4Challenges Land5Challenges
+RunLandControl5 -1				Land5Challenges
+RunLandControlT -1				LandTChallenges
+								
+LandOne							
+RunPiedPiper 5					SetupLand1 PiedPiper
+RunFollowUs 6					SetupLand1 ProtectGateKeys FollowUs
+RunSingingStoneCircle 5			SetupLand1 SingingStoneCircle
+RunThrowingStones 5				SetupLand1 ThrowingStones
+RunTheHermit 5					SetupLand1 WaterSeedAwareness TheHermit
+RunChooseYourCreature 5			SetupLand1 ProtectGateKeys LostBrother TheSculptor ChooseYourCreature
+RunLostBrother 6				SetupLand1 ProtectGateKeys LostBrother
+RunMagicMushroom 5				SetupLand1 MagicMushroom
+RunTheLostFlock 6				SetupLand1 TheLostFlock
+RunTheSculptor 6				SetupLand1 ProtectGateKeys TheSculptor
+RunTheMissionaries 5			SetupLand1 TheMissionaries
+RunCreatureGuardian 4			SetupLand1 CreatureGuardian
+RunCreatureSavingPeople 5		SetupLand1 CreatureSavingPeople
+RunLeaveThroughVortexL1 -1				Land1Challenges Land2Challenges Land3Challenges Land4Challenges Land5Challenges XmenuExtraChallenges
+RunCreatureBreeder 5			SetupLand1 CreatureBreeder
+RunCitadelGuide	1				SetupLand1 CitadelGuide
+RunCreatureGuide 1				SetupLand1 LeaveThroughVortexL1 CreatureGuide
+RunCreatureDevelopment 1		SetupLand1 
+RunTheStorm 1					SetupLand1 CreatureGuide
+RunCreaturesInGlade 1			SetupLand1 ProtectGateKeys LostBrother TheSculptor ChooseYourCreature
+								
+								
+LandTwo							
+RunBayWatch 1					SetupLand2 Baywatch
+RunBeginLand2 1					SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2 LearnWorshipping
+RunLethysAI	1					SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2 LearnWorshipping
+RunLearnWorshipping 1			SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2 LearnWorshipping
+RunLearnGestures 1				SetupLand2 LearnGestures
+RunLearnInfluence 1				SetupLand2 LearnInfluence
+RunTheWorkshop 1				SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2 LearnWorshipping TheWorkshop
+RunGreedyFarmer 1				SetupLand2 GreedyFarmer
+RunHanoiFlood 1					SetupLand2 HanoiFlood
+RunIdolPyre 1					SetupLand2 IdolPyre
+RunKillKhazar 1					SetupLand2 KillKhazar
+RunFireballChallenge 1			SetupLand2 Land2ShieldChallenge Land2FireballChallenge
+RunShieldChallenge 1			SetupLand2 Land2ShieldChallenge
+RunLeaveThroughVortexL2 1		SetupLand2 LeaveThroughVortexL2
+RunLethysVortex 1				SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2 LethysVortex
+RunLostTreasure 1				SetupLand2 LostTreasure
+RunMarauder 1					SetupLand2 Marauder
+RunSingingStonesSongs 1			SetupLand2 SingingStonesSongs
+RunPlague 1						SetupLand2 Plague
+RunSacrifice 1					SetupLand2 Sacrifice
+RunSpiritualHealer 1			SetupLand2 SpiritualHealer
+RunTheSlavers 1					SetupLand2 TheSlavers
+RunTreePuzzleOne 1				SetupLand2 TreePuzzleOne
+RunCreatureBreederLand2 1		SetupLand2 CreatureBreeder
+RunFinalGoldScroll	1			SetupLand2 FinalGoldScroll
+								
+								
+LandThree						
+RunGetThroughVortexL2 5			SetupLand3 GetThroughVortexL2
+RunShaolin 5					SetupLand3 Shaolin
+RunSwapToApe 6					SetupLand3 SwapToApe
+RunReleaseTheCreature 5			SetupLand3 ReleaseTheCreature
+RunTreePuzzleTwo 5				SetupLand3 TreePuzzleTwo
+RunLeaveThroughVortexL3 5		SetupLand3 LeaveThroughVortexL3
+RunFanaticAttack 2				SetupLand3 LeaveThroughVortexL3 Shaolin FreeTheCreature
+RunActuallyCreatureFreed 2		SetupLand3 LeaveThroughVortexL3 Shaolin FreeTheCreature
+RunShaolinGivesWonder 2			SetupLand3 Shaolin
+RunThrowBloke 5					SetupLand3 ThrowBloke
+
+
+LandFour
+RunCreatureBreederLand4 5		CreatureBreeder
+RunBeginLand4 2					SetupLand4 Land4Meteorites BeginLand4
+RunLand4Meteorites 2			SetupLand4 Land4Meteorites BeginLand4
+RunLand4Ogre 2					SetupLand4 Land4Ogre Land4Meteorites BeginLand4
+RunLand4Nomad 2					SetupLand4 Land4Meteorites
+RunSimonSays 2					SetupLand4 Land4Meteorites
+RunUndeadVillage 1				SetupLand4 Land4Meteorites BeginLand4
+RunBlindWoman 1					SetupLand4 BlindWoman
+RunFishPuzzle 1					SetupLand4 FishPuzzle
+RunSwapToHorse 1				SetupLand4 SwapToHorse
+RunSwapToCow 1					SetupLand4 SwapToCow
+RunThesiusPuzzleLand4 1			SetupLand4 ThesiusPuzzleLand4
+RunLeaveThroughVortexL4 2		SetupLand4 LeaveThroughVortexL4
+RunExplainsHistory 1			SetupLand4 Land4Ogre Land4Meteorites BeginLand4
+RunCreatureGetsCreed 1			SetupLand4 Land4Ogre Land4Meteorites BeginLand4 LeaveThroughVortexL4 FishPuzzle
+			    
+
+LandFive
+RunBeginLand5 6					MissionariesReturned Volcano SetupLand5 BeginLand5
+RunVolcano 5					MissionariesReturned Volcano SetupLand5
+RunJapaneseTraitor 5			MissionariesReturned Volcano SetupLand5 JapaneseTraitor
+RunMissionariesReturned 6		MissionariesReturned Volcano SetupLand5
+RunFireOnHigh 5					MissionariesReturned Volcano SetupLand5 FireOnHigh
+RunSwapToBrownBear 6			MissionariesReturned Volcano SetupLand5 SwapToBrownBear
+RunLionPuzzle 7					MissionariesReturned Volcano SetupLand5  LionPuzzle 
+RunSwapToWolf 6					MissionariesReturned Volcano SetupLand5 SwapToWolf
+RunTakeOverNeutralVillage 5		MissionariesReturned Volcano SetupLand5 TakeOverNeutralL5
+RunTakeOverNemesisVillageL5 5   MissionariesReturned Volcano SetupLand5 TakeOverNemesisVillageL5
+RunTakeOverVillagesL5 5			MissionariesReturned Volcano SetupLand5 TakeOverL5
+RunCreatureMirrorFight 5		MissionariesReturned Volcano SetupLand5 CreatureMirrorFight
+RunCreatureRunsAmok 5			MissionariesReturned Volcano SetupLand5 CreatureRunsAmok
+RunNemesisSpeaks1 5				MissionariesReturned Volcano SetupLand5 NemesisSpeaks1
+RunNemesisSpeaks2 5				MissionariesReturned Volcano SetupLand5 NemesisSpeaks2
+RunSingingStonesC 5				MissionariesReturned Volcano SetupLand5 SingingStonesC
+RunVillagerCatch 5				MissionariesReturned Volcano SetupLand5 VillagerCatch
+RunWhackAVillager 5				MissionariesReturned Volcano SetupLand5 WhackAVillager 
+RunTheBigFight 5				MissionariesReturned Volcano SetupLand5 FinalCreatureSequence TheBigFight				
+RunFinalCreatureSequence 1		Volcano FinalCreatureSequence			
+RunThrowThroughShield 5			MissionariesReturned Volcano SetupLand5 ThrowThroughShield
+RunChimpPosse 5					MissionariesReturned Volcano SetupLand5 ChimpPosse
+RunCreatureBreederLand5 5		CreatureBreeder
+RunCrusaders	5				MissionariesReturned Volcano SetupLand5 Crusaders
+RunVillagerWavingSequence -1	Land5Challenges
+
+
+GotoLand
+GotoLand1 0
+GotoLand2 0
+GotoLand3 0
+GotoLand4 0
+GotoLand5 0
+
+ToolScripts
+RunGameOver 1 GameOver
+RunHandDemos 1 SetupLand2 Land2ComputerAI Land2ShieldChallenge Land2FireballChallenge BeginLand2
+
+TestScripts
+TestDidYouKnow 0  
+RunSpittingTotem 1				SpittingTotem
+TestScrap 1						SetupLand4 FishPuzzle CreatureBreeder
+SeeTheCitadel 0
+CreatureLadder 0
+

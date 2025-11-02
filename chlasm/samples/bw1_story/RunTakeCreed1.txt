@@ -1,0 +1,12 @@
+challenge RunTakeCreed1
+
+run script RunTakeCreed1
+
+begin script RunTakeCreed1
+	
+start
+	
+	run script TakeCreed1
+	
+
+end script RunTakeCreed1

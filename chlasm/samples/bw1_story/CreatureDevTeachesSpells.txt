@@ -1,0 +1,123 @@
+challenge CREATURE_DEV_EXPLAINS_PAST
+
+run script CreatureDevTeachesSpells
+
+
+begin script CreatureDevTeachesSpells
+
+MyCreature = get player 1 creature
+
+Guide = 0
+SpellPos = marker at [2452.5457, 39.2578, 2813.5737]
+Tree = 0
+Villager = 0
+SFX = 0
+
+start
+
+	Guide = create CREATURE CREATURE_TYPE_HORSE at [2441.4063, 41.1998, 2850.4358]
+	begin cinema
+		set camera position to [2418.9241, 56.6032, 2877.3804]
+		set camera focus to [2442.9524, 41.3575, 2830.2095]
+		Guide play C_INDIVIDUAL_SUMMON
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_01
+		wait until read
+		wait until Guide played
+	end cinema
+
+
+	begin cinema
+		
+		set camera position to [MyCreature] + [10,10,10]
+		set camera focus to [MyCreature]
+
+		move MyCreature position to [2433.6902, 41.9640, 2846.8389]
+		set set camera focus follow MyCreature
+		wait until 4 seconds
+
+		set fade red 0 green 0 blue 0 time 4
+		wait until fade ready
+
+		set camera position to [2418.9241, 56.6032, 2877.3804]
+		set camera focus to [2442.9524, 41.3575, 2830.2095]
+
+		set fade in time 4
+		set MyCreature position to [2409.5522, 38.9647, 2831.2759]
+		move MyCreature position to [2433.6902, 41.9640, 2846.8389]
+		wait until fade ready
+
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SpellPos] time 1
+		Tree = create TREE BURNT_TREE at [SpellPos]
+
+		force Guide CREATURE_POINT_AT_OBJECT Tree
+		force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH Guide
+		wait until MyCreature played
+		force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH Tree
+		wait until MyCreature played
+
+		force Guide CREATURE_CAST_FIREBALL Tree
+		wait until Guide played
+
+		force MyCreature CREATURE_IDLE MyCreature
+
+		// TODO give your creature a fireball spell seed
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_02
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_03
+		wait until read
+
+		wait until 3 seconds
+		force MyCreature CREATURE_CAST_FIREBALL Tree
+		wait until MyCreature played
+
+		force Guide CREATURE_IDLE Guide
+		force MyCreature CREATURE_IDLE MyCreature
+
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_04
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_05
+		wait until read
+
+		send evil spirit home
+		send good spirit home
+
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SpellPos] time 1
+		delete Tree
+
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SpellPos] time 1
+		Villager = create VILLAGER VILLAGER_INFO_AZTEC_SHEPHERD_MALE at [2452.5457, 39.2578, 2813.5737]
+		Villager play ANM_P_DYING loop 1
+		HEALTH of Villager = 0.5
+
+		force Guide CREATURE_CAST_HEAL_SPELL Villager  
+		wait until Guide played
+
+		force Guide CREATURE_IDLE Guide
+
+		MyCreature play C_INDIVIDUAL_FEELING_NICE
+		wait until 3 seconds
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_SPELLS_06
+		wait until read
+
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SpellPos] time 1
+		delete Villager
+		Villager = create VILLAGER VILLAGER_INFO_AZTEC_SHEPHERD_MALE at [2452.5457, 39.2578, 2813.5737]
+		Villager play ANM_P_DYING loop 1
+		HEALTH of Villager = 0.5
+
+		force MyCreature CREATURE_CAST_HEAL_SPELL Villager   
+		wait until MyCreature played
+
+		force MyCreature CREATURE_IDLE MyCreature
+
+	end cinema
+
+
+
+end script CreatureDevTeachesSpells

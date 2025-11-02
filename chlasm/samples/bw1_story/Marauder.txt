@@ -1,0 +1,713 @@
+challenge MARAUDER
+
+//------------------------------------------------------------------------------------------------------------------------
+// Marauders come in a pack of ten and do three raids on the village. They retreat from a raid if two marauders are killed.
+// The first raid takes a flock of Cattle out to their den. The second destroys your Storage Pit and the last destroys your creche.
+//------------------------------------------------------------------------------------------------------------------------
+begin script GatherFoodNearCamp (CampStorePos, CampStore, MarauderPosse)
+	NearbyFood = 0
+	FeedMaraudersTimer = create timer for 0 seconds
+	ActualAmountThere = 0
+	NearbyCow = 0
+
+start
+	while size of MarauderPosse > 0
+		wait 2 seconds
+		if CampStore not exists
+			CampStore = get STORE FOOD at [CampStorePos] radius 5
+		end if
+		NearbyFood = get STORE FOOD at [CampStorePos] radius 50 excluding scripted
+		if NearbyFood not exists
+			NearbyFood = get STORE FOODSTORE at [CampStorePos] radius 50 excluding scripted
+		end if
+		if NearbyFood exists
+			ActualAmountThere = remove resource FOOD 999999 from NearbyFood
+			if CampStore exists and [CampStore] near [CampStorePos] radius 10
+				add resource FOOD ActualAmountThere to CampStore
+			else
+				CampStore = create STORE FOOD at [CampStorePos]
+				add resource FOOD ActualAmountThere to CampStore
+			end if
+			if get FeedMaraudersTimer time remaining <= 0
+				begin dialogue
+					eject good spirit
+					// "That food should keep the Marauders out of town for a bit longer."
+					say HELP_TEXT_MARAUDERS_13
+					wait until read
+					send good spirit home
+					set FeedMaraudersTimer time to 30 seconds
+				end dialogue
+			end if
+		end if
+
+		NearbyCow = get ANIMAL BOVINE at [CampStorePos] radius 40 excluding scripted
+		if NearbyCow exists
+			HEALTH of NearbyCow = 0
+			if CampStore exists and [CampStore] near [CampStorePos] radius 10
+				add resource FOOD 500 to CampStore
+			else
+				CampStore = create STORE FOOD at [CampStorePos]
+				add resource FOOD 500 to CampStore
+			end if
+			if get FeedMaraudersTimer time remaining <= 0
+				begin dialogue
+					eject good spirit
+					// "That food should keep the Marauders out of town for a bit longer."
+					say HELP_TEXT_MARAUDERS_13
+					wait until read
+					send good spirit home
+					set FeedMaraudersTimer time to 30 seconds
+				end dialogue
+			end if
+			NearbyCow = 0
+		end if
+
+	end while
+
+end script GatherFoodNearCamp
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MARAUDERS ALL DEAD ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script MaraudersAllDead (Villager,RewardExpected,AlignmentTotal,Highlight)
+
+	BeginPos = 0
+	BeginFoc = 0
+	VillagerPos = marker at [3308.4238, 43.7254, 3384.2422]
+	VillagerHut = get SCRIPT_OBJECT_TYPE_ABODE at [3309.8799, 43.5500, 3395.5000]
+	MarReward = 0
+	RewardPos = marker at [VillagerPos]+[-5,0,-10]
+
+start
+	begin dialogue
+		eject good spirit
+		// "Them dead"
+		say HELP_TEXT_MARAUDERS_11
+		wait until read
+		send good spirit home
+		wait 2 seconds
+	end dialogue
+	if RewardExpected == 1
+		//wait until camera position near [VillagerPos] radius 100 and [VillagerPos] viewed
+		run script ChallengeHighlightNotify(Highlight,VillagerHut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_07)
+
+		Villager = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [VillagerHut]
+		move Villager position to [VillagerPos]
+
+		begin cinema
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			move camera position to [VillagerPos]+[-10,10,-10] time 3
+			move camera focus to [VillagerPos] time 3
+			wait until camera ready
+
+
+			wait until [Villager] at [VillagerPos]
+			set Villager focus to camera position
+
+			Villager play ANM_P_PRAY loop 1
+			wait 1 second
+
+			AlignmentTotal = AlignmentTotal + 0.2
+			affect alignment by 0.2
+			snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_40)
+
+
+
+			// "Villager: Ta."
+			say HELP_TEXT_MARAUDERS_09
+			wait until read
+
+			//"Villager: Here take this reward we promised you. Pah."
+			say HELP_TEXT_MARAUDERS_10
+			wait until read
+
+			// create reward
+			run script rewardfromsky(variable REWARD_FIREBALL, RewardPos, 0, 0)
+
+
+
+			wait 2 seconds
+
+			move camera position to [BeginPos] time 4
+			move camera focus to [BeginFoc] time 3
+
+
+			wait until camera ready
+		end cinema
+
+		/// make Villager vagrant? Or is that about to happen anyway?
+	else
+		update snapshot success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_40)
+	end if
+end script MaraudersAllDead
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** TARGET CATTLE ****
+//------------------------------------------------------------------------------------------------------------------------
+// The marauders start their attack by trying to steal a flock of Cattle. They flee if some are killed.
+begin script MaraudersTargetCattle (Cattle, CattleFlock, CattleGroupPos, Marauder, MarauderPosse, MarauderGroupPos,CampStorePos,CampStore)
+
+BeginFoc = 0
+BeginPos = 0
+//CampStore = 0
+OneLoop = 0
+CattleSavedFlock = 0
+FirstTimer = 0
+CowFollowDelay = 0
+
+start
+	begin loop
+		wait until [MarauderPosse] near [CattleGroupPos] radius 30
+		move CattleFlock position to [MarauderPosse]
+		wait until camera position near [MarauderPosse] radius 100 and [MarauderPosse] viewed
+		begin dialogue
+			eject good spirit
+			make good spirit point at [MarauderPosse]
+			// "GS: Bitches! The Marauders are nickin our friggin cows."
+			say HELP_TEXT_MARAUDERS_03
+			wait until read
+			stop good spirit pointing
+			send good spirit home
+		end dialogue
+
+		SPEED of MarauderPosse = 0.5
+		move MarauderPosse position to [MarauderGroupPos]
+		SPEED of CattleFlock = 0.4
+		move CattleFlock position to [MarauderGroupPos]
+
+		update snapshot success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_17)
+
+		// Keep moving Marauders to home until cattle too far away, then wait for them
+		FirstTimer = create timer for 5 seconds
+		begin loop
+			begin loop
+				SPEED of CattleFlock = 0.4
+				move CattleFlock position to [MarauderPosse]
+				while [MarauderPosse] near [CattleFlock] radius 30
+					CowFollowDelay++ // This is counting seconds due to wait at end
+					if CowFollowDelay > 3
+						SPEED of MarauderPosse = 0.5
+						move MarauderPosse position to [MarauderGroupPos]
+						SPEED of CattleFlock = 0.4
+						move CattleFlock position to [MarauderPosse]
+						CowFollowDelay = 0
+					end if
+
+					if get FirstTimer time remaining <= 0
+						Cattle = get ANIMAL BOVINE in CattleFlock not near [CattleFlock] radius 75
+						set FirstTimer time to 5 seconds
+					end if
+
+					wait 1 second
+				end while
+				SPEED of MarauderPosse = 0.5
+				move MarauderPosse position to [MarauderPosse]
+				SPEED of CattleFlock = 0.4
+				move CattleFlock position to [MarauderPosse]
+				while [CattleFlock] not near [MarauderPosse] radius 10
+					if get FirstTimer time remaining <= 0
+						Cattle = get ANIMAL BOVINE in CattleFlock not near [CattleFlock] radius 75
+						set FirstTimer time to 5 seconds
+					end if
+					wait 1 second
+				end while
+			until [MarauderPosse] near [MarauderGroupPos] radius 25
+			until size of CattleFlock == 0
+			until Cattle exists
+			end loop
+
+			// Cattle = get ANIMAL BOVINE in CattleFlock not near [CattleFlock] radius 100
+
+			if [MarauderPosse] not near [MarauderGroupPos] radius 25 and size of CattleFlock > 0
+				if Cattle exists
+					detach Cattle from CattleFlock
+					if CattleSavedFlock exists
+						attach Cattle to CattleSavedFlock
+					else
+						CattleSavedFlock = flock at [CattleGroupPos]
+						set CattleSavedFlock properties inner 5 outer 30
+						attach Cattle to CattleSavedFlock
+					end if
+				end if
+			end if
+
+		until [MarauderPosse] near [MarauderGroupPos] radius 30
+		until size of CattleFlock == 0
+		end loop
+		SPEED of CattleFlock = 0.4
+		move CattleFlock position to [MarauderGroupPos]
+
+		while size of CattleFlock > 0
+			// Kill a cow from CattleFlock and eat. Wait extra time per cow.
+			Cattle = detach from CattleFlock
+			SPEED of Cattle = 0.4
+			move Cattle position to [CampStorePos]
+			wait until [Cattle] near [CampStorePos] radius 20 or HEALTH of Cattle <= 0 or Cattle is HELD or Cattle is FLYING
+			HEALTH of Cattle = 0.0
+			delete Cattle with fade
+
+			// Adding 300 Food to CampStore per Cow killed
+			CampStore = get STORE at [CampStorePos]
+			if CampStore exists and [CampStore] near [CampStorePos] radius 10
+				add resource FOOD 100 to CampStore
+			else
+				CampStore = create STORE FOOD at [CampStorePos]
+				add resource FOOD 100 to CampStore
+			end if
+
+		end while
+		OneLoop = 1
+
+	until OneLoop == 1
+	until size of MarauderPosse < 9 or size of CattleFlock <= 0
+	end loop
+
+	if size of MarauderPosse < 9 or OneLoop == 0
+		// disconnect the CattleFlock from the MarauderPosse
+		SPEED of MarauderPosse = 0.5
+		move MarauderPosse position to [MarauderGroupPos]
+		move CattleFlock position to [CattleGroupPos]
+		wait until [MarauderPosse] near [MarauderGroupPos] radius 20 or size of MarauderPosse <= 0
+	end if
+end script MaraudersTargetCattle
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** TARGET STORAGE ****
+// The marauders, having either recovering from the cattle feast or after losing group members attack the storage pits
+//------------------------------------------------------------------------------------------------------------------------
+begin script MaraudersTargetStorage (Marauder,MarauderPosse,MarauderGroupPos,CampStore,CampStorePos,StorageRaids)
+	StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [3288.8896, 43.5500, 3420.0298]
+	StorageFood = 0
+	StorageFoodPos = marker at [3293.0505, 43.5500, 3414.1777]
+	BeginFoc = 0
+	BeginPos = 0
+	MarauderPosseInitial = 0
+	StorageLoop = 0
+
+start
+	MarauderPosseInitial = size of MarauderPosse
+	//	while the size of MarauderPosse > MarauderPosseInitial-2 loop
+	StorageLoop = 0
+	begin loop
+		SPEED of MarauderPosse = 0.5
+		move MarauderPosse position to [StorageFoodPos]
+
+		wait until [MarauderPosse] near [StorageFoodPos] radius 15
+
+		if StorageRaids == 0
+			wait until camera position near [StorageFoodPos] radius 100 and [StoragePit] viewed
+			begin dialogue
+				eject evil spirit
+				make evil spirit point at [StorageFoodPos]
+				// "ES: Gawdarnit. The Marauders are stealing from our Storage Pit!"
+				say HELP_TEXT_MARAUDERS_05
+				wait until read
+				eject good spirit
+				// "No, no. Don't kill them. They're just hungry."
+				say HELP_TEXT_MARAUDERS_15
+				wait until read
+				send evil spirit home
+				send good spirit home
+			end dialogue
+			remove resource FOOD 500 from StoragePit
+			wait 2 seconds
+			StorageRaids = 1
+			StorageLoop = 1
+		else
+			remove resource FOOD 500 from StoragePit
+			StorageLoop = 1
+
+		end if
+	until size of MarauderPosse < MarauderPosseInitial-1
+	until StorageLoop == 1
+	end loop
+
+	update snapshot success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_43)
+	SPEED of MarauderPosse = 0.5
+	move MarauderPosse position to [MarauderGroupPos]
+	wait until [MarauderPosse] near [MarauderGroupPos] radius 15
+
+	if size of MarauderPosse < MarauderPosseInitial -1
+		begin dialogue
+			eject evil spirit
+			// "ES: Some of the Marauders were killed during that last raid. I hope they see sense and leave us be."
+			say HELP_TEXT_MARAUDERS_04
+			wait until read
+			send evil spirit home
+		end dialogue
+	end if
+
+	// add food taken to CampStore
+		CampStore = get STORE at [CampStorePos]
+		if CampStore exists and [CampStore] near [CampStorePos] radius 10
+			add resource FOOD 500 to CampStore
+		else
+			CampStore = create STORE FOOD at [CampStorePos]
+			add resource FOOD 500 to CampStore
+		end if
+
+
+
+	wait 40 seconds
+	/// increase? Was lowered for testing
+
+end script MaraudersTargetStorage
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** TARGET CRECHE ****
+// The marauders third attack goes against the children in the creche. Nasty.
+//------------------------------------------------------------------------------------------------------------------------
+begin script MarauderTargetCreche (Marauder,MarauderPosse,MarauderGroupPos)
+	Creche = get SCRIPT_OBJECT_TYPE_ABODE at [3326.2798, 43.5500, 3360.2000]
+	CrechePos = marker at [3319.7195, 43.5500, 3359.9119]
+	BeginFoc = 0
+	BeginPos = 0
+	MarauderPosseInitial = 0
+	CrecheLoop = 0
+	SFX = 0
+
+start
+	MarauderPosseInitial = size of MarauderPosse
+	//	while the size of MarauderPosse > MarauderPosseInitial - 2
+	begin loop
+		SPEED of MarauderPosse = 0.5
+		move MarauderPosse position to [CrechePos]
+		wait until [MarauderPosse] near [CrechePos] radius 15 or size of MarauderPosse <= 0
+		begin dialogue
+			eject good spirit
+			make good spirit point at [CrechePos]
+			// "GS: Holy shit! The Marauders are attacking our Creche!"
+			say HELP_TEXT_MARAUDERS_06
+			wait until read
+			stop good spirit pointing
+			send good spirit home
+		end dialogue
+			wait 3 seconds
+			// Trigger groovy effects at CrechePos
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Creche]+[0,15,0] time 10
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Creche]+[3,10,0] time 10
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Creche]+[-3,10,0] time 10
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Creche]+[0,10,3] time 10
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Creche]+[0,10,-3] time 10
+			wait 2 seconds
+			enable Creche on fire 1
+			wait 2 seconds
+		CrecheLoop = 1
+	until CrecheLoop == 1
+	until size of MarauderPosse < MarauderPosseInitial - 1
+	end loop
+
+	update snapshot success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_44)
+	SPEED of MarauderPosse = 0.5
+	move MarauderPosse position to [MarauderGroupPos]
+	wait until [MarauderPosse] near [MarauderGroupPos] radius 15 or size of MarauderPosse <= 0
+	
+	if size of MarauderPosse < MarauderPosseInitial - 1
+		begin dialogue
+			eject good spirit
+			eject evil spirit
+			// "GS: With the losses the Marauders have taken I doubt they'll be back. I lost it back there"
+			say HELP_TEXT_MARAUDERS_07
+			wait until read
+			// "ES: Good to see."
+			say HELP_TEXT_MARAUDERS_08
+			wait until read
+			send evil spirit home
+			send good spirit home
+		end dialogue
+	end if
+
+	wait 5 seconds
+
+
+end script MarauderTargetCreche
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CHILLING ****
+// Marauders return to camp and stay there eating food until it runs out then they head for another raid on the StoragePit
+//------------------------------------------------------------------------------------------------------------------------
+begin script MaraudersChilling (Marauder,MarauderPosse,MarauderGroupPos,VillagerHut,CampStorePos,MarauderSchedule, CampStore)
+	StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [3288.8896, 43.5500, 3420.0298]
+	ReturnToSchedule = 0
+	//CampStore = 0
+	CampStoreFood = 0
+	MarauderPosseInitial = 0
+	StorageFoodPos = marker at [3293.0505, 43.5500, 3414.1777]
+	CampStoreStandPos = marker at [3205.0225, 3170.8264]
+	MarauderDance = 0
+
+start
+	//	while the size of MarauderPosse > 0
+	Marauder = get VILLAGER MARAUDER in MarauderPosse
+	set Marauder position to [MarauderGroupPos]
+	MarauderDance = make Marauder dance DANCE_INFO_DANCE_AROUND_PERSON around [MarauderGroupPos] time 30
+
+	attach MarauderPosse to MarauderDance
+
+	begin loop
+		CampStore = get STORE at [CampStorePos]
+		if CampStore exists
+			CampStoreFood = get resource FOOD in CampStore
+   		else
+			CampStoreFood = 0
+		end if
+
+		while CampStoreFood > 100
+			// chill about eating every now and then
+				CampStore = get STORE at [CampStorePos]
+				if CampStore exists
+					CampStoreFood = get resource FOOD in CampStore
+		   		else
+					CampStoreFood = 0
+				end if
+
+				wait 1 second
+				Marauder = get SCRIPT_OBJECT_TYPE_VILLAGER MARAUDER in MarauderPosse
+				move Marauder position to [CampStoreStandPos]
+				wait until [Marauder] near [CampStoreStandPos] radius 2
+				wait 1 second
+				set Marauder focus to [CampStorePos]
+				remove resource FOOD 100 from CampStore
+				CampStoreFood = get resource FOOD in CampStore
+				wait 1 second
+				attach Marauder to MarauderPosse
+				/// Get Marauders doing something. Dancing? (Like worship) Or praying to an idol? Idols can be decked...
+				wait until 30 seconds
+		end while
+
+		disband MarauderDance
+		state MarauderPosse LIVING_MOVE_IN_FLOCK
+
+		if MarauderSchedule < 3
+			ReturnToSchedule = 1
+		else
+			// Go make another raid on StoragePit
+			SPEED of MarauderPosse = 0.5
+			move MarauderPosse position to [StorageFoodPos]
+			MarauderPosseInitial = size of MarauderPosse
+			wait until [MarauderPosse] near [StorageFoodPos] radius 15
+			remove resource FOOD 500 from StoragePit
+			wait 2 seconds
+			SPEED of MarauderPosse = 0.5
+			move MarauderPosse position to [MarauderGroupPos]
+			wait until [MarauderPosse] near [MarauderGroupPos] radius 15
+			// When you return put any food you got into the CampStore
+			CampStore = get STORE at [CampStorePos]
+			if CampStore exists and [CampStore] near [CampStorePos] radius 10
+				add resource FOOD 500 to CampStore
+			else
+				CampStore = create STORE FOOD at [CampStorePos]
+				add resource FOOD 500 to CampStore
+			end if
+		end if
+	until ReturnToSchedule == 1
+	until size of MarauderPosse == 0
+	end loop
+
+end script MaraudersChilling
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MAIN ****
+// Introduces the Marauders and selects their target.
+//------------------------------------------------------------------------------------------------------------------------
+begin script MarauderMain
+	Marauder = 0
+	MarauderPosse = 0
+	MarauderGroupPos = marker at [3194.5049, 3186.7725]
+	MarauderAntiInfluence = create anti influence at position [MarauderGroupPos] radius 30
+	MarauderPosseInitial = 0
+	CampStorePos = marker at [3205.0225, 3165.8264]
+	CampStore = 0
+	CampStoreFood = 0
+	Cattle = 0
+	CattleFlock = 0
+	CattleGroupPos = marker at [3137.7537, 50.4227, 3355.8105]
+	BeginFoc = 0
+	BeginPos = 0
+	MarauderSchedule = 0
+	Villager = 0
+	VillagerHut = get SCRIPT_OBJECT_TYPE_ABODE at [3309.8799, 43.5500, 3395.5000]
+	VillagerPos = marker at [3308.4238, 43.7254, 3384.2422]
+	RewardExpected = 0
+	Count = 0
+	StorageRaids = 0
+	AlignmentTotal = 0
+	Highlight = 0
+	//Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHut]
+	Campfire = 0
+	 
+start
+	//run script ChallengeHighlightNotify(Highlight,VillagerHut, 100, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_07)
+
+	MarauderPosse = flock at [MarauderGroupPos]
+	set MarauderPosse properties inner 10 outer 10
+
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [3194.4985, 23.4500, 3187.1382]
+
+	while [MarauderGroupPos] viewed
+	end while
+
+	while size of MarauderPosse < 10
+		Marauder = create SCRIPT_OBJECT_TYPE_VILLAGER MARAUDER at [MarauderGroupPos]
+		attach reaction Marauder REACTION_FLEE_FROM_OBJECT
+		attach Marauder to MarauderPosse
+	end while
+
+	CampStore = create STORE FOOD at [CampStorePos]
+	run background script GatherFoodNearCamp (CampStorePos, CampStore, MarauderPosse)
+	
+	CattleFlock = flock at [CattleGroupPos]
+	set CattleFlock properties inner 5 outer 10
+	populate CattleFlock with 5 ANIMAL BOVINE
+
+	SPEED of MarauderPosse = 0.5
+	move MarauderPosse position to [CattleGroupPos]
+
+/*
+	Villager = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [VillagerHut]
+	move Villager position to [VillagerPos]
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [VillagerPos]+[-10,10,-10] time 4
+		move camera focus to [VillagerPos] time 3
+		wait until camera ready
+		wait until [Villager] at [VillagerPos]
+		set Villager focus to [MarauderGroupPos]
+		Villager play ANM_P_INTO_POINTING loop 1
+		// "Villager: Argh. Trouble afoot"
+		say HELP_TEXT_MARAUDERS_01
+		wait until read
+		wait 1 second
+		set camera position to [MarauderPosse] + [25,25,0]
+		set camera focus to [MarauderPosse]
+		wait until camera ready
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_NEW_REMINDER_40)
+		// "Villager: Marauders attacking us"
+		move camera follow MarauderPosse distance 45
+		say HELP_TEXT_MARAUDERS_02
+		wait until read
+		wait 3 seconds
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+
+	release Villager
+*/	
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_17)
+	if MarauderSchedule == 0
+		MarauderSchedule = 1
+		run script MaraudersTargetCattle (Cattle,CattleFlock,CattleGroupPos,Marauder,MarauderPosse,MarauderGroupPos,CampStorePos,CampStore)
+	end if
+			
+	CampStore = get STORE at [CampStorePos]
+	if CampStore exists
+		CampStoreFood = get resource FOOD in CampStore
+   	else
+		CampStoreFood = 0
+	end if
+
+	if CampStoreFood > 100
+		run script MaraudersChilling (Marauder,MarauderPosse,MarauderGroupPos,VillagerHut,CampStorePos,MarauderSchedule,CampStore)
+	end if
+
+
+	run script MaraudersTargetStorage (Marauder,MarauderPosse,MarauderGroupPos,CampStore,CampStorePos,StorageRaids)
+
+	MarauderSchedule = 2
+
+	CampStore = get STORE at [CampStorePos]
+	if CampStore exists
+		CampStoreFood = get resource FOOD in CampStore
+   	else
+		CampStoreFood = 0
+	end if
+
+	if CampStoreFood > 100
+		run script MaraudersChilling (Marauder,MarauderPosse,MarauderGroupPos,VillagerHut,CampStorePos,MarauderSchedule,CampStore)
+	end if
+
+	if MarauderSchedule == 2
+		MarauderSchedule = 3
+		if size of MarauderPosse > 9
+			begin dialogue
+				eject good spirit
+				make good spirit point at [VillagerHut]
+				// "The man who asked for your help with the marauders needs to speak to you urgently"
+				say HELP_TEXT_MARAUDERS_14
+				wait until read
+				stop good spirit pointing
+				send good spirit home
+			end dialogue
+
+			// wait until highlight clicked again
+			run script ChallengeHighlightNotify(Highlight,VillagerHut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_07)
+
+			// pan to villager and do begging scene. Reward offered.
+			Villager = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [VillagerHut]
+			move Villager position to [VillagerPos]
+
+
+
+
+			begin cinema
+
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+
+				move camera position to [Villager]+[-10,10,-10] time 4
+				move camera focus to [Villager] time 3
+				wait until camera ready
+
+
+
+				snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_17)
+				AlignmentTotal = AlignmentTotal - 0.4
+				affect alignment by -0.4
+
+
+
+				// "FFS Help. We'll reward you."
+				say HELP_TEXT_MARAUDERS_12
+				wait until read
+
+
+				RewardExpected = 1
+				wait 2 seconds
+
+				move camera position to [BeginPos] time 3
+				move camera focus to [BeginFoc] time 2
+
+				wait until camera ready
+
+
+
+			end cinema
+
+
+
+			release Villager
+		end if
+		run script MarauderTargetCreche (Marauder,MarauderPosse,MarauderGroupPos)
+	end if
+
+	if MarauderSchedule == 3
+		run script MaraudersChilling (Marauder,MarauderPosse,MarauderGroupPos,VillagerHut,CampStorePos,MarauderSchedule,CampStore)
+	end if
+
+	if size of MarauderPosse == 0
+		run script MaraudersAllDead (Villager,RewardExpected,AlignmentTotal,Highlight)
+	end if
+
+	snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_17 StandardReminder(variable HELP_TEXT_REMINDER_40)
+
+end script MarauderMain
+

@@ -1,0 +1,16 @@
+//------------------------------------------------------------------------------------------------------------------------
+// Test did you know - By Jonty Barnes
+//------------------------------------------------------------------------------------------------------------------------
+run script TestDidYouKnow
+
+begin script TestDidYouKnow
+
+	HandPos=marker at hand position	
+	HandPos2=marker at hand position+[10, 10]
+
+start
+
+	run background script DidYouKnow(HandPos, variable HELP_TEXT_DYK_91, variable DYK_NAVIGATION)
+	run background script DidYouKnow(HandPos2, variable HELP_TEXT_DYK_03, variable DYK_VILLAGE_LIFE)
+
+end script TestDidYouKnow

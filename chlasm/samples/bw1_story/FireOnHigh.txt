@@ -1,0 +1,522 @@
+challenge FIRE_ON_HIGH
+
+// globals
+global GoodCatch
+
+//run script FireOnHighMain
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Background script to keep the meteor smoking.
+begin script MakeSmokeComeOutOfMeteor(Meteor)
+Smoke = 0
+Explosive = 0
+start
+	while Meteor exists	and Meteor is not HELD and Meteor is FLYING
+		//THE TIME AT THE END OF THIS LINE GIVES THE LENGTH OF THE FLUME
+		Smoke = create special effect SPOT_VISUAL_BONFIRE at [Meteor] time 0.1
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke = 8.0
+	end while
+
+	wait 4 seconds
+	wait until Meteor is not HELD and Meteor is not FLYING
+	Explosive = cast SPELL_FIREBALL_LEVEL_1 spell at [Meteor]+[number from -2 to 2,2,number from -2 to 2] from [Meteor] radius 1.0 time 2 curl 0
+	start sound LH_SAMPLE_G_CITADELEXPLODE_01_C2
+	delete Meteor with explosion
+end script MakeSmokeComeOutOfMeteor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// **** METEOR ****
+begin script FireOnHighMeteor (Target)
+
+Meteor = 0
+soundpos = 0 //position of town
+CannonPos = marker at [2703.488, 250, 2498.462] 
+
+Smoke = 0
+start
+	Meteor = create with angle 0 and scale 0.5 OBJECT ROCK at [CannonPos]
+	// set Meteor temperature to superheated blim
+	enable Meteor on fire 1
+	disable Meteor affected by wind
+	set Meteor temperature 2000
+	set Meteor target [Target] time 4
+	run background script MakeSmokeComeOutOfMeteor(Meteor)
+	soundpos = marker at [2311.974, 38.834, 2588.466] // Tower mw
+	start sound LH_SCRIPT_SAMPLE_LAVABOMBTRAIL AUDIO_SFX_BANK_TYPE_SCRIPT_SFX  at [soundpos]
+
+	wait 6 seconds
+	if Meteor is HELD and GoodCatch == 0
+		begin dialogue
+			eject good spirit
+			// "GA: Good catch!"
+			say single line HELP_TEXT_FIRE_ON_HIGH_19
+			wait until read
+			send good spirit home
+		end dialogue
+		GoodCatch = 1
+	end if
+
+	wait until Meteor is not FLYING or Meteor is HELD
+
+end script FireOnHighMeteor
+
+
+// **** MAIN ****
+begin script FireOnHighMain
+
+	VillagerHutPos = marker at [2237.212, 40.870, 2599.559] 
+	VillagerHut = get HOUSE at [VillagerHutPos]
+
+	TownCentre = marker at [2307.239, 39.054, 2589.891] 
+	FireTown = 0
+
+	Napalm0Pos = marker at [2296.529, 36.122, 2707.628]
+	Napalm0Pos1= marker at [2375.788, 26.413, 2581.745] //warning shot
+Napalm1 = 0
+Napalm1Pos1 = marker at [2333.354, 37.405, 2615.126] 
+Napalm1Pos2 = marker at [2300.872, 40.200, 2576.950] 
+Napalm1Pos3 = marker at [2320.370, 38.041, 2591.900]
+Napalm1Pos4 = marker at [2351.185, 38.860, 2570.374] 
+Napalm1Pos5 = marker at [2318.510, 38.622, 2585.088]   // Tower mw [town centre]
+Tower = get HOUSE at [Napalm1Pos5]
+
+
+Napalm2 = 0
+Napalm2Pos1 = marker at [2296.611, 37.970, 2602.236] 
+Napalm2Pos2 = marker at [2247.212, 38.494, 2615.480]   
+Napalm2Pos3 = marker at [2278.318, 38.829, 2605.944] 
+Napalm2Pos4 = marker at [2269.661, 40.470, 2602.125] 
+Napalm2Pos5 = marker at [2256.369, 38.789, 2613.716]  // Storage Pit mw
+StoragePit = get HOUSE at [Napalm2Pos5]
+
+
+Napalm3 = 0
+Napalm3Pos1 = marker at [2295.615, 40.569, 2568.938] 
+Napalm3Pos2 = marker at [2280.454, 40.870, 2579.341] 
+Napalm3Pos3 = marker at [2276.302, 40.870, 2589.258] // Large building mw
+Napalm3Pos4 = marker at [2285.876, 40.127, 2596.774] 
+Napalm3Pos5 = marker at [2299.820, 40.135, 2581.196]  
+
+
+Napalm4 = 0
+Napalm4Pos1 = marker at [2328.338, 38.457, 2610.997] 
+Napalm4Pos2 = marker at [2290.550, 36.850, 2634.000]   
+Napalm4Pos3 = marker at [2296.369, 36.850, 2617.466]  // Creche mw
+Napalm4Pos4 = marker at [2307.616, 36.850, 2624.339]    
+Napalm4Pos5 = marker at [2327.111, 38.347, 2606.492] 
+
+
+
+Napalm5 = 0
+Napalm5Pos1 = marker at [2332.285, 38.860, 2584.259] 
+Napalm5Pos2 = marker at [2308.523, 38.881, 2590.604] 
+Napalm5Pos3 = marker at [2323.291, 39.444, 2571.303] 
+Napalm5Pos4 = marker at [2343.406, 38.860, 2574.025] 
+Napalm5Pos5 = marker at [2358.521, 37.975, 2566.711]  
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+	Percentage=0
+	StartTownHealth = 0	
+	EndTownHealth = 0 
+ 	TotalVillagers = 0
+	TotalVillagersInitial = 0
+	TotalVillagersDifference = 0
+	TotalBuildingsDamaged = 0
+
+	BeginPos = 0
+	BeginFoc = 0
+
+	Meteor = 0
+	CannonPos = marker at [2703.488, 250, 2498.462]   
+
+	AlignmentTotal = 0
+
+	RewardPos = marker at [2282.773, 39.786, 2601.362] 
+	//Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHutPos]
+
+	GetReady = 0
+	ObjectInHand = 0
+	soundpos = 0 //position of town
+
+start
+	//run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+	wait 300 seconds //Delay between taking over town and beginning first meteor volley. Should be 300
+
+	while GetReady == 0
+		ObjectInHand = get object held
+		if camera position near [TownCentre] radius 150 and [TownCentre] viewed and ObjectInHand not exists and [Napalm0Pos] not viewed
+			GetReady = 1
+		end if
+	end while
+
+	FireTown = get TOWN at [TownCentre] radius 150
+	TotalVillagersInitial = size of FireTown
+
+
+// **** INTRO ****
+	// create a meteor at pos1
+	Meteor = create OBJECT ROCK at [Napalm0Pos]
+
+	// set Meteor temperature to superheated blim
+	enable Meteor on fire 1
+	disable Meteor affected by wind
+	set Meteor temperature 2000
+	run background script MakeSmokeComeOutOfMeteor(Meteor)
+	soundpos = marker at [2311.974, 38.834, 2588.466] // Tower mw
+	start sound LH_SCRIPT_SAMPLE_LAVABOMBTRAIL AUDIO_SFX_BANK_TYPE_SCRIPT_SFX  at [soundpos]
+
+	begin cinema
+		shake camera at [Napalm0Pos] radius 500.0 amplitude 1 time 1.5
+		start sound LH_SAMPLE_G_CITADELEXPLODELOW_01
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		eject evil spirit
+		make evil spirit point at [Napalm0Pos]
+		move camera focus to [Napalm0Pos] time 1
+		// "ES: Over there! Meteors are raining down near the village! Protect the people!"
+		say HELP_TEXT_FIRE_ON_HIGH_01
+		wait until read
+		close dialogue
+		wait 0.1 seconds
+		stop evil spirit pointing
+		send evil spirit home
+
+// **** NAPALM 1 ****
+
+		set Meteor temperature 2000
+		enable Meteor on fire 1
+
+		move camera position to [Napalm0Pos]+[-15,15,-35] time 3
+		move camera focus to [Napalm0Pos] time 3
+		wait until camera ready
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_08 StandardReminder(variable HELP_TEXT_REMINDER_10)
+		eject good spirit
+		eject evil spirit
+		// "It's a meteor"
+		say HELP_TEXT_FIRE_ON_HIGH_02
+		wait until read
+		wait 2 seconds
+
+
+		Meteor = create OBJECT ROCK at [CannonPos]
+		// set Meteor temperature to superheated blim
+		enable Meteor on fire 1
+		disable Meteor affected by wind
+		set Meteor temperature 2000
+		set Meteor target [Napalm0Pos1] time 4	//warning shot to edge of village
+		run background script MakeSmokeComeOutOfMeteor(Meteor)
+		soundpos = marker at [2311.974, 38.834, 2588.466] // Town centre
+		start sound LH_SCRIPT_SAMPLE_LAVABOMBTRAIL AUDIO_SFX_BANK_TYPE_SCRIPT_SFX  at [soundpos]
+
+		make evil spirit cling across 1 down 0.8
+		make good spirit cling across 0 down 0.5
+			
+		// "Heads up. More incoming"
+		say HELP_TEXT_FIRE_ON_HIGH_03
+		move camera focus to [CannonPos] time 2
+		wait until camera ready
+		set camera focus follow Meteor
+		wait until read
+		wait 2 seconds
+
+		
+
+		// "Heading for town"
+		say HELP_TEXT_FIRE_ON_HIGH_04
+		//wait until Meteor is not FLYING
+		wait until read
+		// "Protect town"
+		say HELP_TEXT_FIRE_ON_HIGH_05
+
+		wait until read
+		send good spirit home
+		send evil spirit home
+		wait 2 seconds
+		//wait until camera ready
+		move camera focus to [CannonPos] +[0,-200,0] time 2.5 //waiting for next
+		move camera position to [2231.360, 59.069, 2647.368] time 3 
+	end cinema
+ //--------------------------------------------------------
+ // Record state of Buildings
+
+	StartTownHealth = get building and villager health total in FireTown////////////////////////////////////
+	wait 1 seconds
+	
+	
+
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CannonPos]
+		// "Napalm 1 Incoming."
+		say single line HELP_TEXT_NEW_L5_FIRE_ON_HIGH_02
+		wait until read
+		send evil spirit home
+	end dialogue
+
+	run background script FireOnHighMeteor (Napalm1Pos1)
+
+	wait 8 seconds
+
+	run script FireOnHighMeteor (Napalm1Pos2)
+
+	wait 8 seconds
+
+	run script FireOnHighMeteor (Napalm1Pos3)
+
+	wait 8 seconds
+
+	run script FireOnHighMeteor (Napalm1Pos4)
+
+	wait 8 seconds
+
+	run script FireOnHighMeteor (Napalm1Pos5)
+
+	Napalm1 = 1
+
+	// comment on first Napalm
+	begin dialogue
+		eject good spirit
+		// "Advisor: That was the first volley. Be prepared to defend the buildings and villagers against more."
+		say single line HELP_TEXT_FIRE_ON_HIGH_07
+		wait until read
+		send good spirit home
+	end dialogue
+
+	wait 20 seconds
+
+// **** NAPALM 2 ****
+	
+wait until camera position near [Napalm1Pos5] radius 200//not sure about this
+
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CannonPos]
+		// "TEST - Napalm 2 Incoming."
+		say single line HELP_TEXT_NEW_L5_FIRE_ON_HIGH_03
+		wait until read
+		stop evil spirit pointing
+		send evil spirit home
+	end dialogue
+
+	run background script FireOnHighMeteor (Napalm2Pos1)
+
+	wait 8 seconds
+
+	run background script FireOnHighMeteor (Napalm2Pos2)
+
+	wait 8 seconds
+
+	run background script FireOnHighMeteor (Napalm2Pos3)
+
+	wait 8 seconds
+
+	run background script FireOnHighMeteor (Napalm2Pos4)
+
+	wait 8 seconds
+
+
+	run background script FireOnHighMeteor (Napalm2Pos5)
+
+	wait 20 seconds
+
+// **** NAPALM 3 ****
+
+wait until camera position near [Napalm1Pos5] radius 200//not sure about this
+
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CannonPos]
+		// "TEST - Napalm 3 Incoming."
+		say single line HELP_TEXT_NEW_L5_FIRE_ON_HIGH_04
+		wait until read
+		stop evil spirit pointing
+		send evil spirit home
+	end dialogue
+
+	run background script FireOnHighMeteor (Napalm3Pos1)
+
+	wait 6 seconds
+
+	run background script FireOnHighMeteor (Napalm3Pos2)
+
+	wait 6 seconds
+
+	run background script FireOnHighMeteor (Napalm3Pos3)
+
+	wait 6 seconds
+
+	run script FireOnHighMeteor (Napalm3Pos4)
+
+	wait 6 seconds
+
+	run script FireOnHighMeteor (Napalm3Pos5)
+
+
+	wait 15 seconds
+
+// **** NAPALM 4 ****
+
+wait until camera position near [Napalm1Pos5] radius 200//not sure about this
+
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CannonPos]
+		// "TEST - Napalm 4 Incoming."
+		say single line HELP_TEXT_NEW_L5_FIRE_ON_HIGH_05
+		wait until read
+		stop evil spirit pointing
+		send evil spirit home
+	end dialogue
+
+	run background script FireOnHighMeteor (Napalm4Pos1)
+
+	wait 5 seconds
+
+	run background script FireOnHighMeteor (Napalm4Pos2)
+
+	wait 5 seconds
+ 
+	run background script FireOnHighMeteor (Napalm4Pos3)
+
+ 	wait 5 seconds
+
+	run background script FireOnHighMeteor (Napalm4Pos4)
+
+	wait 5 seconds
+
+	run background script FireOnHighMeteor (Napalm4Pos5)
+
+
+	wait 10 seconds
+
+
+// **** NAPALM 5 ****
+
+wait until camera position near [Napalm1Pos5] radius 200//not sure about this
+
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [CannonPos]
+		// "TEST - Napalm 5 Incoming."
+		say single line HELP_TEXT_NEW_L5_FIRE_ON_HIGH_01
+
+		wait until read
+		stop evil spirit pointing
+		send evil spirit home
+	end dialogue
+
+	run background script FireOnHighMeteor (Napalm5Pos1)
+
+	wait 1 seconds
+
+	run background script FireOnHighMeteor (Napalm5Pos2)
+
+	wait 1 seconds
+ 
+	run background script FireOnHighMeteor (Napalm5Pos3)
+
+	wait 1 seconds
+
+	run background script FireOnHighMeteor (Napalm5Pos4)
+
+	wait 1 seconds
+
+	run background script FireOnHighMeteor (Napalm5Pos5)
+
+	wait 8 seconds
+	// moralitity declares the meteor shower over.
+	begin dialogue
+		eject good spirit
+		say single line HELP_TEXT_FIRE_ON_HIGH_12
+		wait until read
+		send good spirit home
+	end dialogue
+
+
+// **** CONCLUSION ****
+// Conclusions vary with TotalVillagersDifference and TotalBuildingsDamaged
+	
+	TotalVillagers = size of FireTown
+	TotalVillagersDifference = TotalVillagersInitial - TotalVillagers
+
+	wait 4 seconds
+
+	if TotalVillagersDifference == 0 and TotalVillagers > 1
+		begin dialogue
+			eject good spirit
+			// "GS: The Villagers were kept safe during the Maelstrom."
+			say single line HELP_TEXT_FIRE_ON_HIGH_13
+			wait until read
+			send good spirit home
+		end dialogue
+	elsif TotalVillagersDifference < 8 and TotalVillagers > 1
+		begin dialogue
+			eject good spirit
+			// "GS: Most of the townsfolk have survived the maelstrom but they are battered."
+			say single line HELP_TEXT_FIRE_ON_HIGH_14
+			wait until read
+			send good spirit home
+		end dialogue
+	elsif TotalVillagers > 1
+		begin dialogue
+			eject evil spirit
+			// "GS: Oh the horror of what has happened here. Carnage."
+			say single line HELP_TEXT_FIRE_ON_HIGH_15
+			wait until read
+			send evil spirit home
+		end dialogue
+	end if
+	
+	wait until read
+	//wait 1 seconds
+
+	EndTownHealth = get building and villager health total in FireTown
+	
+	TotalBuildingsDamaged = StartTownHealth - EndTownHealth
+	
+	//Calc percentage saved
+	Percentage=TotalBuildingsDamaged/StartTownHealth
+
+	//Around 0.39 is completely left unhelped, meaning your likely to only destroy a third maximum.
+	//0.0 is no damage at all
+	if Percentage <= 0.22 //saved most of town
+		AlignmentTotal = 1
+		begin cinema
+			eject good spirit
+			move camera focus to [RewardPos] time 2
+			move camera position to [RewardPos] + [20,20,20] time 4
+			// "GS: You did a godly job of protecting the important buildings!"
+			say single line HELP_TEXT_FIRE_ON_HIGH_16
+			wait until read
+			send good spirit home
+		end cinema
+		// reward
+		run script rewardfromsky(variable REWARD_OBJECT_INFO_SPELL_SEED_CREATURE_ITCHY, RewardPos, 0, 0)	
+		
+	elsif Percentage <= 0.3	//You did something to help.
+		begin dialogue
+		   	eject good spirit
+			// "GS: You did your best to protect the important buildings."
+			say single line HELP_TEXT_FIRE_ON_HIGH_17
+			wait until read
+			send good spirit home
+
+		end dialogue
+
+	else
+		AlignmentTotal = -1
+		begin dialogue
+			eject evil spirit
+			// "ES: Most important buildings took a serious pounding during the maelstrom."
+			say single line HELP_TEXT_FIRE_ON_HIGH_18
+			wait until read
+			send evil spirit home
+		end dialogue
+	end if
+
+	update snapshot success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_08 StandardReminder(variable HELP_TEXT_REMINDER_10)
+
+end script FireOnHighMain

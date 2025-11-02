@@ -1,0 +1,42 @@
+challenge RunJapaneseTraitor
+
+run script RunJapaneseTraitor
+
+begin script RunJapaneseTraitor
+	
+Wonder1Pos = marker at [2663.767, 109.079, 3671.004] //Azctec
+Wonder2Pos = marker at [2331.919, 38.860, 2581.005] //Greek
+Wonder3Pos = marker at [1758.438, 95.506, 2337.047] //Tibetan
+//Wonder4Pos = marker at [3150.261, 6.014, 2609.817] //Nemesis land
+
+Wonder1=0
+Wonder2=0
+Wonder3=0
+//wonder4=0
+
+start
+
+	run script SetupLand5
+	
+	build building at [2663.767, 109.079, 3671.004] desire 0.6
+	build building at [2331.919, 38.860, 2581.005] desire 0.6
+	build building at [1758.438, 95.506, 2337.047] desire 0.6
+	//build building at [3150.261, 6.014, 2609.817] desire 0.6
+	
+	Wonder1 = get HOUSE at [Wonder1Pos]
+	Wonder2 = get HOUSE at [Wonder2Pos]
+	Wonder3 = get HOUSE at [Wonder3Pos]
+	//Wonder4 = get HOUSE at [Wonder4Pos]
+
+	BUILT of Wonder1 = 0.8
+	BUILT of Wonder2 = 0.8
+	BUILT of Wonder3 = 0.8
+	//BUILT of Wonder4 = 1
+
+	run script JapaneseTraitor
+	
+
+end script RunJapaneseTraitor
+
+
+

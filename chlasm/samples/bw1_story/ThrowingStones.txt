@@ -1,0 +1,525 @@
+challenge THROWING_STONES
+global End
+global ThrowingStonesUsed
+global ThrowStonesHighlight
+
+//------------------------------------------------------------------------------------------------------------------------
+// Keeps recreating the rock on top of the pillar for further practise
+//------------------------------------------------------------------------------------------------------------------------
+begin script KeepPractising (Rock1Pos)
+
+ Rock = 0
+ Reward = 0
+ OldRockPos = 0
+ AntiInfluence = 0
+ ThrowRewardCount = 0
+
+start
+	begin loop
+		// create rock
+		run map script line "CREATE_MOBILE_STATIC(\"2030.81,2325.50\", 25, 10.184691, 0.214573, 0.825486, 0.000783, 1.6)"
+
+		wait 1 second
+
+		AntiInfluence = create anti influence at position [Rock1Pos] radius 2
+
+		Rock = get ROCK_OBJECT MOBILE_STATIC_INFO_BOULDER3_LIME at [Rock1Pos] radius 5
+		 
+		while Rock not exists
+			wait 0.5 seconds
+			Rock = get ROCK_OBJECT MOBILE_STATIC_INFO_BOULDER3_LIME at [Rock1Pos] radius 5
+		end while
+
+		wait until [Rock] not near [Rock1Pos] radius 2
+		wait until Rock not exists or Rock is not FLYING
+
+		if RockInfl exists
+			delete RockInfl
+		end if
+
+		if Rock exists
+			OldRockPos = marker at [Rock]
+			delete Rock with fade
+			Reward = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_WATER at [OldRockPos]
+			ThrowRewardCount ++
+		end if
+
+		until ThrowRewardCount > 5
+	end loop
+
+end script KeepPractising
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script ReactToHouseDamaged (BlokesHouse)
+start
+	begin dialogue
+		eject evil spirit
+		make evil spirit point at [BlokesHouse]
+		// "Good shot, boss. You did some real damage to that house."
+		say HELP_TEXT_YOUTHROWING_19
+		wait until read
+		stop evil spirit pointing
+		eject good spirit
+		// "Oh dear. This is not right. Watch where you're throwing things."
+		say HELP_TEXT_YOUTHROWING_20
+		wait until read
+	end dialogue
+end script ReactToHouseDamaged
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script FocusFollow (Bloke, Boulder)
+Flying = 1
+start
+	while Flying == 1 and HEALTH of Bloke > 0
+		if Boulder not exists
+			Flying = 0
+		elsif Boulder is not FLYING
+			Flying = 0
+		else 
+			set Bloke focus to [Boulder]
+		end if
+	end while
+
+end script FocusFollow
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script BlokeActions (Bloke, BlokePos, PillarPos,BlokesHouse)
+	Active					= 0
+	Boulder					= 0
+	BoulderInMotion			= 0
+	MatesHouse				= get HOUSE at[1846.693, 30.820, 2665.009] 
+	JustOutsideMatesHouse	= marker at [1837.687, 30.794, 2668.346] 
+	ClosestDistance = 0
+	Distance = 0
+
+start
+	move Bloke position to [BlokePos] // bloke moves to position outside his hut
+
+	wait until [Bloke] near [BlokePos] radius 1 or Bloke not exists
+
+	wait 0.5 seconds
+
+	set Bloke focus to camera position // bloke looks at player
+
+	Bloke play ANM_P_AMBIENT2 //bloke animates
+
+	while Active == 0
+		wait 1 second
+		Boulder = get object held
+		if Boulder exists
+			if Boulder type ROCK_OBJECT ROCK// or Boulder type TREE
+
+				if Bloke viewed and camera position near [Bloke] radius 100
+						
+					begin loop
+						set Bloke focus to [Boulder]
+						if [Boulder] near [Bloke] radius 10
+							Bloke play ANM_P_GOALKEEPER_2 loop 1// duck anim
+							wait until Bloke played
+							wait 1.5 seconds
+						end if
+					until Boulder is FLYING	or HEALTH of Bloke <= 0
+					end loop
+
+					// Bloke focus follow Boulder script
+					run background script FocusFollow (Bloke, Boulder)
+					wait 0.5 seconds
+					ClosestDistance	= get distance from [Boulder] to [PillarPos]
+					BoulderInMotion = 1
+					while BoulderInMotion == 1
+						if Boulder exists
+							if Boulder is not FLYING
+								BoulderInMotion = 0
+							end if
+							Distance=get distance from [Boulder] to [PillarPos]
+							if Distance < ClosestDistance
+								ClosestDistance=Distance
+							end if
+						else
+							BoulderInMotion = 0
+						end if
+					end while
+					
+					if ClosestDistance < 12
+						Bloke play ANM_P_CROWD_IMPRESSED_1 loop 1// cheer anim
+						// play an impressed sound from bloke, not text, just sound
+						if dialogue ready
+							start say sound HELP_TEXT_YOUTHROWING_22 at [Bloke] 
+							wait until read
+						end if
+					else
+						Bloke play ANM_P_STAND_DESPAIR_1 loop 1 // Boo anim
+						// play a taunt sound from bloke, not text, just sound
+						if dialogue ready
+							start say sound HELP_TEXT_YOUTHROWING_21 at [Bloke]
+							wait until read
+						end if
+					end if
+				end if
+			end if
+
+			Boulder = 0
+		end if
+
+
+		if End == 1 and HEALTH of BlokesHouse >= 1
+			move Bloke position to [BlokesHouse]
+			wait until [Bloke] near [BlokesHouse] radius 4 or HEALTH of Bloke <= 0
+			Active = 1
+			release Bloke
+		elsif HEALTH of BlokesHouse < 0.75 and Active == 0
+			run background script ReactToHouseDamaged (BlokesHouse)
+			Bloke play ANM_P_CROWD_LOST_2 loop 1 // Pissed off anim
+			wait until Bloke played
+			move Bloke position to [JustOutsideMatesHouse]
+			wait until [Bloke] near [JustOutsideMatesHouse] radius 1 or HEALTH of Bloke <= 0
+			if HEALTH of Bloke > 0
+				move Bloke position to [MatesHouse]
+			end if
+			wait until [Bloke] near [MatesHouse] radius 1 or HEALTH of Bloke <= 0
+			Active = 1
+			release Bloke
+		end if
+	until HEALTH of Bloke <= 0
+	end while
+end script BlokeActions
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//run script ThrowingStones
+//------------------------------------------------------------------------------------------------------------------------
+
+begin challenge help script ThrowingStonesChallengeHighlightNotify(Radius, AdvisorType, AdvisorSpeakEnum, Rock1, Rock1Pos) 
+
+	Count = time-31
+	HighLightPos = marker at [1947.396, 30.523, 2360.235]
+
+start
+	Radius = 150
+	wait until ThrowingStonesStart == 1 or [Rock1] not near [Rock1Pos] radius 2
+	if [Rock1] near [Rock1Pos] radius 2
+		ThrowStonesHighlight = create highlight HIGHLIGHT_CHALLENGE at [HighLightPos]
+		ALTITUDE of ThrowStonesHighlight = 15
+		begin loop
+			//if ThrowStonesHighlight != 0 
+				if camera position near [ThrowStonesHighlight] radius Radius and ThrowStonesHighlight viewed
+					//wait until cameramode
+					if time-Count>30
+						if widescreen ready
+							begin dialogue
+								eject good spirit
+								make good spirit point at [ThrowStonesHighlight] in world
+								//Look there's a silver scroll. Let's see what it's about."
+								say HELP_TEXT_YOUTHROWING_23
+								wait until read
+								stop good spirit pointing
+								eject evil spirit
+								//Yeah, Silver scrolls aren't as important as the gold ones but are worth investigating."
+								say HELP_TEXT_YOUTHROWING_24
+								wait until read
+							end dialogue
+						end if
+						Count=time
+					end if
+				end if
+			//end if
+		until ThrowStonesHighlight clicked or [Rock1] not near [Rock1Pos] radius 2
+		// If some distance away - move camera towards Location checking for esc key or something then exit
+		// If reasonably close - exit
+		end loop
+		enable ThrowStonesHighlight active
+	end if
+end script ThrowingStonesChallengeHighlightNotify
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script TSAmmo(Stone) //producing the infinite stones
+
+	TmpPos = 0
+	StartPos = marker at [Stone]
+	AtRest = 1
+start
+
+	begin loop
+	until End>0
+	when not Stone exists
+		Stone = create with angle 0 and scale 0.9 ROCK_OBJECT ROCK at [StartPos]
+		//SCALE of Stone = 0.5
+		AtRest = 1
+	when (Stone is FLYING or Stone is HELD or Stone in MyCreature hand) and AtRest>0
+		AtRest=0
+	when Stone is not FLYING and Stone is not HELD and Stone not in MyCreature hand and AtRest<1
+		AtRest=1
+//	when land height at [Stone] < 0
+//		set Stone position to [StartPos]
+	when (not [Stone] near [StartPos] radius 40 and AtRest>0) 
+		set Stone position to [StartPos]
+		ThrowingStonesUsed++
+		SCALE of Stone = 0.5
+	end loop
+end script TSAmmo
+
+//------------------------------------------------------------------------------------------------------------------------
+// Throwing Stones Challenge
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ThrowingStones
+
+	RewardPos = marker at [2023.378, 2.680, 2326.985]       
+	PilePos = marker at [1961.672, 14.965, 2388.286]
+	Rock1Pos = marker at [2031.129, 12.272, 2327.405] 
+
+	Rock1 = get ROCK_OBJECT MOBILE_STATIC_INFO_BOULDER3_LIME at [Rock1Pos] radius 5
+
+	Rock1Moved = 0
+	BeginPos = 0
+	BeginFoc = 0
+	IntroPlayed =0
+	PillarPos = marker at [2028.511, 1.717, 2324.919]
+	Pillar = get FEATURE FEATURE_INFO_PILAR3_LIME at [PillarPos] radius 5
+	PillarHit = 0
+	BlokesHouse = get HOUSE at [1982.051, 12.468, 2336.026]
+	Bloke = 0
+	BlokeNumbers = 1
+	BlokePos = marker at [1944.409, 14.418, 2365.232] 
+	RewardInfluence = 0
+	dyk93 = marker at [1977.5922, 13.7978, 2367.9922]
+	dyk26 = marker at [1977.9388, 12.3557, 2338.2507]				// silver scrolls not mandatory
+	
+start
+
+	enable jc special SJC_ALWAYS_VISIBLE on Rock1
+	End = 0
+
+	run background script DidYouKnow(dyk26,variable HELP_TEXT_DYK_26, variable DYK_MISC)			// silver scrolls not mandatory
+	run script ThrowingStonesChallengeHighlightNotify(100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06, Rock1, Rock1Pos)
+
+	while BlokeNumbers > 0 and [Rock1] near [Rock1Pos] radius 2
+		Bloke = create VILLAGER VILLAGER_INFO_JAPANESE_FISHERMAN_MALE at [BlokesHouse]
+		run background script BlokeActions (Bloke, BlokePos, PillarPos, BlokesHouse)
+		BlokePos = marker at [BlokePos]+[number from -5 to 5,number from -5 to 5]
+		BlokeNumbers--
+	end while
+
+
+	if [Rock1] near [Rock1Pos] radius 2
+		//introduction
+		begin cinema
+
+			move camera position to	[1937.342, 26.025, 2389.056] time 5				// Camera pos start
+			move camera focus to [1952.984, 18.194, 2379.391] time 5				// Camera foc start
+
+//			move camera to T00_000 time 3
+
+			eject evil spirit
+			eject good spirit
+			say HELP_TEXT_YOUTHROWING_01
+			wait until read
+			say HELP_TEXT_YOUTHROWING_02
+			wait until read
+			say HELP_TEXT_YOUTHROWING_03
+			wait until read
+
+			move camera position to	[2017.790, 7.617, 2332.306] time 4				// Camera pos look at target
+			move camera focus to [2039.889, 10.026, 2317.297] time 4				// Camera foc look at target
+			
+//			camera path TRACK00
+
+			make good spirit look at Rock1
+			say HELP_TEXT_YOUTHROWING_04											//throw stones as those rocks
+			make good spirit point at [Rock1Pos]
+			make evil spirit look at [Rock1Pos]
+			wait until read
+
+			stop good spirit pointing
+			say HELP_TEXT_YOUTHROWING_05
+			wait until read
+			say HELP_TEXT_YOUTHROWING_06
+			wait until read
+			stop good spirit pointing
+
+			move camera position to [1926.134, 24.206, 2388.729] time 4				// Camera pos back to start 
+			move camera focus to [1944.258, 15.132, 2377.531] time 4				// Camera foc back to start
+
+			run background script TSAmmo(create with angle 0 and scale 0.5 ROCK_OBJECT ROCK at [PilePos]+[0,0,0])
+			run background script TSAmmo(create with angle 0 and scale 0.6 ROCK_OBJECT ROCK at [PilePos]+[5,0,5])
+			run background script TSAmmo(create with angle 0 and scale 0.7 ROCK_OBJECT ROCK at [PilePos]+[5,0,0])
+			run background script TSAmmo(create with angle 0 and scale 0.8 ROCK_OBJECT ROCK at [PilePos]+[2,0,-6])
+			run background script TSAmmo(create with angle 0 and scale 0.9 ROCK_OBJECT ROCK at [PilePos]+[-1,0,-4])
+			make evil spirit point at [PilePos]
+			make good spirit look at [PilePos]
+
+			say HELP_TEXT_YOUTHROWING_07											//this everlasting pile of stones
+			wait until read
+			stop evil spirit pointing
+			say HELP_TEXT_YOUTHROWING_08
+			wait until read
+			wait until camera ready 
+			
+			IntroPlayed = 1
+			PillarHit = 1
+			send evil spirit home
+			send good spirit home
+			close dialogue
+			wait 1 seconds
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_36)
+			// Play hand demo
+			run script Throwing
+		end cinema
+	end if
+
+	run background script DidYouKnow(dyk93, variable HELP_TEXT_DYK_93, variable DYK_NAVIGATION)			// expain aftertouch
+
+	begin loop
+		until End>0
+
+		wait 2 seconds
+
+		when not [Rock1] near [Rock1Pos] radius 2									// Hit Rock !!!				
+			if IntroPlayed == 1
+
+				Rock1Moved = 1
+				PillarHit = 2
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+				begin cinema
+					move camera position to	[2017.790, 7.617, 2332.306] time 2		// Camera pos look at rock
+					set camera focus follow Rock1									// Camera foc look at rock
+
+						eject good spirit
+//						wait 1 seconds
+
+						say single line HELP_TEXT_YOUTHROWING_09
+						update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_39)
+						wait until read
+
+						close dialogue
+						wait 0.1 seconds
+
+						move camera position to	[2017.790, 18.0, 2332.306] time 5	// Camera pos rise look at rock
+ 
+						if Rock1Moved>0 
+							snapshot challenge success 1 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_39)
+							eject evil spirit
+							wait 1 seconds
+							say single line HELP_TEXT_YOUTHROWING_12
+							wait until read
+							close dialogue
+							End = 1
+						end if
+
+
+					move camera position to [2019.599, 12.889, 2338.337] time 2  //Camera looks at reward	
+					move camera focus to [2028.562, 2.233, 2321.391] time 2
+					wait until camera ready
+			
+				end cinema
+
+				delete RockInfl		
+				RewardInfluence = create influence at [RewardPos] radius 10
+				run script rewardfromsky(variable REWARD_OBJECT_TOY_BALL, RewardPos, 0,0)
+			else
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [Rock1Pos]
+					// "What a good shot."
+					say single line HELP_TEXT_YOUTHROWING_18
+					wait until read
+					send evil spirit home
+				end dialogue
+				End = 1
+			end if
+
+
+		when PillarHit == 1 and Pillar hit and [Rock1] near [Rock1Pos] radius 2											// Hit The Pillar !!!
+			wait 2 seconds
+
+			if [Rock1] near [Rock1Pos] radius 2									//Congrats after hitting pillar
+
+				PillarHit = 2
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+				begin cinema
+
+					move camera position to	[2017.790, 7.617, 2332.306] time 2			// Camera pos look at pillar
+					move camera focus to [2039.889, 10.026, 2317.297] time 2			// Camera foc look at pillar
+
+					eject evil spirit
+					// "Good Shot! You hit the pillar! - Try to hit the rock now."
+					say single line HELP_TEXT_YOUTHROWING_17
+					wait until read
+					send evil spirit home
+
+					update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_39)
+													
+					move camera position to	[BeginPos] time 2							// Camera pos back to start 
+					move camera focus to [BeginFoc] time 2								// Camera foc back to start
+ 					wait until camera ready
+				end cinema
+			end if
+
+			
+/*		when not [Rock2] near [Rock2Pos] radius 2 and Rock2Moved < 1
+			Rock2Moved = 1
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			begin cinema
+			set camera position to [2035.0914, 21.9317, 2357.4036]
+			set camera focus to [2040.8533, 5.3525, 2323.2065]
+				eject evil spirit
+				wait 1 seconds
+				say HELP_TEXT_YOUTHROWING_10
+				snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_36)
+				wait until read
+				if Rock1Moved>0 and Rock2Moved>0 and Rock3Moved>0
+					snapshot challenge success 1 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_36)
+					wait 1 seconds
+					say HELP_TEXT_YOUTHROWING_12
+					wait until read
+					End = 1
+				end if
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+			end cinema
+		when not [Rock3] near [Rock3Pos] radius 2 and Rock3Moved < 1
+			Rock3Moved = 1
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			begin cinema
+			set camera position to [2035.0914, 21.9317, 2357.4036]
+			set camera focus to [2040.8533, 5.3525, 2323.2065]
+				eject good spirit
+				wait 1 seconds
+				say HELP_TEXT_YOUTHROWING_11
+				snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_36)
+				wait until read
+				if Rock1Moved>0 and Rock2Moved>0 and Rock3Moved>0
+					snapshot challenge success 1 alignment 0.0 HELP_TEXT_TITLE_38 StandardReminder(variable HELP_TEXT_REMINDER_36)
+					eject evil spirit
+					wait 1 seconds
+					say HELP_TEXT_YOUTHROWING_12
+					wait until read
+					End = 1
+				end if
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+			end cinema
+*/
+
+	end loop
+
+	run background script KeepPractising (Rock1Pos)
+	delete ThrowStonesHighlight
+
+end script ThrowingStones
+
+
+//marker at [1994.873, 14.698, 2334.059]  position for audience
+//marker at [1982.051, 12.468, 2336.026]  blokes house

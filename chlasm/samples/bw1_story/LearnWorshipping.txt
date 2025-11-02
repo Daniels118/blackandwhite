@@ -1,0 +1,373 @@
+challenge LEARN_WORSHIPPING
+
+//------------------------------------------------------------------------------------------------------------------------
+define script WaitAndCreateWorshipSite(TownCentre)
+
+//------------------------------------------------------------------------------------------------------------------------
+// Your totem is up.
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckDyingWorshippers(TownCentre, Town)
+	StartTimer=create timer for 60 seconds
+	OldDeathCount=0
+	DeathCount=0
+	Altitude = 0
+	Totem=0
+start
+	OldDeathCount=get worship deaths in Town
+	Totem=get totem statue in TownCentre
+
+	begin loop
+		Altitude = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem
+		if get StartTimer time remaining <= 0
+			DeathCount=get worship deaths in Town
+			if DeathCount > OldDeathCount
+				set StartTimer time to 60 seconds
+				begin dialogue
+					eject good spirit
+					eject evil spirit
+					say HELP_TEXT_WORSHIP_DEATHS_01
+					wait until read
+					say HELP_TEXT_WORSHIP_DEATHS_02
+					wait until read
+
+				end dialogue
+			end if
+		end if
+	until Altitude < 0.4
+	end loop
+end script CheckDyingWorshippers
+
+//------------------------------------------------------------------------------------------------------------------------
+// Send Khazar to create a workshop
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreateWorkshop
+	Scaffold4Pos = marker at [2651.957,27.117,1945.278]
+	Scaffold4PlacePos = marker at [3252.089, 47.570, 3341.047]  
+	Scaffold4 = 0
+start
+	
+	set computer player 2 speed 150.0
+	Scaffold4 =  create SCAFFOLD at [Scaffold4Pos]
+	ANGLE of Scaffold4 = 160
+	set Scaffold4 building properties ABODE_NUMBER_WORKSHOP size 3 destroys when placed
+	force computer player 2	action "FindPlaceToUseScaffoldForBuilding" Scaffold4 Scaffold4PlacePos
+	wait until computer player 2 ready
+	release computer player 2
+	
+	disable Scaffold4 pickup
+	disable Scaffold4 moveable
+end script CreateWorkshop
+
+//------------------------------------------------------------------------------------------------------------------------
+// Once your citadel is built, as is your worship site. So it's time to learn about worshipping.
+//------------------------------------------------------------------------------------------------------------------------
+begin script LearnWorshipping
+	TownCentrePos = marker at [3231.11,3398.02]
+	Highlight = 0
+	VillagerToWorship = 8
+	Villager = 0
+	WorshipFlock = 0
+	KhazarStartPos = marker at [2935, 3494]
+	KhazarPos2 = marker at [3285, 3254]
+	ObjectInHand = 0
+	Town = get town with id 0
+	BuiltPerc = 0
+
+	Khazar = get computer player 2
+	TownCentreScrollPos=marker at [3308.4753, 76.8406, 3242.7588]
+	NewScrollPos = marker at [3334.112, 76.487, 3165.987]
+	
+	Dyk91 = marker at [3238.302, 47.570, 3387.058]					//Worship DYK
+	Dyk92 = marker at [3316.1538, 77.4609, 3248.2908]				//Town centre Info
+
+	Scaffold1PlacePos = marker at [3233.325,47.570,3398.706]
+	TownCentre=0
+
+	WorshipSite=0
+	WorshipSitePos=marker at [3361.2600, 77.7200, 3241.8501]
+
+	NorseTotem = 0
+
+start
+	TownCentre = get HOUSE at [Scaffold1PlacePos] radius 10
+
+	run script WaitAndCreateWorshipSite(TownCentre)
+
+	NorseTotem = get totem statue in TownCentre
+	WorshipSite = get WORSHIP WORSHIP_SITE_INFO_NORSE at [WorshipSitePos] radius 50
+
+	if KhazarGone == 0
+		KhazarInScript=1
+		move computer player 2 to [TownCentreScrollPos] speed 150 with fixed height
+		wait until computer player 2 ready
+		release computer player 2
+		KhazarInScript=0
+
+		Highlight = create highlight HIGHLIGHT_QUEST at [TownCentreScrollPos]
+		ALTITUDE of Highlight = 0
+
+		run script CheckForKhazarChallengeHighlightNotify(Highlight, Highlight, variable GOOD_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_05)
+	end if
+	
+	run background script DidYouKnow(Dyk91, variable HELP_TEXT_DYK_91, variable DYK_NAVIGATION)		//Worship DYK
+	run background script DidYouKnow(Dyk92, variable HELP_TEXT_DYK_92, variable DYK_VILLAGE_LIFE)	//Town DYK
+	enable TownCentre pickup
+
+	if KhazarGone == 0
+		KhazarInScript=1
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+			move computer player 2 to [3231.138, 47.570, 3380.132] speed 400 with fixed height
+			move camera position to [3270.5500, 68.8539, 3386.7300] time 8
+			move camera focus to [3231.138, 47.570, 3380.132] time 5
+
+			wait until 3 seconds
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_04 //YOur worship is built. Let me tell you miracles.
+			move camera focus to [3124.8450, 41.7049, 3414.9282] time 8
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_05	//People worship at the temple.
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_06 //to get them there you must use the totem.
+			wait until read
+
+			//START TOTEM HAND DEMO
+			run script Worship
+
+			// get a couple of Townsfolk and teleport them to worship site to ensure mana generation by the end of the cinema
+			WorshipFlock = flock at [WorshipSitePos]
+			set WorshipFlock properties inner 3 outer 10
+			while VillagerToWorship > 0
+				Villager = get VILLAGER in Town excluding scripted
+				if Villager exists
+					set Villager position to [WorshipSitePos]+[number from -3 to 3, number from -3 to 3]
+					attach Villager to WorshipFlock
+				end if
+				VillagerToWorship--
+			end while
+
+			disband WorshipFlock
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_07 // The higher you raise the totem the more people will go to worship you
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_08 // Now come, look at your followers.
+
+			move computer player 2 to [3333.156, 77.050, 3241.797] speed 30 with fixed height
+
+			move camera to T00_000 time 3
+			wait until camera ready
+
+			set WorshipSite mana 0
+			camera path TRACK00
+
+			wait until 9 seconds
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_09	// They are dancing and worshipping you, which gives you power.
+			wait until read
+
+			
+
+			wait until camera ready
+
+			set WorshipSite mana 0
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_10	// These are the miracles your people offer you
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_11	// The Miracles of Wood, Grain and Water.
+			wait until read
+
+			run script MiracleHandDemo(WorshipSite)
+			
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_15	// Remember, Worshipping comes at a cost, the needs of your worshippers can be seen on these flags.
+
+			move camera position to [3311.519, 85.222, 3266.543] time 6
+			move camera focus to [3321.465, 77.258, 3246.431] time 6
+			wait until read
+			
+			//run script MiracleCastHandDemo
+			//start hand demo "miraclecast"
+			start hand demo "miraclecast" without hand modify
+
+				say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_16	// and worshipping can tire your people, and leave your town neglected.
+				wait until read
+
+				wait until camera ready
+			wait until hand demo played
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_17	// I'll leave you now to experiment with miracles, and expand your land.
+
+			SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NorseTotem = 0.5
+
+			move camera position to [3312.757, 95.639, 3298.344] time 5
+			move camera focus to [3357.076, 77.228, 3206.820] time 5
+
+			wait until read
+			wait until camera ready
+			stop music
+		end cinema
+
+		delete Highlight with fade
+
+		//Create workshop
+		run script CreateWorkshop
+
+		//Place down miracles challenges
+		
+		move computer player 2 to [NewScrollPos] speed 150 with fixed height
+		wait until computer player 2 ready
+		release computer player 2
+		KhazarInScript=0
+		run background script MiracleChallenges(NewScrollPos)
+	end if
+
+	//Run background script - Down forget about your dying worshippers...
+	run background script CheckDyingWorshippers(TownCentre, Town)
+	LearnWorshipCompleted=1
+
+end script LearnWorshipping
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Wait and then create a worship site
+//------------------------------------------------------------------------------------------------------------------------
+begin script WaitAndCreateWorshipSite(TownCentre)
+	Citadel = get CITADEL at [3361.2600, 77.0500, 3241.8501] radius 10
+	Villager=0
+	Highlight=0
+	HighlightPos = marker at [3338.7944, 77.7200, 3242.4939]
+	LocalTown = get town with id 0
+	DisciplePos = marker at [3331.837, 77.050, 3249.986]
+	WorshipSite=0
+	WorshipSitePos=marker at [3361.2600, 77.7200, 3241.8501]
+	DoneTownCentre=0
+	DoneCitadel=0
+
+start
+	disable TownCentre pickup
+
+	disable Citadel build worship site
+			
+	while (DoneCitadel == 0 or DoneTownCentre==0) and KhazarGone == 0
+		//Wait for citadel and town centre complete
+		if DoneCitadel == 0
+			if BUILT of Citadel == 1
+				run script ComputerPlayerConfrontPlayer(2, variable HELP_TEXT_L2_GOD_REACTION_01, 1)
+				DoneCitadel=1
+			end if
+		end if
+
+		if DoneTownCentre == 0
+			if BUILT of TownCentre == 1
+				DoneTownCentre=1
+				run script ComputerPlayerConfrontPlayer(2, variable HELP_TEXT_KHAZAR_EXTRA_LINES_01, 1)	
+			end if
+		end if
+	end while
+
+	if KhazarGone == 0
+		KhazarInScript=1
+		move computer player 2 to [HighlightPos] speed 250 with fixed height
+		wait until computer player 2 ready
+		release computer player 2
+		KhazarInScript=0
+
+		Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+		ALTITUDE of Highlight = 5
+
+		run script CheckForKhazarChallengeHighlightNotify(Highlight, HighlightPos, variable GOOD_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_04)
+	end if
+
+	if KhazarGone == 0
+		Villager = create VILLAGER MALE at [Citadel]
+		attach Villager to LocalTown
+
+		begin cinema   
+			KhazarInScript=1
+			set computer player 2 speed 350
+
+			force computer player 2 action "DIRECTPickupAndDropObject" Villager DisciplePos
+
+			move camera position to [3318.996, 82.252, 3269.352] time 4
+			move camera focus to [3346.076, 77.150, 3226.344] time 4
+
+			wait until computer player 2 ready
+
+			move computer player 2 to [3328.1287, 77.7200, 3244.1006] speed 350 with fixed height
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_01 //I give you a builder to make your worship site.
+
+			set Villager disciple VILLAGER_DISCIPLE_BUILDER with sound
+			set Villager carrying CARRIED_OBJECT_MALLET_HEAVY
+		
+			move Villager position to [3325.278, 77.050, 3244.582] 
+
+			wait until 2 seconds
+
+			Villager play ANM_P_HAMMERING loop -1
+
+//			snapshot quest success 0.0 alignment 0 HELP_TEXT_TITLE_114 StandardReminder(variable HELP_TEXT_REMINDER_113)
+
+			wait until read
+
+			move camera position to [3310.7615, 86.5529, 3265.0632] time 8
+			move camera focus to [3337.6118, 77.9624, 3243.3999] time 8
+
+			//Must make Norse town enabled first....
+			enable LocalTown build worship site
+			enable Citadel build worship site
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_03 //This building is important
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_02 //I will return when it's built
+			wait until read
+
+			release computer player 2
+			KhazarInScript=0
+
+			close dialogue
+			wait 0.1 seconds
+
+			move camera position to [3301.4871, 101.1075, 3275.1289] time 5
+			move camera focus to [3352.2732, 78.0504, 3233.4875] time 5
+
+			snapshot quest success 0.0 alignment 0 HELP_TEXT_TITLE_114 StandardReminder(variable HELP_TEXT_REMINDER_113)
+
+			eject good spirit
+			eject evil spirit
+
+		end cinema with dialogue
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_18		//Oh I can't wait - Miracles are cool
+			wait until read
+
+			say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_19		//Yeah we have miracle control.
+			wait until read
+		end dialogue
+
+		release Villager
+		WorshipSite = get WORSHIP WORSHIP_SITE_INFO_NORSE at [WorshipSitePos] radius 50
+
+		wait until BUILT of WorshipSite >= 0.5
+		if WorshipSite viewed
+			snapshot quest success 0.5 alignment 0 HELP_TEXT_TITLE_114 StandardReminder(variable HELP_TEXT_REMINDER_113)
+		else
+			update snapshot success 0.5 alignment 0 HELP_TEXT_TITLE_114 StandardReminder(variable HELP_TEXT_REMINDER_113)
+		end if
+
+		wait until BUILT of WorshipSite == 1
+		delete Highlight with fade
+
+		wait until WorshipSite viewed or 30 seconds
+		snapshot quest success 1 alignment 0 HELP_TEXT_TITLE_114 StandardReminder(variable HELP_TEXT_REMINDER_113)
+		run script ComputerPlayerConfrontPlayer(2, variable HELP_TEXT_L2_GOD_REACTION_06, 1)
+	else 
+		enable LocalTown build worship site
+		enable Citadel build worship site
+	end if
+
+end script WaitAndCreateWorshipSite
+

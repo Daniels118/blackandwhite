@@ -1,0 +1,12 @@
+challenge RunWhackAVillager
+
+run script RunWhackAVillager
+
+begin script RunWhackAVillager
+	
+start
+	
+	run script WhackAVillager
+	
+
+end script RunWhackAVillager

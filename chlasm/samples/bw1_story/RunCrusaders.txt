@@ -1,0 +1,13 @@
+challenge RunCrusaders
+
+run script RunCrusaders
+
+begin script RunCrusaders
+	
+start
+
+	run script SetupLand5	
+	run script Crusaders
+	
+
+end script RunCrusaders

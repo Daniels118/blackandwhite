@@ -1,0 +1,108 @@
+challenge TAKE_OVER_VILLAGES_L1
+
+begin script TakeOverVillagesL1
+
+ 
+start
+
+
+	wait until camera position near [AztecTown] radius 200
+
+
+	begin cinema
+
+		eject good spirit
+		eject evil spirit
+
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_01	 // The big Creature! He's pointing at something.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_02	 // That village. You know I think he wants us to be its god.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_03	 // How do you know?
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_04	 // Educated guess.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_05	 // Educated? Okay. Anyway, so how do we do it?
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_06	 // To gain a settlement we must impress the people there.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_07	 // We can use miracles, powerful physical acts or our Creature.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_08	 // If the people are impressed enough.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_09	 // Or scared enough.
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_10	 // The Town will be ours!
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_11	 // And all settlements work this way?
+			wait until read
+
+			say HELP_TEXT_MEET_THE_AZTEC_VILLAGE_12	 // Of course.
+			wait until read
+
+
+		send good spirit home
+		send evil spirit home
+
+	end cinema
+
+
+
+	while get PLAYER of AztecTown != 1
+
+		// to avoid too many computation
+		wait 5 seconds
+
+	end while
+		
+	// move camera position to Town1 time 5
+	// wait until camera ready
+
+	begin cinema
+
+		eject good spirit
+		eject evil spirit
+
+			say HELP_TEXT_TAKE_AZTEC_VILLAGE_01
+			wait until read
+
+			say HELP_TEXT_TAKE_AZTEC_VILLAGE_02
+			wait until read
+
+			say HELP_TEXT_TAKE_AZTEC_VILLAGE_03
+			wait until read
+
+			say HELP_TEXT_TAKE_AZTEC_VILLAGE_04
+			wait until read
+
+			say HELP_TEXT_TAKE_AZTEC_VILLAGE_05
+			wait until read
+
+		send good spirit home
+		send evil spirit home
+
+	end cinema
+
+end script TakeOverVillagesL1
+
+
+
+
+
+
+
+
+
+
+

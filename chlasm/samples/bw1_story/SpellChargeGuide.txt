@@ -1,0 +1,64 @@
+challenge SPELL_CHARGE_GUIDE
+
+//run script SpellChargeGuide
+
+begin help script SpellChargeGuide
+
+// CitadelPos = marker at [1920.9600, 22.1100, 2524.0000]
+// EntrancePos = marker at [1909.0479, 22.1100, 2530.2783]
+
+ HealSpellPos = marker at [1882.1045, 22.1100, 2527.2952]
+
+ BeginPos = 0
+ BeginFoc = 0
+
+ CamPos1 = marker at [1888.7013, 39.3093, 2490.1448] // Looking down into worship site
+ CamFoc1 = marker at [1893.2206, 22.7082, 2511.9597]
+
+ CamPos2 = marker at [1860.9564, 38.3573, 2522.3555]
+ CamFoc2 = marker at [1880.3295, 22.7247, 2527.4868]
+
+ CamPos3 = marker at [1905.0525, 58.0845, 2543.4165]
+ CamFoc3 = marker at [1900.7560, 22.9291, 2519.2168]
+
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [CamPos1] time 3
+		move camera focus to [CamFoc1] time 3
+		wait until camera ready
+		eject evil spirit
+		eject good spirit
+		// "EA: The worshippers have assembled."
+		say HELP_TEXT_SPELL_CHARGE_GUIDE_01
+		wait until read
+		// "GA: Now we can charge that heal spell we have."
+		say HELP_TEXT_SPELL_CHARGE_GUIDE_02
+		move camera position to [CamPos2] time 6
+		move camera focus to [CamFoc2] time 6
+		wait until read
+		wait until camera ready
+		make good spirit point at [HealSpellPos]
+		// "GA: To charge this spell RMB on the miracle pole."
+		say HELP_TEXT_SPELL_CHARGE_GUIDE_03
+		wait until read
+		stop good spirit pointing
+		// "GA: When charged the spell will appear in your hand ready to use."
+		say HELP_TEXT_SPELL_CHARGE_GUIDE_04
+		move camera position to [CamPos3] time 6
+		move camera focus to [CamFoc3] time 6
+		wait until read
+		// "EA: The more villagers worshipping the faster the spell charges."
+		say HELP_TEXT_SPELL_CHARGE_GUIDE_05
+		wait until read
+		send good spirit home
+		send evil spirit home
+		wait 2 seconds
+		wait until camera ready
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+
+end script SpellChargeGuide

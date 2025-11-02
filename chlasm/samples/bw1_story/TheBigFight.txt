@@ -1,0 +1,544 @@
+challenge THE_BIG_FIGHT
+
+//------------------------------------------------------------------------------------------------------------------------
+
+global ChangeFinished
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script FindCirclePointWE(Centre, OuterCentre, Radius, Degrees, Offset)
+Position  = marker at [0, 0, 0]
+Ex = 0
+start
+	Position = marker at get target from [OuterCentre] to [Centre] distance Radius angle Degrees
+	SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of Position = SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of Position + Offset
+	Ex = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [Position] time 2
+end script FindCirclePointWE
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterEx
+Centre = marker at [3949.732, 55.610, 2346.740]
+Centre2 = marker at [3959.732, 55.610, 2346.740]
+Angle1 = 0
+Angle2 = 180
+Angle3 = 90
+Angle4 = 270
+start 
+	while ChangeFinished == 0
+		run script FindCirclePointWE(Centre, Centre2, 15, Angle1, 0)
+		run script FindCirclePointWE(Centre, Centre2, 15, Angle2, 0)
+		run script FindCirclePointWE(Centre, Centre2, 15, Angle3, 0)
+		run script FindCirclePointWE(Centre, Centre2, 15, Angle4, 0)
+		Angle1 += 10
+		Angle2 += 10
+		Angle3 += 10
+		Angle4 += 10
+
+		if Angle1 > 360
+			Angle1 = 0
+		end if 
+		if Angle2 > 360
+			Angle2 = 0
+		end if 
+		if Angle3 > 360
+			Angle3 = 0
+		end if 
+		if Angle4 > 360
+			Angle4 = 0
+		end if 
+
+	end while
+	
+end script LookAfterEx
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script FindCirclePoint(Centre, OuterCentre, Radius, Degrees, Offset)
+Position  = marker at [0, 0, 0]
+Sm = 0
+Oa = 0
+start
+	Position = marker at get target from [OuterCentre] to [Centre] distance Radius angle Degrees
+	SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of Position = SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of Position + Offset
+	Sm = create special effect SPOT_VISUAL_SMOKE at [Position] time 2
+	Oa = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Position] time 2
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Sm = 16.0
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Oa = 16.0
+	
+end script FindCirclePoint
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterSpanglyEffect
+NemesisPos = marker at [3345.006, 13.421, 2464.720] 
+NemesisRadius = marker at [3335.006, 13.421, 2464.720] 
+Angle = 0
+OtherAngle = 180
+Offset = 0
+OtherOffset = 16
+YOffset = 1
+OtherYOffset = 1
+start
+	while ChangeFinished == 0
+			run script FindCirclePoint(NemesisPos, NemesisRadius, 15, Angle, Offset)
+			run script FindCirclePoint(NemesisPos, NemesisRadius, 15, OtherAngle, OtherOffset)
+			Angle += 20
+			OtherAngle += 20
+
+			if Angle > 360
+				Angle = 0
+			end if 
+			if OtherAngle > 360
+				OtherAngle = 0
+			end if 
+
+			Offset += YOffset
+			if Offset > 16	or Offset < 0
+				YOffset *= -1
+			end if
+
+			OtherOffset += OtherYOffset
+			if OtherOffset > 16	or OtherOffset < 0
+				OtherYOffset *= -1
+			end if
+	end while
+end script LookAfterSpanglyEffect
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script WaitThenFocusNemsCreature (NemsCreature, NemsCreatureRetreatPos)
+
+start
+
+	wait until [NemsCreature] near [NemsCreatureRetreatPos] radius 10
+	wait 2 seconds
+	force NemsCreature CREATURE_LOOK_FOREVER MyCreature
+
+end script WaitThenFocusNemsCreature
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script TheBigFightMain
+NemesisPos = marker at [3345.006, 13.421, 2464.720] 
+NemsCreature = get player 2 creature // Nemesis' creature
+NewCreature = 0
+CreatureType = 0
+InvisSpell = 0
+CreatureHeight = 0
+NewCreatureHeight = 0
+OtherCreatureDefeated = 0
+HealSpellCast = 0
+HealSpell = 0
+
+start
+	MyCreature = get player 1 creature // Nemesis' creature
+	set computer player 2 position to [3305.612, 30.400, 2517.320]
+	set NemsCreature position to [NemesisPos]
+	set NemsCreature focus to [3305.612, 30.400, 2517.320]
+	ChangeFinished = 0
+	
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		set camera position to [3007.803, 37.965, 2701.725] 
+		set camera focus to [3156.586, 5.838, 2601.266] 
+		move camera position to [3288.079, 32.327, 2529.092] time 16
+		move camera focus to [3373.557, 13.870, 2471.376] time 16
+		wait 2 seconds
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_01
+		wait until read
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_02
+		wait until read
+		close dialogue
+		send good spirit home
+		send evil spirit home
+		wait until camera ready	
+
+		set MyCreature position to [3212.589, 9.877, 2583.286] 
+		set MyCreature focus to camera position
+
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_03
+		wait until read
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_04
+		wait until read
+
+		MyCreature play C_INDIVIDUAL_SAD loop 1
+		set camera position to [3253.653, 41.159, 2551.856] 
+		set camera focus to [3223.670, 29.027, 2574.007] 
+		move camera position to [3255.406, 33.862, 2550.560] time 20
+		move camera focus to [3224.532, 26.375, 2573.368] time 20
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_05
+		wait until read
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_06
+		wait until read
+
+		set camera position to [3288.079, 32.327, 2529.092]
+		set camera focus to [3373.557, 13.870, 2471.376]
+		
+		move camera position to [3327.925, 16.676, 2521.586] time 20
+		move camera focus to [3346.298, 35.143, 2458.583] time 20
+		say HELP_TEXT_NEW_L5_MIRROR_FIGHT_07
+		wait until read
+		close dialogue
+		set computer player 2 position to [3305.612, 50.400, 2517.320]
+
+		run background script LookAfterSpanglyEffect
+		NemsCreature play C_INDIVIDUAL_ANGRY loop 1
+		wait until camera ready
+
+		//PAUL - TODO PUT BACK IN AFTER GILES HAS FIXED HIS STUFF, CAUSE IT DOESN't LOOK HALF AS GOOD WITHOUT THE INVISIBLIE SPELL
+		InvisSpell=cast CREATURE_SPELL_INVISIBLE spell on NemsCreature from [NemsCreature] radius 0 time -1 curl 0
+		move camera position to [3328.592, 14.478, 2492.845] time 20
+		move camera focus to [3357.790, 48.030, 2442.240] time 20
+		NemsCreature play C_INDIVIDUAL_SUMMON loop 1
+
+		wait 2 seconds
+		CreatureType = variable get MyCreature sub type
+		//NewCreature = create_creature_from_creature MyCreature 1 at [NemesisPos] constant CreatureType
+		load creature constant CreatureType "NemesisCreature" player 2 at [NemesisPos]
+		NewCreature = get player 2 creature 
+		set NewCreature name HELP_TEXT_MIRROR_NAME_01
+		set NewCreature fade in time 6
+		set NewCreature focus to [3305.612, 30.400, 2517.320]
+		enable NewCreature auto scale 1.0
+
+		ALIGNMENT of NewCreature = - ALIGNMENT of MyCreature
+		if ALIGNMENT of NewCreature < 0
+			ALIGNMENT of NewCreature = -1
+		else
+			ALIGNMENT of NewCreature = 1
+		end if
+		set NewCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+		SCALE of NewCreature = SCALE of MyCreature
+		STRENGTH of NewCreature = 1
+		teach NewCreature everything
+		NewCreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NewCreature
+
+		wait 6 seconds
+		delete NemsCreature with fade
+		wait 2 seconds
+		NewCreature play C_INDIVIDUAL_SUMMON loop 1
+		snapshot quest success 0.0 alignment 0.0 HELP_TEXT_NEMESIS_SPEAKS2_04 StandardReminder(variable HELP_TEXT_NEMESIS_SPEAKS2_04)
+		wait until NewCreature played
+
+		CreatureHeight=SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NewCreature
+		move MyCreature position to [3238.604, 12.730, 2553.953] 
+		set camera position to [3279.991, 23.918, 2522.821] 
+		set camera focus to [3238.604, 12.730, 2553.953]+[-20, CreatureHeight*0.5, 0]
+		wait until [MyCreature] near [3238.604, 12.730, 2553.953] radius 1
+		MyCreature play C_INDIVIDUAL_TAUNT loop 1
+		wait until MyCreature played
+
+		move camera position to [3413.674, 78.060, 2515.111] time 10
+		move camera focus to [3361.869, 52.486, 2505.175] time 10
+		wait until camera ready
+		stop music
+	end cinema
+	set computer player 2 position to [3305.612, 100.400, 2517.320]
+	
+	   
+	while OtherCreatureDefeated == 0
+		MyCreature = get player 1 creature
+		wait until [MyCreature] near [3464.969, 7.396, 2439.695] radius 300 
+		force NewCreature CREATURE_FIGHT MyCreature
+		force MyCreature CREATURE_FIGHT NewCreature
+		
+		ChangeFinished = 1
+		HealSpellCast = 0
+		wait until MyCreature fighting
+		
+		begin loop
+			if FIGHTHEALTH of NewCreature < 0.5
+				if HealSpellCast < 4
+					HealSpellCast++
+					//Cast the heal spell here.
+					HealSpell = cast SPELL_HEAL_LEVEL_2 spell on NewCreature from [NewCreature] radius 3 time 3 curl 0
+					FIGHTHEALTH of NewCreature=1
+					HEALTH of NewCreature=1
+					wait 10 seconds
+
+				end if 
+			end if
+		until not MyCreature fighting
+		end loop
+
+		//if ChangeFinished == 1
+		if FIGHTHEALTH of MyCreature > FIGHTHEALTH of NewCreature
+			force NewCreature CREATURE_DIE_PERMANENTLY NewCreature
+			OtherCreatureDefeated = 1
+		else
+			HEALTH of MyCreature = 0
+			force MyCreature CREATURE_DEAD MyCreature
+			run background script HealFightVictorOverTime(NewCreature)					
+			begin cinema
+				NewCreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NewCreature
+				move camera focus to [NewCreature]+[0, NewCreatureHeight*0.5, 0] time 2
+				set NewCreature focus to camera position
+				wait until camera ready
+				wait 1 seconds
+				NewCreature play C_INDIVIDUAL_SUMMON loop 1
+				say HELP_TEXT_NEW_L5_MIRROR_FIGHT_08
+				wait until read
+				say HELP_TEXT_NEW_L5_MIRROR_FIGHT_09
+				wait until read
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				wait 1 seconds
+				set NewCreature position to [3439.783, 10.016, 2430.759] 
+				MyCreature = get player 1 creature
+				set MyCreature position to [3182.604, 6.030, 2636.522] 
+
+				set NewCreature focus to [MyCreature]
+				set MyCreature focus to [NewCreature]
+				set camera position to [3028.693, 43.366, 2675.741] 
+				set camera focus to [3135.861, 17.582, 2620.149] 
+				set fade in time 1
+				wait until fade ready
+				eject evil spirit
+				say HELP_TEXT_NEW_L5_MIRROR_FIGHT_10
+				wait until read
+			end cinema
+			release MyCreature
+		end if 
+	end while 
+	
+	update snapshot success 1.0 alignment 0.0 HELP_TEXT_NEMESIS_SPEAKS2_04 StandardReminder(variable HELP_TEXT_NEMESIS_SPEAKS2_04)
+
+	//HURRAH!! THE END OF THE GAME!!
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		set computer player 2 position to [3305.612, 100.400, 2517.320]
+		
+		set MyCreature focus to camera position
+		MyCreature play C_INDIVIDUAL_HAPPY loop 1
+		wait until MyCreature played
+		wait 5 seconds
+		set camera position to [3340.214, 106.134, 2520.496] 
+		set camera focus to [2998.024, 25.882, 2494.264] 
+		wait 2 seconds
+		say HELP_TEXT_EXTRA_LAND_5_01
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_02
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_03
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_04
+		wait until read
+
+		move camera position to [3979.177, 206.071, 2136.992] time 30
+		move camera focus to [3944.243, 190.896, 2155.597] time 30
+
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_EXTRA_LAND_5_05
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_06
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_07
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_08
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_09
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_10
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_11
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_12
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_13
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_14
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_15
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_16
+		wait until read
+		set NewCreature position to [2022.760, 28.902, 2552.153] 
+		send good spirit home
+		send evil spirit home
+		stop music
+	end cinema
+
+	release MyCreature
+	MyCreature = get player 1 creature
+	wait until [MyCreature] near [3464.969, 7.396, 2439.695] radius 50
+	detach MyCreature leash
+	delete NewCreature
+end script TheBigFightMain
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script MakeCreatureAlignment(Creature)
+start
+	begin loop
+		if ALIGNMENT of Creature < 0
+			ALIGNMENT of Creature -= 0.1
+		else
+			ALIGNMENT of Creature += 0.1
+		end if
+		wait 1 seconds
+		until ALIGNMENT of Creature  < -1
+		until ALIGNMENT of Creature  > 1
+	end loop
+	
+end script MakeCreatureAlignment
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script NemesisCitadelDestroyed
+EnemyCitadel = get CITADEL at [3949.732, 55.610, 2346.740] radius 40
+CreatureHeight = 0
+Smoke1 = 0
+Smoke2 = 0
+Smoke3 = 0
+Smoke4 = 0
+EnemyCreature = 0
+start
+	EnemyCreature = get player 2 creature
+	MyCreature = get player 1 creature
+	begin cinema
+	
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		set fade red 0 green 0 blue 0 time 1
+		set camera position to [3640.021, 93.264, 2577.149]
+		move camera position to [3751.223, 104.318, 2624.146] time 20
+		set camera focus to [3470.896, 76.559, 2509.290] 
+		set fade in time 1
+		move computer player 2 to [3949.732, 55.610, 2346.740]   speed 50
+
+
+
+		wait 4 seconds
+		move camera position to [3828.194, 91.881, 2523.586] time 12
+		move camera focus to [3931.245, 82.067, 2388.959] time 12
+		wait until camera ready
+   		set camera position to [3948.777, 253.381, 2349.794] 
+		set camera focus to [3954.340, -13.733, 2341.904] 
+		wait 3 seconds
+		ChangeFinished = 0
+		run background script LookAfterEx
+		wait 6 seconds
+		
+		delete EnemyCitadel with temple explode		
+
+		set camera position to [4081.668, 204.376, 2402.393] 
+		set camera focus to [3936.114, 56.301, 2344.812] 
+		move camera position to [3892.185, 103.507, 2510.770] time 20
+		move camera focus to [3976.807, 66.541, 2280.300] time 20
+		
+		wait 16 seconds
+
+		set camera position to [3892.382, 54.071, 2400.250] 
+		set camera focus to [3906.375, 60.963, 2387.944]
+		
+		wait 4 seconds
+		EnemyCitadel = get CITADEL at [3949.732, 55.610, 2346.740] radius 40
+		delete EnemyCitadel with temple explode
+		delete EnemyCreature 
+
+		wait 2 seconds
+		ChangeFinished = 1
+		wait 4 seconds
+
+		//CREATE TREE
+		
+
+		
+		
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_EXTRA_LAND_5_25
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_26
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_27
+		wait until read	 
+						
+		set MyCreature position to [2263.772, 21.050, 2768.494] 
+		wait 0.5 seconds
+		set MyCreature focus to [3283.719, 12.979, 2490.781] 
+		wait until MyCreature played
+		force MyCreature CREATURE_DIE_PERMANENTLY MyCreature
+		HEALTH of MyCreature=0.1
+
+		Smoke1 = create special effect SPOT_VISUAL_SMOKE at [MyCreature] time 25
+		Smoke2 = create special effect SPOT_VISUAL_SMOKE at [2275.831, 18.807, 2793.103]   time 15
+		Smoke3 = create special effect SPOT_VISUAL_SMOKE at [2283.001, 19.032, 2771.673]  time 10
+		Smoke4 = create special effect SPOT_VISUAL_SMOKE at [2287.614, 17.624, 2791.561] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke1 = 7.0					
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke2 = 7.0					
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke3 = 7.0					
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke4 = 7.0					
+		
+		start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		shake camera at camera position radius 300.0 amplitude 0.25 time 2
+		wait 1 seconds
+		say HELP_TEXT_EXTRA_LAND_5_28
+		wait until read
+		wait 1 seconds
+		
+		set camera position to [2342.274, 69.270, 2791.718] 
+		set camera focus to [2257.379, 22.817, 2774.932]  
+		move camera position to [2323.760, 69.270, 2822.186] time 10
+		move camera focus to [2255.904, 22.930, 2768.818] time 10
+		say HELP_TEXT_EXTRA_LAND_5_29
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_30
+		wait until read
+		say HELP_TEXT_EXTRA_LAND_5_31
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+		stop music
+		
+	end cinema
+
+	wait until HEALTH of MyCreature > 0.8
+	set MyCreature creed properties hand HAND_GLOW_LEFT scale 0.0 power 0.0 time 0.0
+	set MyCreature creed properties hand HAND_GLOW_RIGHT scale 0.0 power 0.0 time 0.0
+
+	wait 5 seconds
+	release MyCreature
+	wait 1 seconds
+	MyCreature = get player 1 creature
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_02
+		CreatureHeight=SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	
+		set camera position to [2300.917, 50.843, 2781.672] 
+		set camera focus to [2221.106, 12.715, 2744.164] 
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+		MyCreature play C_INDIVIDUAL_SUMMON loop 1
+
+		//run background script MakeCreatureAlignment(MyCreature)
+		move camera focus to [MyCreature]+[0, CreatureHeight*0.9, 0] time 5
+		move camera position to [2284.190, 41.774, 2791.270] time 20
+		wait until camera ready
+		set MyCreature focus to [2284.190, 41.774, 2791.270] 
+		wait until MyCreature played
+
+		move camera position to [2364.731, 53.782, 2877.579] time 12
+		MyCreature play C_INDIVIDUAL_HAPPY loop 1
+		wait until MyCreature played
+		MyCreature play C_MISC_PRAY loop 1
+		//wait until MyCreature played
+
+		
+		set fade red 0 green 0 blue 0 time 10
+		wait until camera ready
+		stop music
+	end cinema
+	wait until fade ready 
+	release MyCreature
+end script NemesisCitadelDestroyed
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------

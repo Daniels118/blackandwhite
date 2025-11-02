@@ -1,0 +1,862 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Rotating
+
+TemplePos	= marker at [1867.5237, 54.5025, 2539.1250]
+TempleFoc	= marker at [1914.2778, 29.8864, 2509.3811]
+
+start
+
+	begin known cinema
+		//enable hand demo keys
+
+		// Focus on the Temple before the hand demo starts (just in case)
+		move camera position to [TemplePos] time 2
+		move camera focus to [TempleFoc] time 2
+		wait until camera ready
+
+		start hand demo "rotate" with pause on trigger
+			say HELP_TEXT_HAND_DEMO_ROTATING_01		// Move the hand to the side of the screen
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ROTATING_02		// Hold the left mouse button down
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ROTATING_03		// Move the hand in a circular motion
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ROTATING_05
+			wait until hand demo trigger			
+		wait until hand demo played
+		wait until read
+		
+		say HELP_TEXT_HAND_DEMO_USE_KEYBOARD_01 with interaction//You can also use the keyboard
+		wait until read
+
+		say HELP_TEXT_HAND_DEMO_ROTATING_04			// Encourage the player to have a go
+		wait until read
+
+	end known cinema
+
+end script Rotating
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Pitching
+
+TemplePos	= marker at [1867.5237, 54.5025, 2539.1250]
+TempleFoc	= marker at [1914.2778, 29.8864, 2509.3811]
+
+start
+
+	begin known cinema
+		//enable hand demo keys
+
+		// Focus on the Temple before the hand demo starts (just in case)
+		move camera position to [TemplePos] time 2
+		move camera focus to [TempleFoc] time 2
+		wait until camera ready
+
+		start hand demo "pitch" with pause on trigger		
+			say HELP_TEXT_HAND_DEMO_PITCHING_01		// Move the hand to the top of the screen
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_PITCHING_02		// Hold the left mouse button down
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_PITCHING_03		// Pitch the camera
+		wait until hand demo played
+		wait until read
+
+		say HELP_TEXT_HAND_DEMO_USE_KEYBOARD_02 with interaction//You can also use the keyboard
+		wait until read
+
+		say HELP_TEXT_HAND_DEMO_PITCHING_04			// Encourage the player to have a go
+		wait until read
+
+	end known cinema
+
+end script Pitching
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script GiveFood
+
+StoragePitPos	= marker at [1811.2703, 44.7148, 2674.3220]
+StoragePitFoc	= marker at [1826.7900, 28.1400, 2641.3601]	
+
+start
+
+	begin known cinema
+		// Focus on the Storage Pit before the hand demo starts (just in case)
+		move camera position to [StoragePitPos] time 2
+		move camera focus to [StoragePitFoc] time 2
+		wait until camera ready
+
+		start hand demo "givewood" with pause on trigger
+			say HELP_TEXT_HAND_DEMO_GIVE_FOOD_01		// Move the hand over the food or wood
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_GIVE_FOOD_02		// Grab some food or wood
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_GIVE_FOOD_03		// Drag over to the Temple
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_GIVE_FOOD_04		// Drop the food or wood
+			wait until read
+			wait until hand demo trigger
+		wait until hand demo played
+
+		// Move the camera back to the Storage Pit
+		move camera position to [StoragePitPos] time 2
+		move camera focus to [StoragePitFoc] time 2
+		wait until camera ready
+
+	end known cinema
+
+end script GiveFood
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Throwing
+
+ThrowingStonesPos	= marker at [1926.134, 24.206, 2388.729]
+ThrowingStonesFoc	= marker at [1944.258, 15.132, 2377.531]
+
+start
+
+	begin known cinema
+		// Focus on the Pillar before the hand demo starts (just in case)
+		move camera position to [ThrowingStonesPos] time 2
+		move camera focus to [ThrowingStonesFoc] time 2
+		wait until camera ready
+
+		start hand demo "throwrock" with pause on trigger		
+			// Move your hand over a rock
+			say HELP_TEXT_HAND_DEMO_THROWING_01
+			wait until read
+			wait until hand demo trigger			
+
+			// Pick up the rock by pressing the Action button
+			say HELP_TEXT_HAND_DEMO_THROWING_02
+			wait until read
+			wait until hand demo trigger			
+
+			// Hold down the Action button
+			say HELP_TEXT_HAND_DEMO_THROWING_03
+			wait until read
+			wait until hand demo trigger			
+
+			// Put momentum on the throw by moving the hand back and forth
+			say HELP_TEXT_HAND_DEMO_THROWING_04
+			wait until read
+			wait until hand demo trigger			
+
+			// Throw the rock when ready by releasing the Action button
+			say HELP_TEXT_HAND_DEMO_THROWING_05
+		wait until hand demo played
+		wait until read
+
+		// Try throwing a rock now
+		say HELP_TEXT_HAND_DEMO_THROWING_06
+		wait until read
+
+	end known cinema
+
+end script Throwing
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script PShield
+
+PhysicalShieldPos	= marker at [3574.3984, 44.8875, 3455.9526]
+PhysicalShieldFoc	= marker at [3611.8960, 9.3956, 3458.9043]
+InHand				= 0	
+ShieldDuration		= 7
+
+start
+
+	begin known cinema
+		// Focus on the Physical Shield challenge before the hand demo starts (just in case)
+		move camera position to [PhysicalShieldPos] time 2
+		move camera focus to [PhysicalShieldFoc] time 2
+		wait until camera ready
+
+		start hand demo "shield"
+			// Put the shield into your hand
+			InHand = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL_IN_HAND SPELL_SEED_TYPE_PHYSICAL_SHIELD at [0, 0]
+
+			say HELP_TEXT_HAND_DEMO_SHIELD_01		// Move the hand to where you wish to start the shield
+	 		wait until read
+
+			// Set the duration to 7 times a normal spells. Allows the shield to deflect the 3 rocks.
+			SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of InHand = ShieldDuration
+
+			say HELP_TEXT_HAND_DEMO_SHIELD_02		// Trace the shield out
+			wait until read	
+			
+//			Cannot use this line because the speech is too slow for the hand demo
+//			say HELP_TEXT_HAND_DEMO_SHIELD_03		// Join up to the start position			
+//			wait until read
+
+			say HELP_TEXT_HAND_DEMO_SHIELD_04		// Shield appears where you trace
+		wait until hand demo played
+		wait until read
+			
+	end known cinema
+
+end script PShield
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Fireball
+
+FireballPos			= marker at [3217.1855, 45.1551, 3189.6023]
+FireballFoc			= marker at [3413.1802, 1.9400, 3017.7151]
+InHand				= 0	
+
+start
+
+	begin known cinema
+		// Focus on the Fireball challenge before the hand demo starts (just in case)
+		move camera position to [FireballPos] time 2
+		move camera focus to [FireballFoc] time 2
+		wait until camera ready
+
+		start hand demo "fireball" with pause on trigger		
+			wait 0.1 seconds
+
+			// Put the fireball into your hand
+			InHand = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL_IN_HAND SPELL_SEED_TYPE_FIRE at [0, 0]
+			
+			say HELP_TEXT_HAND_DEMO_FIREBALL_01		// Press and hold the right mouse button
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_FIREBALL_02		// Put momentum onto the fireball
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_FIREBALL_03		// Cast the fireball
+		wait until hand demo played
+		wait until read
+		
+		say HELP_TEXT_HAND_DEMO_FIREBALL_04			// Don't forget you can put afertouch onto fireballs
+		wait until read
+
+	end known cinema
+
+end script Fireball
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Drag
+
+DragStartPos	= marker at [1493.645, 13.934, 2091.680]
+DragStartFoc	= marker at [1502.725, 6.726, 2107.511]
+
+start
+
+	begin known cinema
+		// Position the camera correctly before the hand demo starts (just in case)
+		move camera position to [DragStartPos] time 2
+		move camera focus to [DragStartFoc] time 2
+		wait until camera ready
+	
+		start hand demo "drag" with pause on trigger
+			say HELP_TEXT_HAND_DEMO_DRAG_01		// Move your hand in the direction you want to travel
+			wait until read	
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_DRAG_02		// Click and hold the Move Button
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_DRAG_03		// Now move the mouse towards you to drag forwards
+			wait until read
+			wait until hand demo trigger			
+			
+			say HELP_TEXT_HAND_DEMO_DRAG_04		// Click, hold and pull again to cover longer distances
+		wait until hand demo played
+		wait until read
+
+		//Move the camera back to the start position
+		move camera position to [DragStartPos] time 2
+		move camera focus to [DragStartFoc] time 2
+		wait until camera ready
+		wait until read
+
+	end known cinema
+
+end script Drag
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Zoom(ZoomStartPos, ZoomStartFoc)
+
+start
+
+	begin known cinema
+		//enable hand demo keys
+		// Position the camera correctly before the hand demo starts (just in case)
+
+		//	This camera movement is useless cos the camera pos is stored inside the record.
+//		move camera position to [ZoomStartPos] time 2
+//		move camera focus to [ZoomStartFoc] time 2
+		wait until camera ready
+		
+		start hand demo "zoom" with pause on trigger			
+			say HELP_TEXT_HAND_DEMO_ZOOM_02		// Click and hold both the mouse buttons
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ZOOM_03		// Move the mouse towards you to zoom out
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ZOOM_04		// And move the mouse away from you to zoom in
+			wait until read	
+			wait until hand demo trigger
+
+			say HELP_TEXT_HAND_DEMO_ZOOM_05		// Zooming, as you see, is simple but extremely useful
+		wait until hand demo played	
+		wait until read
+		
+		say HELP_TEXT_HAND_DEMO_USE_KEYBOARD_04 with interaction//You can also use the keyboard
+		wait until read
+		close dialogue
+		// Move back to the original position and orientation
+		//move camera position to [ZoomStartPos] time 2
+		//move camera focus to [ZoomStartFoc] time 2
+		//wait until camera ready
+
+	end known cinema
+
+end script Zoom
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script ZoomReminder(ZoomStartPos, ZoomStartFoc)
+
+start
+
+	begin known cinema
+		//enable hand demo keys
+		// Position the camera correctly before the hand demo starts (just in case)
+		move camera position to [ZoomStartPos] time 2
+		move camera focus to [ZoomStartFoc] time 2
+		wait until camera ready
+		
+		start hand demo "zoomreminder" with pause on trigger			
+			say HELP_TEXT_HAND_DEMO_ZOOM_02		// Click and hold both the mouse buttons
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ZOOM_03		// Move the mouse towards you to zoom out
+			wait until read
+			wait until hand demo trigger			
+
+			say HELP_TEXT_HAND_DEMO_ZOOM_04		// And move the mouse away from you to zoom in
+			wait until read
+
+			say HELP_TEXT_HAND_DEMO_USE_KEYBOARD_04 with interaction//You can also use the keyboard
+		wait until hand demo played
+		wait until read
+		close dialogue
+		
+		// Move back to the original position and orientation
+		move camera position to [ZoomStartPos] time 2
+		move camera focus to [ZoomStartFoc] time 2
+		wait until camera ready
+
+	end known cinema
+
+end script ZoomReminder
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Worship
+
+TownCentrePos = marker at [3270.5500, 68.8539, 3386.7300]
+TownCentreFoc = marker at [3124.8450, 41.7049, 3414.9282]
+
+start
+
+	begin known cinema
+		// Position the camera correctly before the hand demo starts (just in case)
+		move camera position to [TownCentrePos] time 2
+		move camera focus to [TownCentreFoc] time 2
+		wait until camera ready
+		
+		start hand demo "totem" with pause on trigger
+			// "Move the hand over the totem."											// Move the hand to the totem
+			say HELP_TEXT_HAND_DEMO_WORSHIP_01
+			wait until read
+			wait until hand demo trigger			
+
+			// "Hold down the Action button to grab the totem."						// Hold the left mouse button down to grab the totem
+			say HELP_TEXT_HAND_DEMO_WORSHIP_02
+			wait until read	
+			wait until hand demo trigger			
+
+			// "Move the hand up and down to raise and lower the totem."				// Move the hand up and down to raise and lower the totem
+			say HELP_TEXT_HAND_DEMO_WORSHIP_03
+			wait until read
+			wait until hand demo trigger
+
+			// "I've raised the totem so your followers will go to the Worship Site."	// I've raised the totem so your followers will go to the Worship Site
+			say HELP_TEXT_HAND_DEMO_WORSHIP_04
+		wait until hand demo played
+		wait until read
+		
+	end known cinema
+
+end script Worship
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script ImpressFood
+
+InitialCameraPos		= marker at [2372.6272, 60.4141, 2628.4229]
+InitialCameraFoc		= marker at [2440.8000, 60.8500, 2624.7000]
+
+TapCameraPos			= marker at [2404.3057, 82.8934, 2620.2568]
+TapCameraFoc			= marker at [2454.0808, 31.4947, 2619.1067]
+
+SafeSpellCreatePos		= marker at [2440.8, 40.85, 2624.7]
+BottomOfPitPos			= marker at [2450.0190, 32.0640, 2621.3350]
+
+CreatureGuideSpell		= 0
+TestInHand				= 0
+InHand					= 0
+OneShotFood				= 0
+
+start
+
+	begin known cinema
+		// Focus on the Town Centre before the hand demo starts (just in case)
+/*		move camera position to [InitialCameraPos] time 2
+		move camera focus to [InitialCameraFoc] time 2
+		wait until camera ready
+		move camera position to [TapCameraPos] time 2
+		move camera focus to [TapCameraFoc] time 2
+		wait until camera ready
+
+
+		run map script line "CREATE_ONE_SHOT_SPELL_PU(\"2438.81,2623.54\", \"FOOD\")"		// Safe one shot spell
+
+		// Put the food into your hand
+		InHand = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL_IN_HAND SPELL_SEED_TYPE_FOOD at [0, 0]
+*/
+		
+		start hand demo "castfood"
+			wait 2.5 seconds
+			TestInHand = get object held
+			if TestInHand not exists
+				// Tap failed so, put the food into your hand
+				InHand = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL_IN_HAND SPELL_SEED_TYPE_FOOD at [0, 0]
+				// Delete the one shot
+				OneShotFood = get SCRIPT_OBJECT_TYPE_MOBILE_OBJECT MOBILE_OBJECT_INFO_ONEOFF_SPELLSEED at [2438.81,2623.54] radius 10
+
+				delete OneShotFood
+			end if
+		wait until hand demo played
+		
+	end known cinema
+
+end script ImpressFood
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//------------------------------------------------------------------------------------------------------------------------
+//--TeachRotate----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script TeachRotate(centre_pointer, view_pos)
+	RotateTimer = create timer for 0 seconds
+	RequiredRotateAngle = 0
+	RotateAngle = 0
+	RotateComplete = 0
+	DemoTimer = create timer for 0 seconds
+	NoNoTick = 0
+	HandState = 0
+start
+	set RotateTimer time to 30 seconds
+	enable angle sound
+
+	RequiredRotateAngle = get HELP_EVENT_TYPE_ROTATE total event
+	RequiredRotateAngle += 60
+
+	set DemoTimer time to 60 seconds
+	begin loop 
+		HandState = variable get hand state
+		if camera position not near [centre_pointer] radius 100 or camera focus not near [centre_pointer] radius 25
+			NoNoTick++
+			if NoNoTick == 3
+				begin cinema
+					move camera position to [view_pos] time 3
+					move camera focus to [centre_pointer] time 3
+					// "No no. Try rotating first."
+					say single line HELP_TEXT_FINAL_BEGINNING_46
+					wait until read
+					wait until camera ready
+					// Rotating hand demo
+					run script Rotating
+					NoNoTick = 0
+					set DemoTimer time to 60 seconds
+				end cinema
+			else
+				begin camera
+					move camera position to [view_pos] time 3
+					move camera focus to [centre_pointer] time 3
+					// "No no. Try rotating first."
+					say single line HELP_TEXT_FINAL_BEGINNING_46
+					wait until read
+					wait until camera ready
+				end camera
+			end if
+		elsif get DemoTimer time remaining <= 0 and HandState != variable HAND_STATE_ROTATE_LANDSCAPE
+			begin camera
+				move camera position to [view_pos] time 3
+				move camera focus to [centre_pointer] time 3
+				wait until camera ready
+				// Rotating hand demo
+				run script Rotating
+				NoNoTick = 0
+				set DemoTimer time to 60 seconds
+			end camera
+		end if
+
+		wait 1 second
+		RotateAngle = get HELP_EVENT_TYPE_ROTATE total event
+
+		if RotateAngle > RequiredRotateAngle
+			// "That's it you've done it."
+			RotateComplete = 1
+		end if
+
+
+		if get HELP_EVENT_TYPE_ROTATE total event < 5 and get RotateTimer time remaining == 0
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_FINAL_BEGINNING_44 with interaction
+				wait until read
+				eject evil spirit
+				say HELP_TEXT_FINAL_BEGINNING_45 with interaction
+				wait until read
+			end dialogue
+			set RotateTimer time to 30 seconds
+		end if
+		until RotateComplete == 1
+	end loop
+	disable angle sound
+
+	wait 2 seconds
+
+end script TeachRotate
+
+//------------------------------------------------------------------------------------------------------------------------
+//--TeachPitch----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script TeachPitch(CentrePos, CentreFixedPos)
+	PitchComplete=0
+	RequiredPitchAngle=0
+	PitchTimer = create timer for 0 seconds
+start
+
+	begin cinema
+		eject good spirit
+		make good spirit cling across 0.4 down 1.0
+		wait 1 second
+		
+//		sy "Very good! Now Ill show you how to look up and down." with interaction 
+		say HELP_TEXT_FINAL_BEGINNING_28 with interaction
+		wait until read
+
+		// Pitching hand demo
+		run script Pitching
+
+		wait until read
+
+	end cinema
+
+	enable pitch sound
+
+	set PitchTimer time to 30 seconds
+	RequiredPitchAngle = get HELP_EVENT_TYPE_PITCH total event
+	RequiredPitchAngle += 25
+
+	begin loop
+
+		if camera position not near [CentrePos] radius 100
+			begin camera
+				move camera position to [CentreFixedPos] time 3
+				move camera focus to [CentrePos] time 3
+				// "No no. Try pitching the camera first."
+				say single line HELP_TEXT_FINAL_BEGINNING_47
+				wait until read
+				wait until camera ready
+			end camera
+		end if
+
+		if get HELP_EVENT_TYPE_PITCH total event > RequiredPitchAngle
+			// "That's it you've done it."
+			begin dialogue
+				eject good spirit
+				// "That's it. You've got it sussed."
+				say HELP_TEXT_FINAL_BEGINNING_49
+				wait until read
+			end dialogue
+			PitchComplete = 1
+		end if	
+
+		if get HELP_EVENT_TYPE_PITCH total event < 5 and get PitchTimer time remaining == 0
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_FINAL_BEGINNING_50 with interaction
+				wait until read
+				eject evil spirit
+				// "PITCH TEXT 2 BLAH BLAH BLAH" with interaction
+				say HELP_TEXT_FINAL_BEGINNING_51 with interaction
+				wait until read
+			end dialogue
+			set PitchTimer time to 30 seconds
+		end if
+
+	until PitchComplete == 1
+	end loop
+	disable pitch sound
+
+	wait 4 seconds
+
+end script TeachPitch
+
+//------------------------------------------------------------------------------------------------------------------------
+//--TeachZoom----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script TeachZoom(centre_pointer, view_pos)
+
+	ZoomComplete  = 0
+	RequiredZoom  = 0
+	ZoomCompleted = 0
+	ZoomAmount    = 0
+	NoNoTick = 0
+	DemoTimer = create timer for 0 seconds
+	ZoomStartPos = marker at [1873.682, 41.631, 2535.854]
+	ZoomStartFoc = marker at [1925.094, 29.676, 2505.409]
+	HandState = 0
+	CameraHeight = 0
+
+	start
+		RequiredZoom = get HELP_EVENT_TYPE_ZOOM total event
+		RequiredZoom += 15
+		
+		set DemoTimer time to 60 seconds
+		begin loop
+			HandState = variable get hand state
+			CameraHeight = marker at camera position
+			if  camera focus not near [centre_pointer] radius 50 and HandState != variable HAND_STATE_ZOOM_LANDSCAPE and ALTITUDE of CameraHeight < 100
+				NoNoTick++
+				if NoNoTick == 3
+					begin cinema
+						move camera position to [view_pos] time 3
+						move camera focus to [centre_pointer] time 3
+						// No no. Try zooming
+						say single line HELP_TEXT_FINAL_BEGINNING_67
+						wait until read
+						wait until camera ready
+						run script Zoom(ZoomStartPos, ZoomStartFoc)
+					end cinema
+					NoNoTick = 0
+					set DemoTimer time to 60 seconds
+				else
+					begin camera
+						move camera position to [view_pos] time 3
+						move camera focus to [centre_pointer] time 3
+						// No no. Try zooming
+						say single line HELP_TEXT_FINAL_BEGINNING_67
+						wait until read
+						wait until camera ready
+					end camera
+				end if
+			elsif get DemoTimer time remaining <= 0 and HandState != variable HAND_STATE_ZOOM_LANDSCAPE
+				begin camera
+					move camera position to [view_pos] time 3
+					move camera focus to [centre_pointer] time 3
+					// No no. Try zooming
+					say single line HELP_TEXT_FINAL_BEGINNING_67
+					wait until read
+					wait until camera ready
+					run script Zoom(ZoomStartPos, ZoomStartFoc)
+				end camera
+				NoNoTick = 0
+				set DemoTimer time to 60 seconds
+			end if
+	
+			ZoomAmount = get HELP_EVENT_TYPE_ZOOM total event
+
+			if ZoomAmount > RequiredZoom or ALTITUDE of CameraHeight > 100
+				begin dialogue
+					// That's it you've done it
+					say single line HELP_TEXT_FINAL_BEGINNING_68
+					wait until read
+				end dialogue
+				ZoomCompleted = 1
+			end if
+
+		until ZoomCompleted == 1
+		end loop
+
+end script TeachZoom
+
+//------------------------------------------------------------------------------------------------------------------------
+// Hand Demo for miracle script
+//------------------------------------------------------------------------------------------------------------------------
+begin script MiracleHandDemo(WorshipSite)
+	Required=0
+	LoopTime=5*10
+	Step=0
+	Amount=0
+	TempObject=0
+start 
+	Required=get mana for spell SPELL_FOOD
+	set WorshipSite mana 0
+
+	begin known cinema	
+		start hand demo "miracle"
+
+		say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_12  // To activate one, grab the Miracle with the action button and it will be charged by your worshippers.
+		while not read
+			set WorshipSite mana 0
+		end while
+		
+		say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_13  // You'll see the energy rings flowing into your hand.
+
+		Step=(3*Required)/4
+		Step/=LoopTime
+		while LoopTime > 0
+			Amount+=Step
+			set WorshipSite mana Amount
+			LoopTime--
+		end while
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_LEARN_MIRACLES_14	// When the miracle is charged it appears in your hand and you are ready to cast the miracle.
+		wait until read
+		TempObject=get object held
+		if TempObject not exists
+			set WorshipSite mana Amount
+		end if
+		wait until hand demo played
+	end known cinema
+
+end script MiracleHandDemo
+
+//------------------------------------------------------------------------------------------------------------------------
+// Miracle cast hand demo
+//------------------------------------------------------------------------------------------------------------------------
+begin script MiracleCastHandDemo
+start
+	begin known cinema	
+		start hand demo "miraclecast" without hand modify
+	end known cinema
+end script MiracleCastHandDemo
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Influence1
+
+CameraPos = marker at [3344.8599, 41.1383, 2809.0728]
+CameraFoc = marker at [3396.6990, 0.5854, 2787.1431]
+
+start
+
+	begin known cinema
+		// Position the camera correctly before the hand demo starts (just in case)
+		move camera position to [CameraPos] time 2
+		move camera focus to [CameraFoc] time 2
+		wait until camera ready
+/*		
+		start hand demo "influence" with pause on trigger
+			//"you can reach outside the edge of your realm for short periods of time"
+			say HELP_TEXT_EXTRA_KHAZAR_23
+			wait until read
+			wait until hand demo trigger
+
+			//"But your influence is soon lost until your hand is returned to your realm."
+			say HELP_TEXT_EXTRA_KHAZAR_24
+		wait until hand demo played
+*/
+		wait until read
+		
+	end known cinema
+
+end script Influence1
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script Influence2
+
+CameraPos = marker at [2815.5322, 92.4477, 3258.4766]
+CameraFoc = marker at [2810.3049, 49.9880, 3172.1606]
+
+start
+
+	begin known cinema
+		// Position the camera correctly before the hand demo starts (just in case)
+		move camera position to [CameraPos] time 2
+		move camera focus to [CameraFoc] time 2
+		wait until camera ready
+		
+		start hand demo "influence2" with pause on trigger
+			//"you can reach outside the edge of your realm for short periods of time"
+			say HELP_TEXT_EXTRA_KHAZAR_23
+			wait until read
+			wait until hand demo trigger
+
+			//"But your influence is soon lost until your hand is returned to your realm."
+			say HELP_TEXT_EXTRA_KHAZAR_24
+		wait until hand demo played
+		wait until read
+		
+	end known cinema
+
+end script Influence2

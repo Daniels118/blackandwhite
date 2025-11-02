@@ -1,0 +1,117 @@
+begin script rewardfromsky(rewardtype, pos, p_town, cinemacontrol)
+
+reward1 = 0
+mist1 = 0
+num = 0
+
+start
+
+	if cinemacontrol == 0
+
+			if p_town not exists
+
+				reward1 = reward constant rewardtype at [pos] from sky
+
+			else
+
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+
+			end if
+
+
+	else
+
+		begin cinema	
+
+			num = number from 0 to 1
+
+			if num == 0
+
+				move camera position to [pos]+[0,80,60] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+	
+			else
+
+				move camera position to [pos]+[0,15,15] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+
+			end if
+
+			if p_town not exists
+
+				reward1 = reward constant rewardtype at [pos] from sky
+
+			else
+
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+
+			end if
+
+
+//			set camera focus to [reward1]
+			//set camera focus follow reward1
+			move camera focus to [pos] time 4
+//			wait 3 seconds
+			wait until camera ready
+
+			move camera position to [pos]+[0,25,30] time 4
+			//move camera focus to [pos] time 3
+			set camera focus follow reward1
+			wait until camera ready
+
+
+/*
+			move camera position to [pos]+[50,250,0] time 4
+			move camera focus to [pos]+[0,300,0] time 7
+			wait until camera ready
+
+			//set fade red 255 green 255 blue 255 time 1
+			//wait until fade ready 
+
+			
+//			create mist at [pos]+[50,250,0] scale 1 red 255 green 255 blue 255 transparency 0.5 height ratio 0.5
+			//mist1 = create mist at [pos] scale 1 red 255 green 255 blue 255 transparency 0.5 height ratio 0.5
+			//wait 5 seconds
+
+			if p_town not exists
+
+				reward1 = reward constant rewardtype at [pos] from sky
+
+			else
+
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+
+			end if
+
+//			set camera position to [reward1]+[50,200,0]
+//			set camera focus to [reward1]
+
+			wait 2 seconds
+		
+			move camera position to [pos]+[10,20,0] time 5
+			move camera focus to [pos] time 1
+
+//			set camera follow reward1 distance 50
+//			wait until 3 seconds
+
+//			move camera position to [reward1]+[50,200,0] time 1
+//			move camera focus to [reward1] time 1
+
+//			set camera focus to [reward1]
+//			set camera focus follow reward1
+			wait 5 seconds
+*/
+
+		end cinema
+
+	end if
+
+	run script displayrewardhelp(reward1)
+
+end script rewardfromsky

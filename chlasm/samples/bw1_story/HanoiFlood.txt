@@ -1,0 +1,201 @@
+challenge HANOI_FLOOD
+
+//------------------------------------------------------------------------------------------------------------------------
+global HanoiIntroTriggered=0
+
+//------------------------------------------------------------------------------------------------------------------------
+// Keep casting a heal spell 
+//------------------------------------------------------------------------------------------------------------------------
+begin script HanoiFloodEffects(EffectPos)
+	HealEffect = 0
+
+start
+	begin loop
+		HealEffect = cast SPELL_HEAL_LEVEL_2 spell at [EffectPos] from [EffectPos] radius 10 time -1 curl 0
+		wait 20 seconds
+	end loop
+end script HanoiFloodEffects
+
+//------------------------------------------------------------------------------------------------------------------------
+// The intro script
+//------------------------------------------------------------------------------------------------------------------------
+begin script HanoiPuzzleStart(HanoiPuzzlePos)
+	Count = time-31
+	BeginPos = 0
+	BeginFoc = 0
+	Master = 0
+	MasterPosTwo = marker at [2374.845, 0.000, 2633.988]  
+	HighlightPos = marker at [2385.287, 0.000, 2649.390]   
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HighlightPos]
+	HanoiDYKPos = marker at [2376.031, 0.000, 2640.963]   
+
+start
+	ALTITUDE of Highlight = 2
+
+	ChallengeHighlightEndVariable=0
+	run script ChallengeHighlightNotifyWithEndVariable(Highlight, HighlightPos, variable GOOD_ADVISOR, variable HELP_TEXT_BEACH_PUZZLE_18)
+	
+	if ChallengeHighlightEndVariable == 0
+		HanoiIntroTriggered=1
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_01
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			move camera position to [2362.739, 15.269, 2653.343] time 4
+			move camera focus to [2383.841, 1.805, 2634.654] time 4
+			Master = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [HanoiPuzzlePos]
+			enable Master high gfx detail
+			move Master position to [MasterPosTwo]
+
+			wait until 2 second
+
+			move camera position to [2370.015, 1, 2634.507] time 3
+			move camera focus to [2373.056, 1, 2634.454] time 3
+			
+			wait until [Master] at [MasterPosTwo]
+			wait until camera ready
+			set Master focus to camera position
+
+			snapshot challenge success 0.0 alignment -0.5 HELP_TEXT_TITLE_02 StandardReminder(variable HELP_TEXT_BEACH_PUZZLE_19)
+
+			wait 0.1 seconds
+
+			say HELP_TEXT_BEACH_PUZZLE_01						//"Aha. Just the god I was looking for."
+			move camera position to [2372.079, 1.000, 2635.409] time 8
+			move camera focus to [2374.825, 1.000, 2634.202] time 8
+			Master play ANM_P_TALK_TO_NEIGHBOUR loop -1
+			wait until read
+			say HELP_TEXT_BEACH_PUZZLE_02						//"My beach house keeps getting flooded by the tides."
+			set Master focus to camera position
+			wait until read
+			say HELP_TEXT_BEACH_PUZZLE_03						//The building is made of rings
+			wait until read
+
+			say HELP_TEXT_BEACH_PUZZLE_04						//"If you could move it further up the beach I'd be most grateful."
+			set Master focus to [2387.472, 6.030, 2593.396]
+			Master play ANM_P_TALKING_AND_POINTING loop 1
+
+			move camera position to [2372.173, 1.224, 2636.347] time 3
+			move camera focus to [2374.446, 1.040, 2634.027] time 3
+			wait 1 second
+			move camera focus to [2374.446, 1.5, 2634.027] time 3
+			wait until read
+			
+			say HELP_TEXT_BEACH_PUZZLE_05 with interaction		// "The signposts provide the rules and instructions you need."
+
+
+			run background script DidYouKnow(HanoiDYKPos, variable HELP_TEXT_DYK_RULES_03, variable DYK_MISC)
+
+			move camera position to [2370.770, 0.847, 2631.400] time 3
+			move camera focus to [2372.890, 0.831, 2633.330] time 3
+
+			set Master focus to [HanoiDYKPos]
+			Master play ANM_P_TALKING_AND_POINTING loop 1
+
+			wait until read
+
+			set Master focus to camera position
+			Master play ANM_P_TALK_TO_NEIGHBOUR loop 2
+
+			move Master position to [HanoiPuzzlePos]
+			move camera position to [BeginPos] time 3
+			move camera focus to [BeginFoc] time 3
+			wait until camera ready
+			delete Master with fade
+			stop music
+		end cinema
+	end if
+
+	//Keep the highlight in the game
+	wait until ChallengeHighlightEndVariable == 1
+
+end script HanoiPuzzleStart
+
+//------------------------------------------------------------------------------------------------------------------------
+// The main script
+//------------------------------------------------------------------------------------------------------------------------
+begin script HanoiFlood
+				   
+	HanoiPuzzlePos = marker at [2386.968, 0.000, 2633.286]
+	HanoiPuzzle = 0
+	Start = marker at [2377.975, 0.000, 2633.518]  
+	HanoiCompletePos = marker at [2387.472, 6.030, 2593.396] 
+	HanoiDYKPos = marker at [2376.031, 0.000, 2640.963]   
+	Master = 0
+	MasterPos = marker at [2373.042, 0.000, 2631.512] 
+	Highlight = 0
+	BeginPos= 0
+	BeginFoc = 0
+	PuzzleInfluence = 0
+
+start
+	HanoiPuzzle = create with angle 180 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_HANOI at [HanoiPuzzlePos]
+	PuzzleInfluence = create influence at [HanoiPuzzlePos] radius 50
+
+	
+	run background script HanoiPuzzleStart(HanoiPuzzlePos)
+
+	wait until HanoiPuzzle played
+
+	ChallengeHighlightEndVariable = 1
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [2369.191, 10.701, 2585.827] time 4
+		move camera focus to [2401.642, 2.259, 2629.700] time 4
+		Master = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [HanoiCompletePos]
+
+		enable Master high gfx detail
+		
+		move Master position to [2375.937, 6.030, 2593.263] 
+		wait until camera ready
+		wait until [Master] at [2375.937, 6.030, 2593.263] 
+		set Master focus to camera position
+
+		if HanoiIntroTriggered == 1
+			say HELP_TEXT_BEACH_PUZZLE_06		//"Cheers, Mighty One. I can live without fear of flooding now."
+		else
+			say HELP_TEXT_BEACH_PUZZLE_17		//YOu must have noticed my house problem!
+		end if
+		Master play ANM_P_TALK_TO_NEIGHBOUR loop -1
+		wait until read
+
+		say HELP_TEXT_BEACH_PUZZLE_07			//"In return for your kindess I will activate the powers of the Tower."
+		wait until read
+		say HELP_TEXT_BEACH_PUZZLE_08			//"Any living being who visits it will be healed."
+		wait until read
+
+		close dialogue
+
+		move camera position to [2370.223, 6.813, 2593.469] time 4
+		move camera focus to [2407.564, 15.227, 2593.730] time 4
+
+		set Master focus to [HanoiCompletePos]
+
+		Master play ANM_PIED_PIPER_SUMMON loop 2
+		wait 2 seconds
+
+		snapshot challenge success 1 alignment 1 HELP_TEXT_TITLE_02 StandardReminder(variable HELP_TEXT_BEACH_PUZZLE_19)
+		
+		move camera position to [2363.050, 7.383, 2593.420] time 3
+		move camera focus to [2399.493, 14.488, 2593.673] time 3
+
+		run background script HanoiFloodEffects (HanoiCompletePos)
+		move Master position to [HanoiCompletePos]
+
+		wait until camera ready
+
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+		delete Master with fade
+	end cinema
+
+   	Highlight = get HIGHLIGHT HIGHLIGHT_TIPS at [HanoiDYKPos] radius 2
+	delete Highlight with fade
+
+end script HanoiFlood

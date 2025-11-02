@@ -1,0 +1,12 @@
+challenge RunVolcano
+
+run script RunVolcano
+
+begin script RunVolcano
+	
+start
+	
+	run script Volcano
+	
+
+end script RunVolcano

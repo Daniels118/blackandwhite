@@ -1,0 +1,12 @@
+challenge RunGotHealSpell
+
+run script RunGotHealSpell
+
+begin script RunGotHealSpell
+	
+start
+	
+	run script GotHealSpell
+	
+
+end script RunGotHealSpell

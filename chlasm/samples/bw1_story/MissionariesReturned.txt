@@ -1,0 +1,315 @@
+challenge MISSIONARIES_RETURNED
+
+//run script MissionariesReturned
+
+begin script MissionariesReturned
+
+	Ark = create FEATURE FEATURE_INFO_ARK_WRECK at [1583.7006, 0.0000, 3924.9312]
+	NewArk = 0
+
+	ManStartPos = marker at [1573.1030, 0.0000, 3917.9392]
+
+	Man1 = 0
+	Man2 = 0
+	Man3 = 0
+
+	Pos1 = marker at [1563.4569, 1.7588, 3928.6340]
+	Pos2 = marker at [1564.2402, 1.4970, 3930.1956]
+	Pos3 = marker at [1564.8765, 1.3819, 3926.7852]
+
+	BeginPos = 0 
+	BeginFoc = 0
+	
+	Repaired = 0
+	PolarBear = 0
+
+	Town = 0
+	
+	Store = 0
+	Creche = 0
+	Graveyard = 0
+	Wonder = 0
+
+	FindSpell1 = 0
+	
+	Abode1 = 0
+	Abode2 = 0
+	Abode3 = 0
+	Abode4 = 0
+	Abode5 = 0
+	Abode6 = 0
+	Abode7 = 0
+
+	Men = 0
+	Women = 0
+
+	MEN = 0
+	WOMEN = 0
+
+	SFX=0
+
+	TownPos   = marker at [1554.777, 8.030, 3772.944]  
+	BuildPos1 = marker at [1552.81,0,3771.13]
+	BuildPos2 = marker at [1530.77,0,3741.63]
+	BuildPos3 = marker at [1544.00,0,3735.15]
+	BuildPos4 = marker at [1526.58,0,3793.82]
+	BuildPos5 = marker at [1523.45,0,3749.02]
+	BuildPos6 = marker at [1556.40,0,3738.60]
+	BuildPos7 = marker at [1518.27,0,3781.98]
+	WonderPos = marker at [1468.82,0,3837.01]
+	CrechePos = marker at [1584.89,0,3770.99]
+	StorePos  = marker at [1539.42,0,3807.83]
+	GraveYardPos = marker at [1631.88,0,3773.46]
+	Population = 20
+	Villager = 0
+
+
+	Highlight = 0
+	HighlightPos = marker at [1583.323, 0.000, 3920.859] 
+start
+
+	
+	MyCreature = get player 1 creature
+	// I need to be able to create a small Norse town here
+	build building at [BuildPos1] desire 9.0
+	build building at [BuildPos2] desire 9.0
+	build building at [BuildPos3] desire 9.0
+	build building at [BuildPos4] desire 9.0
+	build building at [BuildPos5] desire 9.0
+	build building at [BuildPos6] desire 9.0
+	build building at [BuildPos7] desire 9.0
+	build building at [WonderPos] desire 9.0
+	build building at [CrechePos] desire 9.0
+	build building at [StorePos] desire 9.0
+	build building at [GraveYardPos] desire 9.0
+
+	Store  = get HOUSE at [WonderPos] radius 5
+	Creche = get HOUSE at [CrechePos] radius 5
+	Graveyard = get HOUSE at [StorePos] radius 5
+	Wonder = get HOUSE at [GraveYardPos] radius 5
+	Abode1 = get HOUSE at [BuildPos1] radius 5
+	Abode2 = get HOUSE at [BuildPos2] radius 5
+	Abode3 = get HOUSE at [BuildPos3] radius 5
+	Abode4 = get HOUSE at [BuildPos4] radius 5
+	Abode5 = get HOUSE at [BuildPos5] radius 5
+	Abode6 = get HOUSE at [BuildPos6] radius 5
+	Abode7 = get HOUSE at [BuildPos7] radius 5
+	
+	HEALTH of Ark = 0.5
+	BUILT of Store = 1
+	BUILT of Creche = 1
+	BUILT of Graveyard = 1
+	BUILT of Wonder = 1
+
+	BUILT of Abode1 = 1
+	BUILT of Abode2 = 1
+	BUILT of Abode3 = 1
+	BUILT of Abode4 = 1
+	BUILT of Abode5 = 1
+	BUILT of Abode6 = 1
+	BUILT of Abode7 = 1
+
+	Town = get TOWN at [TownPos] radius 5
+
+	while Population > 0
+		if Population > 10
+			Villager = create VILLAGER MALE at [Town]+[number from -20 to 20, number from -20 to 20]
+			attach Villager to Town
+			release Villager
+			Population--
+		else
+			Villager = create VILLAGER FEMALE at [Town]+[number from -20 to 20, number from -20 to 20]
+			attach Villager to Town
+			release Villager
+			Population--
+		end if
+	end while
+
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HighlightPos]
+	ALTITUDE of Highlight = 2.0
+	wait until Highlight clicked 
+	//run script ChallengeHighlightNotify(Highlight, HighlightPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+	//wait until camera position near [Ark] radius 100 and [Ark] viewed
+
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_18 StandardReminder(variable HELP_TEXT_REMINDER_18)
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND
+		move camera position to [1556.504, 15.694, 3938.562]  time 4 //camera to ark
+		move camera focus to [1568.208, 1.901, 3930.640] time 4 //focus to ark
+
+		enable Man1 high graphics detail
+		enable Man2 high graphics detail
+		enable Man3 high graphics detail
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+
+		Man1 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [ManStartPos]
+		move Man1 position to [Pos1]
+		wait 0.5 seconds
+		
+		Man2 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [ManStartPos]
+		move Man2 position to [Pos2]
+		wait 0.3 seconds
+		
+		Man3 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [ManStartPos]
+		move Man3 position to [Pos3]		
+		
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_L5_MISSIONARIES_01
+		wait 2 seconds
+		wait until camera ready
+		move camera position to [1555.504, 16.694, 3939.562]  time 12
+ 
+		wait until [Man1] at [Pos1]
+		Man1 play ANM_P_DANCE_TOGETHER_CIRCLING loop -1
+				
+		wait until [Man2] at [Pos2]
+		Man2 play ANM_P_DANCE_X_PARTNER loop -1
+		
+		wait until [Man3] at [Pos3]
+		Man3 play ANM_P_DANCE_TOGETHER_ARMLINK loop -1
+		
+		wait until read
+		say HELP_TEXT_NEW_L5_MISSIONARIES_02
+		wait until read
+
+		say HELP_TEXT_NEW_L5_MISSIONARIES_03
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+
+
+
+
+/*	ANM_P_DANCE_PISS_TAKE_	
+    ANM_P_DANCE_TOGETHER_ARMLINK	
+    ANM_P_DANCE_TOGETHER_CIRCLING	
+    ANM_P_DANCE_TOGETHER_CIRCLING_PARTNER	
+    ANM_P_DANCE_X                         
+    ANM_P_DANCE_X_PARTNER
+*/	  
+
+
+
+
+
+
+
+		move camera position to [1565.5883, 6.8518, 3944.5056] time 8
+		set Man1 focus to [1565.5883, 6.8518, 3944.5056]
+		Man1 play ANM_P_GOSSIP_MAN loop -1
+		say HELP_TEXT_NEW_L5_MISSIONARIES_04
+		//set Man1 focus to camera position		
+		wait until read
+		Man1 play ANM_P_DANCE_X loop -1
+		move camera position to [1563.5883, 7.8518, 3945.5056] time 12
+		
+		set Man2 focus to camera position
+		Man2 play ANM_P_GOSSIP_MAN loop -1
+		say HELP_TEXT_NEW_L5_MISSIONARIES_05
+		wait until read
+		Man2 play ANM_P_DANCE_X_PARTNER loop -1
+		
+		set Man3 focus to camera position
+		Man3 play ANM_P_GOSSIP_MAN loop -1
+		//move camera position to [1554.005, 29.364, 3872.739]  time 3 //look at town
+		move camera focus to [1551.026, 12.244, 3809.835]  time 3 //focus at town		
+		wait until read
+		Man3 play ANM_P_DANCE_TOGETHER_ARMLINK loop -1
+		
+		//wait until camera ready
+		wait 1 seconds
+	
+		set Man1 focus to camera position
+		Man1 play ANM_P_GOSSIP_MAN loop -1
+		move camera focus to [Man1] time 2
+		say HELP_TEXT_NEW_L5_MISSIONARIES_06
+		wait until read
+		say HELP_TEXT_NEW_L5_MISSIONARIES_07
+		wait until read
+		Man1 play ANM_P_DANCE_X loop -1
+		
+		//set Man2 focus to camera position
+		//Man2 play ANM_P_GOSSIP_MAN loop -1
+		//"You've been so devine we thought we'd make an offering of it"
+		//wait until read
+		//Man2 play ANM_P_DANCE_X_PARTNER loop -1
+
+		wait until camera ready
+		
+		//Not needed, as it will be overwritten by the one at the end - PaulN
+		//update snapshot success 0.9 alignment 0.0 HELP_TEXT_TITLE_18 StandardReminder(variable HELP_TEXT_REMINDER_18)
+
+		//move camera position to [1547.6411, 14.8944, 3936.2285] time 2 //look at bear
+		
+		//move camera position to [1547.6411, 5.8944, 3936.2285] time 4 //look at bear
+		//move camera focus to [Pos1] time 3 //focus at bear
+
+		start sound LH_SAMPLE_G_REWARDSTING
+		PolarBear = create CREATURE CREATURE_TYPE_POLAR_BEAR at [1572.452, 1.000, 3931.522]
+		set PolarBear focus to [1547.6411, 5.8944, 3936.2285]
+
+		move camera position to [1551.109, 4.976, 3935.179] time 6
+		move camera focus to [1600.570, -5.393, 3933.538] time 6
+		
+		set Man1 focus to [PolarBear]
+		set Man2 focus to [PolarBear]
+		set Man3 focus to [PolarBear]
+		Man1 play ANM_P_TALKING_AND_POINTING loop -1
+		wait 0.2 seconds
+		Man2 play ANM_P_TALKING_AND_POINTING loop -1
+		wait 0.3 seconds
+		Man3 play ANM_P_TALKING_AND_POINTING loop -1
+		wait 2 seconds
+		Man1 play ANM_P_GOSSIP_MAN loop -1
+		set Man1 focus to camera position
+ 
+		Man2 play ANM_P_DANCE_X_PARTNER loop -1
+		Man3 play ANM_P_DANCE_TOGETHER_ARMLINK loop -1
+
+		move PolarBear position to [1560.915, 1.256, 3934.426] 
+		wait 2 seconds
+
+		//move camera focus to [PolarBear] time 1
+		
+		say HELP_TEXT_NEW_L5_MISSIONARIES_08
+		wait until read
+		Man1 play ANM_P_DANCE_X loop -1
+
+		set PolarBear focus to camera position
+		eject evil spirit
+		say HELP_TEXT_NEW_L5_MISSIONARIES_09
+		wait until read
+		eject good spirit
+		say HELP_TEXT_NEW_L5_MISSIONARIES_10
+		wait until read
+		
+		disable Man1 high graphics detail
+		disable Man2 high graphics detail
+		disable Man3 high graphics detail
+		stop music
+		send good spirit home
+		send evil spirit home
+		close dialogue
+		wait 1 seconds
+		snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_18 StandardReminder(variable HELP_TEXT_REMINDER_18)
+	end cinema 
+
+	attach Man1 to Town
+	attach Man2 to Town
+	attach Man3 to Town
+
+	release Man1
+	release Man2
+	release Man3
+
+	run background script SwapCreatures(PolarBear)
+
+end script MissionariesReturned
+

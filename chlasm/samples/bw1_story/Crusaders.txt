@@ -1,0 +1,860 @@
+challenge CRUSADERS
+
+global StopActing
+global ChargeIn
+global AllHealedUp
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CRUSADER ACTIONS ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script Crusader1Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01)
+
+// AnimNum = 0
+
+start
+/*	while StopActing == 0
+		if Crusader1 played
+			if AnimNum == 0
+				Crusader1 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader1 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+	end while
+
+	wait until StopActing == 2
+
+	while AllHealedUp == 0
+		if Crusader1 played
+			if AnimNum == 0
+				Crusader1 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader1 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+	end while
+
+	wait until StopActing == 3
+
+	while AllHealedUp == 1
+		if Crusader1 played
+			if AnimNum == 0
+				Crusader1 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader1 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+	end while
+
+
+
+
+move Crusader1 position to [MineEntrance] + [10,10]
+*/
+
+	wait until ChargeIn == 1
+
+	move Crusader1 position to [MineEntrance01] + [0,2]
+	wait until [Crusader1] near [MineEntrance01] radius 3
+	set Crusader1 focus to [MineEntrance]
+	wait 0.5 seconds
+	set Crusader1 focus to [MineEntrance01]
+//	Crusader1 play ANM_P_CONDUCT_MEETING loop 1
+//	wait until Crusader1 played
+	set Crusader1 focus to [MineEntrance]
+	wait 0.5 seconds
+	Crusader1 play ANM_P_INTO_POINTING loop 1
+	wait until Crusader1 played
+	//SOUNDS OF "CHAAARGE" "FORWARD" FOR GOD AND HIS MERCY" "YAAAH" "HURRAH"
+	//start say sound HELP_TEXT_NEW_L5_CRUSADERS_12 //Charge
+	//Crusader1 play ANM_P_OUT_OF_POINTING loop 1
+	//wait 0.5 seconds
+	//start say extra sound HELP_TEXT_NEW_L5_CRUSADERS_13 //run quickly
+	//wait until Crusader1 played
+	//SOUNDS OF "CHAAARGE" "FORWARD" FOR GOD AND HIS MERCY" "YAAAH" "HURRAH"
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_12 //Charge
+	
+	wait until [Crusader2] near [MineEntrance01] radius 2
+	wait until [Crusader3] near [MineEntrance01] radius 2
+	wait until [Crusader4] near [MineEntrance01] radius 2
+	wait until [Crusader5] near [MineEntrance01] radius 2
+	start say extra sound HELP_TEXT_NEW_L5_CRUSADERS_13 //run quickly
+	SPEED of Crusader1 = 0.7
+	move Crusader1 position to [MineEntrance]
+	set Crusader1 anim ANM_P_RUN_MAN
+	wait until [Crusader1] near [MineEntrance] radius 1
+	delete Crusader1 with fade
+
+end script Crusader1Actions
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Crusader2Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01)
+
+
+//AnimNum = 0
+
+start
+
+/*	while AllHealedUp < 2
+		if Crusader2 played
+			if AnimNum == 0
+				Crusader2 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader2 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+	end while
+*/	wait until ChargeIn == 1
+		
+	move Crusader2 position to [MineEntrance01]	+ [-1,0]
+	set Crusader2 focus to [MineEntrance]
+	wait 3 seconds
+		
+	wait until [Crusader1] near [MineEntrance01] radius 3
+	wait until [Crusader2] near [MineEntrance01] radius 3
+	wait until [Crusader3] near [MineEntrance01] radius 3
+	wait until [Crusader4] near [MineEntrance01] radius 3
+	wait until [Crusader5] near [MineEntrance01] radius 3
+	SPEED of Crusader2 = 0.7
+	move Crusader2 position to [MineEntrance]
+	set Crusader2 anim ANM_P_RUN_MAN
+ 	wait until [Crusader2] near [MineEntrance] radius 1
+	delete Crusader2 with fade
+
+end script Crusader2Actions
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Crusader3Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01)
+
+
+//AnimNum = 0
+
+start
+
+/*	while AllHealedUp < 2
+		if Crusader3 played
+			if AnimNum == 0
+				Crusader3 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader3 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+	end while
+*/	wait until ChargeIn == 1
+	Crusader3 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+	wait until Crusader3 played
+	move Crusader3 position to [MineEntrance01] + [1,0]
+ 	set Crusader3 focus to [MineEntrance]
+	wait 3 seconds
+
+	wait until [Crusader1] near [MineEntrance01] radius 3
+	wait until [Crusader2] near [MineEntrance01] radius 3
+	wait until [Crusader3] near [MineEntrance01] radius 3
+	wait until [Crusader4] near [MineEntrance01] radius 3
+	wait until [Crusader5] near [MineEntrance01] radius 3
+	
+	wait 1 seconds
+	SPEED of Crusader3 = 0.7
+	move Crusader3 position to [MineEntrance]
+	set Crusader3 anim ANM_P_RUN_MAN
+	wait until [Crusader3] near [MineEntrance] radius 1
+	delete Crusader3 with fade
+
+end script Crusader3Actions
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Crusader4Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01)
+
+
+//AnimNum = 0
+
+start
+
+	while AllHealedUp < 2
+/*		if Crusader4 played
+			if AnimNum == 0
+				Crusader4 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader4 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+*/	end while
+ 	wait until ChargeIn == 1
+	Crusader4 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+	wait until Crusader4 played
+	move Crusader4 position to [MineEntrance01] + [-1,1]
+ 	set Crusader4 focus to [MineEntrance]
+	wait 3 seconds
+
+	wait until [Crusader1] near [MineEntrance01] radius 3
+	wait until [Crusader2] near [MineEntrance01] radius 3
+	wait until [Crusader3] near [MineEntrance01] radius 3
+	wait until [Crusader4] near [MineEntrance01] radius 3
+	wait until [Crusader5] near [MineEntrance01] radius 3
+ 	SPEED of Crusader4 = 0.7
+	move Crusader4 position to [MineEntrance]
+	set Crusader4 anim ANM_P_RUN_MAN
+	wait until [Crusader4] near [MineEntrance] radius 1
+	delete Crusader4 with fade
+
+end script Crusader4Actions
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Crusader5Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01)
+
+
+//AnimNum = 0
+
+start
+
+	while AllHealedUp < 2
+/*		if Crusader5 played
+			if AnimNum == 0
+				Crusader5 play ANM_P_LOOKING_FOR_SOMETHING loop 1
+				AnimNum = 1
+			elsif AnimNum == 1
+				Crusader5 play ANM_P_OVERWORKED2 loop 1
+				AnimNum = 0
+			end if
+		end if
+*/	end while
+	wait until ChargeIn == 1
+	Crusader5 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+	wait until Crusader5 played
+	move Crusader5 position to [MineEntrance01] + [-1,-1]
+	set Crusader5 focus to [MineEntrance]
+	wait 3 seconds
+
+	wait until [Crusader1] near [MineEntrance01] radius 3
+	wait until [Crusader2] near [MineEntrance01] radius 3
+	wait until [Crusader3] near [MineEntrance01] radius 3
+	wait until [Crusader4] near [MineEntrance01] radius 3
+	wait until [Crusader5] near [MineEntrance01] radius 3
+
+	SPEED of Crusader5 = 0.7
+	move Crusader5 position to [MineEntrance]
+	set Crusader5 anim ANM_P_RUN_MAN
+	wait until [Crusader5] near [MineEntrance] radius 1
+	delete Crusader5 with fade
+
+end script Crusader5Actions
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MAIN ****
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Crusaders
+
+ SmokeyFire = 0
+
+ Crusader1 = 0
+ Crusader2 = 0
+ Crusader3 = 0
+ Crusader4 = 0
+ Crusader5 = 0
+ CrusaderPosse = 0
+
+ BaseCamp = 0
+ 
+ MineMesh = get FEATURE at [1881.25,2349.56]
+ MineMesh01 = get FEATURE at [1420.13,2068.80]
+
+ Crater01 = get FEATURE at [1826.135, 59.693, 2305.804]
+ Crater02 = get FEATURE at [1744.944, 57.290, 2225.273]
+ Crater03 = get FEATURE at [1663.577, 60.860, 2166.369]
+ Crater04 = get FEATURE at [1581.013, 85.901, 2122.308]
+ Crater05 = get FEATURE at [1466.070, 65.388, 2083.855]
+
+
+ SoundHole1 = marker at [1826.135, 59.693, 2305.804] 
+ SoundHole2 = marker at [1744.944, 57.290, 2225.273] 
+ SoundHole3 = marker at [1663.577, 60.860, 2166.369] 
+ SoundHole4 = marker at [1581.013, 85.901, 2122.308] 
+ SoundHole5 = marker at [1466.070, 65.388, 2083.855]   
+
+ Smoke	= 0
+ Smoke1 = 0
+ Smoke2 = 0
+ Smoke3 = 0
+ Smoke4 = 0
+ Smoke5 = 0
+ Smoke6 = 0
+
+ Effect = 0
+ 
+ MineEntrance01 = marker at [1887.416, 12.761, 2349.534] //rally to go in
+ MineEntrance = marker at [1880.034, 14.740, 2349.642] //doorway inside
+ MineExit = marker at [1420.962, 44.924, 2068.719] 
+
+ Reward = 0
+ BlaggyInfluence = 0
+
+ CrusaderStartPos = marker at [1896.454, 11.369, 2346.574] 
+ CrusaderCompletePos = marker at [1401.495, 43.540, 2063.309]  
+ SmokeyFirePos = marker at [1883.299, 13.861, 2350.002] 
+
+ HealemTimer = create timer for 0 seconds
+ AlignmentTotal = 0
+ Highlight = 0
+
+ Cauldron = 0
+
+start
+
+
+	enable MineMesh indestructible
+	enable MineMesh01 indestructible
+	enable Crater01 indestructible
+	enable Crater02 indestructible
+	enable Crater03 indestructible
+	enable Crater04 indestructible
+	enable Crater05 indestructible
+
+
+	StopActing = 0
+	ChargeIn = 0
+	AllHealedUp = 0
+
+	Cauldron = create with angle 0 and scale 0.2 MOBILE_OBJECT MOBILE_OBJECT_CAULDRON at [CrusaderStartPos]
+	//SCALE of Cauldron = 0.2
+
+	//wait until camera position not near [CrusaderStartPos] radius 150 and [CrusaderStartPos] not viewed
+
+	CrusaderPosse = flock at [CrusaderStartPos]
+	set CrusaderPosse properties inner 10 outer 25
+
+	Crusader1 = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderStartPos]+[-1,0] //Leader
+	enable Crusader1 indestructible
+	disable Crusader1 pickup
+	disable Crusader1 hurt by fire
+	disable Crusader1 set on fire
+	attach Crusader1 to CrusaderPosse
+	Crusader2 = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderStartPos]+[0.3,-5]
+	enable Crusader2 indestructible
+	disable Crusader2 pickup
+	disable Crusader2 hurt by fire
+	attach Crusader2 to CrusaderPosse
+	disable Crusader2 set on fire
+	Crusader3 = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderStartPos]+[1,3]
+	enable Crusader3 indestructible
+	disable Crusader3 pickup
+	disable Crusader3 hurt by fire
+	attach Crusader3 to CrusaderPosse
+	disable Crusader3 set on fire
+	Crusader4 = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderStartPos]+[2.5,1]
+	enable Crusader4 indestructible
+	disable Crusader4 pickup
+	disable Crusader4 hurt by fire
+	attach Crusader4 to CrusaderPosse
+	disable Crusader4 set on fire
+	Crusader5 = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderStartPos]+[3,0.5] 
+	enable Crusader5 indestructible
+	disable Crusader5 pickup
+	disable Crusader5 hurt by fire
+	attach Crusader5 to CrusaderPosse
+	disable Crusader5 set on fire
+
+
+	Crusader1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	Crusader2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	Crusader3 play ANM_P_SITTING_DOWN1_SITTING loop -1
+ 	Crusader4 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	Crusader5 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+
+	//BaseCamp = create ????????????????? at [CrusaderStartPos]
+	set CrusaderPosse focus to [CrusaderStartPos]
+	HEALTH of CrusaderPosse = 0.6
+
+
+	SmokeyFire = create STORE WOOD at [SmokeyFirePos]
+	add resource WOOD 9000 to SmokeyFire
+	enable SmokeyFire indestructible
+	disable SmokeyFire pickup
+	disable SmokeyFire hurt by fire
+	disable SmokeyFire set on fire
+
+	run background script Crusader1Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01) // waits for StopActing == 1 then AllHealedUp == 1 then AllHealedUp == 2
+	run background script Crusader2Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01) // waits for AllHealedUp == 2
+	run background script Crusader3Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01) // waits for AllHealedUp == 2
+	run background script Crusader4Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01) // waits for AllHealedUp == 2
+	run background script Crusader5Actions (Crusader1,Crusader2,Crusader3,Crusader4,Crusader5,CrusaderStartPos, MineEntrance, MineEntrance01) // waits for AllHealedUp == 2
+
+	// HIGHLIGHT NOTIFY
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [CrusaderStartPos] + [5,20,5]
+	ALTITUDE of Highlight = 20
+	run script ChallengeHighlightNotify(Highlight, CrusaderStartPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
+
+
+	//StopActing = 1
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		enable Crusader1 high graphics detail	
+
+		move camera position to [1905.192, 15.789, 2348.644] time 3
+		move camera focus to [1895.159, 11.445, 2346.410] time 2
+		wait until camera ready
+		move camera position to [1900.630, 14.481, 2347.247] time 20
+
+		Crusader5 play ANM_P_WHITTLING_AT_STICK loop -1
+		
+		Crusader1 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+		wait until Crusader1 played
+		Crusader1 play ANM_P_OVERWORKED2 loop 1
+
+		Crusader2 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+		wait until Crusader2 played
+		Crusader2 play ANM_P_SITTING_DOWN_MALE2 loop 2
+
+		Crusader4 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+		wait until Crusader4 played
+		Crusader4 play ANM_P_SITTING_DOWN_MALE1 loop 1
+
+ 		wait until Crusader1 played
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_113 StandardReminder (variable HELP_TEXT_REMINDER_119)
+
+		set Crusader1 focus to camera position
+		Crusader1 play ANM_P_AMBIENT2  loop 1
+  		//wait until Crusader1 played
+
+		say HELP_TEXT_NEW_L5_CRUSADERS_01
+		wait until read
+
+		wait until Crusader1 played
+
+		Crusader1 play ANM_P_AMBIENT1 loop 1
+		say HELP_TEXT_NEW_L5_CRUSADERS_02
+		
+ 		set	camera position to [1898.339, 19.969, 2345.115] //look at mine
+		set	camera focus to [1881.652, 15.519, 2351.507] 
+		//sound of DRAGON MURMERING from cave
+		start sound LH_SCRIPT_SAMPLE_DRAGONROAR AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		move camera position to [1899.588, 19.674, 2348.031] time 6
+
+		wait 2 seconds
+		wait until read
+		wait until Crusader1 played
+		set Crusader1 focus to [1899.161, 13.837, 2341.564]
+		wait 0.5 seconds
+
+		set camera position to [1899.161, 13.837, 2341.564]
+		set camera focus to [1895.159, 11.445, 2346.410]
+		wait until camera ready
+		
+ 
+		Crusader1 play ANM_P_AMBIENT1 loop -1
+		wait until read //
+
+		say HELP_TEXT_NEW_L5_CRUSADERS_03
+	
+		Crusader1 play ANM_P_OVERWORKED2 loop 2
+		wait until read
+		wait until Crusader1 played
+
+		disable Crusader1 high graphics detail
+		stop music
+	end cinema
+ 
+		Crusader1 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader1 played
+		Crusader1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		wait 0.25 seconds
+
+		Crusader2 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader2 played
+		Crusader2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		wait 0.25 seconds
+		
+		Crusader4 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader4 played
+		Crusader4 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+	//StopActing = 2
+
+	while AllHealedUp == 0
+		if HEALTH of Crusader1 >= 1 and HEALTH of Crusader2 >= 1 and HEALTH of Crusader3 >= 1 and HEALTH of Crusader4 >= 1 and HEALTH of Crusader5 >= 1
+			AllHealedUp = 1
+		end if
+	end while
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		enable Crusader1 high graphics detail
+
+		move camera position to [1901.797, 15.514, 2338.602] time 3
+		move camera focus to [1893.265, 11.658, 2346.516] time 2
+		Crusader1 play ANM_P_SITTING_DOWN1_OUT_OF  loop 1
+		wait until Crusader1 played
+		set Crusader1 focus to camera position
+		wait until camera ready
+		// SNAPSHOT
+		move camera position to [1903.797, 14.514, 2339.602] time 30
+		set Crusader1 focus to camera position
+		say single line HELP_TEXT_NEW_L5_CRUSADERS_04
+		wait until read
+		
+		//StopActing = 3
+		move camera focus to [MineEntrance01]time 6
+
+		move Crusader1 position to [1885.841, 13.337, 2350.482]  // walk to spot before fire
+		wait until [Crusader1] at [1885.841, 13.337, 2350.482]
+		set Crusader1 focus to [MineEntrance]
+
+ 		set	camera position to [1889.977, 18.388, 2346.780]  //look at mine
+		set	camera focus to [1883.911, 14.653, 2350.313] 
+		move camera position to [1890.977, 17.388, 2346.780] time 8
+
+		Crusader1 play ANM_P_PROD_CAMPFIRE loop 1
+
+		close dialogue
+		wait 0.1 seconds
+		snapshot challenge success 0.33 alignment 0.0 HELP_TEXT_TITLE_113 StandardReminder (variable HELP_TEXT_REMINDER_120)
+		
+		say HELP_TEXT_NEW_L5_CRUSADERS_05
+		wait until read
+		wait until Crusader1 played		
+		set Crusader1 focus to [CrusaderStartPos]
+		wait 0.5 seconds
+
+		disable SmokeyFire indestructible
+		enable SmokeyFire hurt by fire
+		enable SmokeyFire set on fire
+
+		Crusader1 play ANM_P_CONDUCT_MEETING loop 1
+
+		Crusader2 play ANM_P_GOSSIP_WOMAN_2 loop -1
+		
+		Crusader3 play ANM_P_CROWD_IMPRESSED_1 loop -1
+		
+		Crusader4 play ANM_P_CONDUCT_MEETING loop -1
+	
+		Crusader5 play ANM_P_AMBIENT2 loop -1
+	
+		say HELP_TEXT_NEW_L5_CRUSADERS_06
+
+		
+		Crusader1 play ANM_P_M_DANCE_B loop -1
+		wait until read
+
+		move camera position to [1902.519, 16.187, 2338.168]  time 2
+		move camera focus to [1890.891, 12.055, 2348.099] time 2
+		wait until camera ready
+		
+		move Crusader1 position to [1889.016, 12.042, 2347.567] 
+		wait until [Crusader1] near [1889.016, 12.042, 2347.567] radius 1
+		set Crusader1 focus to camera position
+
+		say HELP_TEXT_NEW_L5_CRUSADERS_07
+
+  		Crusader1 play ANM_P_SHRUG_SHOULDERS loop 2
+ 
+		wait until read
+ 		say HELP_TEXT_NEW_L5_CRUSADERS_08
+ 		wait until read
+		wait until Crusader1 played
+
+		move Crusader1 position to [CrusaderStartPos] +[-1,0]
+		wait until [Crusader1] near [CrusaderStartPos] +[-1,0] radius 1
+
+		disable Crusader1 high graphics detail
+ 		stop music
+	end cinema
+		Crusader1 play ANM_P_SITTING_DOWN1_INTO
+		wait until Crusader1 played
+ 		Crusader1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+		Crusader2 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader2 played
+		Crusader2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+ 		
+		Crusader3 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader3 played
+		Crusader3 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+		Crusader4 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader4 played
+		Crusader4 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	
+		Crusader5 play ANM_P_SITTING_DOWN1_INTO 
+		wait until Crusader5 played
+		Crusader5 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+
+
+
+	wait until fire near [MineEntrance] radius 10
+	AllHealedUp = 2
+
+	begin cinema
+
+		Smoke1 = create special effect SPOT_VISUAL_SMOKE at [SmokeyFirePos] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke1 = 8.0
+		wait 3 seconds
+		// SNAPSHOT
+
+		move camera position to [1897.026, 25.113, 2355.931] time 3
+		move camera focus to [1885.074, 13.962, 2348.407] time 2
+		wait until camera ready
+		wait 4 seconds		
+		
+		move camera position to [MineEntrance]+[15,60,15] time 8  //look across smokeholes
+		move camera focus to [SoundHole1] time 2
+		wait 3 seconds
+		move camera focus to [SoundHole5] time 28
+		move camera position to [1794.940, 89.901, 2301.744] time 28 //camera position to [MineEntrance]+[15,70,15] 
+
+		Smoke2 = create special effect SPOT_VISUAL_SMOKE at [SoundHole1] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke2 = 8.0
+		//move camera focus to [SoundHole2] time 2
+		wait 3 seconds
+		
+		Smoke3 = create special effect SPOT_VISUAL_SMOKE at [SoundHole2] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke3 = 8.0
+		//move camera focus to [SoundHole3] time 2
+		wait 3 seconds
+		
+		Smoke4 = create special effect SPOT_VISUAL_SMOKE at [SoundHole3] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke4 = 8.0
+		//move camera focus to [SoundHole4] time 2
+		wait 3 seconds
+		
+		Smoke5 = create special effect SPOT_VISUAL_SMOKE at [SoundHole4] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke5 = 8.0
+		//move camera focus to [SoundHole5] time 2
+		wait 3 seconds
+		
+		Smoke6 = create special effect SPOT_VISUAL_SMOKE at [SoundHole5] time 30
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke6 = 8.0
+		wait 3 seconds
+		
+		add resource WOOD 0 to SmokeyFire //getting rid of fire ??????
+		delete SmokeyFire
+		
+		wait 0.5 seconds
+		set camera position to [1880.890, 26.878, 2340.298]  
+		set camera focus to [1889.237, 12.980, 2349.852]
+		wait 1 second
+		move camera position to [1895.176, 26.352, 2339.461] time 25
+		
+	snapshot challenge success 0.66 alignment 0.0 HELP_TEXT_TITLE_113 StandardReminder (variable HELP_TEXT_REMINDER_121)
+
+		
+
+		//CHARGE
+		ChargeIn = 1 //run charge in bits until blokes fade out
+		wait until size of CrusaderPosse <= 0
+	end cinema
+
+	/// play sound from mine entrance
+	wait 10 seconds
+
+	wait until camera position near [SoundHole1] radius 50 and [SoundHole1] viewed
+	/// play a sound of VALIANT CRUSADERS CHARGING AND COUGHING from SoundHole1
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_17 //Cough
+	
+	Effect = create special effect SPOT_VISUAL_SMOKE at [SoundHole1] time 10
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 8.0
+	wait 2 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_18 //what's that
+	wait 4 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_19 //Get off me Barry
+	wait 2 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_20 //etc.
+	wait 2 seconds
+	
+	wait until camera position near [SoundHole2] radius 30 and [SoundHole2] viewed
+	/// play a sound of "THE MIGHT BEAST MUST BE CLOSE BY COMRADES. I CAN SMELL THE STENCH" and sound of WALKING CRUSADERS from SoundHole2
+	Effect = create special effect SPOT_VISUAL_SMOKE at [SoundHole2] time 10
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 8.0	
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_17 //Cough
+	wait 2 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_21 //golden piss
+	wait 4 seconds
+	start sound LH_SCRIPT_SAMPLE_DRAGONROAR AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+	wait 1 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_22 //etc.
+	wait 3 seconds
+
+	wait until camera position near [SoundHole3] radius 30 and [SoundHole3] viewed
+	/// play a sound of "HERE IS THE SCALEY BEAST" "CHAAAARGE" and sound of CRUSADERS FIGHTING A ROARING DRAGON from SoundHole3
+	Effect = create special effect SPOT_VISUAL_SMOKE at [SoundHole3] time 10
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 8.0
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_15 //at em lads.
+	wait 2 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_16 //tally ho
+	wait 1.5 seconds
+	start sound LH_SCRIPT_SAMPLE_DRAGONROAR AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+	wait 3 seconds
+
+
+	wait until camera position near [SoundHole4] radius 30 and [SoundHole4] viewed
+	/// play a sound of "VICTOR IS DEAD BUT THE TREASURE IS OURS. QUICKLY HEAD FOR THE EXIT" and sound of FLEEING CRUSADERS from SoundHole4
+	Effect = create special effect SPOT_VISUAL_SMOKE at [SoundHole4] time 10
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 8.0
+  	start sound LH_SCRIPT_SAMPLE_DRAGONFIGHTSCENE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+	//shake camera at [SoundHole4] radius 50.0 amplitude 0.5 time 2
+	wait 2.5 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_23 //ralph's dead
+	wait 1 seconds
+	start say sound HELP_TEXT_NEW_L5_CRUSADERS_24 //?'s copped it
+ 	shake camera at [SoundHole4] radius 50.0 amplitude 0.5 time 2
+
+	wait 2 seconds
+
+
+//REWARD--------------------------------------------------------------------------------------------
+
+	wait until camera position near [SoundHole5] radius 30 and [SoundHole5] viewed
+
+	begin cinema
+		
+		move camera position to [1472.061, 77.357, 2095.157] time 3	//hole 5 and top of gate and reward pos
+		move camera focus to [1459.754, 64.345, 2083.487] time 3
+		wait until camera ready
+		/// play a sound from SoundHole5 of " OH NO, NOW MAURICE IS GONE. GET OUT MY BRAVE FRIENDS, GET OUT" and sound of DRAGON IN DEATH THROWS, LAST GASP
+
+		Effect = create special effect SPOT_VISUAL_SMOKE at [SoundHole5] time 10
+		start sound LH_SCRIPT_SAMPLE_DRAGONROAR AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		shake camera at [SoundHole5] radius 100.0 amplitude 0.25 time 1		
+		wait 4 seconds
+		start say sound HELP_TEXT_NEW_L5_CRUSADERS_25 //got treasure - scarper		
+		wait 1.5 seconds
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 8.0
+		wait 2 seconds
+		move camera position to [1384.978, 58.313, 2071.890]  time 4	//gate and reward pos
+		move camera focus to [1406.502, 45.651, 2063.241] time 4
+		wait until camera ready
+		
+		Effect = create special effect SPOT_VISUAL_SMOKE at [MineExit] time 20
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Effect = 4.0
+		wait 1 seconds
+
+		Crusader1 = create VILLAGER VILLAGER_INFO_CRUSADER at [MineExit]
+		enable Crusader1 high graphics detail
+		enable Crusader1 indestructible
+		disable Crusader1 pickup
+		disable Crusader1 hurt by fire
+		HEALTH of Crusader1 = 0.4
+		SPEED of Crusader1 = 0.7
+		move Crusader1 position to [CrusaderCompletePos]+[3,3]
+		set Crusader1 anim ANM_P_ON_FIRE_RUN
+
+		Crusader2 = create VILLAGER VILLAGER_INFO_CRUSADER at [MineExit]
+		enable Crusader2 high graphics detail		
+		enable Crusader2 indestructible
+		disable Crusader2 pickup
+		disable Crusader2 hurt by fire
+		HEALTH of Crusader2 = 0.4
+		SPEED of Crusader2 = 0.6
+		move Crusader2 position to [CrusaderCompletePos]+[0,3]
+		set Crusader2 anim ANM_P_ON_FIRE_RUN
+
+		Crusader3 = create VILLAGER VILLAGER_INFO_CRUSADER at [MineExit]
+		enable Crusader3 high graphics detail
+		enable Crusader3 indestructible
+		disable Crusader3 pickup
+		disable Crusader3 hurt by fire
+		HEALTH of Crusader3 = 0.4
+		SPEED of Crusader3 = 0.55
+		start say extra sound HELP_TEXT_NEW_L5_CRUSADERS_13 //run quickly
+		wait 0.25 seconds
+		move Crusader3 position to [CrusaderCompletePos]+[3,0]
+		set Crusader3 anim ANM_P_ON_FIRE_RUN
+
+		wait until [Crusader1] at [CrusaderCompletePos]+[3,3]
+		//start say sound HELP_TEXT_NEW_L5_CRUSADERS_17 //Cough
+		wait until [Crusader2] at [CrusaderCompletePos]+[0,3]
+		wait until [Crusader3] at [CrusaderCompletePos]+[3,0]
+		set Crusader1 focus to camera position
+		set Crusader2 focus to [CrusaderCompletePos]
+		set Crusader3 focus to [CrusaderCompletePos] 		
+		Crusader1 play ANM_P_OVERWORKED2 
+		Crusader2 play ANM_P_OVERWORKED1
+		Crusader3 play ANM_P_SITTING_DOWN1_INTO
+		wait until Crusader3 played
+		Crusader3 play ANM_P_SITTING_DOWN1_SITTING loop -1		
+		wait until Crusader1 played
+		wait until Crusader2 played
+
+		
+		Effect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [CrusaderCompletePos] time 2
+		run background script GiveSpellDispenserReward(CrusaderCompletePos, variable MAGIC_TYPE_FLOCK_FLYING, 0.0, 0, 5 * 60)
+
+		move camera position to [1394.888, 52.953, 2069.759] time 3
+		move camera focus to [1404.877, 45.243, 2063.833] time 4 
+		BlaggyInfluence = create influence at [CrusaderCompletePos] radius 50
+		say HELP_TEXT_NEW_L5_CRUSADERS_09 //victory, look what we found
+		wait until read
+		say HELP_TEXT_NEW_L5_CRUSADERS_10 //name item
+		wait until read
+		say HELP_TEXT_NEW_L5_CRUSADERS_11  //we'll leave it here as a shrine
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds		
+		
+		Crusader1 play ANM_P_SITTING_DOWN1_INTO 
+		Crusader2 play ANM_P_SITTING_DOWN1_INTO
+
+		wait until Crusader1 played
+		wait until Crusader2 played
+		Crusader1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		Crusader2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+
+		snapshot challenge success 1 alignment 0.0 HELP_TEXT_TITLE_113 StandardReminder (variable HELP_TEXT_REMINDER_121)		
+		delete Highlight
+
+
+		disable Crusader1 high graphics detail
+		disable Crusader2 high graphics detail
+		disable Crusader3 high graphics detail
+		
+	end cinema
+
+	set HealemTimer time to 120 seconds
+	wait until ((HEALTH of Crusader1 >= 1) and (HEALTH of Crusader2 >= 1) and (HEALTH of Crusader3 >= 1)) or get HealemTimer time remaining <= 0
+	if HEALTH of Crusader1 >= 1 and HEALTH of Crusader2 >= 1 and HEALTH of Crusader3 >= 1
+		AlignmentTotal = 1
+					
+	elsif get HealemTimer time remaining <= 0
+		AlignmentTotal = 0
+	end if
+
+	move Crusader1 position to [MineExit]
+	move Crusader2 position to [MineExit]
+	move Crusader3 position to [MineExit]
+	wait until [Crusader1] near [MineExit] radius 1
+	delete Crusader1 with fade
+	wait until [Crusader2] near [MineExit] radius 1
+	delete Crusader2 with fade
+	wait until [Crusader3] near [MineExit] radius 1
+	delete Crusader3 with fade
+
+
+
+end script Crusaders
+
+
+
+

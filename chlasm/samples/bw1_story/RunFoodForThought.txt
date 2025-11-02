@@ -1,0 +1,12 @@
+challenge RunFoodForThought
+
+run script RunFoodForThought
+
+begin script RunFoodForThought
+	
+start
+	
+	run script FoodForThought
+	
+
+end script RunFoodForThought

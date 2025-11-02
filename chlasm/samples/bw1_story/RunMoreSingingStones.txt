@@ -1,0 +1,12 @@
+challenge RunMoreSingingStones
+
+run script RunMoreSingingStones
+
+begin script RunMoreSingingStones
+	
+start
+	
+	run script MoreSingingStonesMain
+	
+
+end script RunMoreSingingStones

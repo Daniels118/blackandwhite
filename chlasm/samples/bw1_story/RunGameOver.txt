@@ -1,0 +1,11 @@
+
+run script RunGameOver
+
+begin script RunGameOver
+	
+start
+	
+	run script GameOver
+	
+
+end script RunGameOver

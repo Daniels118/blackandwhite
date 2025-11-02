@@ -1,0 +1,435 @@
+challenge FOOD_FOR_THOUGHT
+
+
+global FoodForThoughtStatus
+
+//*****************************************************************************
+//	A group of homeless people arrive at one of your villages and need food
+//	- your town is low on supplies and the village folk are not too keen to 
+//	help them.
+//*****************************************************************************
+
+// Marauders come in a pack of ten and do three raids on the village. They retreat from a raid if two marauders are killed.
+// The first raid takes a flock of Cattle out to their den. The second destroys your Storage Pit and the last destroys your creche.
+
+// globals
+
+
+//*****************************************************************************
+//	Tribe given poisoned food
+//*****************************************************************************
+
+begin script FoodForThoughtPoisonedFood (Villager, HomelessFlock, magic_food)
+
+BeginFoc = 0
+BeginPos = 0
+HomelessFlockPos = 0
+HomelessDude = 0
+
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [Villager]+[-10,10,-10] time 4
+		move camera focus to [Villager] time 3
+		wait until camera ready
+
+		// "You gave the wandering tribe poisoned food."
+		say HELP_TEXT_FOODFORTHOUGHT_20
+		wait until read
+		delete magic_food
+		HomelessFlockPos = marker at [HomelessFlock]
+		while size of HomelessFlock > 0
+			HomelessDude = detach from HomelessFlock
+			HEALTH of HomelessDude = 0
+			HomelessDude = 0
+		end while
+		wait 1 second
+		set camera position to [HomelessFlockPos]+[-10,10,-10]
+		set camera focus to [HomelessFlockPos]
+
+		eject evil spirit
+			// "Heheh. Classic move, Boss. That'll keep them quiet."
+			say HELP_TEXT_FOODFORTHOUGHT_21
+			wait until read
+		send evil spirit home
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+	end cinema
+end script FoodForThoughtPoisonedFood
+
+//*****************************************************************************
+//	Not fed, tribe gone. Pretty Lame.
+//*****************************************************************************
+begin script FoodForThoughtFlockGone(Villager)
+
+BeginFoc = 0
+BeginPos = 0
+
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [Villager]+[-10,10,-10] time 4
+		move camera focus to [Villager] time 3
+		wait until camera ready
+
+		say HELP_TEXT_FOODFORTHOUGHT_09
+
+		eject evil spirit
+			say HELP_TEXT_FOODFORTHOUGHT_10
+			wait until read
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+	end cinema
+
+end script FoodForThoughtFlockGone
+
+//*****************************************************************************
+//	Homeless fed the easy way
+//*****************************************************************************
+begin script FoodForThoughtFlockFed(Villager)
+
+BeginFoc = 0
+BeginPos = 0
+
+start
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [Villager]+[-10,10,-10] time 4
+		move camera focus to [Villager] time 3
+		wait until camera ready
+
+		say HELP_TEXT_FOODFORTHOUGHT_08
+		wait until read
+		say HELP_TEXT_FOODFORTHOUGHT_12
+		wait until read
+
+		eject good spirit
+			say HELP_TEXT_FOODFORTHOUGHT_11
+			wait until read
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+	end cinema
+
+end script FoodForThoughtFlockFed
+
+//*****************************************************************************
+//	Homeless fed with magic
+//*****************************************************************************
+begin script FoodForThoughtMagicFood(Villager, HomelessFlock)
+
+BeginFoc = 0
+BeginPos = 0
+
+start
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [Villager]+[-10,10,-10] time 4
+		move camera focus to [Villager] time 3
+		wait until camera ready
+		say HELP_TEXT_FOODFORTHOUGHT_14
+		wait until read
+
+		move camera position to [HomelessFlock]+[-10,10,-10] time 1
+		move camera focus to [HomelessFlock] time 1
+		wait until camera ready
+		say HELP_TEXT_FOODFORTHOUGHT_15
+		wait until read
+		say HELP_TEXT_FOODFORTHOUGHT_16
+
+		eject good spirit
+		eject evil spirit
+			say HELP_TEXT_FOODFORTHOUGHT_17
+			wait until read
+			say HELP_TEXT_FOODFORTHOUGHT_18
+			wait until read
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+	end cinema
+
+end script FoodForThoughtMagicFood
+
+//*****************************************************************************
+//	Time up - Nothing done
+//*****************************************************************************
+begin script FoodForThoughtExpired(HomelessFlock, HomelessExitPos, InTownPos)
+
+exit_loop = 0
+expire_count = 0
+BeginFoc = 0
+BeginPos = 0
+
+start
+
+	move HomelessFlock position to [HomelessExitPos]
+	HEALTH of HomelessFlock = 0.0
+	release HomelessFlock
+
+	while exit_loop == 0
+		if expire_count > 75
+			exit_loop=1
+		end if
+		wait until 2 seconds
+		expire_count++
+
+		if camera position near [InTownPos] radius 30
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				move camera position to [InTownPos]+[-10,10,-10] time 4
+				move camera focus to [InTownPos] time 3
+				wait until camera ready
+
+				eject evil spirit
+					say HELP_TEXT_FOODFORTHOUGHT_19
+					wait until read
+
+				move camera position to [BeginPos] time 3
+				move camera focus to [BeginFoc] time 3
+				wait until camera ready
+			end cinema
+			exit_loop=1
+		end if
+
+	end while
+
+end script FoodForThoughtExpired
+//*****************************************************************************
+//	Main Control 
+//*****************************************************************************
+begin script FoodForThought
+
+HomelessFlock = 0
+HomelessStartPos = marker at [2733.8911, 41.5400, 2532.1326]
+HomelessExitPos = marker at [2733.8911, 41.5400, 2532.1326]
+
+CameraPos1 = marker at [2731.0286, 46.2919, 2462.9885]
+CameraFoc1 = marker at [2691.4102, 41.6482, 2478.3193] 
+InTownPos = marker at [2723.5305, 41.5400, 2488.0349]
+BeginFoc = 0
+BeginPos = 0
+Villager = 0
+
+VillagerHut = get SCRIPT_OBJECT_TYPE_ABODE at [2704.8301, 41.5400, 2487.2900]
+StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [2690.0298, 41.5400, 2440.0601]
+VillagerPos = marker at [2715.2612, 41.5400, 2477.5300]
+RewardExpected = 0
+StorageRaids = 0
+Reward1 = 0
+
+food = 0
+magic_food = 0
+homeless_count = 0
+homeless_person = 0
+
+food_currently_in_hand = 0
+had_magic_food = 0
+object_in_hand = 0
+food_given = 0
+said_great = 0
+said_ahh = 0
+
+expire_timer = 0
+alignment_value=0
+Highlight = 0
+
+StorageFood = 0
+FoodSource = 0
+
+//BodgeStoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [2839.6499, 23.4500, 3563.0903]
+
+start
+	StorageFood = get resource FOOD in StoragePit
+	while StorageFood > 500
+		wait 5 seconds
+		StorageFood = get resource FOOD in StoragePit
+	end while
+
+	//enable BodgeStoragePit poisoned
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [VillagerHut]
+	run script ChallengeHighlightNotify(Highlight, VillagerHut, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_08)
+
+	HomelessFlock = flock at [HomelessStartPos]
+	set HomelessFlock properties inner 10 outer 10
+	populate HomelessFlock with 10 SCRIPT_OBJECT_TYPE_VILLAGER  VILLAGER_INFO_NORSE_FARMER_MALE
+	move HomelessFlock position to [HomelessStartPos]
+
+	Villager = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_INDIAN_FARMER_MALE at [VillagerHut]
+	move Villager position to [VillagerPos]
+
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [HomelessStartPos]+[-10,10,-10] time 4
+		move camera focus to [HomelessStartPos] time 3
+		wait until camera ready
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_10 StandardReminder(variable HELP_TEXT_REMINDER_11)
+		wait 1 second
+		say HELP_TEXT_FOODFORTHOUGHT_01
+		wait until read
+		say HELP_TEXT_FOODFORTHOUGHT_02
+		wait until read
+
+		wait until [Villager] at [VillagerPos]
+		move camera position to [VillagerPos]+[-10,10,-10] time 2
+		move camera focus to [VillagerPos] time 2
+
+		say HELP_TEXT_FOODFORTHOUGHT_03
+		wait until read
+		move camera position to [StoragePit]+[-10,10,-10] time 2
+		move camera focus to [StoragePit] time 2
+		say HELP_TEXT_FOODFORTHOUGHT_04
+
+
+		eject evil spirit
+			say HELP_TEXT_FOODFORTHOUGHT_05
+
+		eject good spirit
+		wait until read
+			say HELP_TEXT_FOODFORTHOUGHT_06
+			wait until read
+
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+
+		//child cries
+
+	end cinema
+
+	wait until read
+
+	// *** Main Loop ***
+	while FoodForThoughtStatus == 0
+
+		// Flock Size Diminished/Killed
+		homeless_count = size of HomelessFlock
+		if homeless_count < 3 
+			FoodForThoughtStatus=1
+		end if
+
+		// What is the player doing
+		if object_in_hand not exists
+			object_in_hand = get object held
+		else
+			if food_currently_in_hand == 0 and object_in_hand type STORE POT_INFO_MAGIC_FOOD
+				had_magic_food = 1
+				food_currently_in_hand = 1
+			end if
+
+			if food_currently_in_hand == 0 and object_in_hand type STORE POT_INFO_HAND_FOOD
+				food_currently_in_hand = 1
+				if [object_in_hand] near [StoragePit] radius 60
+					FoodSource = 1
+				else
+					FoodSource = 2 // Treat as magic food, unless poisoned.
+				end if
+				if object_in_hand poisoned
+					FoodSource = 3
+				end if
+			end if
+
+
+			if [object_in_hand] near [InTownPos] radius 30 and said_great == 0 and object_in_hand is not HELD
+				if food_currently_in_hand == 1
+					begin dialogue
+						say HELP_TEXT_FOODFORTHOUGHT_13
+						wait until read
+					end dialogue
+					said_great=1
+				end if
+			end if
+		end if
+
+		// Check if food dropped
+		if object_in_hand exists
+			if object_in_hand is not HELD
+				if food_currently_in_hand == 1
+					if [object_in_hand] near [InTownPos] radius 20
+						food_given=1
+					elsif said_ahh == 0
+						begin dialogue
+							say HELP_TEXT_FOODFORTHOUGHT_07
+							wait until read
+						end dialogue
+						said_ahh=1
+					end if
+					food_currently_in_hand=0
+				end if
+				object_in_hand=0
+				if food_given == 0
+					FoodSource = 0
+				end if
+			end if
+		end if 
+
+		// Some Food Given to Flock
+		magic_food = get STORE FOODSTORE at [InTownPos] radius 20
+		if magic_food exists
+			if had_magic_food == 1 and food_given == 1
+				FoodForThoughtStatus=3
+			else
+				FoodForThoughtStatus=2
+			end if
+		end if
+
+		wait until 2 seconds
+		expire_timer++
+		if expire_timer > 150		
+			FoodForThoughtStatus=4
+		end if
+
+	end while
+
+	if FoodSource == 2
+		FoodForThoughtStatus = 3
+	elsif FoodSource == 3
+		FoodForThoughtStatus = 5
+	end if
+
+	if FoodForThoughtStatus == 1
+		run script FoodForThoughtFlockGone(Villager)
+		alignment_value=-1.0
+	elsif FoodForThoughtStatus == 2
+		run script FoodForThoughtFlockFed(Villager)
+		alignment_value=0.5
+	elsif FoodForThoughtStatus == 3
+		run script FoodForThoughtMagicFood(Villager, HomelessFlock)
+		Reward1 = reward REWARD_LARGE_FOOD at [InTownPos]+[5,0,10] from sky
+		run background script displayrewardhelp(Reward1)
+		alignment_value=1.0
+	elsif FoodForThoughtStatus == 4
+		run script FoodForThoughtExpired(HomelessFlock, HomelessExitPos, InTownPos)
+		alignment_value=0.0
+	elsif FoodForThoughtStatus == 5
+		run script FoodForThoughtPoisonedFood (Villager, HomelessFlock, magic_food)
+	end if
+
+	snapshot challenge success 1.0 alignment alignment_value HELP_TEXT_TITLE_10 StandardReminder(variable HELP_TEXT_REMINDER_11)
+
+
+end script FoodForThought
+
+
+

@@ -1,0 +1,246 @@
+challenge ChallengeNotify
+
+global NotifyDistance = 100
+
+/*run script SetUpNotify
+
+begin script SetUpNotify
+start
+	NotifyDistance=100
+end script SetUpNotify
+*/
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CHALLENGE NOTIFY ****
+//		This is a generic script which we can run at the beginning of any challenge.  We simply
+//		give it an object and a radius.  It does a little loop of a spirit coming out and pointing
+//		at the object whenever the player gets close to it, and occasionally saying something,
+//		until the object is clicked.
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script ChallengeHighlightNotify(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked or Location clicked
+	end loop
+	enable Highlight active
+end script ChallengeHighlightNotify
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CHALLENGE NOTIFY END VARIABLE ****
+//		This is a generic script which we can run at the beginning of any challenge.  We simply
+//		give it an object and a radius.  It does a little loop of a spirit coming out and pointing
+//		at the object whenever the player gets close to it, and occasionally saying something,
+//		until the object is clicked, or the EndVariable is non zero.
+//------------------------------------------------------------------------------------------------------------------------
+// USE with Caution !!!!!!!!!!! ChallengeHighlightEndVariable is global
+begin challenge help script ChallengeHighlightNotifyWithEndVariable(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	ChallengeHighlightEndVariable = 0					// Reset
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked or Location clicked or ChallengeHighlightEndVariable != 0
+	end loop
+	enable Highlight active
+end script ChallengeHighlightNotifyWithEndVariable
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CHALLENGE NOTIFY OGRE ****
+//  A specific Notify script for the Ogre Meteorite challenge on land 4
+//		This is a generic script which we can run at the beginning of any challenge.  We simply
+//		give it an object and a radius.  It does a little loop of a spirit coming out and pointing
+//		at the object whenever the player gets close to it, and occasionally saying something,
+//		until the object is clicked.
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script ChallengeNotifyOgre(Location, AdvisorType, AdvisorSpeakEnum, PCreature) 
+	Spirit = 0
+	Count = time-31
+	Highlight = 0
+start
+	Highlight = create highlight HIGHLIGHT_QUEST at [Location]
+	begin loop
+		if camera position near [Location] radius NotifyDistance and Location viewed and Spirit not exists
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Location] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Location] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+	until Highlight clicked or Location clicked or [PCreature] near [Location] radius NotifyDistance
+	// If some distance away - move camera towards Location checking for esc key or something then exit
+	// If reasonably close - exit
+	end loop
+end script ChallengeNotifyOgre
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** Challenge notify quest scroll ****
+// A specific script for gold!
+// To remind you have to look at that quest which is not completed yet
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script QuestHighlightNotify(Highlight, Location, AdvisorType, AdvisorSpeakEnum,  AdvisorReminderType, AdvisorReminderSpeakEnum, Timing)
+	Count = time-Timing
+
+start
+	// first use the classic reminder 
+//	run background script ChallengeHighlightNotify(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+
+	begin loop
+		if time-Count>Timing-1
+			if widescreen ready
+				begin dialogue
+					if AdvisorReminderType == variable GOOD_ADVISOR
+						eject good spirit
+						make good spirit point at [Highlight] in world
+					elsif AdvisorReminderType == variable EVIL_ADVISOR
+						eject evil spirit
+						make evil spirit point at [Highlight] in world
+					end if
+					say single line constant AdvisorReminderSpeakEnum
+					wait until read
+				end dialogue
+			end if
+			Count=time
+		end if
+		until Highlight clicked or Location clicked
+	// If some distance away - move camera towards Location checking for esc key or something then exit
+	// If reasonably close - exit
+	end loop
+	enable Highlight active
+end script QuestHighlightNotify
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** QUEST REMINDER ****
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script QuestReminder(Location, AdvisorType, AdvisorSpeakEnum, Timing)
+	QuitVariable = 0
+	Count = time-Timing
+start
+	begin loop
+		if time-Count>Timing-1
+			if widescreen ready
+				begin dialogue
+					if AdvisorType == variable GOOD_ADVISOR
+						eject good spirit
+						make good spirit point at [Location] in world
+					elsif AdvisorType == variable EVIL_ADVISOR
+						eject evil spirit
+						make evil spirit point at [Location] in world
+					end if
+					say single line constant AdvisorSpeakEnum
+					wait until read
+				end dialogue
+			end if
+			Count=time
+		end if
+
+	QuitVariable = 0
+
+	// --- To see if the script is over: no need for reminder anymore
+
+	if AdvisorSpeakEnum == variable HELP_TEXT_SHAOLIN_QUEST_REMINDER_02 and help_text_shaolin_quest_reminder_02 == 1
+		QuitVariable = 1
+	elsif AdvisorSpeakEnum == variable HELP_TEXT_FIRST_METEORITE_QUEST_REMINDER_02 and help_text_first_meteorite_quest_reminder_02 == 1
+		QuitVariable = 1
+	elsif AdvisorSpeakEnum == variable HELP_TEXT_METEORITE_OGRE_QUEST_REMINDER_02 and help_text_meteorite_ogre_quest_reminder_02 == 1
+		QuitVariable = 1
+	elsif AdvisorSpeakEnum == variable HELP_TEXT_METEORITE_NOMAD_QUEST_REMINDER_02 and help_text_meteorite_nomad_quest_reminder_02 == 1
+		QuitVariable = 1
+	elsif AdvisorSpeakEnum == variable HELP_TEXT_RETAKE_AZTEC_VILLAGE_QUEST_REMINDER_02 and help_text_retake_aztec_village_quest_reminder_02 == 1
+		QuitVariable = 1
+	end if
+
+	// ---
+		
+	until QuitVariable == 1
+	end loop
+
+end script QuestReminder
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** DID YOU KNOW NOTIFY ****
+//		This is a generic script which we can run at the beginning of any did you know.  We simply
+//		give it an object and a radius.  It does a little loop of a spirit coming out and pointing
+//		at the object whenever the player gets close to it, and occasionally saying something,
+//		until the object is clicked.
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script DidYouKnowHighlightNotify(Highlight, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked 
+	end loop
+	enable Highlight active
+end script DidYouKnowHighlightNotify
+
+

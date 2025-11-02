@@ -1,0 +1,12 @@
+challenge RunFireOnHigh
+
+run script RunFireOnHigh
+
+begin script RunFireOnHigh
+	
+start
+	
+	run script FireOnHighMain
+	
+
+end script RunFireOnHigh

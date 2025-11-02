@@ -1,0 +1,1235 @@
+challenge FollowUs
+
+//------------------------------------------------------------------------------------------------------------------------
+//global FollowUsFinished
+//------------------------------------------------------------------------------------------------------------------------
+
+global Zoomed
+global PickupDemoPlayed
+
+//------------------------------------------------------------------------------------------------------------------------
+// Track Zoom Usage (until Lost Bro)
+//------------------------------------------------------------------------------------------------------------------------
+begin script TrackZoomUsage
+
+ ZoomAmount = 0
+ RequiredZoom = 0
+ ZoomTicker = 0
+
+start
+	StopTracking = 0
+	RequiredZoom = get HELP_EVENT_TYPE_ZOOM total event
+	RequiredZoom += 10
+	begin loop
+
+		ZoomAmount = get HELP_EVENT_TYPE_ZOOM total event
+		if ZoomAmount > RequiredZoom
+			ZoomTicker++
+			if ZoomTicker > 3
+				StopTracking = 1
+			end if
+			wait 10 seconds
+			RequiredZoom = get HELP_EVENT_TYPE_ZOOM total event
+			RequiredZoom += 10
+		end if
+
+	until StopTracking > 0 // set to 2 in Lost Bro script if not set to 1 here
+	end loop
+
+end script TrackZoomUsage
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script TunnelOfUltimateDoom (Citadel,CitadelFixedPos)
+
+ImmersionWhoring = 0
+WhoreTimer = create timer for 0 seconds
+
+start
+	set WhoreTimer time to 2 seconds
+	while camera position not near [Citadel] radius 75
+
+		if ImmersionWhoring == 0
+			if immersion exists and get WhoreTimer time remaining <= 0
+				begin dialogue
+					eject good spirit
+					say HELP_TEXT_IMMERSION_MOUSE_01
+					start immersion IMMERSION_EFFECT_TYPE_TRADEMARK
+					wait until read
+					eject evil spirit
+					say HELP_TEXT_IMMERSION_MOUSE_02
+					wait until read
+					say HELP_TEXT_IMMERSION_MOUSE_03
+					wait until read
+					say HELP_TEXT_IMMERSION_MOUSE_04
+					wait until read
+				end dialogue
+				ImmersionWhoring = 1
+			end if
+		end if
+
+		if [Citadel] not viewed and camera position not near [Citadel] radius 100
+			wait 2 seconds
+			if [Citadel] not viewed
+				begin camera
+					// "We have arrived at our citadel."
+					say HELP_TEXT_FINAL_BEGINNING_41
+					move camera position to [CitadelFixedPos] time 5
+					move camera focus to [Citadel] time 3
+					wait until read
+					wait until camera ready
+				end camera
+			end if
+		end if
+		wait 0.5 seconds // no need to check too often as we have a deliberate delay anyway
+	end while
+
+
+end script TunnelOfUltimateDoom
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script PreventCitadelCompletion (Citadel)
+
+start
+	while PickupDemoPlayed == 0
+		if BUILT of Citadel > 0.9
+			BUILT of Citadel = 0.9
+			//wait 5 seconds
+		end if
+	end while
+
+end script PreventCitadelCompletion
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckCitadel(Citadel) 
+
+start
+	while CitadelBuiltL1 == 0
+		wait 10 seconds
+		if BUILT of Citadel == 1
+			CitadelBuiltL1 = 1
+		end if
+	end while
+
+end script CheckCitadel
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostTheMother(Mother, MaxDistance, EndMarker) 
+
+MotherViewed=2
+Distance=0
+start
+	if dialogue ready
+		begin dialogue
+			begin loop
+				Distance=get distance from camera position to [Mother]
+				if Mother viewed and Distance < 70
+					if MotherViewed != 1
+						say single line constant from HELP_TEXT_FOLLOW_US_LAGGING_01 to HELP_TEXT_FOLLOW_US_LAGGING_05
+						wait until read
+						MotherViewed=1
+						send good spirit home
+					end if
+				else 
+					if MotherViewed != 0
+						eject good spirit
+						make good spirit point to Mother
+						say single line constant from HELP_TEXT_FOLLOW_US_VILLAGERS_AHEAD_01 to HELP_TEXT_FOLLOW_US_VILLAGERS_AHEAD_04
+						wait until read
+						MotherViewed=0
+					end if
+				end if	
+
+				until Mother viewed and Distance < (MaxDistance-5) or camera position near [EndMarker] radius 50
+			end loop
+		end dialogue
+	end if
+end script LostTheMother
+
+//------------------------------------------------------------------------------------------------------------------------
+// Family are way ahead, so they wait till player catches up
+//------------------------------------------------------------------------------------------------------------------------
+begin script WeAreWayAhead(Mother, MaxDistance, EndMarker)
+start
+
+	if dialogue ready
+
+		begin dialogue
+
+			eject evil spirit
+			make evil spirit point to Mother
+			say single line constant from HELP_TEXT_FOLLOW_US_OVERTAKING_01 to HELP_TEXT_FOLLOW_US_OVERTAKING_03
+			wait until Mother viewed and get distance from camera position to [Mother] < (MaxDistance-5) or camera position near [EndMarker] radius 50
+
+		end dialogue
+
+	end if
+end script WeAreWayAhead
+
+//------------------------------------------------------------------------------------------------------------------------
+//  Follow us starts here  - yep this is the INTRO !!!*************************************************************
+//------------------------------------------------------------------------------------------------------------------------
+begin script FollowUs
+
+  	Mother = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [1578.4329, 12.7274, 2220.5413]
+    Father = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [1577.8221, 12.5128, 2221.0671]
+	Son = create VILLAGER MALE at [1579.006, 11.458, 2220.133] 
+
+	StartMarker = marker at camera T00_000
+	EndMarker = marker at camera T02_004
+	StartPath = marker at camera T02_000
+	FollowersFlock = flock at [Mother]
+	Distance =0
+	FatherDistance=0
+	PlayerDistance=0
+	CamPos = marker at [1665.1974, 27.1315, 2336.0325]
+	CamFoc = marker at [1674.3751, 17.6991, 2367.1511]
+
+	BeginFoc = 0
+	Citadel = 0
+	Start = marker at [1665.1974, 27.1315, 2336.0325]
+	
+	House = get HOUSE at [1714.9623,17.2132,2593.0903]
+	CrowdPosition = marker at [1652.15, 16.7500, 2322.91]
+	WelcomeDance = 0
+	Villager = 0
+	DanceDependant=0
+	GettingVillagers = 0
+	LocalTimer = 0
+	MouseWheelPresent = 0
+	MyTimer = 0
+	TimeUp = 0
+	object_in_hand = 0
+	got_tree = 0
+	got_timber = 0
+	ToldFood = 0
+	Leader = 0
+
+	RotateTimer = create timer for 0 seconds
+	PitchTimer = create timer for 0 seconds
+	MoveTimer = create timer for 0 seconds
+	VillagerCount = 0
+	SFX = 0
+	
+	Finished = 0
+
+	ObjectInHand = 0
+	FoodInHand = 0
+	WoodInHand = 0
+	FoodObject = 0
+	WoodObject = 0
+	TotalFoodGiven = 0
+	TotalWoodGiven = 0
+
+	BuildingArea = marker at [1892.8142, 2523.7285]
+	SpeechDone = 0
+
+	CitadelDoneLow = marker at [1863.8190, 34.4500, 2540.4495]
+	ScrollBloke = 0
+	ScrollBlokePos = marker at [1892.8247, 18.0900, 2550.5190]
+	ScrollPos = marker at [1894.1205, 18.0900, 2555.9104]
+	InfoScroll = 0
+	CitadelDoneBloke = marker at [1873.6750, 25.6700, 2563.4805]
+	ChallengeScroll = 0
+	QuestScroll = 0
+	CitadelDoneLast = marker at [1879.5269, 35.5975, 2576.9810]
+
+	ExplainCitadelPos1 = marker at [1838.2471, 81.1524, 2551.5337]
+	ExplainCitadelPos2 = marker at [1890.7756, 37.0785, 2534.1487]
+	InfoOrbPos = marker at [1892.8142, 25.0900, 2523.7285]
+	ExplainCitadelPos3 = marker at [1890.9750, 27.2305, 2517.8267]
+
+	CitadelBuildersPos = marker at [1918.64, 28.8179, 2539.91]
+	BuildersFlock = 0
+	VillagersSpare = 0
+
+	RotateComplete = 0
+	RotateAngle = 0
+	LastRotateAngle = 0
+
+	PitchComplete = 0
+
+	Shark1 = 0
+	Shark2 = 0
+
+	Shark1Pos = marker at camera T03_000
+	Shark2Pos = marker at camera T04_000
+
+	RequiredRotateAngle = 0
+	RequiredPitchAngle = 0
+	Radius2Pos = marker at [1863.5851, 23.6986, 2589.9573]
+	Radius3Pos = marker at [1826.7900, 28.1400, 2641.3601] // StoragePit
+	StorageCamPos = marker at [1811.2703, 44.7148, 2674.3220]
+	WelcomeFlock = 0
+	Key2Influence = 0
+
+	FatherOnBitchX = 1494.5
+	FatherOnBitchZ = 2094.5
+	TransX = FatherOnBitchX - 1495.411
+	TransZ = FatherOnBitchZ - 2096.456
+
+	MotherPosKiss = marker at [1567.1938, 11.6360, 2193.5400]
+	FatherPosKiss = marker at [1566.7028, 12.0600, 2193.8744]
+
+	//	For the Hand Demos around the citadel
+	TemplePos	 = marker at [1867.5237, 54.5025, 2539.1250]
+	TempleFoc	 = marker at [1914.2778, 29.8864, 2509.3811]
+
+
+	dyk31 = marker at [1856.0084, 33.1886, 2618.5925]				// use signposts
+	DYKHighlight = 0
+	NoNoTick = 0
+	HandState = 0
+
+start
+	GateKey2 = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [FollowUsCrowdPosition] radius 30
+	disable GateKey2 pickup
+	disable GateKey2 moveable
+	start jc special SJC_SWITCH_OFF_BOOKMARK
+
+	set camera zones to "Land1Begin.exc"
+	set FollowersFlock properties inner 1 outer 3
+	AGE of Son = 8
+	SCALE of Son = 0.7
+	SCALE of Mother = 0.9
+	SCALE of Father = 1
+
+	set game time 07.30
+	disable game time
+	disable alignment music
+	
+
+	
+	begin cinema
+
+		start music MUSIC_TYPE_SCRIPT_INTRO 
+
+		enable Son high graphics detail
+		enable jc special SJC_I_AM_THE_LITTLE_BOY on Son
+		enable Mother high graphics detail
+		enable Father high graphics detail
+
+		set fade red 0 green 0 blue 0 time 0
+		set fade in time 12
+
+		set camera position to [1595.4399, 19.1689, 2248.2349]			// initial cam pos at beginning 
+		set camera focus to [1566.2454, 11.8539, 2195.8469]				// initial cam foc at beginning
+
+
+
+		move Mother position to [MotherPosKiss]
+		SPEED of Mother = 0.20001
+
+		move Father position to [FatherPosKiss]
+		SPEED of Father = 0.2
+
+		move Son position to [1566.484, 11.696, 2191.917]
+		SPEED of Son = 0.19999
+
+		move camera position to [1567.881, 12.506, 2197.354] time 24	// cam pos behind parents at sunset
+		move camera focus to [1567.563, 12.478, 2196.523] time 24
+
+		wait until 8.5 seconds											// USE THIS TO SYNC MUSIC
+
+		wait until [Father] at [FatherPosKiss]
+
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_01			// Without suffering blah...
+
+		wait until [Son] near [1566.484, 11.696, 2191.917] radius 1.0
+
+		set Son focus to [Father]
+		Son play ANM_P_WAITING_IMPATEINTLY loop 2						// Son acts impatient
+
+		wait until [Mother] at [MotherPosKiss]
+
+		set Mother focus to [Father] 
+		set Father focus to [Mother]
+
+		Mother play ANM_P_COUPLE_KISS_WOMAN loop 1						// Parents kiss
+		Father play ANM_P_COUPLE_KISS_MAN loop 1
+
+		move camera position to [1569.531, 12.624, 2195.174] time 10	// camera moves as there lips meet.
+		move camera focus to [1568.554, 12.527, 2194.488] time 10
+
+		set Son focus to [Mother]
+
+		wait 3.5 seconds
+
+		Son play ANM_P_CROWD_LOST loop 1								// Son is bored !
+		
+		wait Mother played
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_01 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_02			// Even in eden blah...
+
+		Mother play ANM_P_COUPLE_KISS_WOMAN loop 1						// Parents kiss
+		Father play ANM_P_COUPLE_KISS_MAN loop 1
+
+		wait 4 seconds
+	
+		disable jc special SJC_BLEND_ANGLE on Son						// Son turn
+		enable jc special SJC_PREPARE_ROTATE180 on Son
+		Son play ANM_P_TURN_180 loop 1									
+		wait Son played
+		
+
+		SPEED of Son = 0.3	//was 2.8
+		move Son position to [1466.7480, 0.0000, 2072.8950]				// Son runs towards sea
+		set Son anim ANM_P_SKIP02
+
+		enable jc special SJC_BLEND_ANGLE on Son
+		
+		Mother play ANM_P_COUPLE_KISS_WOMAN loop 1						// Parents kiss	again 
+		Father play ANM_P_COUPLE_KISS_MAN loop 1
+
+		
+		Mother play ANM_P_TALK2_FEMALE loop -1						// Parents kiss	again 
+		Father play ANM_P_TALK1_MALE loop -1
+
+		wait 0.7 seconds
+
+		set camera follow Son distance 3								// camera follow boy running
+		set camera properties distance 3 speed 0 angle 22.5 enable behind
+
+		wait 2.5 seconds	
+
+		set camera position to [1562.868, 12.363, 2191.428]				// Close up pos of parents still kissing
+		set camera focus to [1564.655, 12.355, 2192.342]						
+
+		//set Mother position to  [MotherPosKiss] + [0.4, 0, 0.1] 
+
+		//move camera position to [1567.250, 12.566, 2195.850]  time 3 		// zoom pos close up parents pointing to son
+		//move camera focus to [1561.231, 14.231, 2177.757]  time 5		
+		
+		SPEED of Son = 0.6
+		set Son position to [1555.095, 11.390, 2173.043]    //son further along beach out of reach
+		set Son anim ANM_P_RUN_MAN
+		move Son position to [1466.7480, 0.0000, 2072.8950]
+
+		set camera position to [1567.250, 12.566, 2195.850] 		//  pos close up parents pointing to son
+		set camera focus to [1561.231, 14.231, 2177.757]
+		move camera position to [1567.514, 15.551, 2196.644] time 40
+		move camera focus to [1556.996, 13.661, 2180.764] time 20
+		//wait until camera ready
+		//wait until Father played									
+
+		set Mother focus to [Son] 										// Parents notice son is gone
+		set Father focus to [Son]
+
+		wait 0.5 seconds
+
+		Father play ANM_P_BECKON loop 2									// Parents notice son running away
+		
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_02 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_04			// We can't swim		
+		wait 0.4 seconds
+
+		Mother play ANM_P_ATTRACT_YOUR_ATTENTION loop 1
+		start say extra sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_03		// Hey wait stop!
+		wait until Mother played
+
+		SPEED of Mother = 0.4
+		move Mother position to [1539.3385, 10.5028, 2156.7595]
+
+		wait 1.5 seconds
+
+		SPEED of Father = 0.5														 
+		move Father position to [1538.1805, 10.5970, 2158.1792]
+
+		wait 1 seconds
+
+			// Parents start to chase child
+
+		Shark1 = create WHALE at [Shark1Pos]							// Introducing the................SHARKS !!!
+		Shark2 = create WHALE at [Shark2Pos]
+
+		set Shark1 forward walk path TRACK03 from 0.0 to 1.0			 
+		set Shark2 forward walk path TRACK04 from 0.0 to 1.0
+
+		wait 2.1 seconds
+
+		set Son position to [1419.5, 0, 2046.5]							// Put son in the sea
+		set Son focus to [Shark1Pos]
+		Son play ANM_P_SWIM2 loop -1
+
+		set camera position to [Shark1] + [10,-3,10]					// Cam pos look at sharks
+		set camera focus to [Shark1] + [2,-3,0]							// Cam foc look at shark1
+		move camera position to [Shark1] + [10,-2,10] time 3
+		wait 1 seconds
+		move camera focus to [Son] + [0,-8,0] time 5
+
+		wait 1.9 seconds
+
+		move camera position to [Shark2] time 3							// Cam pos follow shark
+
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_07			// When people pray blah.....
+
+		wait 2.5 seconds
+
+		set Father position to [1512.023, 4.823, 2122.395]				// Parents run toward sea
+		set Mother position to  [1513.636, 4.933, 2121.133] 
+
+		move Father position to [1495.483, 0.230, 2095.393] 
+		move Mother position to [1497.565, 0.953, 2096.054] 
+
+		set camera position to [1508.033, 6.290, 2114.183]				// Cam pos watch parents run to sea
+		set camera focus to [1515.210, 5.388, 2126.110]					// Cam foc watch parents run to sea
+
+		move camera position to	[1508.033, 5.290, 2114.183] time 1.8    // move cam on parents running
+		move camera focus to [1515.210, 5.388, 2126.110] time 1.8
+
+		wait until 1.8 seconds
+
+		set Mother position to [1496.006+0.5, 0.251, 2094.992-0.3+0.5] + [TransX, TransZ]
+		set Father position to [FatherOnBitchX, 0, FatherOnBitchZ] + [0.7,-0.5]
+		set Father focus to [Son]	
+		set Mother focus to [Son]
+
+		set camera position to [Shark1] + [0,-1,0]						// Sharks close in on Son
+		set camera focus to [Son] + [ 0,-2,0]
+		move camera position to [Son] time 5
+
+		Father play ANM_P_PANIC_MAN loop 4								// Parents panick
+		wait 0.2 seconds
+		Mother play ANM_P_PANIC_WOMAN loop 4
+
+		wait until 2.8 seconds
+
+		set camera position to [1493.987, 0.185, 2091.374]				// Camera pos parents panicking
+		set camera focus to	[1496.651, 0.449, 2096.482]
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_07 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_05			// Help us
+
+		move camera position to [1494.529, 0.442, 2092.413] time 8		// Camera pos zoom parents panicking
+		move camera focus to [1497.082, 0.620, 2097.308] time 8
+
+		wait 1.5 seconds
+
+		start say extra sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_06		// Save our child.....
+
+		wait 2 seconds //was 3
+
+		move camera position to [1116.337, 1783.523, 1553.503] time 15	// Cam pos Fly out of world into cosmos
+		move camera focus to [Father]  time 12		// Cam foc Fly out of world into cosmos
+
+		wait until 2 seconds
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_05 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_08			// Able to change eternity....
+
+		wait until 1 seconds
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_08 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_09			// That god is you
+
+		set fade red 0 green 0 blue 0 time 4
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_09 playing //Check previous line is finished
+		
+		wait until fade ready
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+		enable SCRIPT_AVI_SEQUENCE_INTRO avi sequence
+
+//------------------------------------------------------------------------------------------------------------------------
+
+		delete Shark1
+		delete Shark2
+
+		set Son position to [1416.337, 0.000, 2053.503]
+		Son play ANM_P_SWIM2 loop -1
+
+		set Father position to [FatherOnBitchX, 0, FatherOnBitchZ] + [0.7,-0.5]
+		set Father focus to [Son]	
+		Father play ANM_P_PANIC_MAN loop -1
+
+		set Son focus to [Father]	
+
+		set Mother position to [1496.006+0.5, 0.251, 2094.992-0.3+0.5] + [TransX, TransZ]
+		set Mother focus to [Son]
+		Mother play ANM_P_PANIC_WOMAN loop -1
+
+		start jc special SJC_CREATE_FIRE_BALL									// Trigger off jc's red thing
+		start jc special SJC_CAMERA_FOLLOW_FIRE_BALL							// Force jc's camera view follow red thing
+
+		wait 4.5 seconds
+		start jc special SJC_CANCEL_CAMERA_FOLLOW_FIRE_BALL						// Stop jc's camera view follow red thing
+
+		set camera position to [2263.694, 150.907, 2512.770] 					// Look at red thing from side was [2258.092, 218.516, 2581.370]
+		move camera position to [2263.694, 150.907, 2512.770] + [3,-10,-3] time 20
+		set camera focus to [2378.878, 161.516, 6036.638]
+		set interaction SCRIPT_INTERFACE_LEVEL_JUST_GRAB
+
+		wait 0.5 seconds
+
+		move camera focus to [-822.331, -370.449, 1546.867] time 4.5   
+		
+		wait 1.0 seconds
+		
+		start sound LH_SCRIPT_SAMPLE_GODMETEOR AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait 2 seconds
+
+		set camera position to [1411.410, 0.900, 2048.000]						// Hand appears
+		move camera position to [1411.410, 0.900, 2048.000] + [1,1,1] time 10
+		set camera focus to [3561.053, 500.672, 4301.567]
+
+		move camera focus to  [3588.307, 48.573, 4330.138] time 4 
+		wait 0.9 seconds														//	Wait Hand picking son
+
+		start sound LH_SCRIPT_SAMPLE_GODARRIVALFLASH AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait 3.1 seconds														//	Wait Hand picking son
+
+		set camera position to [1502.3, 2.4, 2094.8] + [TransX, TransZ]
+		set camera focus to [-2014.85, -133.8, 1343] + [TransX, TransZ]
+
+		start jc special SJC_CREATE_HAND_WITH_KID								// Animate hand with son
+		start jc special SJC_ACTIVATED_HAND										// Animate hand with son
+
+		set Son position to [1495.806, 0.251, 2094.952]  + [TransX, TransZ]
+		Son play ANM_P_THROWN loop -1
+
+		move game time 12.00 time 460
+
+		set Son focus to [Mother]
+		set Father focus to [Son]
+		set Mother focus to [Son]
+
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_10					// Are you a blessing or a curse..
+
+		wait 1.8 seconds														//	Wait Hand picking son
+
+		Son play ANM_P_LANDED_FROM_BACK loop 1
+		start jc special SJC_ACTIVATED_HAND										
+
+		set camera position to [1495.47, 1, 2090.49]  + [TransX, TransZ]
+		move camera position to [1496.47, 1.1, 2091.49]  + [TransX, TransZ] time 20 //added by Paul Mc
+		set camera focus to [Father] + [0,1,0]
+		move camera focus to [Father] time 30
+ 
+		Mother play ANM_P_THANK_YOU loop 1
+		wait 2 seconds 
+		Father play ANM_P_PICK_UP_STICKS loop 1
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_10 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_11					// Are you a blessing or a curse..
+		wait until Son played
+
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_11 playing //Check previous line is finished
+		start say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_12					// Be what you will you are destiny...
+									   
+		set Son focus to [Mother]
+
+		Son play ANM_P_HUG loop 1
+		Mother play ANM_P_HUG loop 1
+		wait 0.3 seconds
+		Father play ANM_P_HUG loop 1
+
+		wait until Son played
+		wait until Mother played
+
+		set Father focus to camera position
+		set Mother focus to camera position
+		set Son focus to camera position
+
+		Father play ANM_P_THANK_YOU loop -1
+		Mother play ANM_P_THANK_YOU_FEMALE loop -1 //was 2
+		//wait 1 seconds
+
+		set Father focus to [Son]
+		Son play ANM_P_WAITING_IMPATEINTLY  loop -1 
+
+			WelcomeFlock = flock at [CrowdPosition]
+			set WelcomeFlock properties inner 5 outer 10
+
+			Villager = get VILLAGER in NorseTown excluding scripted
+			// NB The dance looks pretty only if there is an EVEN number of villagers
+			while VillagerCount < 12
+				set Villager position to [CrowdPosition]+[number from -8 to 8, number from -8 to 8]
+				attach Villager to WelcomeFlock
+				VillagerCount ++
+				Villager = get VILLAGER in NorseTown excluding scripted
+			end while
+			set WelcomeFlock focus to [1641.93, 21.1304, 2314.74]
+			// WelcomeFlock play ANM_P_PRAY loop -1
+
+			// changed so the villagers dance immediately, rather than praying to start with
+			DanceDependant = get VILLAGER in WelcomeFlock
+			WelcomeDance = make DanceDependant dance DANCE_INFO_NEW_DANCE_AROUND_PERSON around [CrowdPosition] time 30
+
+			while size of WelcomeFlock > 0
+				Villager = get VILLAGER in WelcomeFlock
+				detach Villager from WelcomeFlock
+				attach Villager to WelcomeDance
+			end while
+
+		set Mother focus to camera position
+		set Son focus to camera position
+
+//		sy "Our Boy Is saved!"
+		wait until not say sound HELP_TEXT_DEFINITELY_NEWEST_INTRO_12 playing //Check previous line is finished
+		say single line HELP_TEXT_FINAL_BEGINNING_01
+		wait until read
+
+		move camera position to [1494.811, 2.370, 2088.931] time 25		//More motion by PaulMc
+		move camera focus to [Father] + [0.2, 0.2,-0.1] time 25  //More motion by PaulMc
+		wait 1 seconds	//was 3
+		//wait until camera ready
+
+		set Father focus to camera position
+
+		say HELP_TEXT_FINAL_BEGINNING_02 // say "Thank you for being merciful"
+
+		wait until read
+ 
+		Mother play ANM_P_PRAY loop -1
+		wait 0.2 seconds
+		Son play ANM_P_PRAY loop -1
+		wait 0.25 seconds
+		Father play ANM_P_PRAY loop -1
+		
+		disable game time
+
+		say HELP_TEXT_FINAL_BEGINNING_42 with interaction	//we praise you
+		wait until read
+	
+
+
+		
+
+		clear dialogue
+
+//------------------------------------------------------------------------------------------------------------------------
+// help sprites introduce themselfs and explain how to move
+//------------------------------------------------------------------------------------------------------------------------
+
+		eject good spirit
+		eject evil spirit
+
+		make good spirit fly across 0.8 down 0.75
+		make evil spirit fly across 0.2 down 0.75
+
+		// "Greetings"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_13
+		wait until read
+
+		// "Hi, we are your conscience"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_14
+		wait until read
+
+		// " I am good"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_16
+		wait until read
+
+		// " And I'm f**king bad man"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_17
+		wait until read
+
+		// "Ying Yang"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_18
+		wait until read
+
+		// "B&W"
+		say HELP_TEXT_DEFINITELY_NEWEST_INTRO_19
+		wait until read
+
+//		sy "(Together)we're here too guide you." with interaction
+		say HELP_TEXT_FINAL_BEGINNING_03 with interaction
+		
+		wait until read
+		close dialogue
+
+		move camera position to [1494.853, 3.936, 2085.696]  time 10		// Move to beach with reunited family.
+		move camera focus to [1500.136, -3.391, 2109.337] time 10
+
+		Father play ANM_P_OUT_OF_PRAY loop 1							// Family get up 
+		wait 0.3 seconds
+		Mother play ANM_P_OUT_OF_PRAY loop 1
+		wait 0.5 seconds
+		Son play ANM_P_OUT_OF_PRAY loop 1
+
+		wait until Son played
+		wait 0.8 seconds
+		
+		// sy "Follow us"
+		Mother play ANM_P_GOSSIP_WOMAN_1 loop 1
+		Father play ANM_P_AMBIENT2 loop 1
+		Son play ANM_P_WAITING_FOR_BALL_2 loop -1
+		say HELP_TEXT_FINAL_BEGINNING_04
+		wait until read
+
+		move camera position to [1493.645, 13.934, 2091.680] time 3	// Position ready to follow	 was 8.5
+		move camera focus to [1502.725, 4.726, 2107.511] time 3    // family up valley to village	 was 8.5
+
+		SPEED of Father = 0.6
+		move Father position to [StartPath]
+		set Father anim ANM_P_RUN_MAN
+
+		SPEED of Mother = 0.6
+		move Mother position to [StartPath]	+ [1,1]
+		set Mother anim ANM_P_RUN_WOMAN
+
+		SPEED of Son = 0.7
+		move Son position to [StartPath] + [1,-1]
+		set Son anim ANM_P_RUN_MAN
+
+		make good spirit look at [StartPath]
+		make evil spirit point at [StartPath]
+
+		
+ 		wait until [Father] near [StartPath] radius 1
+		wait until [Mother] near [StartPath] + [1,1] radius 1
+		wait until [Son] near [StartPath] + [1,-1] radius 1
+
+		
+		disable jc special SJC_BLEND_ANGLE on Father				// Family turn around
+		disable jc special SJC_BLEND_ANGLE on Mother		
+		disable jc special SJC_BLEND_ANGLE on Son
+		
+		
+		enable jc special SJC_PREPARE_ROTATE180 on Father
+ 		enable jc special SJC_PREPARE_ROTATE180 on Mother
+		enable jc special SJC_PREPARE_ROTATE180 on Son		
+		
+		
+		set Father focus to camera position		
+		Father play ANM_P_TURN_180 loop 1
+		set Mother focus to camera position
+		Mother play ANM_P_TURN_180 loop 1		
+		set Son focus to camera position
+		Son play ANM_P_TURN_180 loop 1
+		wait until Father played
+		wait until Mother played		
+		wait until Son played		
+		Father play ANM_P_LOOK_AT_HAND loop -1
+		Mother play ANM_P_LOOK_AT_HAND loop -1
+		Son play ANM_P_LOOK_AT_HAND loop -1								// Family look at hand while waiting
+
+		enable jc special SJC_BLEND_ANGLE on Father
+		enable jc special SJC_BLEND_ANGLE on Mother
+		enable jc special SJC_BLEND_ANGLE on Son
+
+		stop good spirit looking
+		stop music
+		stop evil spirit pointing
+
+		// say" There'll be a party!"
+		Mother play ANM_P_GOSSIP_WOMAN_1 loop 1
+		say HELP_TEXT_FINAL_BEGINNING_05 //with interaction	 //our people will want to worship you. come with us		
+		Father play ANM_P_GOSSIP_MAN loop 1
+		wait until read
+		close dialogue
+
+/*		//	Set up turn 180
+
+		disable jc special SJC_BLEND_ANGLE on Father
+		enable jc special SJC_PREPARE_ROTATE180 on Father
+ 		Father play ANM_P_TURN_180 loop 1								// Family turn around 
+		wait 0.2 seconds
+ 
+		disable jc special SJC_BLEND_ANGLE on Mother
+		enable jc special SJC_PREPARE_ROTATE180 on Mother
+		Mother play ANM_P_TURN_180 loop 1
+		wait 0.2 seconds
+
+		disable jc special SJC_BLEND_ANGLE on Son
+		enable jc special SJC_PREPARE_ROTATE180 on Son
+		Son play ANM_P_TURN_180 loop 1
+		wait until Son played
+
+		enable jc special SJC_BLEND_ANGLE on Father
+		enable jc special SJC_BLEND_ANGLE on Mother
+		enable jc special SJC_BLEND_ANGLE on Son
+*/		
+
+		
+
+
+//		sy "Ill show you how to follow!" with interaction
+		say single line HELP_TEXT_FINAL_BEGINNING_06 with interaction
+		wait until read
+		clear dialogue
+
+//-------------------------------------------------------------------------------------------------		
+		run script Drag													// Hand demo dragging up ravine
+//-------------------------------------------------------------------------------------------------
+//		sy "Click and hold the Move Button to grab the land." with interaction
+//		say HELP_TEXT_FINAL_BEGINNING_07 with interaction
+//		wait until read
+
+//		say HELP_TEXT_LEARN_TO_MOVE_03
+//		wait until read
+
+
+
+		// Check to see that player is using grab technique
+//		wait until get HELP_EVENT_TYPE_DRAG total event > 10 // wait until they zoom
+		say HELP_TEXT_FINAL_BEGINNING_43 with interaction
+		wait until read
+
+		
+		disable Son high graphics detail
+		disable Mother high graphics detail
+		disable Father high graphics detail
+	end cinema
+
+	start jc special SJC_CLEAN_INTRO
+	set FollowersFlock properties inner 1 outer 3
+	attach Father to FollowersFlock as leader
+	attach Mother to FollowersFlock
+	attach Son to FollowersFlock
+
+	SPEED of Mother = 0.5
+	SPEED of Father = 0.5
+	SPEED of Son = 0.6
+
+	wait until [Father] near [StartPath] radius 2
+		
+	set Father forward walk path TRACK02 from 0.0 to 1.0
+	move FollowersFlock position to [Father]
+
+	begin loop
+
+		FatherDistance = get distance from [Father] to [EndMarker]
+		PlayerDistance = get distance from camera position to [EndMarker]
+		Distance = get distance from camera position to [Father]
+
+		move FollowersFlock position to [Father]
+
+		if(PlayerDistance < FatherDistance)
+
+			SPEED of Mother = 0.9
+			SPEED of Father = 0.8
+			SPEED of Son = 0.9
+
+			if (PlayerDistance + 50 < FatherDistance)
+			run script WeAreWayAhead(Father, 50, EndMarker)
+			end if
+
+			elsif Distance < 20
+			SPEED of Mother = 0.9
+			SPEED of Father = 0.8
+			SPEED of Son = 0.9
+
+		elsif(Distance < 50)
+			SPEED of Mother = 0.5
+			SPEED of Father = 0.4
+			SPEED of Son = 0.5
+
+		else
+			SPEED of Father = 0.0
+
+//			set Mother focus to camera position						// Family attract attention
+//			set Father focus to camera position
+//			set Son focus to camera position
+ 			
+//			Father play ANM_P_BECKON loop -1	
+//			Mother play ANM_P_ATTRACT_YOUR_ATTENTION loop -1
+//			Son play ANM_P_BECKON loop -1
+
+ 			run script LostTheMother(Father, 50, EndMarker)
+
+		end if
+
+		until camera position near [EndMarker] radius 50 //and get Mother walk path percentage >= 1
+
+	end loop
+
+//------------------------------------------------------------------------------------------------------------------------
+// Build Citadel Runs from here onwards
+//------------------------------------------------------------------------------------------------------------------------
+
+challenge BUILD_CITADEL
+
+	set camera zones to "Land1TemplePath.exc"
+	SPEED of Mother = 1
+	SPEED of Father = 1
+
+	move Mother position to [1740.5175, 17.8754, 2603.7329]
+	move Father position to [1738.5210, 17.7969, 2602.9233]
+	Leader = create VILLAGER MALE at [1650.68, 20.189, 2321.75] // created in front of KeyStone
+	set Leader focus to [1647.53, 19.3201, 2319.18] // Focused where the camera position will be
+	build building at [1915.05,2508.89] desire 1.0
+
+    attach music MUSIC_TYPE_CELTIC_CHANT_VOX to Leader
+	Citadel = get CITADEL at [1915.05,2508.89] radius 5
+
+	BUILT of Citadel = 0.375
+	disable temple
+	run background script PreventCitadelCompletion (Citadel)
+	set NorseTown desire boost TOWN_DESIRE_INFO_TO_BUILD -1.0
+
+
+	BuildersFlock = flock at [CitadelBuildersPos]						// create some builders
+	set BuildersFlock properties inner 2 outer 10
+
+	begin cinema
+
+		Leader play ANM_P_THANK_YOU loop -1
+
+		move camera position to [1641.93, 21.1304, 2314.74]time 5		// camera pos to dancers
+		move camera focus to [1652.15, 20.958, 2322.91]time 3			// camera foc to dancers
+
+		make evil spirit cling across 0.7 down 1.0
+
+//		sy "The Prophecy Is true! Your coming was foretold!" with interaction
+		say HELP_TEXT_FINAL_BEGINNING_09 without interaction
+		wait until read
+
+		wait 0.5 second
+
+		set Leader focus to camera position
+
+//		sy "We have already started building your Temple" with interaction
+		say HELP_TEXT_FINAL_BEGINNING_10 with interaction
+
+		move camera position to [1639.18, 27.9496, 2313.66]time 8		// camera pos to look at citadel in distance
+		move camera focus to [1661.36, 22.6723, 2331.05] time 8		// camera foc to look at citadel in distance
+
+		wait until read
+		close dialogue
+
+//		sy "We'd like you to see it" with interaction
+//		say HELP_TEXT_FINAL_BEGINNING_11 with interaction
+//		wait until read
+
+//		sy "Please come and help us finish your temple." with interaction
+//		say HELP_TEXT_FINAL_BEGINNING_14 with interaction
+//		wait until read
+
+		eject good spirit
+		make good spirit point at [1862.29, 27.8262 ,2476.37]
+		wait until camera ready
+
+
+		//"Let's move to the Temple, by clicking and dragging, or double click the move button to go there directly" with interaction
+		say single line HELP_TEXT_PICKUP_FOLLOW_US_01 with interaction
+		wait until read
+		close dialogue
+		stop good spirit pointing
+
+		set interaction SCRIPT_INTERFACE_LEVEL_JUST_DOUBLE_CLICK_AND_DRAG
+
+
+		Villager = get VILLAGER in NorseTown excluding scripted
+		while VillagersSpare == 0
+
+			if Villager exists
+				attach Villager to BuildersFlock
+				set Villager position to [CitadelBuildersPos]+[number from -5 to 5, number from -5 to 5]
+				set Villager focus to [Citadel]
+				add resource RESOURCE_TYPE_WOOD 148 to Villager 
+				add resource RESOURCE_TYPE_FOOD 148 to Villager 
+			else
+				VillagersSpare = 1
+			end if
+			VillagerCount ++
+			Villager = 0
+			Villager = get VILLAGER in NorseTown excluding scripted
+
+		end while
+
+		state BuildersFlock VILLAGER_STATE_SCRIPT_IN_CROWD	
+
+		wait until camera ready
+
+		Leader play ANM_P_F_DANCE_C loop -1
+
+	end cinema
+
+	// The script below checks for the player leaving the corridor between the dancers and the citadel etc.
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_DOUBLE_CLICK_AND_DRAG
+	run script TunnelOfUltimateDoom (Citadel, TemplePos)
+
+	detach music from Leader
+
+	Key2Influence = create influence at [1652.15, 16.7500, 2322.91] radius 20
+
+	begin cinema
+
+		move camera position to [TemplePos] time 5
+		move camera focus to [Citadel] time 2
+		wait until camera ready
+
+	//Jonty - Limit camera only to double click
+	//set interaction SCRIPT_INTERFACE_LEVEL_JUST_DOUBLE_CLICK_AND_DRAG
+
+	disband WelcomeDance
+	if WelcomeDance exists
+		delete WelcomeDance
+	end if
+
+	SPEED of Mother = 0.2
+	SPEED of Father = 0.2
+	attach Leader to NorseTown
+	attach Mother to NorseTown
+	attach Father to NorseTown
+	attach Son to NorseTown
+	release Mother
+	release Father
+	release Leader
+	release Son
+
+	set MoveTimer time to 30 seconds
+				  
+	set camera zones to "Land1Building.exc"
+
+		ProtectGateKeysFlag = 1
+		run background script ProtectGateKeys
+
+		eject evil spirit
+		eject good spirit
+		make evil spirit point at [Citadel]
+
+		// "Ah, look. It's not finished."
+		say HELP_TEXT_FINAL_BEGINNING_33
+		wait until read
+
+		// "Well we could help them complete it."
+		say HELP_TEXT_FINAL_BEGINNING_34
+		wait until read
+
+		// "Yeah. When it's finished, this Temple will be the focus of our power." with interaction
+		say HELP_TEXT_FINAL_BEGINNING_12 with interaction
+		wait until read
+		clear dialogue
+
+		stop evil spirit pointing
+		make evil spirit cling across 0.2 down 1.0
+
+		move camera position to [TemplePos] time 2
+		move camera focus to [TempleFoc] time 2
+
+		make good spirit cling across 0.8 down 1.0
+		wait 1 second
+
+//		sy "But now it's time to learn how to look around." with interaction
+		say HELP_TEXT_FINAL_BEGINNING_13 with interaction
+		wait until read
+		wait until camera ready
+
+		// Rotating hand demo
+		run script Rotating
+
+	end cinema
+
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_GRAB_DOUBLE_CLICK_AND_ROTATE
+
+	run script TeachRotate(Citadel, TemplePos)
+
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_GRAB_DOUBLE_CLICK_AND_ROTATE_AND_PITCH
+
+	run script TeachPitch(Citadel, TemplePos)
+
+// Zoom demo
+	begin cinema
+
+		move camera position to [TemplePos] time 2
+		move camera focus to [TempleFoc] time 2
+
+		eject good spirit
+		//sy "One last thing, zooming in and out is most useful."
+		say HELP_TEXT_NEW_ENUM_02
+		wait until read
+
+		run script Zoom(TemplePos, TempleFoc)
+
+	end cinema
+
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_GRAB_DOUBLE_CLICK_AND_ROTATE_PITCH_AND_ZOOM
+
+	begin dialogue
+	//sy "now you try"
+		say HELP_TEXT_NEW_ENUM_03
+		wait until read
+	end dialogue
+	run script TeachZoom(Citadel, TemplePos)
+
+	start jc special SJC_SWITCH_ON_BOOKMARK
+
+	run background script TrackZoomUsage
+
+	begin cinema
+
+		make good spirit appear
+
+		//"All this moving around is giving me a headache, I think we may need to practice it a bit"
+		say HELP_TEXT_FINAL_BEGINNING_70
+		wait until read
+
+		//"We can go to the special practice land by pressing F2 on the keyboard" with interaction
+		say HELP_TEXT_FINAL_BEGINNING_71 with interaction
+		wait until read
+
+//		sy "Okay; Now were ready to help the villagers finish building the Temple." with interaction
+		say single line HELP_TEXT_FINAL_BEGINNING_15 with interaction
+		wait until read
+		close dialogue
+
+		move camera position to [StorageCamPos] time 4
+		move camera focus to [Radius3Pos] time 5
+
+		wait until camera ready
+
+//		sy "Take food or wood from the storage pit over to the workers to help them build faster." with interaction
+		say HELP_TEXT_FINAL_BEGINNING_16 with interaction
+		wait until read
+
+		set interaction	SCRIPT_INTERFACE_LEVEL_NORMAL
+
+		// Give Food to the builders hand demo
+		run script GiveFood
+	end cinema
+
+	enable alignment music
+	PickupDemoPlayed = 1
+
+	begin camera
+		move camera position to [StorageCamPos] time 4
+		move camera focus to [Radius3Pos] time 3
+		wait until camera ready
+	end camera
+
+	run background script DidYouKnow(dyk31, variable HELP_TEXT_DYK_31, variable DYK_MISC)			// expain dyks
+	DYKHighlight = get HIGHLIGHT HIGHLIGHT_TIPS at [dyk31] radius 5
+	while DYKHighlight not exists
+		DYKHighlight = get HIGHLIGHT HIGHLIGHT_TIPS at [dyk31] radius 5
+	end while
+	run background script ChallengeHighlightNotify(DYKHighlight, dyk31, variable EVIL_ADVISOR, variable HELP_TEXT_CITADEL_GUIDE_12)
+
+	set NorseTown desire boost TOWN_DESIRE_INFO_TO_BUILD 1.0
+	
+	disband BuildersFlock															// Release builders
+	build building at [1915.05,2508.89] desire 1.0
+	run background script CheckCitadel(Citadel)
+
+	while CitadelBuiltL1 == 0
+		if camera position not near [Citadel] radius 100 and camera position not near [Radius2Pos] radius 100 and camera position not near [Radius3Pos] radius 90
+			begin camera
+				move camera position to [StorageCamPos] time 4
+				move camera focus to [Radius3Pos] time 3
+				// "No no. Help the Villagers build the citadel first."
+				say single line HELP_TEXT_FINAL_BEGINNING_48
+				wait until read
+				wait until camera ready
+			end camera
+		end if
+
+	end while
+
+	set NorseTown desire boost TOWN_DESIRE_INFO_TO_BUILD 0.0
+
+	set camera zones to "Land1Zone2.exc"
+
+end script FollowUs
+
+

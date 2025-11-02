@@ -1,0 +1,113 @@
+challenge BIG_WHALE
+
+
+//run script BIGFISH
+
+begin script BigFish
+
+	LoveShack = get HOUSE at [2111.3201, 17.5637, 2575.8101]
+	NotStarted = 0
+	MyTimer = create timer for 1 second
+	Fisherman = 0
+	MyCreature = get player 1 creature
+	Beginning = marker at camera T00_000
+	Whale = create WHALE at [Beginning]
+	WhaleOnEarth = 0
+	WhereOnEarth = marker at [2145.0498, 13.5727, 2564.6958]
+	Highlight=0
+	RewardPos = marker at [2128.3396, 16.6767, 2567.2407]
+
+
+start
+	
+	SCALE of Whale = 2	
+	Fisherman = create VILLAGER VILLAGER_INFO_NORSE_FISHERMAN_MALE at [LoveShack]
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [LoveShack]
+	run script ChallengeHighlightNotify(Highlight, LoveShack, 100, variable EVIL_ADVISOR, variable HELP_TEXT_BAYWATCH_15)
+	
+//	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_02 StandardReminder(variable HELP_TEXT_REMINDER_04)
+
+	begin cinema
+		move Fisherman position to [2110.6802, 16.9254, 2563.9971]
+		move camera position to [2103.8855, 22.4626, 2553.5098] time 6
+		move camera focus to [2114.0740, 18.0356, 2566.1221] time 4
+		// TODO - Cinematic of Fish in Water
+		say HELP_TEXT_BIGWHALE_01
+		wait until read
+		set Fisherman focus to camera position
+		say HELP_TEXT_BIGWHALE_02
+		move camera position to [2130.7751, 31.0051, 2501.2405]	time 5
+		move camera focus to [2142.3037, 0.4137, 2435.0967] time 5
+		wait until read
+	end cinema
+
+	begin dialogue
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_BIGWHALE_03
+		wait until read
+		say HELP_TEXT_BIGWHALE_04
+		wait until read
+		say HELP_TEXT_BIGWHALE_05
+		wait until read
+		say HELP_TEXT_BIGWHALE_06
+		wait until read
+	end dialogue
+
+	wait until [MyCreature] near [2131.6506, 0.0000, 2445.5339] radius 80
+	force MyCreature CREATURE_IDLE MyCreature
+
+	begin cinema
+		set camera position to [2099.5625, 27.3874, 2532.2283]
+		set camera focus to [2122.5134, 16.2566, 2557.4424]
+		say HELP_TEXT_BIGWHALE_07
+		wait until read
+		say HELP_TEXT_BIGWHALE_08
+		wait until read
+
+	set Whale forward walk path TRACK00 from 0.0 to 1.0
+// TODO - Whale is thrown out onto the shore, crowd gathers round.. Hear something from within the whale.
+		WhaleOnEarth = create VILLAGER MALE at [WhereOnEarth]
+		SCALE of WhaleOnEarth = 3
+		shake camera at [WhereOnEarth] radius 100.0 amplitude 0.5 time 1.0
+		say HELP_TEXT_BIGWHALE_09
+		wait until read
+	end cinema	
+
+	delete Whale
+
+	begin dialogue
+		say HELP_TEXT_BIGWHALE_10
+		wait until read
+		say HELP_TEXT_BIGWHALE_11
+		wait until read
+		say HELP_TEXT_BIGWHALE_12
+		wait until read
+	end dialogue
+	
+// TODO - You need to throw a rock at the Whale for it to spit out the 2nd son.
+//	delete Whale
+	
+	wait until WhaleOnEarth hit
+
+	begin cinema
+		say HELP_TEXT_BIGWHALE_13
+		wait until read
+		say HELP_TEXT_BIGWHALE_14
+		wait until read
+		say HELP_TEXT_BIGWHALE_15
+		wait until read
+	end cinema
+
+	release MyCreature
+
+//	snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_02 StandardReminder(variable HELP_TEXT_REMINDER_04)
+
+// Whale then swims away into the distance
+
+run script rewardfromsky(variable REWARD_STORM, RewardPos, 0, 1)
+
+
+end script BigFish
+

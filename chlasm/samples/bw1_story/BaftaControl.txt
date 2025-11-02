@@ -1,0 +1,34 @@
+run script BaftaControl
+
+begin script BaftaControl
+
+	RanLostFlock=0
+	RanChooseCreature=0
+//	RanCreatureGuardian=0
+
+start
+//	run script FollowUs
+
+	run background script OldLostBrother
+	run background script OldPiedPiper
+	run background script OldChooseYourCreature
+
+/* begin loop
+
+	if PiedPiperFinished != 0 and RanLostFlock == 0
+		RanLostFlock=1
+		run background script TheLostFlock
+	end if
+
+	if LostBrotherFinished !=0 and RanChooseCreature == 0
+		RanChooseCreature=1
+		run script ChooseYourCreature
+	end if
+	
+	if ChooseYourCreatureFinished != 0 and RanCreatureGuardian == 0
+		RanCreatureGuardian=1
+		run background script CreatureGuardian
+	end if
+end loop */
+	
+end script BaftaControl

@@ -1,0 +1,12 @@
+challenge RunCreatureMirrorFight
+
+run script RunCreatureMirrorFight
+
+begin script RunCreatureMirrorFight
+	
+start
+	
+	run script CreatureMirrorFight
+	
+
+end script RunCreatureMirrorFight

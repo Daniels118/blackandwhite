@@ -1,0 +1,15 @@
+challenge RunLeaveThroughVortexL4
+
+run script RunLeaveThroughVortexL4
+
+begin script RunLeaveThroughVortexL4
+	
+start
+	
+	run script LeaveThroughVortexL4
+	// managed by the main script control
+	stop all scripts excluding files "RunLeaveThroughVortexL4.txt"
+	load map "scripts/land5.txt"
+	
+
+end script RunLeaveThroughVortexL4

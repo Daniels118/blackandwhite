@@ -1,0 +1,16 @@
+challenge RunUndeadVillage
+
+run script RunUndeadVillage
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script RunUndeadVillage
+
+
+start
+
+	run script SetupLand4
+	run script SetupUndeadVillage
+	run script ManExplainsAboutUndeadVillage
+
+end script RunUndeadVillage

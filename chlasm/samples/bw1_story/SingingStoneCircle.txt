@@ -1,0 +1,986 @@
+challenge SINGING_STONES_CIRCLE
+
+//------------------------------------------------------------------------------------------------------------------------
+// Singing Stone Circle Script By Jonty Barnes
+//------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------------------------
+// Script flags 
+//------------------------------------------------------------------------------------------------------------------------
+global	SingingStoneCircleFinished
+global	SingingStonesFormed
+global	SingingStonesFilled
+global  SingingStonesFilledWithBad
+global  HippyDead
+global	Hippy
+global  HighlightStones
+
+//------------------------------------------------------------------------------------------------------------------------
+// Rocks used across functions
+//------------------------------------------------------------------------------------------------------------------------
+global	SSRock1
+global	SSRock2
+global	SSRock3
+global	SSRock4
+global	SSRock5
+global	SSRock6
+global	SSRock7
+global	SSRock8
+
+global	SSBadRock1
+global	SSBadRock2
+global	SSBadRock3
+
+global	SSRockAtPos3
+global	SSRockAtPos4
+global	SSRockAtPos5
+global	SSRockAtPos7
+global	SSRockAtPos8
+
+//------------------------------------------------------------------------------------------------------------------------
+// The special effect used when a stone plays music
+//------------------------------------------------------------------------------------------------------------------------
+global	constant STONE_SFX = SPOT_VISUAL_COMMAND_SUCCEED
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingCircleHealthofHippyHut(HippyHut)
+
+	Trashed = 0
+	BeginPos = 0
+	BeginFoc = 0
+
+start 
+	while Trashed == 0
+
+		if HEALTH of HippyHut < 0.8 and HEALTH of Hippy > 0
+			begin cinema
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				set camera position to [2540.797, 24.857, 2246.334] 
+				set camera focus to [2547.517, 21.536, 2252.290]
+				SPEED of Hippy = 0.4
+				move Hippy position to [2545.811, 20.914, 2252.153] 
+				wait until 2 second
+
+				set Hippy focus to camera position
+				Hippy play ANM_P_CROWD_UNIMPRESSED_2 loop 1
+				// "You trashed my house, you bastard."
+				say single line HELP_TEXT_SINGINGSTONES_17
+				wait until read
+				SPEED of Hippy = 0.1
+				state Hippy WANDER_AROUND
+				position [2545.811, 20.914, 2252.153] 
+				float 6
+				ulong 4, 20
+				set camera position to [BeginPos]
+				set camera focus to [BeginFoc]
+			end cinema
+			Trashed = 1
+		elsif HEALTH of HippyHut < 0.8 and (HEALTH of Hippy <= 0 or Hippy not exists)
+			begin dialogue
+				eject evil spirit
+				// "Ha.. that old Hippy would be turning in his grave." with interaction
+				say HELP_TEXT_SINGINGSTONES_18
+				wait until read
+				// "If he wasnt rotting in the open, that is !  hahaha" with interaction
+				say HELP_TEXT_SINGINGSTONES_19
+				wait until read
+			end dialogue
+			Trashed = 1
+		end if
+
+	end while
+
+
+end script SingingCircleHealthofHippyHut
+
+//------------------------------------------------------------------------------------------------------------------------
+// For when the holes are filled but with the wrong stones
+//------------------------------------------------------------------------------------------------------------------------
+begin script WrongHoles(HippyHut)
+
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+
+	if HippyDead == 0
+
+		begin cinema
+
+			enable Hippy high gfx detail
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			set camera position to [2542.909, 23.832, 2247.791] 
+			set camera focus to [2548.404, 21.632, 2252.148]
+			
+			SPEED of Hippy = 0.3
+			move Hippy position to [2545.828, 20.906, 2252.065]
+			
+			eject good spirit
+
+			// "Well, you got the right stones, but theyre not in the right order." with interaction
+			say HELP_TEXT_SINGINGSTONES_20
+			wait until read
+
+			send good spirit home
+
+			Hippy play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+
+			// The stones have to play a scale
+			say HELP_TEXT_SINGINGSTONES_27 with interaction
+			wait until read
+
+			move Hippy position to [HippyHut]
+
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+
+			disable Hippy high gfx detail
+
+		end cinema
+
+	else
+
+		begin dialogue
+
+			eject good spirit
+			// "Hmm.. that doesnt sound right at all."	with interaction
+			say single line HELP_TEXT_SINGINGSTONES_21 with interaction
+			wait until read
+
+		end dialogue
+
+	end if
+
+end script WrongHoles
+
+//------------------------------------------------------------------------------------------------------------------------
+// For when the holes are filled but with the wrong stones
+//------------------------------------------------------------------------------------------------------------------------
+begin script WrongHolesBad(HippyHut)
+
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+
+	if HippyDead == 0
+
+		begin cinema
+
+			enable Hippy high gfx detail
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			set camera position to [2542.909, 23.832, 2247.791] 
+			set camera focus to [2548.404, 21.632, 2252.148]
+			
+			SPEED of Hippy = 0.3
+			move Hippy position to [2545.828, 20.906, 2252.065]
+			
+			wait until 2 seconds
+
+			Hippy play ANM_P_CROWD_UNIMPRESSED_2 loop 1
+
+			// "Hmm. somes of them there stones don't sound right." with interaction
+			say HELP_TEXT_SINGINGSTONES_22
+			wait until read
+
+			// "You sure you've found the right stones ?" with interaction
+			say HELP_TEXT_SINGINGSTONES_23 with interaction
+			wait until read
+
+			move Hippy position to [HippyHut]
+
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+
+			disable Hippy high gfx detail
+
+		end cinema
+
+	else
+
+		begin dialogue
+
+			eject good spirit
+			// "Hmm.. that doesnt sound right at all."	with interaction
+			say single line HELP_TEXT_SINGINGSTONES_24 with interaction
+			wait until read
+
+		end dialogue
+
+	end if
+
+end script WrongHolesBad
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingCircleHealthofHippy
+
+start
+	while HippyDead == 0
+		if HEALTH of Hippy <= 0 
+			begin dialogue
+				eject good spirit
+				// "You killed him ! such a gentle soul." with interaction
+				say single line HELP_TEXT_SINGINGSTONES_25
+				wait until read
+			end dialogue
+			HippyDead = 1
+		end if
+
+	end while
+
+end script SingingCircleHealthofHippy
+
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script SingingStonesNotify(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	ChallengeHighlightEndVariable = 0					// Reset
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked or Location clicked or SingingStoneCircleFinished != 0
+	end loop
+	enable Highlight active
+end script SingingStonesNotify
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingCircleIntro(Stonehenge, HippyHut)
+
+	BeginPos = 0
+	BeginFoc = 0
+
+start 
+	HighlightStones = create highlight HIGHLIGHT_CHALLENGE at [2545.003, 20.770, 2244.578]
+
+	run script SingingStonesNotify(HighlightStones, Stonehenge, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+
+	Hippy = create VILLAGER VILLAGER_INFO_HIPPY at [HippyHut]
+
+	if SingingStoneCircleFinished == 0
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		begin cinema 
+			start music MUSIC_TYPE_SCRIPT_GENERIC_04
+			enable Hippy high gfx detail
+		
+			move camera position to [2536.327, 26.933, 2261.109] time 4
+			set camera focus follow Hippy
+			
+			move Hippy position to [2542.917, 20.849, 2251.188] 
+
+			wait until 2 seconds
+
+			move camera position to [2541.623, 21.836, 2248.512] time 2
+
+			wait until camera ready
+			set Hippy focus to camera position
+
+			Hippy play ANM_P_GOSSIP_MAN loop 1
+
+			say HELP_TEXT_SINGINGSTONES_06
+			wait until read
+
+			set camera position to [2555.250, 25.382, 2248.130] 
+			set camera focus to [2535.064, 20.983, 2248.724]
+
+	//		snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_13)
+
+			eject good spirit
+
+			say HELP_TEXT_SINGINGSTONES_07
+			wait until read
+
+			eject evil spirit
+
+			say HELP_TEXT_SINGINGSTONES_08
+			wait until read
+
+			wait until camera ready
+
+			set Hippy focus to camera position
+			say HELP_TEXT_SINGINGSTONES_27
+			wait until read
+
+			send evil spirit home
+			send good spirit home
+
+			say HELP_TEXT_SINGINGSTONES_28 with interaction
+			wait until read
+
+			move Hippy position to [HippyHut]
+
+			move camera position to [2539.640, 33.708, 2261.085] time 3
+			move camera focus to [2494.757, 21.023, 2242.377] time 3
+
+			close dialogue
+
+			wait until camera ready
+
+			snapshot challenge success 0.0 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_13)
+
+			disable Hippy high gfx detail
+			stop music
+		end cinema
+	end if
+
+end script SingingCircleIntro
+
+//------------------------------------------------------------------------------------------------------------------------
+// OK we are now running the singing stones tune on the stones as the puzzle is complete
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingCircleTune(CentreStone)
+	StoneSong=marker at [CentreStone]
+	RockNo=1
+	SFX=0
+	
+start
+	attach music MUSIC_TYPE_SCRIPT_SINGING_STONE_CIRCLE to StoneSong
+
+	begin loop
+		RockNo=number from 1 to 8
+		
+		//Move the music 
+		if RockNo == 1 
+			SFX=create special effect STONE_SFX on SSRock1 time 0.1
+		elsif RockNo == 2
+			SFX=create special effect STONE_SFX on SSRock2 time 0.1
+		elsif RockNo == 3
+			SFX=create special effect STONE_SFX on SSRock3 time 0.1
+		elsif RockNo == 4
+			SFX=create special effect STONE_SFX on SSRock4 time 0.1
+		elsif RockNo == 5
+			SFX=create special effect STONE_SFX on SSRock5 time 0.1
+		elsif RockNo == 6
+			SFX=create special effect STONE_SFX on SSRock6 time 0.1
+		elsif RockNo == 7
+			SFX=create special effect STONE_SFX on SSRock7 time 0.1
+		elsif RockNo == 8
+			SFX=create special effect STONE_SFX on SSRock8 time 0.1
+		end if
+	end loop
+end script SingingCircleTune
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckSingingCircleClicked
+	ARock=0
+	SFX=0
+	
+start
+	while SingingStonesFormed == 0
+		ARock++
+		if ARock == 1
+			if SSRock1 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock1]
+				SFX=create special effect STONE_SFX on SSRock1 time 0.1
+				clear clicked object
+			elsif SSRock2 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE2 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock2]
+				SFX=create special effect STONE_SFX on SSRock2 time 0.1
+				clear clicked object
+			elsif SSRock3 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE3 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock3]
+				SFX=create special effect STONE_SFX on SSRock3 time 0.1
+				clear clicked object
+			elsif SSRock4 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE4 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock4]
+				SFX=create special effect STONE_SFX on SSRock4 time 0.1
+				clear clicked object
+			end if
+		elsif ARock == 2
+			if SSRock5 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE5 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock5]
+				SFX=create special effect STONE_SFX on SSRock5 time 0.1
+				clear clicked object
+			elsif SSRock6 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE6 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock6]
+				SFX=create special effect STONE_SFX on SSRock6 time 0.1
+				clear clicked object
+			elsif SSRock7 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE7 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock7]
+				SFX=create special effect STONE_SFX on SSRock7 time 0.1
+				clear clicked object
+			elsif SSRock8 clicked
+				start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSRock8]
+				SFX=create special effect STONE_SFX on SSRock8 time 0.1
+				clear clicked object
+			end if
+		elsif ARock == 3
+			if SSBadRock1 clicked
+				start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSBadRock1]
+				SFX=create special effect STONE_SFX on SSBadRock1 time 0.1
+				clear clicked object
+			elsif SSBadRock2 clicked
+				start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSBadRock2]
+				SFX=create special effect STONE_SFX on SSBadRock2 time 0.1
+				clear clicked object
+			elsif SSBadRock3 clicked
+				start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SSBadRock3]
+				SFX=create special effect STONE_SFX on SSBadRock3 time 0.1
+				clear clicked object
+			end if
+			ARock=0
+		end if
+	end while
+end script CheckSingingCircleClicked
+
+//------------------------------------------------------------------------------------------------------------------------
+// Play the sample for the note, and trigger a visual
+// There are 8 correct notes and 3 bad notes
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlaySingingCircleNote(ARock)
+SFX=0
+start
+	//Check which rock it is.
+	if ARock == SSRock1
+		start sound LH_SCRIPT_SAMPLE_STONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock2
+		start sound LH_SCRIPT_SAMPLE_STONE2 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock3
+		start sound LH_SCRIPT_SAMPLE_STONE3 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock4
+		start sound LH_SCRIPT_SAMPLE_STONE4 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock5
+		start sound LH_SCRIPT_SAMPLE_STONE5 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock6
+		start sound LH_SCRIPT_SAMPLE_STONE6 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock7
+		start sound LH_SCRIPT_SAMPLE_STONE7 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSRock8
+		start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSBadRock1
+		start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSBadRock2
+		start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	elsif ARock == SSBadRock3
+		start sound LH_SCRIPT_SAMPLE_BADSTONE1 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [ARock]
+	end if
+
+	SFX=create special effect STONE_SFX on ARock time 0.5
+end script PlaySingingCircleNote
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check rock code. I am not using 'and' as it is slower as it checks all parts irrespective of failure
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckFormed
+start
+	while SingingStonesFormed == 0
+		if SSRockAtPos3 == SSRock3
+			if SSRockAtPos4 == SSRock4
+				if SSRockAtPos5 == SSRock5
+					if SSRockAtPos7 == SSRock7
+						if SSRockAtPos8 == SSRock8
+							//Disable pickup and movement on all rocks
+							disable SSRock3 moveable
+							disable SSRock3 pickup
+							disable SSRock4 moveable
+							disable SSRock4 pickup
+							disable SSRock5 moveable
+							disable SSRock5 pickup
+							disable SSRock7 moveable
+							disable SSRock7 pickup
+							disable SSRock8 moveable
+							disable SSRock8 pickup
+
+							//Set flag as all stones are in position
+							SingingStonesFormed = 1
+						end if
+					end if
+				end if
+			end if
+		end if
+	end while
+end script CheckFormed
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check to see if rocks are in all the holes.
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckFilled
+start
+	while SingingStonesFilled == 0 or SingingStonesFilledWithBad == 1 
+		SingingStonesFilled = 0
+		if SSRockAtPos3 exists
+			if SSRockAtPos4 exists
+				if SSRockAtPos5 exists
+					if SSRockAtPos7 exists
+						if SSRockAtPos8 exists
+							//Set flag as all stones are in a position
+							SingingStonesFilled = 1
+
+							//Are there any bad stones in a hole???
+							if	SSRockAtPos3 == SSBadRock1 or
+								SSRockAtPos3 == SSBadRock2 or
+								SSRockAtPos3 == SSBadRock3 or
+
+								SSRockAtPos4 == SSBadRock1 or
+								SSRockAtPos4 == SSBadRock2 or
+								SSRockAtPos4 == SSBadRock3 or
+
+								SSRockAtPos5 == SSBadRock1 or
+								SSRockAtPos5 == SSBadRock2 or
+								SSRockAtPos5 == SSBadRock3 or
+
+								SSRockAtPos7 == SSBadRock1 or
+								SSRockAtPos7 == SSBadRock2 or
+								SSRockAtPos7 == SSBadRock3 or
+
+								SSRockAtPos8 == SSBadRock1 or
+								SSRockAtPos8 == SSBadRock2 or
+								SSRockAtPos8 == SSBadRock3 
+
+								SingingStonesFilledWithBad=1
+							else
+								SingingStonesFilledWithBad=0
+							end if
+						end if
+					end if
+				end if
+			end if
+		end if
+	end while
+end script CheckFilled
+
+//------------------------------------------------------------------------------------------------------------------------
+// Global check a stone position and/or plays a note every half second, a different stone each loop
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckStonePositionsAndPlayNotes(Stonehenge, Rock3Pos, Rock4Pos, Rock5Pos, Rock7Pos, Rock8Pos)
+ARock=0
+Count=1
+FinalLoops=2*8 //Number of stones * loop count
+start
+	while SingingStonesFormed == 0 or FinalLoops != 0
+		if Count==1
+			wait 2 seconds	// creates a clearer delay between the last and first notes
+			ARock=SSRock1
+		elsif Count == 2
+			ARock=SSRock2
+		elsif Count == 3 
+			//Look at position 3
+			ARock=get OBJECT SINGINGSTONE1 at [Rock3Pos] radius 2.5
+
+			if ARock exists
+				set ARock position to [Rock3Pos]
+				set ARock focus to [Stonehenge]
+				SSRockAtPos3=ARock
+			else 
+				SSRockAtPos3=0
+			end if
+		elsif Count == 4
+			//Look at position 4
+			ARock=get OBJECT SINGINGSTONE1 at [Rock4Pos] radius 2.5
+
+			if ARock exists
+				set ARock position to [Rock4Pos]
+				set ARock focus to [Stonehenge]
+				SSRockAtPos4=ARock
+			else 
+				SSRockAtPos4=0
+			end if
+		elsif Count == 5
+			//Look at position 5
+			ARock=get OBJECT SINGINGSTONE1 at [Rock5Pos] radius 2.5
+
+			if ARock exists
+				set ARock position to [Rock5Pos]
+				set ARock focus to [Stonehenge]
+				SSRockAtPos5=ARock
+			else 
+				SSRockAtPos5=0
+			end if
+		elsif Count == 6
+			ARock=SSRock6
+		elsif Count == 7
+			//Look at position 7
+			ARock=get OBJECT SINGINGSTONE1 at [Rock7Pos] radius 2.5
+
+			if ARock exists
+				set ARock position to [Rock7Pos]
+				set ARock focus to [Stonehenge]
+				SSRockAtPos7=ARock
+			else 
+				SSRockAtPos7=0
+			end if
+		elsif Count >= 8
+			//Look at position 8
+			ARock=get OBJECT SINGINGSTONE1 at [Rock8Pos] radius 2.5
+
+			if ARock exists
+				set ARock position to [Rock8Pos]
+				set ARock focus to [Stonehenge]
+				SSRockAtPos8=ARock
+			else 
+				SSRockAtPos8=0
+			end if
+			Count=0
+		end if
+		Count++
+		if ARock exists
+			run background script PlaySingingCircleNote(ARock)
+		end if
+		wait 0.5 seconds
+		if SingingStonesFormed != 0
+			FinalLoops--
+		end if
+	end while
+	//Set the script complete
+	SingingStoneCircleFinished=1
+end script CheckStonePositionsAndPlayNotes
+
+//------------------------------------------------------------------------------------------------------------------------
+// Function to keep rocks in the area and alive. It checks a rock each turn...
+// If a rock is too far away or it is dead it is recreated as is it's influence
+//------------------------------------------------------------------------------------------------------------------------
+begin script KeepStonesAlive(Stonehenge, Rock3StartPos, Rock4StartPos, Rock5StartPos, Rock7StartPos, Rock8StartPos)
+
+Count=0
+Distance=0
+MaxDistance=200
+TempInfluence=0
+
+start
+	while SingingStonesFormed == 0
+		if Count == 0
+			//Do stone 3
+			if SSRock3 not exists
+				SSRock3 = create OBJECT SINGINGSTONE1 at [Rock3StartPos] 
+				TempInfluence=create influence on SSRock3
+				release TempInfluence
+			end if
+			set SSRock3 focus to [Stonehenge]
+		elsif Count == 1
+			//Do stone 4
+			if SSRock4 not exists
+				SSRock4 = create OBJECT SINGINGSTONE1 at [Rock4StartPos] 
+				TempInfluence=create influence on SSRock4
+				release TempInfluence
+			end if
+			set SSRock4 focus to [Stonehenge]
+		elsif Count == 2
+			//Do stone 5
+			if SSRock5 not exists
+				SSRock5 = create OBJECT SINGINGSTONE1 at [Rock5StartPos] 
+				TempInfluence=create influence on SSRock5
+				release TempInfluence
+			end if
+			set SSRock5 focus to [Stonehenge]
+		elsif Count == 3
+			//Do stone 7
+			if SSRock7 not exists
+				SSRock7 = create OBJECT SINGINGSTONE1 at [Rock7StartPos] 
+				TempInfluence=create influence on SSRock7
+				release TempInfluence
+			end if
+			set SSRock7 focus to [Stonehenge]
+		elsif Count >= 4
+			//Do stone 8
+			if SSRock8 not exists
+				SSRock8 = create OBJECT SINGINGSTONE1 at [Rock8StartPos] 
+				TempInfluence=create influence on SSRock8
+				release TempInfluence
+			end if
+			set SSRock8 focus to [Stonehenge]
+			Count=-1
+		end if
+		Count++
+	end while
+end script KeepStonesAlive
+
+//------------------------------------------------------------------------------------------------------------------------
+// The end sequence
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingStoneCircleEnd(Stonehenge)
+	Storm=0
+	BeginFoc=0
+	BeginPos=0
+
+start
+	//The end sequence
+	if HippyDead == 1
+		begin cinema
+			move camera to T00_000 time 3					
+			wait until camera ready
+
+			camera path TRACK00
+
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [Stonehenge] 
+			set Storm properties time 50 fade 5
+			set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1
+			set Storm properties clouds 10 shade 1 height 70
+			set Storm properties sheetmin 1 sheetmax 5 forkmin 99999 forkmax 999999
+			set Storm properties inner 20 outer 50
+			disable Storm affected by wind
+
+			snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_15)
+		
+			say HELP_TEXT_SINGINGSTONES_09
+			wait until read
+
+			say HELP_TEXT_SINGINGSTONES_10
+			wait until read
+			
+			wait until camera ready
+		end cinema
+	else
+		begin cinema
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			
+			enable Hippy high gfx detail
+
+			set camera position to [2526.945, 30.189, 2263.805] 
+			set camera focus to [Hippy] 
+
+			SPEED of Hippy = 0.5
+			move Hippy position to [2514.185, 20.770, 2253.528]  // Just outside of the circle
+
+			set camera focus follow Hippy
+
+			wait until 4 seconds
+
+			// "Wow man.. this is so cool" with interaction
+			say HELP_TEXT_SINGINGSTONES_26
+
+			move camera position to [2523.627, 21.864, 2256.766] time 4	// Just behind Hippy
+			move camera focus to [2513.174, 22.178, 2253.847] time 4
+
+			wait until [Hippy] near [2514.185, 20.770, 2253.528] radius 2
+
+			Hippy play ANM_P_CROWD_WON loop 1
+
+			wait until read			
+
+			wait until camera ready
+
+			move camera to T00_000 time 3					
+			wait until camera ready
+
+			camera path TRACK00
+				   
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [Stonehenge] 
+			set Storm properties time 50 fade 5
+			set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1
+			set Storm properties clouds 10 shade 1 height 70
+			set Storm properties sheetmin 2 sheetmax 7 forkmin 99999 forkmax 999999
+			set Storm properties inner 20 outer 50
+			disable Storm affected by wind
+
+			snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_15)
+
+			say HELP_TEXT_SINGINGSTONES_09
+			wait until read
+
+			say HELP_TEXT_SINGINGSTONES_10
+			wait until read
+			
+			wait until camera ready
+
+			move camera position to [BeginPos] time 4
+			move camera focus to [BeginFoc] time 4
+
+			disable Hippy high gfx detail
+
+			wait until camera ready
+ 		end cinema
+		release Hippy
+	end if
+end script SingingStoneCircleEnd
+
+//------------------------------------------------------------------------------------------------------------------------
+// The main program
+//------------------------------------------------------------------------------------------------------------------------
+begin script SingingStoneCircle
+
+	Stonehenge = marker at [2496.6653, 2246.3257]
+	Size = 3.5
+
+	Rock1Pos = marker at [Stonehenge] + [0, -5*Size]
+	Rock2Pos = marker at [Stonehenge] + [-3.5*Size, -3.5*Size]
+	Rock3Pos = marker at [Stonehenge] + [-5*Size, 0]
+	Rock4Pos = marker at [Stonehenge] + [-3.5*Size, 3.5*Size]
+	Rock5Pos = marker at [Stonehenge] + [0, 5*Size]
+	Rock6Pos = marker at [Stonehenge] + [3.5*Size, 3.5*Size]
+	Rock7Pos = marker at [Stonehenge] + [5*Size,0]
+	Rock8Pos = marker at [Stonehenge] + [3.5*Size,-3.5*Size]
+
+	SSRock3StartPos= marker at [1372.460, 32.822, 2587.699] 
+	SSRock4StartPos= marker at [1614.094, 50.423, 2488.419]  
+	SSRock5StartPos= marker at [1673.924, 20.770, 2760.004] 
+	SSRock6StartPos= marker at [2357.748, 72.664, 2695.427] 
+	SSRock7StartPos= marker at [2385.508, 9.901, 2334.786] 
+	SSRock8StartPos= marker at [1455.505, 55.202, 2353.054]  
+
+	Base1=0
+	Base2=0
+	Base3=0
+	Base4=0
+	Base5=0
+	Base6=0
+	Base7=0
+	Base8=0
+
+	BadRock1StartPos = marker at [2219.089, 27.470, 2304.378] 
+	BadRock2StartPos = marker at [1855.431, 18.394, 2180.473]  
+	BadRock3StartPos = marker at [2226.533, 37.520, 2484.666] 
+
+	HengeInfluence=0
+	TempInfluence=0
+	WrongHolesPlayed=0
+	WrongHolesBadPlayed=0
+	//Hippy=0
+	HippyHut=0
+
+start 
+
+	HippyHut = get SCRIPT_OBJECT_TYPE_ABODE at [2552.1997, 21.2620, 2251.8638]
+	//Hippy = create VILLAGER VILLAGER_INFO_HIPPY at [HippyHut]
+	
+	//HEALTH of HippyHut = 1
+	
+	//Set Globals
+	SingingStoneCircleFinished=0
+	SingingStonesFormed=0
+	SingingStonesFilled=0
+	SingingStonesFilledWithBad=0
+	
+	//Create Bases...
+	Base1 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock1Pos]
+	Base2 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock2Pos]
+	Base3 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock3Pos]
+	Base4 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock4Pos]
+	Base5 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock5Pos]
+	Base6 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock6Pos]
+	Base7 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock7Pos]
+	Base8 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [Rock8Pos]
+
+	//Create Rocks which are fixed in the correct position.
+	SSRock1 = create OBJECT SINGINGSTONE1 at [Rock1Pos]
+	SSRock2 = create OBJECT SINGINGSTONE1 at [Rock2Pos]
+	SSRock6 = create OBJECT SINGINGSTONE1 at [Rock6Pos]
+
+	disable SSRock1 moveable
+	disable SSRock1 pickup
+	disable SSRock2 moveable
+	disable SSRock2 pickup
+	disable SSRock6 moveable
+	disable SSRock6 pickup
+
+	//Create the other rocks
+	SSRock3 = create OBJECT SINGINGSTONE1 at [SSRock3StartPos] 
+	SSRock4 = create OBJECT SINGINGSTONE1 at [SSRock4StartPos] 
+	SSRock5 = create OBJECT SINGINGSTONE1 at [SSRock5StartPos] 
+	SSRock7 = create OBJECT SINGINGSTONE1 at [SSRock7StartPos] 
+	SSRock8 = create OBJECT SINGINGSTONE1 at [SSRock8StartPos] 
+	
+	//Create bad sounding rocks
+	SSBadRock1 = create OBJECT SINGINGSTONE1 at [BadRock1StartPos]
+	SSBadRock2 = create OBJECT SINGINGSTONE1 at [BadRock2StartPos] 
+	SSBadRock3 = create OBJECT SINGINGSTONE1 at [BadRock3StartPos] 
+
+	//Create Influences
+	HengeInfluence=create influence at [Stonehenge] radius 50
+	
+	//Create an influence attached to the stones - and release them so they are only functioning while the stone exists
+	TempInfluence=create influence on SSRock3
+	release TempInfluence
+	TempInfluence=create influence on SSRock4
+	release TempInfluence
+	TempInfluence=create influence on SSRock5
+	release TempInfluence
+	TempInfluence=create influence on SSRock7
+	release TempInfluence
+	TempInfluence=create influence on SSRock8
+	release TempInfluence
+
+	//Keep stones alive until formed
+	run background script KeepStonesAlive(Stonehenge, SSRock3StartPos, SSRock4StartPos, SSRock5StartPos, SSRock7StartPos, SSRock8StartPos)
+
+	//Update stone positions all the time
+	run background script CheckStonePositionsAndPlayNotes(Stonehenge, Rock3Pos, Rock4Pos, Rock5Pos, Rock7Pos, Rock8Pos)
+
+	//Run a check on the stones being clicked
+	run background script CheckSingingCircleClicked
+
+	//Run a continous check on if the stones are in the correct hole or all holes are filled
+	run background script CheckFormed
+	run background script CheckFilled
+
+	//Setup highlight and intro
+	wait until SingingStonesStart == 1 or SingingStoneCircleFinished == 1
+	if SingingStoneCircleFinished != 1
+		run script SingingCircleIntro(Stonehenge, HippyHut)
+	else
+		//Recreate the hippy which is normally created in the intro.
+		Hippy = create VILLAGER VILLAGER_INFO_HIPPY at [HippyHut]
+	end if
+
+	//Check Hippy Health
+	run background script SingingCircleHealthofHippy
+
+	//Check HippyHut Health
+	run background script SingingCircleHealthofHippyHut(HippyHut)
+	
+	//Checks to see whether your rocks are in holes, or if you have any bad rocks. man.
+	while SingingStonesFormed == 0
+		if SingingStonesFilled == 1 and WrongHolesPlayed == 0 and SingingStonesFilledWithBad == 0
+			WrongHolesPlayed = 1
+			update snapshot success 0.50 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_14)
+			run script WrongHoles(HippyHut)
+		end if
+
+		if SingingStonesFilledWithBad == 1 and WrongHolesBadPlayed == 0
+			WrongHolesBadPlayed = 1
+			update snapshot success 0.25 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_15)
+			run script WrongHolesBad(HippyHut)
+		end if
+	end while
+
+
+	//Ok we know the singing stone script is completed here so we need to do the end of the singing stones...
+	//Start by running the singing stones tune function from here till the end of the game
+	run background script SingingCircleTune(Stonehenge)
+
+	//Ok lets release the unneeded bases
+	release Base1
+	release Base2
+	release Base3
+	release Base4
+	release Base5
+	release Base6
+	release Base7
+	release Base8
+
+	run script SingingStoneCircleEnd(Stonehenge)
+
+	run script GiveSpellDispenserReward(Stonehenge, variable MAGIC_TYPE_FOOD, 0.0, 0, 0)
+
+
+	release Stonehenge
+//	update snapshot success 1 alignment 0 HELP_TEXT_TITLE_44 StandardReminder(variable HELP_TEXT_NEW_REMINDER_15)
+	delete HighlightStones
+
+end script SingingStoneCircle

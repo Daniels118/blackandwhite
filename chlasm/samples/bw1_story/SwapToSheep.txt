@@ -1,0 +1,72 @@
+challenge SWAP_TO_WOLF
+
+run script SwapToWolf
+
+begin script SwapToWolf
+	
+	FlockPosition = marker at hand position
+	Shepherd = create VILLAGER MALE at [FlockPosition] + [10,10]
+	Finished = 0
+	Sheep = 0
+	MagicWolf = 0
+	Wolf = 0
+	WolfPosition = 0
+
+start
+
+	Sheep = flock at [FlockPosition] 
+	set Sheep properties inner 10 outer 30
+	populate Sheep with 20 ANIMAL SHEEP
+	MagicWolf = create ANIMAL SHEEP at [FlockPosition]
+	attach MagicWolf to Sheep 
+
+	begin cinema
+		move camera position to [FlockPosition] + [-10,10,-10] time 4
+		move camera focus to [Shepherd] time 3
+		set Shepherd focus to camera position 
+		say HELP_TEXT_SWAP_TO_SHEEP_01
+		wait until read
+		eject evil spirit
+		say HELP_TEXT_SWAP_TO_SHEEP_02
+		wait until read
+		eject good spirit
+		say HELP_TEXT_SWAP_TO_SHEEP_03
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_04
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_05
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_06
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_07
+		wait until read
+	end cinema 
+
+while Finished == 0
+
+	if MagicWolf is HELD
+		WolfPosition = marker at hand position
+		detach MagicWolf from Sheep
+		delete MagicWolf
+		Wolf = create CREATURE CREATURE_TYPE_WOLF at [WolfPosition]
+		begin cinema
+			say HELP_TEXT_SWAP_TO_SHEEP_08
+			wait until read
+			say HELP_TEXT_SWAP_TO_SHEEP_09
+			wait until read
+			eject evil spirit
+			eject good spirit
+			say HELP_TEXT_SWAP_TO_SHEEP_10
+			wait until read
+			say HELP_TEXT_SWAP_TO_SHEEP_11
+			wait until read
+			say HELP_TEXT_SWAP_TO_SHEEP_12
+			wait until read
+		end cinema
+		Finished = 1
+	end if
+
+end while
+
+end script SwapToWolf
+

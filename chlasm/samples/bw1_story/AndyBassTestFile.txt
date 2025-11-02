@@ -1,0 +1,9 @@
+run script AndyBassTest
+
+begin script AndyBassTest
+
+	Sister = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at hand position
+
+start
+	
+end script AndyBassTest

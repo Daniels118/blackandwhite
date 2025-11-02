@@ -1,0 +1,14 @@
+challenge RunTheLostFlock
+
+run script RunTheLostFlock
+
+begin script RunTheLostFlock
+	
+start
+
+	run script SetupLand1	
+	LostFlockWanted = 1
+	run script TheLostFlock
+	
+
+end script RunTheLostFlock

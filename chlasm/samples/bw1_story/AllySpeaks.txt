@@ -1,0 +1,88 @@
+challenge ALLY_SPEAKS
+
+begin script AllySpeaks
+	MyCitadelPos = marker at [3379.94,3243.25]
+	HisCitadelPos = marker at [2088.34, 40, 2002.23]
+	BeginPos = 0
+	BeginFoc = 0
+	//Highlight=0
+start
+
+	//Highlight = create highlight HIGHLIGHT_QUEST at [MyCitadelPos]
+	//run script ChallengeHighlightNotify(Highlight, MyCitadelPos, 100, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_39)
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera to ALLY_SPEAKST00_000
+		wait until camera ready
+
+		camera path ALLY_SPEAKSTRACK00
+		wait until camera ready and 2 seconds
+
+		say HELP_TEXT_ALLYTALK_01
+		wait until read
+
+		eject evil spirit
+		say HELP_TEXT_ALLYTALK_02
+		wait 1 seconds
+		eject good spirit
+		wait until read
+		say HELP_TEXT_ALLYTALK_03
+		wait until read and 2 seconds
+
+		make good spirit look at [HisCitadelPos]
+		wait 1 seconds
+		make evil spirit look at [HisCitadelPos]
+		wait 1 seconds
+
+		say HELP_TEXT_ALLYTALK_04
+		wait until read
+
+		say HELP_TEXT_ALLYTALK_05
+		wait until read
+
+		stop evil spirit looking
+		say HELP_TEXT_ALLYTALK_06
+		wait until read
+		make evil spirit look at [HisCitadelPos]
+
+		say HELP_TEXT_ALLYTALK_07
+		wait until read
+
+		say HELP_TEXT_ALLYTALK_08
+		wait until read
+
+		say HELP_TEXT_ALLYTALK_09
+		wait until read
+
+		stop good spirit looking
+		say HELP_TEXT_ALLYTALK_10
+		wait until read and 2 seconds
+		make good spirit look at [HisCitadelPos]
+
+		say HELP_TEXT_ALLYTALK_11
+		wait until read
+
+		stop good spirit looking
+		stop evil spirit looking
+		say HELP_TEXT_ALLYTALK_12
+		wait until read
+
+		say HELP_TEXT_ALLYTALK_13
+		wait until read
+
+		say HELP_TEXT_ALLYTALK_14
+		wait until read and 2 seconds
+
+		make good spirit look at [HisCitadelPos]
+		make evil spirit look at [HisCitadelPos]
+		say HELP_TEXT_ALLYTALK_15
+		wait until read
+		wait until camera ready
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		wait until camera ready
+	end cinema
+
+end script AllySpeaks

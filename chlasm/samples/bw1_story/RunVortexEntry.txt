@@ -1,0 +1,18 @@
+challenge RunVortexEntry
+
+run script RunVortexEntry
+
+begin script RunVortexEntry
+
+	Town = get TOWN at [3231, 43, 3396] radius 5
+	VortexPos = marker at [3335, 43, 3294]
+	NullVortexFlock = 0	
+start
+	begin cinema
+		move camera position to [VortexPos] + [20,35,20] time 2
+		move camera focus to [VortexPos] time 2
+	end cinema
+	run script VortexEntry(30, VortexPos, Town, VortexPos, 20, 80, VortexPos, NullVortexFlock)
+	
+
+end script RunVortexEntry

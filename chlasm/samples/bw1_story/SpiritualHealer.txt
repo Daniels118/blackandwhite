@@ -1,0 +1,320 @@
+challenge SPIRITUAL_HEALER
+
+//------------------------------------------------------------------------------------------------------------------------
+global	SaidSpiritualHealerChildKillCount=0
+
+//------------------------------------------------------------------------------------------------------------------------
+// This just keeps all the Town at the right age
+//------------------------------------------------------------------------------------------------------------------------
+begin script TownAge(Healer, Town)
+	HealSpell = 0
+
+start
+	begin loop
+
+		if camera position near [Healer] radius 100 and Healer viewed
+			start say sound HELP_TEXT_SPIRITUALHEALER_19 at [Healer]// While my heart beats you will all never age!
+		end if
+
+		AGE of Town = 16
+		if Healer is not HELD and Healer not in MyCreature hand
+			HealSpell = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Healer] time 3
+		end if
+		wait 3*60 seconds
+
+	until HEALTH of Healer <= 0
+
+	end loop
+
+end script TownAge
+
+//------------------------------------------------------------------------------------------------------------------------
+// Move Healer around Town
+//------------------------------------------------------------------------------------------------------------------------
+begin script Walkabout(Healer)
+	Point1 = marker at [1998.0679, 15.4100, 2566.9585]
+	Point2 = marker at [2037.6305, 14.2454, 2559.8923]
+	Point3 = marker at [2050.6636, 15.4100, 2587.1479]
+	Point4 = marker at [2053.9617, 15.2006, 2562.9470]
+	Point5 = marker at [2034.4944, 15.4362, 2605.9011]
+
+start
+	begin loop
+
+		move Healer position to [Point1]
+		wait until [Healer] near [Point1] radius 5 or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+		Healer play ANM_P_LOOKING_FOR_SOMETHING loop 1
+		wait until Healer played or 30 seconds
+
+		move Healer position to [Point2]
+		wait until [Healer] near [Point2] radius 5 or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+		Healer play ANM_P_AMBIENT1 loop 1
+		wait until Healer played or 30 seconds
+
+		move Healer position to [Point4]
+		wait until [Healer] near [Point4] radius 5 or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+		Healer play ANM_P_AMBIENT1 loop 1
+		wait until Healer played or 30 seconds
+
+		move Healer position to [Point3]
+		wait until [Healer] near [Point3] radius 5 or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+		Healer play ANM_P_LOOKING_FOR_SOMETHING loop 1
+		wait until Healer played or 30 seconds
+
+		move Healer position to [Point5]
+		wait until [Healer] near [Point5] radius 5 or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+		Healer play ANM_P_AMBIENT2 loop 1
+		wait until Healer played or 30 seconds
+		wait until Healer is not HELD and Healer not in MyCreature hand
+
+	until HEALTH of Healer <= 0
+
+	end loop
+		
+
+end script Walkabout
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script KillChild(Healer, Town, Child)
+
+	Crime = 0
+	LifeForce = 0
+
+start
+
+	Crime = marker at [Healer]
+
+	stop script "Walkabout"
+
+	move Healer position to [Crime]
+	
+	detach Child from Town
+
+	set Healer focus to [Child]
+
+	Healer play ANM_P_BECKON loop 1
+
+	LifeForce = create special effect SPOT_VISUAL_MAGIC_BEAM on Healer time 20
+	add LifeForce target on Child
+
+	move Child position to [Healer] 
+	wait until [Child] near [Healer] radius 1.5 or 30 seconds
+
+	set Child position to [Child]
+
+	set Child focus to [Healer]
+
+	if SaidSpiritualHealerChildKillCount <= 1
+		if camera position near [Healer] radius 150 and Healer viewed and widescreen ready
+			
+			begin dialogue
+
+				eject good spirit
+				//"Oh, I dont think I wanna see this !"
+				say HELP_TEXT_SPIRITUALHEALER_23
+				wait until read
+
+				make good spirit disappear
+
+				eject evil spirit
+				//"I do !, Let me have a look!"
+				say HELP_TEXT_SPIRITUALHEALER_24
+				wait until read
+
+			end dialogue
+		end if
+		SaidSpiritualHealerChildKillCount++
+	end if
+
+	delete LifeForce
+
+	// Healer play ANM_S_PRIEST_SUCK_LIFE_FORCE loop 1
+
+	Healer play ANM_P_BLOW_RASPBERRY loop 1
+
+	if camera position near [Healer] radius 150 and Healer viewed
+		start say sound HELP_TEXT_SPIRITUALHEALER_18 at [Healer]//	I take this life to feed the life of the many!
+	end if
+
+	//Healer play ANM_S_PRIEST_SUCK_LIFE_FORCE loop 1
+	wait until Healer played
+
+	HEALTH of Child = 0
+
+	release Child
+
+	Healer play ANM_P_CROWD_IMPRESSED_1 loop 1
+
+	wait 6 seconds
+
+	run background script Walkabout(Healer)
+
+end script KillChild
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script HealerKilledOrBanished(Healer, Town, IsKilled)
+
+start
+	
+	stop script "Walkabout, KillChild"
+
+	if camera position near [Healer] radius 100 and Healer viewed
+		begin cinema
+			set camera position to [Healer] + [5,5,5]
+			set camera focus to [Healer]
+
+			move camera position to [Healer] + [20,20,20] time 6
+
+			if IsKilled == 1
+				say HELP_TEXT_SPIRITUALHEALER_22		// ARGH !!
+				wait until read
+			else
+				say HELP_TEXT_SPIRITUALHEALER_16		//That's it it's all over!
+				wait until read
+				
+				attach Healer to get town with id 2
+				release Healer
+			end if
+
+			wait until camera ready
+
+			set fade red 0 green 0 blue 0 time 2
+			wait until fade ready
+
+			set camera position to [2061.5562, 21.5429, 2583.5093]
+			set camera focus to [2020.8864, 15.5401, 2604.3081]
+
+			set fade in time 2
+			wait until fade ready
+
+			HEALTH of Town = 0
+
+			if IsKilled == 1
+				say single line HELP_TEXT_SPIRITUALHEALER_20 // You kill me, you kill them all.
+				wait until read
+ 			end if
+
+			//Well you stopped those sacrifices
+			say single line HELP_TEXT_SPIRITUALHEALER_17
+			wait until read and 10 seconds
+
+		end cinema
+	else 
+		HEALTH of Town = 0
+	end if
+
+end script HealerKilledOrBanished
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script FirstTimeBanished(Healer, Town)
+start
+	begin dialogue
+		start say sound HELP_TEXT_SPIRITUALHEALER_21		// Banish me and they die !
+ 		wait until read
+	end dialogue
+end script FirstTimeBanished
+
+//------------------------------------------------------------------------------------------------------------------------
+// Landed in town - not entry is in camera mode follow.
+//------------------------------------------------------------------------------------------------------------------------
+begin script LandedSafeInTown(Healer, Town)
+start 
+	begin dialogue
+		start say sound HELP_TEXT_SPIRITUALHEALER_20 // You kill me, you kill them all.
+		wait until read
+	end dialogue
+end script LandedSafeInTown
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SpiritualHealerMain
+	Healer = 0
+	HealerHut = get HOUSE at [2010.1100, 15.4100, 2603.3501]
+	HealerPos = marker at [2017.1619, 15.4100, 2594.7529]
+	Town = get town with id 9
+
+	Child = 0
+
+	Finished = 0
+	Banished = 0
+
+	Villager1 = 0
+	Villager2 = 0
+	Villager3 = 0
+	Villager4 = 0
+
+start
+
+	Healer = create VILLAGER PRIEST at [HealerHut]
+
+	run background script Walkabout(Healer)
+	run background script TownAge(Healer, Town)
+
+	while Finished == 0
+		begin loop
+			wait 30 seconds
+			Child = get CHILD in Town
+
+			if Child exists
+				run script KillChild(Healer, Town, Child)
+			end if
+
+		until Healer is HELD or Healer in MyCreature hand or HEALTH of Healer <= 0
+		end loop
+
+		stop script "Walkabout, KillChild"
+		
+		if HEALTH of Healer > 0
+			start say sound HELP_TEXT_SPIRITUALHEALER_15 at [Healer] //Put me down I'm needed
+		end if
+
+		wait until Healer is not HELD and not Healer in MyCreature hand
+
+		if HEALTH of Healer > 0
+			if Healer is FLYING
+				begin cinema
+					set camera focus follow Healer
+					set	camera position follow Healer
+					wait until not Healer is FLYING
+				end cinema
+			end if
+
+			if Healer exists
+				//If we are away from the town.
+				if get distance from [Healer] to [Town]	> 200
+					if Banished == 0
+						run script FirstTimeBanished(Healer, Town)
+						Banished =1
+					else
+						run script HealerKilledOrBanished(Healer, Town, 0)
+						Finished=1
+					end if
+				else
+					run script LandedSafeInTown(Healer, Town)
+					run background script Walkabout(Healer)
+				end if
+			end if
+			
+		else
+			run script HealerKilledOrBanished(Healer, Town, 1)
+			Finished=1
+		end if
+	end while
+
+	wait until 3*60 seconds
+
+	Villager1 = create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [HealerHut]
+	Villager2 = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [HealerHut]
+	Villager3 = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [HealerHut]
+	Villager4 = create VILLAGER VILLAGER_INFO_NORSE_FORESTER_MALE at [HealerHut]
+
+end script SpiritualHealerMain

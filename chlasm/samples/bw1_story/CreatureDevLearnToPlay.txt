@@ -1,0 +1,105 @@
+challenge CREATURE_DEV_LEARN_TO_PLAY
+
+ run script CreatureDevHelpTown
+
+
+begin script CreatureDevHelpTown
+
+	MyCreature = get player 1 creature
+	StoragePit = get STORE at [1810.0366, 28.1400, 2703.1677]
+	FriendTownPos = marker at [1836.4991, 38.8600, 2749.7629]
+	MyCreatureTownPos = marker at [1854.0369, 38.8600, 2741.0989]
+	Tree = get TREE at [FriendTownPos] radius 25
+	TreeRadius = 25
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+
+	// Guide sits down and a quest scroll is create by his side. He
+	// occasionally stands up and waves at the camera to attract your attention
+
+	while Tree not exists
+		TreeRadius = TreeRadius + 5
+		Tree = get TREE at [FriendTownPos] radius TreeRadius
+	end while
+
+	set Guide position to [FriendTownPos]
+
+	force Guide CREATURE_LOOK_FOREVER MyCreature
+
+	begin cinema  
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+
+		Guide play C_INDIVIDUAL_SUMMON loop 1
+		force MyCreature CREATURE_LOOK_FOREVER Guide
+		wait until Guide played
+		wait 3 seconds
+
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		set camera focus follow MyCreature
+
+		eject good spirit
+		move MyCreature position to [MyCreatureTownPos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_01 // G:The guide has summoned your creature. The teaching continues. Goody.
+		wait until read
+
+		send good spirit home
+		wait 3 seconds
+
+		set fade red 0 green 0 blue 0 time 4
+
+		set MyCreature position to [MyCreatureTownPos]
+		force MyCreature CREATURE_LOOK_FOREVER  Guide
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+
+		set fade in time 4	
+
+		wait 2 seconds
+
+		begin dual camera to Guide StoragePit
+
+			force Guide CREATURE_POINT_AT_OBJECT StoragePit
+			wait 2 seconds
+
+			force MyCreature CREATURE_LOOK_FOREVER  StoragePit
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_02 // C: Look, these people are weak from hunger.
+			wait until read
+
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_03 // C:We can help them.
+			wait until read
+			wait 2 seconds
+
+			wait until Guide played
+			/// Throw tree at pos.
+			force Guide CREATURE_HURL StoragePit with Tree
+			wait until Guide played
+			wait 3 seconds
+
+			force Guide CREATURE_LOOK_FOREVER MyCreature
+			force MyCreature CREATURE_LOOK_FOREVER Guide
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_04 // C:Now it's your turn. Help the town.
+			wait until read
+			wait 2 seconds
+
+			force MyCreature CREATURE_LOOK_FOREVER StoragePit
+
+		end dual camera
+
+	end cinema
+	//wait until MyCreature helps town!!!
+	//begin dialogue
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_TO_HELP_TOWN_05
+			//wait until read
+	//end dialogue
+
+	disable MyCreature development script
+
+end script CreatureDevHelpTown

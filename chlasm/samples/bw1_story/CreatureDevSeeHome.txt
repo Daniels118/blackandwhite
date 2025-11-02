@@ -1,0 +1,73 @@
+challenge CREATURE_DEV_SEE_HOME
+
+ run script CreatureDevSeeHome
+
+
+begin script CreatureDevSeeHome
+
+BeginPos = 0 
+BeginFoc = 0
+
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+Trainer = create VILLAGER MALE at [TrainerPos]
+CitadelPos = marker at [1915.0500, 18.0900, 2508.8899]
+AtEntranceDoorway = marker at [1901.1814, 18.0900, 2518.2144]
+
+CamPosStart = marker at [1895.2290, 35.7275, 2497.7000]
+CamPos1 = marker at [1894.2354, 28.8333, 2508.1797]
+CamPos2 = marker at [1878.8396, 31.7938, 2527.4250]
+CamPos3 = marker at [1885.3062, 25.8041, 2527.4163]
+
+CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+
+start
+
+	set MyCreature position to [MyCreaturePos]
+	set Trainer focus to [CamPos1]
+	set MyCreature focus to [CitadelPos]
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [CamPosStart]
+		set camera focus to [Trainer]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_01
+		force MyCreature CREATURE_POINT_AT_OBJECT CitadelPos
+		move camera position to [CamPos1] time 7
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_02
+		wait until read
+		wait until MyCreature played
+		force MyCreature CREATURE_POINT_AT_OBJECT PointPos2
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_03
+		move camera position to [CamPos2] time 12
+		move camera focus to [MyCreature] time 4
+		wait until read
+		force MyCreature CREATURE_REST_ON_THE_SPOT MyCreature
+		//force MyCreature CREATURE_LOOK_AT_OBJECT Trainer
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_04
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_05
+		wait until read
+		wait until MyCreature played
+		force MyCreature CREATURE_WAVE_AT_PLAYER MyCreature
+		move camera position to [CamPos3] time 8
+		move Trainer position to [CitadelEntrancePos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_06
+		wait until read
+		force MyCreature CREATURE_REST_ON_THE_SPOT MyCreature
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_07
+		wait until read
+		send good spirit home
+		send evil spirit home
+		wait until [Trainer] near [CitadelEntrancePos] radius 3
+		delete Trainer
+	end cinema
+
+
+
+end script CreatureDevSeeHome

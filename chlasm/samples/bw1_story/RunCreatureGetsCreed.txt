@@ -1,0 +1,20 @@
+challenge RunCreatureGetsCreed
+
+run script RunCreatureGetsCreed
+
+begin script RunCreatureGetsCreed
+
+CreedPos = marker at [2694.475, 138.659, 2594.948]
+CreedInfluence = 0
+	
+start
+	
+	CreedL4 = create SCRIPT_OBJECT_TYPE_MOBILE_OBJECT MOBILE_OBJECT_INFO_CREED at [CreedPos]						  		
+	CreedInfluence = create anti influence on CreedL4 radius 30
+
+	run background script FishPuzzle
+	run script CreatureGetsCreed
+	run script LeaveThroughVortexL4
+	
+
+end script RunCreatureGetsCreed

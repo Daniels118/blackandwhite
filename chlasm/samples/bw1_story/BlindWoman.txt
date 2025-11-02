@@ -1,0 +1,820 @@
+challenge BLIND_WOMAN
+
+global TotalLives
+global BlindWoman
+global BlindWomanStillGoingStrong
+global OldWomanGremlin
+global DestinationHut
+global BlindWomanOutroSoapBox
+global BlindWomanIntroSoapBox
+global TimesDied
+
+define script BlindWomanJourney
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script DeleteBoulders (Boulder)
+
+NewScale = 0
+
+start
+	wait until Boulder is not FLYING
+	wait 20 seconds
+	while SCALE of Boulder > 0.1
+		wait 1 second
+		SCALE of Boulder = (SCALE of Boulder - 0.05)
+	end while
+
+	delete Boulder
+
+end script DeleteBoulders
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** BLIND WOMAN KILLED ****
+begin script BlindWomanKilled
+
+BeginPos = 0
+BeginFoc = 0
+
+start
+	TimesDied++
+	if TimesDied <= TotalLives
+		wait 2 seconds
+		begin cinema
+			BeginPos = marker at camera position 
+			BeginFoc = marker at camera focus
+
+			if BlindWoman exists
+				delete BlindWoman with fade
+			end if
+			BlindWoman = create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [BlindWomanIntroSoapBox]
+			disable BlindWoman pickup
+			enable BlindWoman high graphics detail
+
+			set fade red 0 green 0 blue 0 time 2
+			wait until fade ready
+			set camera position to [BlindWomanIntroSoapBox]+[-10,5,-10]
+			set camera focus to [BlindWomanIntroSoapBox]
+			wait until camera ready
+			set BlindWoman focus to [BlindWomanIntroSoapBox]+[-10,5,-10]
+			BlindWoman play ANM_P_GOSSIP_WOMAN_1 loop -1
+			set fade in time 1
+			wait until fade ready
+
+			if TimesDied == 1
+//				"Holy one.  I have had to use one of my potions to restore my own life."
+//				W/MAN:	Holy One, I've had to use one of my healing potions to restore my own health.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_01
+				wait until read
+//				"I only have 2 left and I need one to cure my brother." 
+//				W/MAN:	I only have two left, and I need one of those to cure my brother.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_02
+				wait until read
+//				"Please watch over me on my journey." 
+//				W/MAN:	Please watch over me on my journey.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_03
+				wait until read
+			elsif TimesDied == 2
+//				"Lord. I have had to use another of my potions."
+//				W/MAN:	I've had to use another potion.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_04
+				wait until read
+//				"I only have 1 left and my brother will need it." 
+//				W/MAN:	I have one left, and my brother needs that.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_26						// DODGY - New enum			
+				wait until read
+//				"Please watch over me on my journey." 
+//				W/MAN:	Please try to ensure I come to no harm.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_05
+				wait until read
+			elsif TimesDied == 3
+//				"Lord. I have no potions left. I must still visit my brother on his death bed."
+//				W/MAN:	Oh no! I've got no potions left. I'm now going to see my brother on his death bed!
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_06	
+				wait until read
+//				"If I make it." 
+//				W/MAN:	If I get there at all, that is.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_07
+				wait until read
+			end if
+
+			set fade red 0 green 0 blue 0 time 2
+			wait until fade ready
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+			set fade in time 1
+			wait until fade ready
+
+			disable BlindWoman high graphics detail
+		end cinema
+	end if
+
+end script BlindWomanKilled
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script GremlinSniper (GremlinPos)
+
+	TargetZone = marker at [3182.6780, 61.5065, 3320.0588]
+	Target = 0
+	Boulder = 0
+	HumanReplacement = 0
+	GremlinStillGoing = 0
+	GremlinTimer = create timer for 0 seconds
+	MutterTimer = create timer for 0 seconds
+	Exorcise = 0
+	WaitFightTimer = create timer for 0 seconds
+	WaitForFight = 0
+	BlindWomanStarted = 0
+	BlindWomanPos = marker at [0, 0, 0]
+
+start
+
+	MyCreature = get player 1 creature
+	while GremlinStillGoing == 0
+		if camera position near [OldWomanGremlin] radius 75 and get MutterTimer time remaining <= 0
+			begin dialogue
+				// "Sheeps be pissin off Gremlins."
+				say single line HELP_TEXT_BLIND_WOMAN_19
+				wait until read
+				set MutterTimer time to 60 seconds
+			end dialogue
+		end if
+
+		if get GremlinTimer time remaining <= 0
+			if BlindWoman exists
+				BlindWomanStarted=1
+				BlindWomanPos=marker at [BlindWoman]
+			end if
+			if [MyCreature] near [OldWomanGremlin] radius 50
+				while SCALE of OldWomanGremlin < SCALE of MyCreature
+					SCALE of OldWomanGremlin = ((SCALE of OldWomanGremlin) + 0.1)
+				end while
+				force MyCreature CREATURE_IDLE MyCreature
+				force OldWomanGremlin CREATURE_LOOK_FOREVER MyCreature
+				force MyCreature CREATURE_LOOK_FOREVER OldWomanGremlin
+				// FIGHT!!
+				/// OldWomanGremlin casts Enlarge on himself
+				/// wait until OldWomanGremlin played
+				/// OldWomanGremlin casts Strength on himself
+				/// wait until OldWomanGremlin played
+				force OldWomanGremlin CREATURE_FIGHT MyCreature
+				// NO LONGER NEED TO MAKE BOTH CREATURES FIGHT!!! force MyCreature CREATURE_FIGHT OldWomanGremlin
+
+				WaitForFight = 1
+				set WaitFightTimer time to 45 seconds
+				while WaitForFight == 1
+					if OldWomanGremlin fighting                         
+						WaitForFight=0
+					elsif get WaitFightTimer time remaining <= 0
+						WaitForFight=0
+					end if
+				end while
+				while OldWomanGremlin fighting
+				end while
+
+				if FIGHTHEALTH of OldWomanGremlin < FIGHTHEALTH of MyCreature
+					HumanReplacement = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [OldWomanGremlin]
+					Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [OldWomanGremlin] time 5
+					Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [OldWomanGremlin]+[5,5] time 5
+					Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [OldWomanGremlin]+[5,-5] time 5
+					Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [OldWomanGremlin]+[-5,5] time 5
+					Exorcise = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [OldWomanGremlin]+[-5,-5] time 5
+					delete OldWomanGremlin
+					HEALTH of HumanReplacement = 0
+					GremlinStillGoing = 1
+					release MyCreature
+				else
+					move OldWomanGremlin position to [GremlinPos]
+					run background script HealFightVictorOverTime(OldWomanGremlin)					
+					release MyCreature
+					wait 20 seconds
+					while SCALE of OldWomanGremlin > 0.5
+						SCALE of OldWomanGremlin = ((SCALE of OldWomanGremlin) - 0.1)
+					end while
+				end if
+				
+			elsif [OldWomanGremlin] not near [GremlinPos] radius 30
+				move OldWomanGremlin position to [GremlinPos]
+				set GremlinTimer time to 25 seconds
+				wait until [OldWomanGremlin] near [GremlinPos] radius 5 or get GremlinTimer time remaining <= 0
+			elsif [MyCreature] near [OldWomanGremlin] radius 75
+				Target = MyCreature
+			elsif BlindWomanStarted == 1 and [BlindWomanPos] near [TargetZone] radius 50
+				Target = BlindWoman
+			else
+				Target = get ANIMAL SHEEP at [TargetZone] radius 50
+			end if
+			if Target exists and OldWomanGremlin exists
+				Boulder = create with angle 0 and scale 0.3 OBJECT ROCK at [GremlinPos]+[2,2]
+				wait until Boulder is not FLYING
+				if [Boulder] near [OldWomanGremlin] radius 15
+					force OldWomanGremlin CREATURE_HURL Target with Boulder
+					run background script DeleteBoulders (Boulder)
+					wait until OldWomanGremlin played
+				else
+					delete Boulder
+				end if
+			end if
+			set GremlinTimer time to 10 seconds
+		end if
+											  
+	end while
+
+
+ end script GremlinSniper
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+// **** MAIN ****
+begin script BlindWomanMain
+
+BeginPos					= 0
+BeginFoc					= 0
+
+BlindWomanHut				= get HOUSE at [3713.5500, 2.9103, 3117.7803]
+CurrentWayPoint				= 0
+
+GremlinPos = marker at [3209.364, 96.917, 3277.383]
+Boulder = 0
+
+WolfPack					= 0
+//WolfPackStartPos = marker at [3716.9592, 66.3300, 3239.4839]
+WolfPackPos					= marker at [3509.908, 38.174, 3280.037]
+
+Brother						= 0
+
+BrotherReward				= 0
+RewardPos					= marker at [3350.5811, 87.7700, 3086.1379]
+
+SheepFlock					= 0
+SheepFlockPos				= marker at [3182.6780, 61.5065, 3320.0588]
+
+HighlightPos				= marker at [3703.723, 30.680, 3105.303] 
+Highlight					= 0
+
+BrothersHousePos			= marker at [3348.2200, 93.1046, 3090.2764]
+BrothersHouseFoc			= marker at [3346.1672, 88.2894, 3082.6089]
+WalkToSickBrotherPos		= marker at [3334.5894, 87.7700, 3082.5054]
+MeetSickBrotherPos			= marker at [3342.7637, 87.7700, 3082.6687]
+
+BrotherDeadPos				= marker at [3345.8721, 87.7700, 3082.3057]
+
+Owner						= 0
+Arrived						= 0
+
+Spell						= 0
+
+Wolf						= 0
+WolfPos						= marker at [3357.2800, 90.2040, 3091.2866]
+WolfCameraPos				= marker at [3350.2991, 92.5427, 3090.2917]
+WolfCameraFoc				= marker at [3363.8281, 91.2165, 3092.4812]
+
+start
+
+	TotalLives = 3
+
+	// Create OldWomanGremlin Throwing Boulder Hazard & call it Morg
+	MyCreature = get player 1 creature
+	OldWomanGremlin = create_creature_from_creature MyCreature 0.9 at [GremlinPos] CREATURE_TYPE_OGRE
+	SCALE of OldWomanGremlin = 0.5
+	set OldWomanGremlin name HELP_TEXT_OGRE_NAME_03
+	ALIGNMENT of OldWomanGremlin = -1
+	run background script GremlinSniper (GremlinPos)
+
+	while Owner != 1
+		Owner = get PLAYER of AztecTownL4
+	end while
+
+	/// Challenge Notify
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HighlightPos]
+	ALTITUDE of Highlight = 10
+	run script ChallengeHighlightNotify(Highlight,HighlightPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+
+	BlindWomanIntroSoapBox = marker at [3716.7786, 3.8682, 3116.0618]
+	BlindWomanOutroSoapBox = marker at [3002.3120, 59.5044, 3148.1313]
+	DestinationHut = get HOUSE at [3347.9199, 87.7700, 3079.7800]
+	BlindWoman = create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [BlindWomanHut]
+	disable BlindWoman pickup
+
+	// create WolfPack
+	WolfPack = flock at [WolfPackPos]
+	set WolfPack properties inner 5 outer 15
+	populate WolfPack with 8 ANIMAL ANIMAL_INFO_WOLF
+
+	// create annoying flock of sheep
+	SheepFlock = flock at [SheepFlockPos]
+	set SheepFlock properties inner 5 outer 15
+	populate SheepFlock with 8 ANIMAL ANIMAL_INFO_SHEEP
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_03
+		
+		enable BlindWoman high graphics detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move BlindWoman position to [BlindWomanIntroSoapBox]
+		move camera position to [BlindWomanIntroSoapBox]+[-10,5,-10] time 3
+		move camera focus to [BlindWomanIntroSoapBox] time 3
+		wait until [BlindWoman] near [BlindWomanIntroSoapBox] radius 1
+		wait 1 second
+		wait until camera ready
+		set BlindWoman focus to camera position
+
+		// Blind Woman started
+		snapshot challenge success 0 alignment 0 HELP_TEXT_TITLE_111 StandardReminder(variable HELP_TEXT_REMINDER_104)
+
+		BlindWoman play ANM_P_GOSSIP_WOMAN_1 loop -1
+		wait 1 second
+
+//		"Holy one.  I must take this healing potion to my brother in the Town."
+//		EA:	Holy One, I must take this healing potion to my brother in the Village.
+		say HELP_TEXT_NEW_L4_BLIND_WOMAN_08
+		wait until read
+
+		// Start camera pan along path here
+		move camera to T04_000 time 3
+		wait until camera ready
+		camera path TRACK04
+
+//		"But the journey takes me along this treacherous path."
+//		W/MAN:	But I've got to travel along this treacherous path.
+		say HELP_TEXT_NEW_L4_BLIND_WOMAN_09
+		wait until read
+//		"Please watch over me, and I will be eternally grateful."
+//		W/MAN:	Please watch over. I'd be so grateful.
+		say HELP_TEXT_NEW_L4_BLIND_WOMAN_10	// WRONG - The 'me' is missing after 'Please watch over'
+		wait until read
+		wait until camera ready
+
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+
+		set camera position to [BlindWomanIntroSoapBox]+[-10,5,-10]
+		set camera focus to [BlindWomanIntroSoapBox]
+
+		disable BlindWoman high graphics detail	
+
+		set fade in time 1
+		wait until fade ready
+		stop music
+	end cinema
+
+	// Wait until woman is dead or has got to her destination
+	while TimesDied <= TotalLives and BlindWomanStillGoingStrong != 1
+		run script BlindWomanJourney
+	end while
+
+	if BlindWomanStillGoingStrong == 1				// Arrived at Destination
+		// Move woman here just before fade
+		move BlindWoman	position to [3023.9307, 52.1134, 3080.6626]
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_EPIC_03
+			set fade red 0 green 0 blue 0 time 2
+			wait until fade ready
+			set camera position to [BrothersHousePos]
+			set camera focus to [BrothersHouseFoc]
+
+			set BlindWoman position to [WalkToSickBrotherPos]
+
+			set fade in time 1
+			wait until fade ready 
+
+			Brother = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [DestinationHut]
+			
+			enable Brother high graphics detail
+			enable BlindWoman high graphics detail
+
+			if TimesDied < TotalLives 								// Still got some healing potions left
+				SPEED of Brother = 0.05
+				move Brother position to [BrotherDeadPos]
+				move BlindWoman position to [MeetSickBrotherPos]
+
+				set Brother anim ANM_P_WALK_INJURED
+				
+				wait until [Brother] near [BrotherDeadPos]
+				wait until [BlindWoman] near [MeetSickBrotherPos]
+
+				Brother play ANM_P_STAND_DESPAIR_1 loop -1	
+				
+				set BlindWoman focus to camera position
+				BlindWoman play ANM_P_GOSSIP_WOMAN_2 loop -1
+
+//				"Thank you holy one, for looking after me on my journey."
+//				W/MAN:	Thank you for looking after me during my journey.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_11
+				wait until read
+
+//				"I can now heal my brother."
+//				W/MAN:	I can now heal my brother.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_12
+				wait until read
+
+				set BlindWoman focus to [Brother]
+				BlindWoman play ANM_P_INTO_POINTING loop 1
+				wait until BlindWoman played
+
+				// Heal the brother
+				Spell = cast SPELL_HEAL_LEVEL_1 spell at [Brother] from [BlindWoman] radius 0 time 3 curl 0
+				HEALTH of Brother = 1.0
+
+				close dialogue
+				wait 2 seconds
+
+				// Blind Woman saved Brother
+				snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_111 StandardReminder(variable HELP_TEXT_REMINDER_104)
+	
+				wait until read
+
+				set Brother focus to [BlindWoman]
+				Brother play ANM_P_SHRUG_SHOULDERS loop 1
+				wait until Brother played
+
+				set BlindWoman focus to [Brother]
+				set Brother focus to [BlindWoman]
+
+				move BlindWoman position to [Brother]
+				set BlindWoman anim ANM_P_RUN_WOMAN
+				wait until [BlindWoman] near [Brother]
+
+				BlindWoman play ANM_P_HUG loop 1			// Siblings hug each other 
+				Brother play ANM_P_HUG loop 1
+				wait until Brother played
+
+				set BlindWoman focus to camera position
+				set Brother focus to camera position
+				Brother play ANM_P_GOSSIP_MAN loop -1
+				BlindWoman play ANM_P_AMBIENT2 loop -1
+
+//				"Thank you for helping my sister holy one.  We will worship you forever."
+//				MAN:	Thanks for helping my sister. We promise to worship you forever.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_13
+				wait until read
+
+				// Give swap to Wolf as a reward
+				Wolf = create CREATURE CREATURE_TYPE_WOLF at [WolfPos]
+				force Wolf CREATURE_IDLE Wolf
+				set Wolf focus to camera position
+
+//				"Here, have a special Wolf as thanks for your help."	
+//				MAN:	Please accept this special Wolf as a token of our gratitude.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_14
+				move camera focus to [WolfCameraFoc] time 3
+				wait until read
+				wait 1 second
+				run background script SwapCreatures(Wolf)
+		
+				eject good spirit
+				make good spirit point at [Wolf]
+//				"Ahh.  Isn't that lovely.  The brother is saved, and we get a Wolf"
+//				GA:	Ah, they shouldn't have!
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_15
+				wait until read
+				stop good spirit pointing
+
+				eject evil spirit
+//				"The Wolf is cool, but I still think we should have killed someone."
+//				EA:	The Wolf is neat but I'd have preferred it if we'd killed someone.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_16
+				wait until read
+				send good spirit home
+				send evil spirit home
+			else											// Got no healing potions left
+				SPEED of Brother = 0.05
+				move Brother position to [BrotherDeadPos]
+				move BlindWoman position to [MeetSickBrotherPos]
+
+				set Brother anim ANM_P_CRAWL_INJURED
+				set BlindWoman anim ANM_P_RUN_WOMAN
+
+				wait until [Brother] near [BrotherDeadPos]
+				wait until [BlindWoman] near [MeetSickBrotherPos]
+
+				Brother play ANM_P_DEAD1 loop -1
+
+				set BlindWoman focus to [Brother]
+				BlindWoman play ANM_P_INTO_MOURNING loop 1
+				wait until BlindWoman played
+
+				BlindWoman play ANM_P_MOURNING loop -1
+
+				// Blind Woman watches Brother die
+				snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_111 StandardReminder(variable HELP_TEXT_REMINDER_104)
+				wait 0.1 seconds
+
+//				"Oh-No!  My poor brother, Dead!"
+//				W/MAN:	No! My brother's passed away!
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_17
+				wait until read
+//				"I made it here, but don't have any more heal potions."
+//				W/MAN:	I got here, but I have no more heal potions.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_18
+				wait until read
+
+				eject evil spirit
+				make evil spirit point at [Brother]
+//				"Oh boy this gets better and better.  Look at the suffering. HA, HA, HA."
+//				EA:	Oh this is too neat. Feel the suffering!
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_19
+				wait until read
+				stop evil spirit pointing
+//				"Hey. Boss.  Let's make it a great days work.  Kill the woman."
+//				EA:	Let's make it a job well done. Kill the woman.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_27					// DODGY - New enum
+				wait until read
+				eject good spirit
+//				"NO! NO! NO!  Leader, this poor woman's life has been ruined because of you."
+//				GA:	No! Her life's already ruined. Leave her!
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_20
+				wait until read
+//				"I think you have done enough harm for one day.  Don't you!"
+//				GA:	You've done enough harm already. Oh unhappy day.
+				say HELP_TEXT_NEW_L4_BLIND_WOMAN_21
+				wait until read
+
+				BlindWoman play ANM_P_OUT_OF_MOURNING loop 1
+				wait until BlindWoman played
+
+				set BlindWoman anim ANM_P_WALK_DESPAIR_AWAY_1
+			end if
+
+			disable BlindWoman high graphics detail
+			disable Brother high graphics detail
+			stop music
+		end cinema
+
+		// Cleaning up
+		if TimesDied < TotalLives 						// Still got some healing potions left
+			SPEED of Brother	= 0.1
+			SPEED of BlindWoman	= 0.1
+
+			move Brother position to [DestinationHut]
+			move BlindWoman position to [DestinationHut]
+
+			wait until [Brother] near [DestinationHut]
+			wait until [BlindWoman] near [DestinationHut]
+
+			wait until Brother not viewed
+
+			attach Brother to AztecTownL4
+			attach BlindWoman to AztecTownL4
+			enable BlindWoman pickup
+
+			wait 2 seconds
+
+			release Brother
+			release BlindWoman
+		else											// Got no healing potions left
+			SPEED of BlindWoman	= 0.05
+
+			HEALTH of Brother = 0
+			state Brother VILLAGER_STATE_DEAD
+
+			move BlindWoman position to [DestinationHut]
+			set BlindWoman anim ANM_P_WALK_DESPAIR_AWAY_1
+			wait until [BlindWoman] near [DestinationHut]
+
+			wait until BlindWoman not viewed
+			attach BlindWoman to AztecTownL4
+			enable BlindWoman pickup
+			
+			wait until Brother not viewed
+			delete Brother
+
+			wait 2 seconds
+
+			release BlindWoman
+		end if
+
+	elsif BlindWomanStillGoingStrong == 2			// Died - Did not arrive at town
+		begin cinema
+			if BlindWoman viewed
+				move camera position to [BlindWoman] + [10, 10, 10] time 3
+				move camera focus to [BlindWoman] time 3
+			else
+				set fade red 0 green 0 blue 0 time 2
+				wait until fade ready
+
+				set camera position to [BlindWoman] + [10, 10, 10]
+				set camera focus to [BlindWoman]
+
+				set fade in time 1
+				wait until fade ready
+			end if
+
+			eject evil spirit
+			make evil spirit point at [BlindWoman]
+//			"Way to go boss.  The do gooder woman is dead."
+//			EA:	Oh yeah! The do-gooding healer woman is pushing up daisies.
+			say HELP_TEXT_NEW_L4_BLIND_WOMAN_22
+			wait until read
+			stop evil spirit pointing
+//			"Her brothers finished. HA, HA, HA"
+//			EA:	Her brother's finished.
+			say HELP_TEXT_NEW_L4_BLIND_WOMAN_23
+			wait until read
+
+			close dialogue
+			
+			send evil spirit home
+
+			set fade red 0 green 0 blue 0 time 2
+			wait until fade ready
+
+			set camera position to [BrothersHousePos]
+			set camera focus to [BrothersHouseFoc]
+
+			set fade in time 1
+			wait until fade ready
+
+			Brother = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [DestinationHut]
+
+			SPEED of Brother = 0.05
+			move Brother position to [BrotherDeadPos]
+			set Brother anim ANM_P_CRAWL_INJURED
+			wait until [Brother] near [BrotherDeadPos] radius 0.2
+
+			Brother play ANM_P_DEAD1 loop -1
+
+			HEALTH of Brother = 0
+			state Brother VILLAGER_STATE_DEAD
+
+			// Blind Woman died before reaching the village
+			snapshot challenge success 1 alignment 0 HELP_TEXT_TITLE_111 StandardReminder(variable HELP_TEXT_REMINDER_104)
+			wait 0.1 seconds
+
+			eject evil spirit
+			make evil spirit point at [Brother]
+//			"Look.  I told you so.  HA, HA, HA"
+//			EA:	I told you so! Look! Ha ha!
+			say HELP_TEXT_NEW_L4_BLIND_WOMAN_24
+			wait until read
+			stop evil spirit pointing
+			eject good spirit
+//			"This is not funny. You are a cruel, cruel god."
+//			GA:	This is not funny. Cruelty is so unbecoming.
+			say HELP_TEXT_NEW_L4_BLIND_WOMAN_25
+			wait until read
+			send good spirit home
+			send evil spirit home
+
+		end cinema
+
+		wait until Brother not viewed
+		delete Brother
+		
+	end if
+end script BlindWomanMain
+
+//*****************************************************************************
+//	Womans Journey from the start to the end. May be called more than once 
+//	depending on how many potions (LivesLeft) she has.
+//*****************************************************************************
+
+begin script BlindWomanJourney
+
+	BlindWomanArrived = 0
+	WalkAroundFence = marker at [3714.1294, 2.6800, 3109.5122]
+	StartPath = marker at camera T00_000
+
+	Waypoint1 = marker at [3585.8115, 41.9640, 3255.8276]
+	Waypoint2 = marker at [3468.6880, 40.3099, 3251.8435]
+	Waypoint3 = marker at [3278.7539, 66.4661, 3346.7346]
+
+	Waypoint1Passed = 0
+	Waypoint2Passed = 0
+	Waypoint3Passed = 0
+
+	Tree1Pos = marker at [3354.4502, 59.2165, 3328.6797]
+	Tree2Pos = marker at [3348.7000, 54.6155, 3303.4900]
+	Tree3Pos = marker at [3384.5098, 48.1693, 3290.8003]
+	Tree4Pos = marker at [3368.1399, 46.0625, 3267.0801]
+
+	Tree1 = get TREE at [Tree1Pos]
+	Tree2 = get TREE at [Tree2Pos]
+	Tree3 = get TREE at [Tree3Pos]
+	Tree4 = get TREE at [Tree4Pos]
+
+start
+
+	enable BlindWoman indestructible
+	move BlindWoman position to [WalkAroundFence]
+	wait until [BlindWoman] near [WalkAroundFence] radius 2
+	
+	move BlindWoman position to [StartPath]
+	wait until [BlindWoman] near [StartPath] radius 1
+
+	// start walking woman along camera track
+	set BlindWoman forward walk path TRACK00 from 0.0 to 1.0
+	disable BlindWoman indestructible
+	BlindWomanStillGoingStrong = 0
+
+	while BlindWomanStillGoingStrong == 0
+		wait 2 seconds
+
+		if BlindWoman not exists 
+			run script BlindWomanKilled
+			BlindWomanStillGoingStrong = 2
+		else 
+			if HEALTH of BlindWoman <= 0.05 and BlindWomanArrived < 2
+				HEALTH of BlindWoman = 0.0
+				run script BlindWomanKilled
+				BlindWomanStillGoingStrong = 2
+			elsif Waypoint1Passed == 0 and [BlindWoman] near [Waypoint1] radius 10
+				begin dialogue
+					eject good spirit
+					make good spirit point at [BlindWoman]
+					// "Argh! The blind woman is walking straight towards a pack of wolves!"
+					say HELP_TEXT_BLIND_WOMAN_07
+					wait 1 second
+					stop good spirit pointing
+					wait until read
+					// "We gotta save her!"
+					say HELP_TEXT_BLIND_WOMAN_08
+					wait until read
+					send good spirit home
+				end dialogue
+				Waypoint1Passed = 1
+			elsif Waypoint2Passed == 0 and [BlindWoman] near [Waypoint2] radius 10							
+			// Create ForestFire Hazard
+				if Tree1 exists
+					if [Tree1] not near [Tree1Pos] radius 5
+						Tree1 = create TREE TREE_INFO_BIRCH at [Tree1Pos]
+						enable Tree1 on fire 1
+					else
+						enable Tree1 on fire 1
+					end if
+				else
+					Tree1 = create TREE TREE_INFO_BIRCH at [Tree1Pos]
+					enable Tree1 on fire 1
+				end if
+
+				if Tree2 exists
+					if [Tree2] not near [Tree2Pos] radius 5
+						Tree2 = create TREE TREE_INFO_BIRCH at [Tree2Pos]
+						enable Tree2 on fire 1
+					else
+						enable Tree2 on fire 1
+					end if
+				else
+					Tree2 = create TREE TREE_INFO_BIRCH at [Tree2Pos]
+					enable Tree2 on fire 1
+				end if
+
+				if Tree3 exists
+					if [Tree3] not near [Tree3Pos] radius 5
+						Tree3 = create TREE TREE_INFO_BIRCH at [Tree3Pos]
+						enable Tree3 on fire 1
+					else
+						enable Tree3 on fire 1
+					end if
+				else
+					Tree3 = create TREE TREE_INFO_BIRCH at [Tree3Pos]
+					enable Tree3 on fire 1
+				end if
+
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [BlindWoman]
+					// "Classic stuff. The blind woman is walking into a forest fire."
+					say HELP_TEXT_BLIND_WOMAN_09
+					wait 1 second
+					stop evil spirit pointing
+					wait until read
+					// "Quick get over there, I wanna see this!"
+					say HELP_TEXT_BLIND_WOMAN_10
+					wait until read
+					send evil spirit home
+				end dialogue
+
+				Waypoint2Passed = 1
+
+			elsif Waypoint3Passed == 0 and [BlindWoman] near [Waypoint3] radius 10
+				
+				begin dialogue
+					eject good spirit
+					make good spirit point at [OldWomanGremlin]
+					 //"There's an odd looking creature causing mayhem over there."
+					say HELP_TEXT_BLIND_WOMAN_11
+					wait 1 second
+					stop evil spirit pointing
+					wait until read
+					make good spirit point at [BlindWoman]
+					// "The blind woman is heading straight for him too. Could be interesting."
+					say HELP_TEXT_BLIND_WOMAN_12
+					wait until read
+					send evil spirit home
+				end dialogue
+				Waypoint3Passed = 1
+			elsif BlindWomanArrived == 0 and [BlindWoman] near [BlindWomanOutroSoapBox] radius 5
+				move BlindWoman position to [DestinationHut]			
+				BlindWomanArrived = 1
+				BlindWomanStillGoingStrong = 1					// Arrived at Destination
+			end if
+		end if
+
+	end while
+
+end script BlindWomanJourney

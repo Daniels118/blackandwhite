@@ -1,0 +1,10 @@
+run script RunLionPuzzle
+
+begin script RunLionPuzzle
+	
+start
+	
+	run script LionPuzzle
+	
+
+end script RunLionPuzzle

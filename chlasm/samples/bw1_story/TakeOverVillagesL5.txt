@@ -1,0 +1,100 @@
+begin script TakeOverL5
+
+
+// take over evil villages
+
+TownUnderControl = 0
+HigherTownControled = 0
+
+
+Town1 = get TOWN at [3216.03,3331.06] radius 50
+Town2 = get TOWN at [2637.09,3747.78] radius 50
+Town3 = get TOWN at [2222.34,2635.14] radius 50
+Town4 = get TOWN at [1677.74,2321.76] radius 50
+Town5 = get TOWN at [2256.86,3315.77] radius 50
+
+
+
+start
+
+	// move camera position to Town1 time 5
+	// wait until camera ready
+
+
+	while HigherTownControled < 5
+
+		
+		wait 5 seconds // don't waste a lot of time
+
+		TownUnderControl = 0
+
+		if get PLAYER of Town1 == 1
+			// town under our control
+			TownUnderControl = TownUnderControl + 1
+		end if
+
+
+		if get PLAYER of Town2 == 1
+			// town under our control
+			TownUnderControl = TownUnderControl + 1
+		end if
+
+
+		if get PLAYER of Town3 == 1
+			// town under our control
+			TownUnderControl = TownUnderControl + 1
+		end if
+
+		if get PLAYER of Town4 == 1
+			// town under our control
+			TownUnderControl = TownUnderControl + 1
+		end if
+
+		if get PLAYER of Town5 == 1
+			// town under our control
+			TownUnderControl = TownUnderControl + 1
+		end if
+
+
+		if TownUnderControl > HigherTownControled
+			// check if we achieve a new point, like 3 town or 6 or 9 under control
+			begin cinema
+
+				if HigherTownControled == 1
+					// first ennemi town taken
+
+					eject good spirit
+					eject evil spirit
+
+//					say HELP_TEXT_TAKE_OVER_VILLAGEL5_01
+					wait until read
+
+//					say HELP_TEXT_TAKE_OVER_VILLAGEL5_02
+					wait until read
+
+					send evil spirit home
+					send good spirit home
+
+				end if
+
+				if HigherTownControled == 2
+				end if
+
+				if HigherTownControled == 3
+				end if
+
+				if HigherTownControled == 4
+				end if
+
+				if HigherTownControled == 5
+				end if
+
+			end cinema
+		
+			HigherTownControled = TownUnderControl
+
+		end if
+
+	end while
+
+end script TakeOverL5

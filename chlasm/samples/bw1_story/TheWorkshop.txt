@@ -1,0 +1,412 @@
+challenge THE_WORKSHOP
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheWorkshopComplete(Workshop)
+	Man						= 0
+	ManPos					= marker at [3252.783, 47.659, 3348.586]  
+	BeginPos				= 0
+	BeginFoc				= 0
+	CameraPos				= marker at [3252.815, 48.764, 3354.333]
+
+	TaskBuildingDone		= 0
+	TaskBuilding			= 0
+	TaskBuildingPos			= marker at [3233.8467, 48.2400, 3325.5176]
+	TaskSpangle				= 0
+	WoodReward				= 0
+	dykworkshop				= marker at [3268.5129, 48.2845, 3331.8564]
+	dykworkshop2			= marker at [3270.432, 48.240, 3337.421]
+	WaitLoopActive			= 0
+	ObjectInHand			= 0
+	ScaffoldPos				= marker at [3272.5129, 48.2845, 3331.8564]
+	Scaffold				= 0
+
+	WorkshopStore			= 0
+	WoodGiven				= 0
+	TrackingWoodAmount		= 0
+
+	Town = get town with id 0
+	Adults = 1
+	Homes = 0
+	Homeless = 0
+	HomelessPercentage = 0
+	OriginalSize=0
+
+
+	SFX = 0
+	SpellIcon = marker at [3319.6670, 80.9168, 3238.4404]
+
+	HighlightPos = marker at [3246.0803, 47.8657, 3335.6006]
+	Highlight=0
+	OldWorkshopStore = 0
+	ScaffoldCreatePos=0
+
+start
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	run script ChallengeHighlightNotify(Highlight, HighlightPos, variable EVIL_ADVISOR, variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_01)
+
+	Man=create VILLAGER ENGINEER at [Workshop]
+	move Man position to [ManPos]
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_01
+
+		enable Man high gfx detail
+		
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [3263.194, 56.055, 3356.090] time 4
+		move camera focus to [3251.455, 48.038, 3346.555] time 3
+		wait until [Man] near [ManPos] radius 2
+		wait 2 seconds
+		
+		set Man focus to camera position
+
+		move camera position to [3252.815, 48.764, 3354.333] time 12
+		move camera focus to [3253.674, 48.682, 3349.902] time 12
+
+		Man play ANM_P_BECKON loop 1
+
+		say HELP_TEXT_LAND_2_WORKSHOP_01		//Khazar sent me
+		
+		wait until Man played
+		Man play ANM_P_GOSSIP_MAN loop 1
+		set Man focus to camera position
+		wait until Man played
+		Man play ANM_P_AMBIENT1 loop -1
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_02)	
+
+		say HELP_TEXT_LAND_2_WORKSHOP_02		//You need to help your homeless
+		Man play ANM_P_LOOKING_FOR_SOMETHING loop 1
+		set Man focus to camera position
+		wait until Man played
+		Man play ANM_P_GOSSIP_MAN loop 2
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_03		//Workshop = I build scaffolds here
+		wait until read
+		
+		say HELP_TEXT_LAND_2_WORKSHOP_04		//This allows you decide where new buildings should be constructed.
+		
+		set Man focus to camera position
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_05 with interaction	//If you can supply me with enough wood, I can build a scaffold so that you can plan more houses.
+		Man play ANM_P_OVERWORKED2 loop 1
+		wait until read
+
+		move Man position to [Workshop]
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc ] time 3
+		wait until camera ready
+		disable Man high gfx detail
+		stop music
+	end cinema 
+
+//	snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_02)	
+	
+	//Remove all wood from the workshop incase anything has been created && remove a scaffold if it's there.
+	WorkshopStore = get resource WOOD in Workshop
+	remove resource WOOD WorkshopStore from Workshop
+	Scaffold = get SCAFFOLD at [Workshop] radius 10
+	if Scaffold exists
+		delete Scaffold with fade
+	end if
+
+	move Man position to [3253.5486, 47.6459, 3338.9028]
+
+	disable Man pickup
+	disable Man moveable
+
+	// Wait to see that there is enough wood in the workshop to build a scaffold
+	OldWorkshopStore = get resource WOOD in Workshop
+	WorkshopStore=OldWorkshopStore
+
+	wait until [Man] at [3253.5486, 47.6459, 3338.9028] 
+
+	Man play ANM_P_AMBIENT1 loop -1
+
+	TrackingWoodAmount=WorkshopStore
+
+	while TrackingWoodAmount-WorkshopStore < 800
+
+		TrackingWoodAmount = WorkshopStore
+		
+		wait 1 seconds
+
+		WorkshopStore = get resource WOOD in Workshop
+
+		if WorkshopStore != OldWorkshopStore
+			if WorkshopStore > OldWorkshopStore
+				//Make man react to more wood
+				Man play ANM_P_CROWD_WON_2 loop 1
+			end if
+			OldWorkshopStore = WorkshopStore
+		end if
+	end while
+
+	// The workshop is creating a scaffold
+	// Move the engineer outside the workshop and say the line
+	begin cinema
+		enable Man high gfx detail
+
+		disable Man pickup
+		disable Man moveable
+		
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		Man play ANM_P_SAW_WOOD loop -1
+
+		move camera position to [3260.2493, 53.7808, 3338.8550] time 3
+		move camera focus to [3253.9705, 48.3288, 3338.4978] time 3
+		wait until camera ready
+
+		move camera position to [3256.7441, 51.5405, 3333.2295] time 8
+		move camera focus to [3252.8540, 47.9795, 3340.1460] time 8
+
+		say single line HELP_TEXT_LAND_2_WORKSHOP_07		//Give me a little time and I'll turn the wood into scaffolds.
+		set Man focus to camera position
+		Man play ANM_P_GOSSIP_MAN loop 1
+		wait until Man played
+		Man play ANM_P_SAW_WOOD loop -1
+		wait until read
+		
+		close dialogue
+		wait 0.1 seconds
+
+		snapshot quest success 0.1 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_03)
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc ] time 3
+		wait until camera ready
+
+		disable Man high gfx detail
+
+	end cinema
+
+//	snapshot quest success 0.1 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_03)
+	
+	// Check to see if a scaffold has been built
+	while Scaffold not exists
+		wait 0.3 seconds
+		Scaffold = get SCAFFOLD at [Workshop] radius 10
+	end while
+
+	ScaffoldCreatePos=marker at [Scaffold]
+
+	move Man position to [Workshop]
+
+	// The scaffold has been created.  Wait until the camera is near, then...
+	// ...move the engineer outside the workshop and say the line 
+	wait until camera position near [Workshop] radius 50 and Workshop viewed
+
+	delete Man
+	
+	begin dialogue
+		say HELP_TEXT_LAND_2_WORKSHOP_08	// It looks like your scaffolding is ready.	
+		wait until read
+		say HELP_TEXT_LAND_2_WORKSHOP_09	//We just need to move it to an area where we want it built.
+		eject good spirit
+		wait until read	
+		make good spirit point to Scaffold
+		say HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_04 with interaction
+		wait until read
+	end dialogue
+
+	update snapshot success 0.2 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_04)
+
+	while WaitLoopActive == 0
+		ObjectInHand = get object held
+		if ObjectInHand exists
+			if ObjectInHand type SCAFFOLD
+				WaitLoopActive = 1
+			end if
+		end if
+		if [Scaffold] not near [ScaffoldCreatePos] radius 5
+			WaitLoopActive = 1
+		end if
+	end while
+
+	begin dialogue
+		eject good spirit
+		say single line HELP_TEXT_LAND_2_WORKSHOP_10 // When you're happy with it's location and angle, click the Action Button.
+		wait until read
+	end dialogue
+
+	wait until ObjectInHand is not HELD
+
+	begin dialogue
+
+		eject good spirit
+		eject evil spirit
+
+		say HELP_TEXT_LAND_2_WORKSHOP_11	//Oh, this is such a worthwhile cause, building homes for the homeless.
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_12	//There is another way to solve this homeless problem, y'know..
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_13	//Oh yes ?
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_14	//Yeah.. we kill em !
+		wait until read
+
+	end dialogue
+
+	// DYK about Workshop
+	run background script DidYouKnow(dykworkshop, variable HELP_TEXT_DYK_94, variable DYK_VILLAGE_LIFE)
+//	run background script DidYouKnow(dykworkshop2, variable HELP_TEXT_DYK_95, variable DYK_VILLAGE_LIFE)
+
+	update snapshot success 0.3 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_15)
+
+	// Check to see how many homes have been built.
+	OriginalSize=adult capacity of Town
+
+	begin loop
+		Adults = adult size of Town // (No of adults in a town/abode)
+		if Adults > 40
+			Adults = 40
+		end if
+
+		if Adults > 0
+
+			Homes = adult capacity of Town // (No of adults a town/abode can hold)
+
+			Homeless = Adults - Homes
+
+			HomelessPercentage = (Homeless / Adults) * 100
+
+		end if
+
+		wait 4 seconds
+
+		until HomelessPercentage < 40 or Adults == 0 or (Homes-OriginalSize) >= 10 // If less than 40% homeless then continue..
+	end loop
+
+	///NEED A HIGHLIGHT TO SAY ABOUT THE HOMELESS....
+	Highlight = create highlight HIGHLIGHT_QUEST at [Workshop]
+	run script ChallengeHighlightNotify(Highlight, Workshop, variable EVIL_ADVISOR, variable HELP_TEXT_LAND_2_WORKSHOP_NOTIFIER_05)
+
+
+	begin cinema
+		Man = create VILLAGER ENGINEER at [Workshop]
+		enable Man high gfx detail
+		move Man position to [ManPos]
+
+		move camera position to [3254.0571, 50.4808, 3356.2532] time 3
+		move camera focus to [3260.3667, 47.0058, 3332.4961] time 3
+
+		wait until camera ready
+
+		say HELP_TEXT_LAND_2_WORKSHOP_16						//Your town is looking mighty fine
+		Man play ANM_P_CROWD_IMPRESSED_1 loop 1
+		wait until read
+
+		say HELP_TEXT_LAND_2_WORKSHOP_17						//I'd love to be part of it.
+		wait until read
+		
+		say HELP_TEXT_LAND_2_WORKSHOP_18						//In my old town I held the knowlege of the forest miracle. Look!
+		set Man focus to [SpellIcon]
+		Man play ANM_P_TALKING_AND_POINTING loop 1
+		wait until read
+
+		start music MUSIC_TYPE_SCRIPT_EPIC_03
+		// Make Man run to worship site and cast spell to give you the Magic Forest Spell.
+		SPEED of Man = 0.6
+		move Man position to [3307.0144, 76.3250, 3245.2065]
+
+		move camera position to [3310.7773, 87.9073, 3225.9783] time 8
+		move camera focus to [3319.4390, 77.3767, 3255.2490] time 8
+		wait until 6 seconds
+
+		set Man position to [3302.1899, 63.8149, 3284.5920]
+		move Man position to [3307.0144, 76.3250, 3245.2065]
+
+		wait until [Man] near [3307.0144, 76.3250, 3245.2065] radius 1
+		set Man focus to [SpellIcon]
+
+		Man play ANM_PIED_PIPER_SUMMON loop -1
+
+		wait 0.5 seconds
+
+		SFX = create special effect SPOT_VISUAL_MAGIC_BEAM on SpellIcon time -1
+		add SFX target on Man
+		wait until 2 seconds
+
+		wait 1 second
+
+		move camera position to [3302.483, 77.357, 3244.059] time 10
+		move camera focus to [3351.280, 81.647, 3241.831] time 10
+
+		close dialogue
+		wait 2 second
+
+		enable spell SPELL_FOREST in Town
+		wait 0.1 seconds
+
+		snapshot quest success 1 alignment 0.0 HELP_TEXT_TITLE_112 StandardReminder(variable HELP_TEXT_LAND_2_WORKSHOP_15)
+
+		wait 6 seconds
+		enable spell SPELL_FOREST in Town
+		say HELP_TEXT_LAND_2_WORKSHOP_19 with interaction	//Constant worship is needed to maintain it, but the wood it provides is a blessing to the people.
+		wait until read
+
+		delete SFX
+		attach Man to Town
+
+		move camera position to [3301.1194, 96.1483, 3245.0120]	time 3
+		move camera focus to [3331.0928, 77.5757, 3242.6978] time 3
+		wait until camera ready
+		stop music
+	end cinema
+
+	//Wait a while so the man can move back to the workshop.
+	move Man position to [Workshop]
+	delete Highlight
+	wait 30 seconds
+	release Man
+
+end script TheWorkshopComplete
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// The main script trigger function.
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheWorkshop
+	WorkshopMarker = marker at [3252.0894, 47.5522, 3341.0461] 
+	Workshop1 = get HOUSE at [WorkshopMarker] radius 10
+	// if you add more workshops update below as well
+	BuiltProperty = 0									
+	PlayerProperty = 0
+	TheWorkshopComplete=0
+
+start
+	TheWorkshopComplete = 0
+
+	while TheWorkshopComplete==0
+		if KhazarGone == 1
+			TheWorkshopComplete=1
+		elsif not Workshop1 exists
+			Workshop1 = get HOUSE at [WorkshopMarker] radius 5
+		else 
+			BuiltProperty = BUILT of Workshop1
+			PlayerProperty = PLAYER of Workshop1
+			if ((BuiltProperty==1) and (PlayerProperty==1))
+				run background script TheWorkshopComplete(Workshop1)
+				TheWorkshopComplete = 1
+			end if
+		wait 5 seconds
+		end if
+	end while
+
+end script TheWorkshop
+
+

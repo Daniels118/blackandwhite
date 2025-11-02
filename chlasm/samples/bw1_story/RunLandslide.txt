@@ -1,0 +1,12 @@
+challenge RunLandslide
+
+run script RunLandslide
+
+begin script RunLandslide
+	
+start
+	
+	run script Landslide
+	
+
+end script RunLandslide

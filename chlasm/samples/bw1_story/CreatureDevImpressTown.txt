@@ -1,0 +1,145 @@
+challenge CREATURE_DEV_IMPRESS_TOWN
+
+run script CreatureDevImpressTown
+
+begin script CreatureDevImpressTown
+	MyCreature = get player 1 creature
+	FriendTownPos = marker at [1836.4991, 38.8600, 2749.7629]
+	MyCreatureTownPos = marker at [1854.0369, 38.8600, 2741.0989]
+	Point1InTown = marker at [1765.9336, 28.1819, 2664.7585]
+	Point2InTown = marker at [1867.1709, 33.2828, 2665.5161]
+	counter = 0
+	TargetStone1 = 0
+	TargetStone2 = 0
+	TargetStone1Pos = marker at [1834.8901, 37.4363, 2726.2832]
+	TargetStone2Pos = marker at [1781.4100, 30.3672, 2734.6799]
+	BeginPos = 0
+	BeginFoc = 0
+start
+	if not Friendly exists
+		Friendly = create_creature_from_creature MyCreature 1.0 at [FriendTownPos] CREATURE_TYPE_COW
+	end if
+	set Friendly position to [FriendTownPos]
+	force Friendly CREATURE_LOOK_FOREVER MyCreature
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+		Friendly play C_INDIVIDUAL_SUMMON loop 1
+		force MyCreature CREATURE_LOOK_FOREVER Friendly
+		wait until Friendly played
+		wait 3 seconds
+
+
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		set set camera focus follow MyCreature
+		eject good spirit
+		move MyCreature position to [MyCreatureTownPos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_01
+		wait until read
+		send good spirit home
+		wait 3 seconds
+/// Fade Out
+		set MyCreature position to [MyCreatureTownPos]
+		force MyCreature CREATURE_LOOK_FOREVER  Friendly
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+/// Fade In
+
+		wait 2 seconds
+		begin dual camera to MyCreature Friendly
+		// Friendly impresses the town with an anim
+		end dual camera
+		begin dual camera to Friendly Point1InTown
+			force Friendly CREATURE_POINT_AT_OBJECT Point1InTown
+			wait 2 seconds
+		end dual camera
+		begin dual camera to MyCreature Friendly
+			force MyCreature CREATURE_LOOK_FOREVER  Point1InTown
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_02
+			wait until read
+			wait 2 seconds
+			wait until Friendly played
+			force Friendly CREATURE_LOOK_FOREVER MyCreature
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_03
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_04
+			wait until read
+			wait 1 seconds
+			force Friendly CREATURE_POINT_AT_OBJECT Point2InTown
+			wait 2 seconds
+			force MyCreature CREATURE_LOOK_FOREVER Point2InTown
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_05
+			wait until read
+			wait 1 seconds
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_06
+			wait until read
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			wait until Friendly played
+			Friendly play C_INDIVIDUAL_IMPRESS
+
+
+			force MyCreature CREATURE_POINT_AT_OBJECT Friendly
+			wait until MyCreature played
+			force MyCreature CREATURE_SMILE_AT_FRIEND Friendly
+			wait until Friendly played
+			wait until MyCreature played
+
+
+			// Friendly casts food spell
+			TargetStone1 = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [TargetStone1Pos]
+			TargetStone2 = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [TargetStone2Pos]
+			SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of TargetStone1 = 0.05
+			SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of TargetStone2 = 0.05
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			force Friendly CREATURE_POINT_AT_OBJECT TargetStone1
+			wait 2 seconds
+			force MyCreature CREATURE_LOOK_FOREVER TargetStone1
+			wait until Friendly played
+			force Friendly CREATURE_LOOK_FOREVER MyCreature
+			wait 2 seconds
+			force Friendly CREATURE_CAST_MAGIC_FOOD TargetStone1
+			wait 2 seconds
+			force MyCreature CREATURE_POINT_AT_OBJECT TargetStone1
+			wait until Friendly played
+			set Friendly position to [FriendTownPos]
+			wait 2 seconds
+			// cast lightning
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			force Friendly CREATURE_CAST_LIGHTNING_BOLT TargetStone2
+			wait 2 seconds
+			force MyCreature CREATURE_POINT_AT_OBJECT TargetStone2
+			wait until Friendly played
+			wait until MyCreature played
+
+
+			force Friendly CREATURE_POINT_AT_OBJECT MyCreature
+			force MyCreature CREATURE_LOOK_FOREVER Friendly
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_07
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_08
+			wait until read
+			wait until Friendly played
+
+			force Friendly CREATURE_SIT FriendTownPos
+//			wait until Friendly played
+//			force Friendly CREATURE_LOOK_FOREVER MyCreature
+			release MyCreature
+		end dual camera
+		disable MyCreature development script
+	end cinema
+
+	//wait until Town impressed by MyCreature's actions
+	//begin dialogue
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_09
+			//wait until read		
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_10
+			//wait until read		
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_11
+			//wait until read		
+	//end dialogue
+
+end script CreatureDevImpressTown

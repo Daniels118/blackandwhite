@@ -1,0 +1,201 @@
+challenge FREE_THE_CREATURE
+
+//run script GetThroughVortexL2
+
+begin script VortexEntryPersonLand3(Person, DirectionPos, Velocity, Town)
+
+start
+	attach Person to Town
+	set Person velocity heading [DirectionPos] speed Velocity
+	while Person is FLYING
+		HEALTH of Person = 1
+	end while
+end script VortexEntryPersonLand3
+
+//------------------------------------------------------------------------------------------------------------
+begin script VortexEntryLand3(NoOfPeople, VortexPos, Town, Vort)
+	Person = 0
+	DirectionPos = marker at [0,0]
+	StartPos = VortexPos//marker at [0, 0] //Was = 0
+	RandX = 0
+	RandZ = 0
+	RandVelocity = 0
+	RandVillagerType = 0
+	MaleOrFemale = 0
+start
+	while NoOfPeople > 0
+		RandX = number from -40 to 40
+		RandZ = number from -40 to 40
+		//make central values more common
+		RandVelocity = (number from 15 to 30)
+		set DirectionPos position to ([VortexPos] + [RandX, 40, RandZ])
+		//set StartPos position to ([VortexPos] + ([RandX, RandZ] / 20)) //wait for divide problem to be solved
+		if MaleOrFemale == 0
+			RandVillagerType = variable constant from VILLAGER_INFO_CELTIC_FORESTER_MALE to VILLAGER_INFO_CELTIC_TRADER_MALE
+			run background script VortexEntryPersonLand3(create VILLAGER constant RandVillagerType at [StartPos], DirectionPos, RandVelocity, Town)
+			MaleOrFemale = 1
+		else
+			run background script VortexEntryPersonLand3(create VILLAGER VILLAGER_INFO_CELTIC_HOUSEWIFE_FEMALE at [StartPos], DirectionPos, RandVelocity, Town)
+			MaleOrFemale = 0
+		end if
+		wait 0.5 seconds
+		NoOfPeople--
+	end while
+
+	//Mark - Creature must loaded before SaveYourCreature.txt
+	//load my_creature at [VortexPos]
+
+	//delete Vort
+end script VortexEntryLand3
+//------------------------------------------------------------------------------------------------------------
+
+begin script GetThroughVortexL2
+	Vort = 0
+	Citadel = 0
+	Worship = 0
+	VortexPos = marker at [3250.3916, 85.7600, 3150.5042]
+	CreaturePos = marker at [VortexPos] //change this if needed
+	Town = get TOWN at [3056.94,3255.27] radius 50
+	CitadelPos = marker at [3266.37,3149.49]
+	NullVortexFlock = 0
+
+	StoragePos = marker at [3224.05,2962.87]				// Angle 347 = 61
+	TownCentrePos = marker at [3108.09,3116.82]
+	WorkshopPos = marker at [3234.43,2996.34]				// Angle 1704 = 299.5 
+	StorageScaffold = 0
+	WorkshopScaffold = 0
+
+start
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		run background script VortexEntry(30, VortexPos, Town, VortexPos, 20, 80, CreaturePos, NullVortexFlock)
+		set camera position to [VortexPos]+[0,1,0] 
+		set camera focus to [VortexPos] //[3250.747, 81.381, 3150.207] 
+		eject good spirit
+		eject evil spirit
+
+		move camera position to [3274.445, 250.805, 3166.705] time 6
+		move camera focus to [3261.051, 87.414, 3151.894] time 4
+
+		//"Number 1"
+		say HELP_TEXT_L3_INTRO_01
+		wait until read
+		//"Number 2"
+
+		say HELP_TEXT_L3_INTRO_02
+		wait until read
+
+		//TODO INSERT !!!!!!! pained sfx
+		start sound LH_SCRIPT_SAMPLE_CREATUREFROZENMOAN_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		
+		move camera focus to [2061.225, 99.742, 2257.928] time 2
+		make evil spirit look at [MyCreature]
+		make good spirit look at [MyCreature]
+		wait until camera ready
+		//sy "GA: What was that?" with interaction
+		say HELP_TEXT_L3_MONK_21 with interaction
+		wait until read
+		wait until camera ready
+
+		move camera position to [2089.869, 115.893, 2313.842] time 6
+		//sy "It sounded like our Creature"
+		say HELP_TEXT_NEW_ENUM_10
+		wait 3 seconds
+		wait until read
+
+		make evil spirit point at [MyCreature]
+		say HELP_TEXT_L3_INTRO_03
+		wait until read
+		stop evil spirit pointing
+		say HELP_TEXT_L3_INTRO_04
+		wait until read
+		wait until camera ready
+
+		//snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_22 StandardReminder(variable HELP_TEXT_REMINDER_21)
+
+		move camera position to [2106.575, 80.547, 2301.645] time 4
+		wait 1 second
+
+		say HELP_TEXT_L3_INTRO_05
+		wait until read
+
+		make evil spirit look at [MyCreature]
+
+		say HELP_TEXT_L3_INTRO_06
+		move camera position to [2140.3699, 123.4496, 2246.8555] time 3 
+		move camera focus to [2033.6166, 83.1055, 2266.5132] time 2
+
+		wait until read
+		say HELP_TEXT_L3_INTRO_07 with interaction
+		wait until read
+		
+		// Build the citadel (etc) while we are not looking at it.
+		build building at [CitadelPos] desire 1.0
+		Citadel = get CITADEL at [CitadelPos] radius 50
+		Worship = get WORSHIP at [3251.92,3150.51] radius 50
+		StorageScaffold =  create SCAFFOLD at [StoragePos]
+		set StorageScaffold building properties ABODE_NUMBER_STORAGE_PIT size 3
+		ANGLE of StorageScaffold = 210.0
+		enable StorageScaffold active
+
+		WorkshopScaffold =  create SCAFFOLD at [WorkshopPos]
+		set WorkshopScaffold building properties ABODE_NUMBER_WORKSHOP size 3
+		build building at [TownCentrePos] desire 1.0
+		ANGLE of WorkshopScaffold = 100 //19.5
+		enable WorkshopScaffold active
+	
+		wait until camera ready
+
+		close dialogue
+		wait 0.1 seconds
+		snapshot quest success 0 alignment 0 HELP_TEXT_L3_INTRO_10 StandardReminder(variable HELP_TEXT_L3_INTRO_07)		
+
+		move camera position to [2465.5010, 116.4220, 2280.4937] time 7 
+		move camera focus to [2144.6587, 22.3414, 2192.6042] time 4
+		say HELP_TEXT_L3_INTRO_08
+		wait until read
+
+		make evil spirit look at camera position
+		make good spirit look at camera position
+
+		say HELP_TEXT_L3_INTRO_09 with interaction
+		wait until read
+		close dialogue
+		
+		move camera focus to [3261.051, 87.414, 3151.894] time 3
+		wait 2 seconds
+
+		//move camera position to [3293.909, 138.403, 3038.998] time 6
+		move camera position to [3331.7415, 112.9265, 3066.3577] time 6
+		move camera focus to [3133.3035, 55.1888, 2991.2666] time 4
+
+		wait 2 seconds
+		send good spirit home
+		send evil spirit home
+
+		wait until camera ready
+		stop music
+	end cinema
+
+	wait 30 seconds
+	begin dialogue
+		eject good spirit
+		//sy "GA: I think we need to get this town built."
+		say HELP_TEXT_NEW_ENUM_11
+
+		wait until read
+		eject evil spirit
+		//sy "EA: Yeah, we gotta get strong. We have to get our Creature back."
+		say HELP_TEXT_NEW_ENUM_12
+		wait until read
+		// SFX PAIN !!!!!!!!!!!!!!!!!!!!!
+		//sy "GA: This place will give us a strong foundation to fight from."
+		say HELP_TEXT_NEW_ENUM_13
+		wait until read
+	end dialogue
+
+	wait until VortexOpen == 0
+end script GetThroughVortexL2
+
+

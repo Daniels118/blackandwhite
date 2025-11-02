@@ -1,0 +1,12 @@
+challenge RunTakeOverVillageL5
+
+run script RunTakeOverVillageL5
+
+begin script RunTakeOverVillageL5
+	
+start
+	
+	run script TakeOverL5
+	
+
+end script RunTakeOverVillageL5

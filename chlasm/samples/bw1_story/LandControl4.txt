@@ -1,0 +1,44 @@
+challenge LandControl4
+
+begin script LandControl4
+start
+
+	run script SetupLand4
+	run script BeginLand4(1)
+	run script SetupUndeadVillage
+	run background script SetUndeadTownBeliefToZero
+	run background script SetUndeadTownHealth
+	run background script ThesiusPuzzleLand4
+	run background script JapaneseTotemPuzzle
+	run background script FishPuzzle
+ 	run background script RunCreatureBreederLand(4)
+
+	run background script BuildUpTown
+
+	run background script Land4Ogre	
+	run background script Land4Nomad
+	run background script Land4Puzzle
+	//run script Land4Puzzle
+
+	run background script KeepCreatureAwayFromOgre
+
+	// Japanese man tells you what happened to the land
+	run background script ManExplainsAboutNemesis
+
+	run background script BlindWomanMain					// Waits until Aztec town owned
+			
+	// TEMP:  For testing only
+	//LighteningMeteorBroken	= 1
+	//DarknessMeteorBroken	= 1
+	//FireMeteorBroken		= 1
+
+	// Wait until all the stones have been destroyed
+	wait until LighteningMeteorBroken == 1 and DarknessMeteorBroken == 1 and FireMeteorBroken == 1
+
+	// Start the explanation about the Undead Village
+	run script ManExplainsAboutUndeadVillage
+
+	run script CreatureGetsCreed
+		   
+	run script LeaveThroughVortexL4
+end script LandControl4

@@ -1,0 +1,117 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashIntro
+
+begin script CreatureDevLeashGoodAndEvil
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	Rope = marker at [1896.4113, 18.0900, 2527.4729] // TODO: should be pos of Rope Icon.
+	CamPos = marker at [1894.2354, 28.8333, 2508.1797]
+	CamFocus = marker at [1915.0500, 18.0900, 2508.8899]
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+	DyingVillagerPos = marker at [1878.4683, 18.0900, 2549.6694]
+	DyingVillager = 0
+	EvilLeashIconPos = marker at [1896.9644, 22.9266, 2533.1042]
+	GoodLeashIconPos = marker at [1887.5356, 26.3217, 2535.5073]
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	detach MyCreature leash
+	move MyCreature position to [MyCreaturePos]	
+	begin cinema
+		set Trainer focus to camera position
+		begin dual camera to MyCreature Trainer
+			Trainer play ANM_P_BECKON loop 1
+			wait 1 seconds
+			set fade red 255 green 255 blue 255 time 1
+			set MyCreature position to [MyCreaturePos]
+			wait until Trainer played
+			wait until fade ready 
+		end dual camera
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		set Trainer focus to camera position
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		say "You have learnt how to use the rope."
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		say "Now it is time to learn about the other two leashes!"
+		wait until read
+		move camera to LEASH_INTROT01_000 time 1
+		camera path LEASH_INTROTRACK01
+		eject good spirit
+		make good spirit point at [GoodLeashIconPos]
+		say "The nice fluffy leash makes your creature behave nicely"
+		wait until read
+		send good spirit home
+		eject evil spirit
+		make evil spirit point at [EvilLeashIconPos]
+		say "The spikey leash makes him BAD!"
+		wait until read
+		send evil spirit home
+		DyingVillager = create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [DyingVillagerPos]
+		HEALTH of DyingVillager = 0.3
+		DyingVillager play ANM_P_DYING
+		begin dual camera to Trainer DyingVillager
+			set Trainer focus to [DyingVillager]
+			say "You see that guy over there?"
+			eject good spirit
+			make good spirit point at [DyingVillager]
+			wait until read
+			say "Choose one of the leashes, and direct your creature to this guy, and see what happens"
+			wait until read
+			send good spirit home
+		end dual camera
+		release MyCreature
+	end cinema
+	wait until MyCreature leashed
+	begin cinema
+		begin dual camera to Trainer DyingVillager
+			set Trainer focus to [DyingVillager]
+			Trainer play ANM_P_INTO_POINTING loop 1
+			wait until Trainer played
+			say "Good. Now move your creature over to that guy."
+			Trainer play ANM_P_TALKING_AND_POINTING loop 1
+			wait until Trainer played
+			wait until read
+		end dual camera
+		release MyCreature
+	end cinema
+	wait until [MyCreature] near [DyingVillager] radius 5
+	begin cinema
+		begin dual camera to MyCreature Trainer
+			set Trainer focus to [MyCreature]
+			Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+			say "Cool"
+			wait until Trainer played
+		end dual camera
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		wait 2 seconds
+		set Trainer focus to camera position
+		say "Well that's good. You know how to use your creature now"
+		wait until read
+		say "I have nothing more to teach you"
+		wait until read
+		set Trainer focus to camera position
+		Trainer play ANM_P_INTO_PRAY loop 1
+		wait until Trainer played
+		say "Now he's all yours. It is up to you, My Lord"
+		Trainer play ANM_P_PRAY loop 1
+		wait until Trainer played
+		Trainer play ANM_P_OUT_OF_PRAY loop 1
+		wait until Trainer played
+		wait until read
+		begin dual camera to MyCreature Trainer
+			move Trainer position to [CitadelEntrancePos]
+			wait until read
+			wait until [Trainer] near [CitadelEntrancePos] radius 3
+		end dual camera
+	end cinema
+	delete Trainer
+end script CreatureDevLeashGoodAndEvil

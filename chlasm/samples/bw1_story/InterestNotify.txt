@@ -1,0 +1,80 @@
+challenge InterestNotify
+
+// **** INTEREST NOTIFY ****
+//		This is a generic script which we can run at the beginning of any challenge.  We simply
+//		give it an object and a radius.  It does a little loop of a spirit coming out and pointing
+//		at the object whenever the player gets close to it, and occasionally saying something,
+//		until the object is clicked.
+
+begin script InterestNotify(CamPos, CamFoc) 
+	Spirit = 0
+	Count = time-31
+	Highlight = 0
+	look_at = 0
+	expired = 0
+	rand = number from 1 to 3
+	MyTimer = create timer for 30 seconds
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+
+start
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [BeginFoc]
+	begin dialogue
+		if rand == 1
+			eject good spirit
+			make good spirit point at [Highlight] in world
+			say "GA: HEY look at this"
+			wait until read
+		elsif rand == 2
+			eject evil spirit
+			make evil spirit point at [Highlight] in world
+			say "EA: Wanna see something cool"
+			wait until read
+		else
+			eject good spirit
+			make good spirit point at [Highlight] in world
+			say "GA: Let me show you something"
+			wait until read
+		end if
+	end dialogue
+
+
+	while look_at == 0 and expired == 0
+		if get MyTimer time remaining <= 0
+			expired = 1
+		end if
+		if Highlight clicked 
+			look_at = 1
+		end if
+		wait 1 second
+	end while
+
+	delete Highlight
+
+	if look_at == 1
+		begin cinema
+			set camera position to [CamPos]
+			set camera focus to [CamFoc]
+			wait until camera ready
+			set MyTimer time to 6 seconds
+			rand = number from 0 to 1
+			if rand == 0
+				say "GA: Hmmm Nice"
+				wait until read
+			else
+				say "EA: Beautiful, Ain't it"
+				wait until read
+			end if
+			expired = 0
+			while expired == 0
+				if get MyTimer time remaining <= 0
+					expired=0
+				end if
+			end while
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+		end cinema
+	end if
+
+end script InterestNotify
+

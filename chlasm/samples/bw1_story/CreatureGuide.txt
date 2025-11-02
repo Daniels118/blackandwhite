@@ -1,0 +1,2185 @@
+challenge CREATURE_DEVELOPMENT
+
+//-GLOBALS-----------------------------------------------------------------------------------------------------------------------
+global GuideSpell
+global MoveTheGuideState
+global StopStayingTired
+global StopHealingCombatants
+global StopPopulating
+
+//-FUNCTIONS-----------------------------------------------------------------------------------------------------------------------
+// begin script CreateGuideCreature
+// begin script GuideCreateMiracle(spell_type, spell_pos)
+// begin script TheStorm
+// begin script CreatureDevGuideTeachesFight
+// begin script GuideImpressTownNextLesson
+// begin script GuideImpressTownLessonReminder
+// begin script GuideImpressTownLesson
+// begin script GuideAsksToMeetYourCreature
+// begin script MeetTheGuide
+// begin script MoveTheGuideAround
+
+// begin script CreatureDevMeetGuide OLD
+// begin script CreatureDevFriendsWithGuide	OLD
+// begin script CreatureDevExplainsPastScroll(the_guide, peninsula)	OLD
+// begin script CreatureDevImpressTown	OLD
+// begin script CreatureDevHelpTown	OLD
+
+//------------------------------------------------------------------------------------------------------------------------
+//--GuideImpressTownLesson----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideImpressTownLessonReminder
+start
+
+end script GuideImpressTownLessonReminder
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//  Populate Town
+//------------------------------------------------------------------------------------------------------------------------
+begin script PopulateTown (Town)
+
+ Abode1 = 0
+ Abode2 = 0
+ Abode3 = 0
+ Villager = 0
+
+start
+	Abode1 = get HOUSE at [Town] radius 100 excluding scripted
+	Abode2 = get HOUSE at [Town] radius 100 excluding scripted
+	Abode3 = get HOUSE at [Town] radius 100 excluding scripted
+	while StopPopulating == 0
+		if size of Town <= 15
+			Villager = create VILLAGER MALE at [Abode1]
+			attach Villager to Town
+			release Villager
+			Villager = create VILLAGER MALE at [Abode2]
+			attach Villager to Town
+			release Villager
+			Villager = create VILLAGER MALE at [Abode3]
+			attach Villager to Town
+			release Villager
+			Villager = create VILLAGER FEMALE at [Abode1]
+			attach Villager to Town
+			release Villager
+			Villager = create VILLAGER FEMALE at [Abode2]
+			attach Villager to Town
+			release Villager
+			Villager = create VILLAGER FEMALE at [Abode3]
+			attach Villager to Town
+			release Villager
+			wait 3 seconds
+		end if
+	end while
+
+end script PopulateTown
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** HEAL COMBATANTS ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script HealCombatants
+start
+	while StopHealingCombatants == 0
+		if FIGHTHEALTH of Guide < 0.5 or FIGHTHEALTH of MyCreature < 0.5
+			FIGHTHEALTH of Guide = 1
+			FIGHTHEALTH of MyCreature = 1
+		end if
+	end while
+end script HealCombatants
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** Guide Stays Tired ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideStayTired
+start
+	while StopStayingTired == 0
+		wait 1 second
+		EXHAUSTION of Guide = 1
+	end while
+end script GuideStayTired
+
+//------------------------------------------------------------------------------------------------------------------------
+//--End Scripts when storm starts
+//------------------------------------------------------------------------------------------------------------------------
+begin script EndScriptsForStorm
+start
+
+	if LostFlockInitiated == 1 and TheLostFlockFinished == 0
+		challenge LOST_FLOCK
+		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+		challenge CREATURE_DEVELOPMENT
+	end if
+
+	if PiedPiperInitiated == 1 and PiedPiperFinished == 0
+		challenge PIED_PIPER
+		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_PIED_PIPER_20)
+		challenge CREATURE_DEVELOPMENT
+	end if
+
+	stop script "TheLostFlock"
+	stop script "PiedPiper"
+
+end script EndScriptsForStorm
+//------------------------------------------------------------------------------------------------------------------------
+//--CreateGuideCreature----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreateGuideCreature
+	CreateGuidePos = marker at [2401.23,41.0,2631.2]
+start
+	if Guide not exists
+		MyCreature = get player 1 creature
+		if MyCreature type CREATURE CREATURE_TYPE_COW
+			Guide = create CREATURE CREATURE_TYPE_SHEEP at [CreateGuidePos]
+		elsif MyCreature type CREATURE  CREATURE_TYPE_TIGER
+			Guide = create CREATURE CREATURE_TYPE_LION at [CreateGuidePos]
+		else
+			Guide = create CREATURE CREATURE_TYPE_BEAR at [CreateGuidePos]
+		end if
+
+		set Guide name HELP_TEXT_GUIDE_CREATURE_NAME_01
+		SCALE of Guide = 2.0
+		SPEED of Guide = 40.5
+		STRENGTH of Guide = 1.0 
+		attach reaction Guide REACTION_FLEE_FROM_OBJECT
+	end if
+end script CreateGuideCreature
+
+//------------------------------------------------------------------------------------------------------------------------
+//--GuideCreateMiracle----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideCreateMiracle(spell_type, spell_pos)
+start
+	Guide play C_STATIC_SCATTER
+	wait 2.5 seconds
+	GuideSpell = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL constant spell_type at [spell_pos]
+	ALTITUDE of GuideSpell = 50
+end script GuideCreateMiracle
+
+//------------------------------------------------------------------------------------------------------------------------
+//--TheStorm----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheStorm
+
+	GuidePos = marker at [2288.120, 41.469, 2811.481] // from game 
+	TopOfMountain = marker at [2318.290, 138.690, 2513.058] // Mountain Top
+	BeginPos = 0
+	BeginFoc = 0
+	Storm = 0
+	StormStart = marker at [2464.363, 0.000, 2069.785]  
+	Stage1 = 0
+	Highlight = 0
+	HighlightPos = marker at [2280.452, 37.313, 2819.082] 
+	MyCreatureWatchPos = marker at [2314.989, 35.175, 2826.323]
+	EndWhile=0
+	RunAwayTimer = create timer for 0 seconds
+	Bolt=0
+	//LightningAttack0 = 0
+	LightningAttack1 = 0
+	LightningAttack2 = 0
+	LightningAttack3 = 0
+	LightningAttack4 = 0
+	LightningAttack5 = 0
+	LightningAttack6 = 0
+	LightningAttack7 = 0
+	LightPos1 = marker at [2338.2842, 136.0022, 2501.9424]
+	LightPos2 = marker at [2304.5005, 137.0804, 2491.0103]
+	LightPos3 = marker at [2287.7373, 138.6560, 2519.2583]
+	LightPos4 = marker at [2368.8687, 140.6293, 2450.7324]
+	LightPos5 = marker at [2327.7725, 138.6769, 2520.2219]
+	LightPos6 = marker at [2315.7646, 138.6900, 2497.1113]
+	SnoozeTimer = create timer for 0 seconds
+	SeeGuardianPos = marker at [2516.0278, 39.9049, 3143.2725]
+	SeeGuardianFoc = marker at [2546.2642, 34.9523, 3172.2913]
+	AfterFightPos = marker at [2472.350, 32.919, 2788.707]  
+	
+start
+	
+	MyCreature = get player 1 creature
+
+	run script CreateGuideCreature
+
+	move Guide position to [AfterFightPos]
+	wait until [Guide] near [AfterFightPos] radius 40
+	wait 5 seconds
+
+	EXHAUSTION of Guide = 1
+	force Guide CREATURE_SLEEP Guide
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [Guide]+[10,0]
+	ALTITUDE of Highlight = 0
+//	update snapshot success 1 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_REMINDER_108)
+	enable Highlight active
+
+	// Guide goes to sleep again and when bugged tells you to do the Guardian script if it is uninitiated
+	set SnoozeTimer time to 300 seconds
+	while get SnoozeTimer time remaining > 0
+		if Highlight clicked
+			begin cinema
+				force Guide CREATURE_IDLE Guide
+				EXHAUSTION of Guide = 0
+				move camera to face Guide distance 30 time 2
+				move camera focus to [Guide] + [0,25,0]	 time 2
+
+				wait until camera ready
+
+				update snapshot success 0.85 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_30)
+
+				disable creature sound
+				//sy "I need rest. I will tell you the secret later."
+				say HELP_TEXT_GUIDE_DIES_30
+				wait until read
+				enable creature sound
+
+				set Guide focus to camera position
+				if CreatureGuardianInitiated == 0
+					move camera position to [SeeGuardianPos] time 3
+					move camera focus to [SeeGuardianFoc] time 3
+					disable creature sound
+					//sy "Why not test what you have learnt while you wait."
+					say HELP_TEXT_GUIDE_DIES_29
+					wait until read
+					enable creature sound
+					wait until camera ready
+				end if
+				EXHAUSTION of Guide = 1
+				force Guide CREATURE_SLEEP Guide
+			end cinema
+			clear clicked object
+		end if
+	end while
+
+	update snapshot success 0.9 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_14)
+
+	EXHAUSTION of Guide = 0
+	force Guide CREATURE_IDLE Guide
+
+	move Guide position to [GuidePos]
+
+	wait until [Guide] near [GuidePos] radius 40
+	wait 5 seconds
+
+	//enable Highlight active
+	set Highlight position to [HighlightPos]
+			 
+	run script CreatureDevelopmentHighlightNotify(Highlight, Guide, 100, variable GOOD_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_13)
+//	update snapshot success 1 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_REMINDER_108)
+
+	if [MyCreature] not near [Guide] radius 40
+		
+		begin dialogue
+			disable creature sound
+			//GUIDE: Use the leash to bring your creature to me.
+			say single line HELP_TEXT_GUIDE_DIES_14 with interaction
+			wait until read
+		end dialogue
+
+		wait until [MyCreature] near [Guide] radius 40
+
+	end if
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+	 	move MyCreature position to [2314.989, 35.175, 2826.323] 	
+
+		move camera position to [2317.516, 32.620, 2835.728] time 5		// Cam look at guide with creature in view
+		move camera focus to [2292.182, 55.237, 2809.822] time 5
+
+		wait until camera ready
+
+		set MyCreature focus on Guide									// Creatures look at each other
+
+		set Guide focus to [MyCreature]
+
+		// Last snapshot for creature training
+		snapshot quest success 0.9 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_14)
+
+		disable creature sound
+		say HELP_TEXT_GUIDE_DIES_01									// Come, little one. The most important lesson of all awaits.
+
+		Guide play C_INDIVIDUAL_SUMMON
+		wait until read
+		enable creature sound
+		
+		wait until Guide played
+
+		move camera position to [2301.546, 61.405, 2820.505] time 30	// Cam slowly zoom in on guide
+		move camera focus to [2241.683, 105.112, 2754.226] time 30
+
+		disable creature sound
+		say HELP_TEXT_GUIDE_DIES_02										// It's the key to this world
+		wait until read
+
+		say HELP_TEXT_GUIDE_DIES_03										// It's the very secret of our existence
+
+		SPEED of Guide = 8
+		move Guide position to [TopOfMountain]
+
+		move camera position to [2309.144, 40.430, 2836.753] time 12	// Cam look at guides destination
+		move camera focus to [TopOfMountain] time 12
+
+		wait until read
+
+		say HELP_TEXT_GUIDE_DIES_04										// And it's the way you'll triumph
+		wait until read						
+
+		//thunder clap	
+
+		
+		say HELP_TEXT_GUIDE_DIES_05 with interaction					// Follow me to the mountain. I will tell you everything there.
+		wait until read
+		enable creature sound
+
+		wait until camera ready
+
+		move camera position to [2309.144, 50.430, 2836.753] time 4		// Cam move up a bit
+		wait 3 seconds
+
+		release MyCreature focus
+		stop music
+	end cinema
+
+	release MyCreature
+	delete Highlight
+
+	//TODO storm target MyCreature.
+
+//------------------------------------------------------------------------------------------------------------------------
+// Near top of mountain 
+//------------------------------------------------------------------------------------------------------------------------
+	EndWhile=0
+	while EndWhile == 0
+
+		if [MyCreature] near [TopOfMountain] radius 40 and [Guide] near [TopOfMountain] radius 0.5 and Stage1 == 1
+			EndWhile=1
+		end if
+
+		if [MyCreature] near [TopOfMountain] radius 100 and Stage1 == 0 and [Guide] near [TopOfMountain] radius 0.5
+
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_DRIZZLE at [StormStart]
+			set Storm properties degrees 15 rainfall 1 snowfall 0 overcast 0.8 fallspeed 0
+			set Storm properties time 2000000 fade 10
+			set Storm properties clouds 150 shade 1.5 height 250
+//			set Storm properties clouds 15 shade 1.5 height 100
+			set Storm properties sheetmin 5 sheetmax 25 forkmin 99999 forkmax 999999
+//			set Storm properties sheetmin 5 sheetmax 20 forkmin 5 forkmax 25
+			set Storm properties inner 150 outer 500
+//			set Storm properties inner 50 outer 100
+			disable Storm affected by wind
+
+			begin cinema
+				start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+			 	move MyCreature position to [2318.822, 128.127, 2557.777]			// Stop creature in his tracks	
+
+				SPEED of Storm = 10
+				move Storm position to [2299.205, 0.000, 2299.593]  
+
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+				move camera position to [2312.896, 127.953, 2568.787] time 3		// cam look at creature at guides feet
+				move camera focus to [2535.517, 1245.995, -721.161]	time 3
+
+				wait until camera ready
+
+				move camera position to [2320.214, 127.700, 2566.452] time 20		// pan round creature at guides feet
+				move camera focus to [954.115, 1288.787, -372.529]	time 20
+
+				snapshot quest success 0.95 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_01)
+
+				// "What I have to tell you is the secret of the Creed, the  source of my gods powers" with interaction  // Creature. Speak no more.
+				disable creature sound
+				say HELP_TEXT_GUIDE_DIES_15 with interaction
+				wait until read
+				enable creature sound
+
+				say HELP_TEXT_GUIDE_DIES_06											// "Creature. Speak no more."
+
+				move camera position to [2346.467, 146.306, 2518.409] time 3		// cam look at storm
+				move camera focus to [840.468, 1596.352, -96.352]	time 3
+
+				set Guide focus to [Storm]
+
+				wait until read
+
+				say HELP_TEXT_GUIDE_DIES_07											// You have betrayed me enough
+				Guide play C_INDIVIDUAL_FRIGHTENED
+
+				move camera position to [2332.539, 143.553, 2472.909] time 3		// cam look at guide shitting himself
+				move camera focus to [757.317, 771.010, 5081.044]	time 3
+				
+				wait until read
+
+//				MyCreature play C_INDIVIDUAL_FRIGHTENED
+
+				move camera position to [Guide] + [10,10,10] time 4					// cam look at mycreature shitting himself			
+				move camera focus to [MyCreature] time 2
+
+				wait until Guide played
+
+				set Guide focus to [MyCreature]
+
+				// "Quick, Come closer my friend, so you can hear what I have to say.." with interaction
+				disable creature sound
+				say HELP_TEXT_GUIDE_DIES_16 with interaction
+				wait until read
+				enable creature sound
+
+				move camera position to [BeginPos] time 4
+				move camera focus to [BeginFoc]	time 4
+
+				wait until camera ready
+
+				release MyCreature
+				stop music
+			end cinema
+
+			Stage1 = 1
+		end if
+
+
+		if [Guide] near [TopOfMountain] radius 0.5 and [MyCreature] not near [TopOfMountain] radius 35
+
+			set Guide focus to [MyCreature]
+
+			if Guide viewed	
+
+				Guide play C_INDIVIDUAL_SUMMON
+				wait until Guide played
+
+			end if
+		end if
+
+	end while
+
+//------------------------------------------------------------------------------------------------------------------------
+// Reached top of mountain 
+//------------------------------------------------------------------------------------------------------------------------
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		
+		set Guide focus to [MyCreature]
+		set MyCreature focus to [Guide]
+
+		move camera position to [2343.867, 138.505, 2545.339] time 4		// Look at guide
+		move camera focus to [2308.253, 152.992, 2507.897] time 4
+
+		SPEED of Storm = 40
+		move Storm position to [Guide]
+
+		wait until camera ready
+
+//		move MyCreature position to  [2322.464, 138.690, 2509.978] 
+
+		set MyCreature focus to [Guide]
+		set Guide focus to [MyCreature]
+
+		// "Silence! you shall not betray the secret of the Creed" with interaction // This is the work of Nemesis. Once he was my god
+		say HELP_TEXT_GUIDE_DIES_17
+
+		move camera position to [2343.867, 138.505, 2545.339] time 2		// Look at storm
+		move camera focus to [2316.982, 175.175, 2517.074] time 2
+
+		Guide play C_INDIVIDUAL_SAD loop 1 
+		wait until read
+		wait until Guide played
+
+		move camera position to [2343.867, 138.505, 2545.339] time 4		// Look back at guide
+		move camera focus to [2308.253, 152.992, 2507.897] time 4
+
+		// "This is the voice of Nemisis, now i fear, he seeks to be the only God." with interaction // Run. Get away from here !
+		disable creature sound
+		say HELP_TEXT_GUIDE_DIES_18
+		wait until read
+
+		// "To destroy all other Gods and their creatures. To be the Ultimate Power" with interaction // Run. Get away from here !
+		say HELP_TEXT_GUIDE_DIES_19 with interaction
+		wait until read
+		enable creature sound
+
+		// "Silence! you traitor, You shall die" with interaction // Run and seek the Creed ! It's the Key ! The secret !
+		say HELP_TEXT_GUIDE_DIES_20
+
+		move camera position to [2343.867, 138.505, 2545.339] time 2		// Look back at storm
+		move camera focus to [2316.982, 175.175, 2517.074] time 2
+		
+		wait until read
+
+		move camera position to [2343.867, 138.505, 2545.339] time 4		// Look back at guide
+		move camera focus to [2308.253, 152.992, 2507.897] time 4
+
+		disable creature sound
+		say HELP_TEXT_GUIDE_DIES_11					// Nemesis is also hunting it too.
+		wait until read
+
+		say HELP_TEXT_GUIDE_DIES_12					// He will destroy you to get it. Find it first !
+		wait until read
+
+		Guide play C_INDIVIDUAL_ANGRY loop 3
+
+		say HELP_TEXT_GUIDE_DIES_13 with interaction // Go ! Go now and find the Creed.	
+
+		wait until read
+		wait until Guide played
+		stop music
+	end cinema
+
+	release MyCreature
+
+	while HEALTH of Guide >= 0.1 and Guide viewed and [MyCreature] near [TopOfMountain] radius 40 and get RunAwayTimer time remaining <= 0
+		begin dialogue
+			//sy "Run, run away"
+			disable creature sound
+			say single line HELP_TEXT_GUIDE_DIES_12 	// Run Get away from here !
+			wait until read
+			set RunAwayTimer time to 8 seconds
+		end dialogue
+	end while
+
+	update snapshot success 0.99 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_12)
+	
+	wait until 5 seconds
+
+	begin cinema // Guide dies
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		set MyCreature focus on Guide
+	 	move MyCreature position to [MyCreature]								// Stop creature in his tracks	
+
+		move camera position to [2301.469, 154.941, 2543.624] time 2			// Look at guide
+		move camera focus to [2374.861, 147.590, 2476.363] time 2
+
+		wait 2 seconds
+
+		ENERGY of Guide = 1
+
+
+		LightningAttack1 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos1]+[0,60,0] radius 5.0 time 3 curl 1
+
+		Guide play C_INDIVIDUAL_ANGRY loop 4
+
+		wait 0.5 seconds
+		LightningAttack2 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos2]+[0,60,0] radius 5.0 time 3 curl 1
+	
+		snapshot quest success 1 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_GUIDE_DIES_14)
+
+		move camera position to [2290.140, 157.622, 2555.677] time 8			// Dolly cam on guide
+		move camera focus to [2360.386, 135.797, 2491.297] time 8
+
+		wait 2 seconds
+		LightningAttack3 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos3]+[0,60,0] radius 5.0 time 3 curl 1
+		wait 2 seconds
+
+		eject evil spirit
+		make evil spirit cling across 0.2 down 1
+		
+		//"Uh oh. This don't look good..."
+		say single line HELP_TEXT_FINAL_BEGINNING_69
+
+		LightningAttack4 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos4]+[0,60,0] radius 5.0 time 3 curl 1
+		wait 2 seconds
+		wait until read
+		close dialogue
+		send good spirit home
+
+		
+		Guide play C_INDIVIDUAL_ANGRY loop 1
+	
+		set camera position to [2328.399, 142.446, 2536.482]					// Look at guide getting zapped
+		set camera focus to [2284.003, 190.689, 2466.987]
+
+		move camera position to [2338.218, 137.904, 2551.710] time 4			// Pan cam guide getting zapped
+		move camera focus to [2283.521, 175.157, 2481.138] time 4
+			
+		LightningAttack5 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos5]+[0,60,0] radius 5.0 time 3 curl 1
+		LightningAttack6 = cast SPELL_LIGHTNING_LEVEL_3 spell at [Guide] from [LightPos6]+[0,60,0] radius 5.0 time 3 curl 1
+		wait 3 seconds
+		
+		Guide play C_INDIVIDUAL_ANGRY loop 1
+
+		move camera position to [2325.930, 141.282, 2544.167] time 4			// Pan cam guide getting zapped
+		move camera focus to [2302.359, 185.228, 2467.023] time 4
+
+		//wait until LightningAttack0 not exists
+		LightningAttack7 = cast SPELL_EXPLOSION_LEVEL_1 spell at [Guide] from [Storm] radius 50.0 time 5 curl 0
+		set Storm properties sheetmin 5 sheetmax 25 forkmin 1 forkmax 3
+
+		wait 2 seconds
+
+		move camera position to [2344.458, 142.692, 2522.597] time 5			// Pan cam guide getting zapped
+		move camera focus to [2280.445, 159.142, 2460.837] time 5
+
+		force Guide CREATURE_DEAD_FOREVER Guide
+
+		wait 3 seconds
+
+		set Storm properties sheetmin 5 sheetmax 25 forkmin 1 forkmax 10
+
+		eject evil spirit
+		make evil spirit cling across 1 down 0.8
+		//"Err, let's get outta here boss. He's toast."
+		say single line HELP_TEXT_NEW_L5_VILLAGE3_19
+		wait until read
+		send evil spirit home
+
+		wait until camera ready
+
+		move camera position to [2319.050, 148.986, 2505.059] time 4			// Cam looking through guides dead feet
+		move camera focus to [2309.902, 119.621, 2585.811] time 4
+		
+		release MyCreature focus
+		stop music
+	end cinema
+
+	release MyCreature
+	MyCreature = get player 1 creature
+		
+	set MyCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+
+	run script EndScriptsForStorm
+
+	SPEED of Storm = 30
+	move Storm position to [1802.457, 28.140, 2700.997] // Storm then heads to attack the Norse village
+
+	wait until 40 seconds
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set camera position to [1779.142, 31.271, 2671.766]				// cam look at Village with Storm above
+		set camera focus to [1985.009, 84.537, 2809.989] 
+
+		move camera position to [1823.813, 32.140, 2665.888] time 12	//  cam pan round village 
+		move camera focus to [1720.248, 57.472, 2809.793] time 12
+
+		eject evil spirit
+		//sy "Your town is under attack from Nemesis's storm!" with interaction
+		say HELP_TEXT_GUIDE_DIES_21
+		wait until read
+
+		if WaterMiracleAvailable == 1
+			make good spirit appear
+			//sy "We'd better to use our water miracle seeds to put out these fires."
+			say HELP_TEXT_GUIDE_DIES_22
+			wait until read
+			//"EA: It does look like they need some help" with interaction
+			say HELP_TEXT_PICKUP_CREATURE_GUIDE_01 with interaction
+			wait until read
+		else
+			make good spirit appear
+			//sy "The entire place has been wrecked!"
+			say HELP_TEXT_GUIDE_DIES_23
+			wait until read
+			//"GA: We must see if there's anything we can do for them."
+			say HELP_TEXT_PICKUP_CREATURE_GUIDE_02
+			wait until read
+			//"EA: It does look like they need some help"
+			say HELP_TEXT_PICKUP_CREATURE_GUIDE_01 with interaction
+			wait until read
+		end if
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		stop music
+	end cinema
+
+	wait until 60 seconds
+
+	SPEED of Storm = 30
+	move Storm position to [1744.103, 28.260, 2677.696]  // Storm then heads to attack the Norse village
+
+	wait until 30 seconds
+	
+	OpenVortexL1 = 1
+
+	SPEED of Storm = 30
+	move Storm position to [1810.100, 28.064, 2638.789]  // Storm then heads to attack the Norse village
+
+	wait until 60 seconds
+
+	SPEED of Storm = 30
+	move Storm position to [1871.968, 38.860, 2731.197]  // Storm then heads to attack the Norse village
+
+	wait until 60 seconds
+
+	SPEED of Storm = 30
+	move Storm position to [1853.101, 31.490, 2679.812]  // Storm then heads to attack the Norse village
+
+	wait until 60 seconds
+
+	SPEED of Storm = 30
+	move Storm position to [1802.457, 28.140, 2700.997] // Storm then heads to attack the Norse village
+
+	while Storm exists
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1744.103, 28.260, 2677.696]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1810.100, 28.064, 2638.789]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1871.968, 38.860, 2731.197]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1853.101, 31.490, 2679.812]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1802.457, 28.140, 2700.997] // Storm then heads to attack the Norse village
+
+	end while
+
+
+	disable MyCreature development script
+	release MyCreature
+end script TheStorm
+
+//------------------------------------------------------------------------------------------------------------------------
+//--CreatureDevGuideTeachesFight----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureDevGuideTeachesFight
+
+	FightPos = marker at [2472.350, 32.919, 2788.707]  
+	MyCreatureFightPos = marker at [2498.965, 32.372, 2780.871] 
+	BeginPos = 0
+	BeginFoc = 0
+	Highlight = 0
+	HighlightPos = 0
+	health_of_my_creature = 0
+	health_of_guide = 0
+//	small_spell = 0
+	WhileFlag = 0
+	FightStartTimer = create timer for 0 seconds
+	FightTimer = create timer for 0 seconds
+	FightFlag = 0
+	Action=0
+	MyAction = 0
+	CommentTimer = create timer for 0 seconds
+	SeeGuardianPos = marker at [2516.0278, 39.9049, 3143.2725]
+	SeeGuardianFoc = marker at [2546.2642, 34.9523, 3172.2913]
+
+start
+
+	MyCreature = get player 1 creature
+	set MyCreature DEVELOPMENT_PHASE_LEARN_TO_FIGHT development
+
+	run script CreateGuideCreature
+
+	move Guide position to [FightPos]
+
+	wait until [Guide] near [FightPos] radius 5
+	
+	force Guide CREATURE_SIT FightPos
+
+	HighlightPos = marker at [Guide] + [-10,-10]	 
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 0
+
+	//if camera position not near [HighlightPos] radius 200 and [HighlightPos] not viewed
+		begin dialogue
+			//"I have awoken and am ready to teach your little creature more."
+			say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_11
+
+			update snapshot success 0.75 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_11)
+
+			wait until read
+		end dialogue
+	//end if
+
+	run script CreatureDevelopmentHighlightNotify(Highlight, Guide, 100, variable GOOD_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_13)
+
+	if [MyCreature] not near [Guide] radius 40
+		
+		begin dialogue
+			eject evil spirit
+			say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GENERAL_09
+			wait until read
+		end dialogue
+
+		update snapshot success 0.75 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_GENERAL_09)
+
+		wait until [MyCreature] near [Guide] radius 40
+
+	end if
+
+	update snapshot success 0.75 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_11)
+	
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+		set Guide focus to [MyCreature]
+
+		move camera position to [Guide] + [20,3,20] time 5						// Cam look at guide
+		move camera focus to [Guide] + [0,13,0] time 5
+
+		disable leash on MyCreature
+		detach MyCreature leash
+
+		wait 3 seconds
+		detach MyCreature leash
+
+		disable creature sound
+		//"You face some harsh times ahead my friend, I shall now teach you some self defence"
+		say HELP_TEXT_GUIDE_EXTRA_LINES_06
+		wait until read
+
+		//"First, I shall shrink down to your size, to make things easier for you" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_13
+		wait until read
+
+		//"Be prepared to get a few bruises, but don't worry, these will heal in time" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_14 with interaction
+		wait until read
+		enable creature sound
+
+		close dialogue
+
+		//Set the size the guide will shrink down to on a small spell...
+		enable Guide auto scale 1.2
+//		SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_MIN_SIZE of Guide = SCALE of MyCreature + 0.2
+
+//		small_spell = cast CREATURE_SPELL_SMALL spell on Guide from [Guide] + [0, 5, 0] radius 0 time -1 curl 0
+
+//		wait 1 seconds
+		move camera focus to [Guide] + [0,5,0] time 9			// cam pan on shrinking guide
+//		small_spell = cast CREATURE_SPELL_SMALL spell on Guide from [Guide] + [0, 5, 0] radius 0 time -1 curl 0
+
+		wait until Guide played
+
+		wait until camera ready
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move MyCreature position to [MyCreatureFightPos]
+		wait 3 seconds 
+		
+		force MyCreature CREATURE_LOOK_FOREVER  Guide
+		force Guide CREATURE_LOOK_FOREVER  MyCreature
+
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+
+		begin dual camera to MyCreature Guide
+
+			wait 2 seconds
+
+			disable creature sound
+			Guide play C_INDIVIDUAL_TAUNT
+
+			snapshot quest success 0.8 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_11)
+
+			//G:Now you must learn to fight, my friend.
+			say HELP_TEXT_GUIDE_EXTRA_LINES_07
+			force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+			wait until Guide played
+			wait until read
+
+			//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_02 with interaction// C:Dont worry I won't harm you.
+			say HELP_TEXT_GUIDE_EXTRA_LINES_08
+			wait until read
+			enable creature sound
+
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+			wait until MyCreature played
+
+		end dual camera
+		stop music
+	end cinema
+
+
+	disable leash on MyCreature
+	force Guide CREATURE_FIGHT MyCreature
+
+	WhileFlag = 0
+	FightStartTimer = create timer for 15.0 seconds
+	while WhileFlag == 0
+		if MyCreature fighting
+			WhileFlag = 1
+		end if
+		if get FightStartTimer time remaining <= 0.0
+			force Guide CREATURE_FIGHT MyCreature
+			FightStartTimer = create timer for 15.0 seconds
+		end if
+	end while
+
+	delete Highlight
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+	WhileFlag = 0
+	FightStartTimer = create timer for 15.0 seconds
+	while WhileFlag == 0
+		if MyCreature fighting
+			WhileFlag = 1
+		end if
+		if get FightStartTimer time remaining <= 0.0
+			force Guide CREATURE_FIGHT MyCreature
+			FightStartTimer = create timer for 15.0 seconds
+		end if
+	end while
+
+	disable Guide auto fighting
+	disable MyCreature auto fighting
+
+	StopHealingCombatants = 0
+	run background script HealCombatants
+
+	begin dialogue
+
+		disable creature sound
+		//"Firstly let's learn to attack."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_15 without interaction
+		wait until read
+
+		//"Click on a part of my body, using the action button, to attack me."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_16 without interaction
+		wait until read
+
+	end dialogue 
+
+	FightFlag = 0
+	set FightTimer time to 15 seconds
+	while FightFlag == 0
+		if FIGHTHEALTH of MyCreature < 0.5
+			FIGHTHEALTH of MyCreature = 1
+			FIGHTHEALTH of Guide = 1
+		elsif FIGHTHEALTH of Guide < 0.5
+			FIGHTHEALTH of Guide = 1
+			FIGHTHEALTH of MyCreature = 1
+		end if
+
+		Action=variable get Guide fight action
+
+		if  Action == variable CTR_FIGHT_RECOIL_LOW or Action == variable CTR_FIGHT_RECOIL_MIDDLE or Action == variable CTR_FIGHT_RECOIL_HIGH // wait until Guide recoils
+			FightFlag = 1
+		elsif get FightTimer time remaining <= 0
+
+			begin dialogue
+				//"Click on a part of my body, using the action button, to attack me."
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_16 without interaction
+				wait until read
+			end dialogue
+
+			set FightTimer time to 15 seconds
+		end if
+	end while
+
+	begin dialogue
+		//"Good hit. You can queue up multiple attacks too."
+		disable creature sound
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_18 without interaction
+		wait until read
+		//"Try queuing up a few attacks on me now using the action button."
+		//say HELP_TEXT_PICKUP_CREATURE_GUIDE_03 //MUST NOT USE THIS LINE EVER!!!!!! BAD SAMPLE>
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_19 without interaction
+		wait until read or get MyCreature fight queue hits > 2
+	end dialogue
+
+	FightFlag = 0
+	set FightTimer time to 10 seconds
+	while FightFlag == 0
+		if FIGHTHEALTH of MyCreature < 0.5
+			FIGHTHEALTH of MyCreature = 1
+			FIGHTHEALTH of Guide = 1
+		elsif FIGHTHEALTH of Guide < 0.5
+			FIGHTHEALTH of Guide = 1
+			FIGHTHEALTH of MyCreature = 1
+		end if
+
+		if get MyCreature fight queue hits > 2 // checks for stacked hits
+			FightFlag = 1
+		elsif get FightTimer time remaining <= 0
+			begin dialogue
+				disable creature sound
+				//"Try queuing up a few attacks on me now."
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_19 without interaction
+				wait until read
+			end dialogue
+			set FightTimer time to 10 seconds
+		end if		
+	end while
+
+	queue Guide fight move CTR_HIT_BLOCK
+
+	begin dialogue
+		disable creature sound
+		//"That's right. Now let's learn to block attacks."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_20 without interaction
+		wait until read
+		//"Click the action button on your creature to make him block."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_21 without interaction
+		wait until read
+	end dialogue
+
+	queue Guide fight move CTR_HIT_BLOCK
+
+	FightFlag = 0
+	set FightTimer time to 10 seconds
+	while FightFlag == 0
+		if FIGHTHEALTH of MyCreature < 0.5
+			FIGHTHEALTH of MyCreature = 1
+			FIGHTHEALTH of Guide = 1
+		elsif FIGHTHEALTH of Guide < 0.5
+			FIGHTHEALTH of Guide = 1
+			FIGHTHEALTH of MyCreature = 1
+		end if
+
+		MyAction=variable get MyCreature fight action
+
+		if MyAction == variable CTR_FIGHT_BLOCKING // wait until MyCreature blocking
+			FightFlag = 1
+		elsif get FightTimer time remaining <= 0
+			begin dialogue
+				disable creature sound
+				//"Click the action button on your creature to make him block."
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_21 without interaction
+				wait until read
+			end dialogue
+			set FightTimer time to 10 seconds
+		end if
+	end while
+
+	queue Guide fight move CTR_HIT_MIDDLE
+	wait 3 seconds
+	begin dialogue
+		Action=variable get Guide fight action
+		if Action == variable CTR_FIGHT_RECOIL_MIDDLE or Action == variable CTR_FIGHT_RECOIL_LOW or Action == variable CTR_FIGHT_RECOIL_HIGH
+			disable creature sound
+			//"Oops. Sorry about that."
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_22 without interaction
+			wait until read
+		else
+			disable creature sound
+			//"That's the ticket. Good block."
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_23 without interaction
+			wait until read
+		end if
+		//"You'll stop blocking if you give another command."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_24 without interaction
+		wait until read
+		//"OK now let's try dodging."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_25 without interaction
+		wait until read
+		//"Click the action button anywhere on the ground to make your creature move there."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_26 without interaction
+		wait until read
+	end dialogue
+
+	FightFlag = 0
+	set FightTimer time to 10 seconds
+	while FightFlag == 0
+		if FIGHTHEALTH of MyCreature < 0.5
+			FIGHTHEALTH of MyCreature = 1
+			FIGHTHEALTH of Guide = 1
+		elsif FIGHTHEALTH of Guide < 0.5
+			FIGHTHEALTH of Guide = 1
+			FIGHTHEALTH of MyCreature = 1
+		end if
+
+		MyAction=variable get MyCreature fight action
+
+		if MyAction == variable CTR_FIGHT_STEPPING // wait until MyCreature sidestepping
+			FightFlag = 1
+		elsif get FightTimer time remaining <= 0
+			begin dialogue
+				disable creature sound
+				//"Click the action button anywhere on the ground to move your creature there."
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_28 without interaction
+				wait until read
+			end dialogue
+			set FightTimer time to 10 seconds
+		end if
+	end while
+
+	begin dialogue
+		disable creature sound
+		//"That's it. You've learnt well."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_29 without interaction
+		wait until read
+		//"Let's have a quick bout to try out these skills."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_30 without interaction
+		wait until read
+	end dialogue
+
+	StopHealingCombatants = 1
+	enable Guide auto fighting
+	enable MyCreature auto fighting
+	FIGHTHEALTH of MyCreature = 1
+	FIGHTHEALTH of Guide = 1
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+	health_of_my_creature = FIGHTHEALTH of MyCreature
+	health_of_guide = FIGHTHEALTH of Guide
+	//set FightTimer time to 10 seconds
+
+	while Guide fighting and MyCreature fighting
+		health_of_my_creature = FIGHTHEALTH of MyCreature
+		health_of_guide = FIGHTHEALTH of MyCreature
+		if health_of_my_creature < 0.30 or health_of_guide < 0.30
+			force Guide CREATURE_SIT FightPos
+			force MyCreature CREATURE_SIT FightPos
+		end if
+
+		if get CommentTimer time remaining <= 0
+			MyAction=variable get MyCreature fight action
+			if MyAction == variable CTR_FIGHT_HITTING
+				begin dialogue
+					//eject good spirit
+					//"Good Hit!!"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_31 without interaction
+					wait until read
+				end dialogue
+			elsif MyAction == variable CTR_FIGHT_RECOIL_HIGH or MyAction == variable CTR_FIGHT_RECOIL_MIDDLE or MyAction == variable CTR_FIGHT_RECOIL_LOW
+				begin dialogue
+					//eject good spirit
+					//"Ouch! That must of hurt."
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_32 without interaction
+					wait until read
+				end dialogue
+			elsif MyAction == variable CTR_FIGHT_NOTHING
+				begin dialogue
+					//eject evil spirit
+					//"Go on! Hit him!"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_33 without interaction
+					wait until read
+				end dialogue
+			end if
+			set CommentTimer time to 5 seconds
+		end if
+
+	end while
+
+	wait until not MyCreature fighting
+	wait until not Guide fighting
+
+	HEALTH of Guide = 1
+	EXHAUSTION of Guide = 0
+
+	//delete small_spell
+	disable Guide auto scale
+	while SCALE of Guide < 1.9
+		SCALE of Guide = ((SCALE of Guide) + 0.1)
+	end while
+	SCALE of Guide = 2.0
+	CreatureDevelopment_Fight=1							// When this flag is set the Ogre script is triggered
+	enable leash on MyCreature
+
+	begin cinema
+
+		move camera to face Guide distance 36 time 3
+		move camera focus to [Guide] + [0,12,0]	 time 3
+		wait until camera ready
+
+		move MyCreature position to [MyCreatureFightPos]
+
+		disable creature sound
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_06 with interaction		// C:That was an important lesson, friend.
+		wait until read
+
+		if health_of_guide <= health_of_my_creature
+			// "You show great potential, but you must work on your technique." with interaction
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_09 with interaction
+			wait until read
+		end if
+		if health_of_guide > health_of_my_creature
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_07 with interaction	// C:I'm sorry I had to do that.
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_08 with interaction	// C:But it was for your own good.
+			wait until read			
+		end if
+
+		enable creature sound
+		close dialogue
+
+ 		move Guide position to [MyCreature] radius 5
+
+		force MyCreature CREATURE_IDLE MyCreature
+
+		wait until [Guide] near [MyCreature] radius 60
+
+		begin dual camera to MyCreature Guide
+		
+			teach Guide MAGICAL MAGIC_TYPE_HEAL_PU_ONE SCRIPT_TRUE
+			force Guide CREATURE_CAST_HEAL_SPELL_PU1 MyCreature
+			HEALTH of MyCreature = 1
+
+			wait until Guide played
+
+			snapshot quest success 0.85 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_06)
+
+			disable creature sound
+			// "I have a secret to tell you, but I must warn you this knowledge is a dangerous thing." with interaction
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_10 with interaction
+			wait until read
+			//sy "But come only when you are ready. What I will tell you is forbidden knowledge, dangerous even to gods." with interaction
+			say HELP_TEXT_GUIDE_DIES_24 with interaction
+			wait until read
+
+		end dual camera
+
+		//sy "Why not test what you have learnt while you wait."
+		say HELP_TEXT_GUIDE_DIES_29 with interaction
+		wait until read
+		enable creature sound
+		wait until camera ready
+
+		enable leash on MyCreature
+		set Guide only desire CREATURE_DESIRE_TIREDNESS			
+		disable MyCreature development script
+		release MyCreature
+		release Guide
+
+		update snapshot success 0.85 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_MEET_THE_AZTEC_VILLAGE_14)
+
+	end cinema
+
+end script CreatureDevGuideTeachesFight
+
+//------------------------------------------------------------------------------------------------------------------------
+//--GuideImpressTownNextLesson----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideImpressTownNextLesson
+	Highlight=0
+	ImpressVillagePos = marker at [2421.95, 40.42, 2634.93]
+
+	MissionHighPos = marker at [2267.6514, 210.1525, 2809.1013]
+	SeeMissionariesPos = marker at [1931.3464, 55.3569, 3123.8201]
+	SeeMissionariesFoc = marker at [1865.7122, 6.5648, 3162.6489]
+	SeeLostFlockPos = marker at [1856.4467, 53.8905, 2745.6782]
+	SeeLostFlockFoc = marker at [1862.2252, 39.3147, 2773.5569]
+	SeePiedPiperPos = marker at [1842.6366, 53.8904, 2717.7429]
+	SeePiedPiperFoc = marker at [1869.3794, 39.3479, 2727.3184]
+	SeeTownPos = marker at [1865.3308, 78.6014, 2601.1724]
+	SeeTownFoc = marker at [1802.4640, 28.5153, 2707.5217]
+	TheAztecTown = get TOWN at [2487.55, 52.6, 2571.21] radius 150
+	SnoozeTimer = create timer for 0 seconds
+	Snoozing = 0
+	NorseStorage = get HOUSE at [1826.7900, 28.1400, 2641.3601]
+	ScrollSuggested = 0
+	ObjectInHand = 0
+
+start
+// ************ Create guide if Necessary
+
+	
+	set MyCreature DEVELOPMENT_PHASE_IMPRESS_TOWN development
+	run script CreateGuideCreature
+
+	EXHAUSTION of Guide = 1
+	force Guide CREATURE_SLEEP Guide
+	Highlight = create highlight HIGHLIGHT_QUEST at [Guide]
+	ALTITUDE of Highlight = 8
+	enable Highlight active
+	update snapshot success 0.7 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_REMINDER_112)
+
+	wait until PLAYER of TheAztecTown == 1
+
+//JONTY REMOVED THIS AS DELAY BAD - Hope OK???	
+/*	ObjectInHand = get object held
+	while ObjectInHand exists
+		ObjectInHand = get object held
+		wait 0.5 seconds
+	end while
+*/
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+		move camera position to [2407.804, 93.025, 2510.390] time 2
+		move camera focus to [2472.641, 59.468, 2585.711] time 2
+
+		wait until camera ready
+		wait 4 seconds
+			
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		move camera position to [2407.804, 93.025, 2510.390] time 2
+		move camera focus to [2472.641, 59.468, 2585.711] time 2
+
+		wait until camera ready
+
+		set Guide focus to camera position
+		//"Well done, The Aztecs will worship you now."
+		disable creature sound
+		say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_13	with interaction
+		wait until read
+		enable creature sound
+
+		update snapshot success 0.75 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_MEET_THE_AZTEC_VILLAGE_14)
+		
+		if MissionariesInitiated == 0 or ((ScrollSuggested == 1) and (MissionariesCompletedNow == 0))
+			//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+			say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+			move camera position to [MissionHighPos] time 4
+			move camera focus to [SeeMissionariesFoc] time 7
+			wait 3 seconds
+			move camera position to [SeeMissionariesPos] time 4
+			ScrollSuggested = 1
+		elsif LostFlockInitiated == 0 or ((ScrollSuggested == 2) and (LostFlockCompletedNow == 0))
+			//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+			say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+			move camera position to [MissionHighPos] time 4
+			move camera focus to [SeeLostFlockFoc] time 7
+			wait 3 seconds
+			move camera position to [SeeLostFlockPos] time 4
+			ScrollSuggested = 2
+		elsif PiedPiperInitiated == 0 or ((ScrollSuggested == 3) and (PiedPiperCompletedNow == 0))
+			//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+			say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+			move camera position to [MissionHighPos] time 4
+			move camera focus to [SeePiedPiperFoc] time 7
+			wait 3 seconds
+			move camera position to [SeePiedPiperPos] time 4
+			ScrollSuggested = 3
+		elsif get resource RESOURCE_TYPE_FOOD in NorseStorage < 10000
+			//"It is not wise to neglect your followers. I notice the town is short of food."
+			say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_16
+			move camera position to [MissionHighPos] time 4
+			move camera focus to [SeeTownFoc] time 7
+			wait 3 seconds
+			move camera position to [SeeTownPos] time 4
+		elsif HUNGER of MyCreature > 50
+			//"It is not wise to ignore your creature, he needs food."
+			say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_17
+			move camera to face MyCreature distance 20 time 2
+			move camera focus to [MyCreature] time 2
+		end if
+
+		wait until camera ready
+		wait until read
+		EXHAUSTION of Guide = 1
+		force Guide CREATURE_SLEEP Guide
+		run background script GuideStayTired
+		stop music
+	end cinema
+
+//	Highlight = create highlight HIGHLIGHT_QUEST at [Guide]
+//	ALTITUDE of Highlight = 8
+//	wait until Highlight clicked
+//	enable Highlight active
+	EXHAUSTION of Guide = 0
+
+	update snapshot success 0.75 alignment 0 HELP_TEXT_TITLE_105 GuideImpressTownLessonReminder
+
+	set SnoozeTimer time to 300 seconds
+	while Snoozing == 0
+		if get SnoozeTimer time remaining <= 0 // or PLAYER of TheAztecTown == 1
+			Snoozing = 1
+		end if
+
+		if ScrollSuggested > 0
+			if ScrollSuggested == 1
+				if MissionariesCompletedNow == 1 and get SnoozeTimer time remaining <= 150
+					Snoozing = 1
+				end if
+			elsif ScrollSuggested == 2
+				if LostFlockCompletedNow == 1 and get SnoozeTimer time remaining <= 150
+					Snoozing = 1
+				end if
+			elsif ScrollSuggested == 3
+				if PiedPiperCompletedNow == 1 and get SnoozeTimer time remaining <= 150
+					Snoozing = 1
+				end if
+			end if
+		end if
+
+
+		if Highlight clicked
+			if PLAYER of TheAztecTown == 1
+				StopPopulating = 1
+
+				begin cinema
+
+					disable creature sound
+					force Guide CREATURE_IDLE Guide
+					move camera to face Guide distance 30 time 3
+					move camera focus to [Guide] + [0,25,0]	 time 3
+					say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_14
+					wait until read
+					enable creature sound
+					wait until camera ready
+
+					if MissionariesInitiated == 0 or ((ScrollSuggested == 1) and (MissionariesCompletedNow == 0))
+						//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+						say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+						move camera position to [MissionHighPos] time 4
+						move camera focus to [SeeMissionariesFoc] time 7
+						wait 3 seconds
+						move camera position to [SeeMissionariesPos] time 4
+						ScrollSuggested = 1
+					elsif LostFlockInitiated == 0 or ((ScrollSuggested == 2) and (LostFlockCompletedNow == 0))
+						//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+						say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+						move camera position to [MissionHighPos] time 4
+						move camera focus to [SeeLostFlockFoc] time 7
+						wait 3 seconds
+						move camera position to [SeeLostFlockPos] time 4
+						ScrollSuggested = 2
+					elsif PiedPiperInitiated == 0 or ((ScrollSuggested == 3) and (PiedPiperCompletedNow == 0))
+						//"You have not done many silver scrolls, try a few, the reward is usually worth the effort."
+						say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_15
+						move camera position to [MissionHighPos] time 4
+						move camera focus to [SeePiedPiperFoc] time 7
+						wait 3 seconds
+						move camera position to [SeePiedPiperPos] time 4
+						ScrollSuggested = 3
+					elsif get resource RESOURCE_TYPE_FOOD in NorseStorage < 10000
+						//"It is not wise to neglect your followers. I notice the town is short of food."
+						say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_16
+						move camera position to [MissionHighPos] time 4
+						move camera focus to [SeeTownFoc] time 7
+						wait 3 seconds
+						move camera position to [SeeTownPos] time 4
+					elsif HUNGER of MyCreature > 50
+						//"It is not wise to ignore your creature, he needs food."
+						say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_17
+						move camera to face MyCreature distance 20 time 2
+						move camera focus to [MyCreature] time 2
+					end if
+
+					wait until camera ready
+					wait until read
+					EXHAUSTION of Guide = 1
+					force Guide CREATURE_SLEEP Guide
+					run background script GuideStayTired
+				end cinema
+			else
+
+				begin cinema
+					force Guide CREATURE_IDLE Guide
+					move camera to face Guide distance 30 time 2
+					move camera focus to [Guide] + [0,25,0]	 time 2
+
+					wait until camera ready
+
+					set Guide focus to camera position
+					//"The Aztec town still needs belief, use your creature to help you."
+					say single line HELP_TEXT_MEET_THE_AZTEC_VILLAGE_18
+					wait until read
+					EXHAUSTION of Guide = 1
+					force Guide CREATURE_SLEEP Guide
+				end cinema
+			end if
+			clear clicked object
+		end if
+	end while
+
+	StopStayingTired = 1
+	StopPopulating = 1
+
+end script GuideImpressTownNextLesson
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//--GuideImpressTownLesson----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideImpressTownLesson
+	StoragePitPos = marker at [2487.55, 52.6, 2571.21]
+	ImpressVillagePos = marker at [2421.95, 40.42, 2634.93]
+	GuideSpellPos = marker at [2421.95, 40.42, 2634.93]
+	SafeSpellCreatePos = marker at [2440.8, 40.85, 2624.7]
+	TapCameraPos = marker at [2404.3057, 82.8934, 2620.2568]		// View the one shot
+	TapCameraFoc = marker at [2454.0808, 31.4947, 2619.1067]		// View the one shot
+	SpellCreatePos = marker at [2458.78, 39.0, 2611.89]
+	DidYouKnowPos = marker at [SpellCreatePos]+[2.5, 0.0, 2.5]
+	Highlight = 0
+	ScriptTimer = create timer for 0 seconds
+	Town = 0
+	StoragePit = 0
+	TownBelief = 0
+	Count = 0
+	EndWhile = 0
+	ObjectInHand = 0
+	GuideSpellInHandTold = 0
+	InHand = 0														// Needed to put spell in hand
+	CastFoodSpellReminder = create timer for 0 seconds
+	TimeDelay = 30													// Change to 30 seconds
+	dyk12 = marker at [2480.5950, 34.1700, 2655.3870]				// creature will cast miracle seed
+	dyk77 = marker at [2468.9717, 52.2600, 2572.0420]				// How to impress town
+	CastSpell = 0
+	SFX = 0
+	
+start
+// ************ Create guide if Necessary
+	run script CreateGuideCreature
+
+// ************ Set up variables 
+ 	set MyCreature DEVELOPMENT_PHASE_GUIDE_TEACHES_SPELLS development
+	Town=get TOWN at [StoragePitPos] radius 50
+	StoragePit = get HOUSE at [StoragePitPos] radius 10
+	TownBelief=get Town belief for player 1
+	remove resource RESOURCE_TYPE_FOOD 900000 from StoragePit
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [ImpressVillagePos]+[15,0]
+	ALTITUDE of Highlight = 2
+
+	EndWhile=0
+/*	while EndWhile == 0
+		set Guide focus to camera position
+		until Highlight clicked
+	end while
+*/
+	wait until Highlight clicked
+	enable Highlight active
+
+	GuideNotImpressing = 1 // SetupLand1.txt // disables player from taking over Aztec town
+
+	StopPopulating = 0
+	run background script PopulateTown (Town)
+
+	remove resource RESOURCE_TYPE_FOOD 900000 from StoragePit
+
+
+// ************ explain whats about to happen
+	begin cinema 
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		move camera to face Guide distance 30 time 2
+		move camera focus to [Guide] + [0,25,0]	 time 2
+
+		wait until camera ready
+
+		set Guide focus to camera position
+
+		if get ScriptTimer time since set > 60*5
+			// "At last you are here for your first lesson"
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_12
+			wait until camera ready
+        end if
+
+		// "Welcome to the Aztec town: my friend" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_13
+
+		move camera position to [2386.003, 78.331, 2626.947] time 6 
+		move camera focus to [2459.741, 45.638, 2605.171] time 6
+
+		wait until read
+
+		// "These people do not yet believe in you as a god." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_14
+		wait until read
+
+		set Guide focus to [StoragePit]
+
+		// "To become more powerful, you or your creature can impress them and get them to believe in you" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_15 with interaction
+		wait until read
+
+		// "If you look at the Storage Pit; they are short of food" with interaction
+		//say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_16 with interaction
+		say HELP_TEXT_GUIDE_EXTRA_LINES_01
+
+		move camera position to [StoragePit] + [-20,18,20] time 3				// cam look at storage pit
+		move camera focus to [StoragePit] time 3
+		wait until read
+
+		say HELP_TEXT_GUIDE_EXTRA_LINES_02
+		wait until read
+
+		move camera position to [2451.6824, 61.4933, 2582.0222] time 3
+		move camera focus to [2481.5186, 52.5289, 2570.3120] time 3
+
+
+		say HELP_TEXT_GUIDE_EXTRA_LINES_03 with interaction
+		SFX = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [dyk77] time 4
+		run background script DidYouKnow(dyk77,variable HELP_TEXT_DYK_77, variable DYK_VILLAGE_LIFE)			// Impress town
+		wait until read
+
+		wait until camera ready
+
+		wait 1.5 seconds
+		close dialogue
+		
+		move camera to face Guide distance 50 time 4
+		move camera focus to [SafeSpellCreatePos] + [0,20,0] time 8
+
+		wait until camera ready
+
+		Guide play C_STATIC_SCATTER
+		wait 1 seconds
+
+		wait 1.5 seconds
+		//GuideSpell = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FOOD at [SafeSpellCreatePos]
+		run map script line "CREATE_ONE_SHOT_SPELL_PU(\"2438.81,2623.54\", \"FOOD\")"		// Safe one shot spell
+
+		wait 2 seconds
+		snapshot quest success 0.7 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_22)
+
+		// "This is a food Miracle One Shots"
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_17
+//		GuideSpell = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FOOD at [SafeSpellCreatePos]
+		run background script DidYouKnow(DidYouKnowPos, variable HELP_TEXT_DYK_12, variable DYK_CREATURE)				// creature will cast miracle seed
+
+		ALTITUDE of GuideSpell = 0
+		wait until read
+
+		// "You can pickup one shots with the action button." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_18 with interaction
+		wait until read
+
+		// " and activate them by tapping on them. Like this." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_19
+		wait until read
+
+		close dialogue
+		enable creature sound
+
+		//Run the hand demo script 
+		run script ImpressFood
+
+		// "Notice how much the villagers loved this" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_20
+		wait until read
+
+		// "By the way if you have the rope leash on, your creature will learn this miracle as you create it" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_21 with interaction
+		wait until read
+
+		if GuideSpell exists
+			delete GuideSpell
+		end if 
+
+		run script GuideCreateMiracle(variable SPELL_SEED_TYPE_FOOD, SpellCreatePos)
+
+		// "Now you try by tapping on the miracle and the clicking the action button on the Storage Pit" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_22 with interaction
+		wait until read
+
+		move camera position to [2434.35,68.319,2655.92] time 4							//nice view of town and seed
+		move camera focus to [2438.79,52.111,2610.44] time 4
+		stop music		
+	end cinema
+
+// ******************* wait for player to cast spell
+//					%comp in citadel 
+	//snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_105 GuideImpressTownLessonReminder
+//	update snapshot success 0.0 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_22)
+
+	// Make the first message get spoken straight away
+	set CastFoodSpellReminder time to 0 seconds	
+	// Remove food from hand demo from Storage Pit
+	remove resource RESOURCE_TYPE_FOOD 900000 from StoragePit
+
+	EndWhile = 0
+	while EndWhile == 0
+		ObjectInHand = get object held
+
+		if ObjectInHand exists // and hand position near [Guide] radius 100
+			if ObjectInHand == GuideSpell and GuideSpellInHandTold == 0
+				GuideSpellInHandTold=1
+					begin dialogue
+						// "You picked up the miracule rather that tapping it, drop it and try again"
+						say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_23
+						wait until read
+					end dialogue
+			elsif ObjectInHand type SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL
+				GuideSpellInHandTold=2
+//				remove resource RESOURCE_TYPE_FOOD 900000 from StoragePit
+				if get CastFoodSpellReminder time remaining <= 0 
+					set CastFoodSpellReminder time to TimeDelay seconds	
+					CastSpell = 1
+					begin dialogue
+						// "Well done now click the action button over the Storage Pit"
+						say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_24
+						wait until read
+					end dialogue
+				end if
+			end if
+		elsif GuideSpellInHandTold == 2
+			if get resource RESOURCE_TYPE_FOOD in StoragePit > 0			//we need to tell weather food has been cast
+				EndWhile=1
+			else
+				begin dialogue
+					// "Humm try again"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_25
+					if GuideSpell not exists
+						run script GuideCreateMiracle(variable SPELL_SEED_TYPE_FOOD, SpellCreatePos)
+						CastSpell = 0
+					end if 
+					wait until read
+				end dialogue
+				GuideSpellInHandTold=0
+			end if
+		end if
+
+		if [GuideSpell] not near [SpellCreatePos] radius 50	and CastSpell == 0
+			delete GuideSpell with fade
+			run script GuideCreateMiracle(variable SPELL_SEED_TYPE_FOOD, SpellCreatePos)
+		end if
+
+	end while
+
+	Count=0
+	while Count < 6
+		Count++
+		GuideSpell = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FOOD at [SpellCreatePos]
+	end while
+
+	begin cinema
+		move camera to face Guide distance 50 time 4
+		wait until camera ready
+//		force Guide CREATURE_PRACTICE_DANCE Guide
+		force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH Guide
+		wait until MyCreature played
+		teach MyCreature INTELLECTUAL CREATURE_ACTION_KNOWN_ABOUT_DANCE SCRIPT_TRUE
+	end cinema
+	force Guide CREATURE_LOOK_BUT_DONT_APPROACH MyCreature
+
+   begin dialogue
+	// "Very good, not only have you given them food but now they believe in you more"
+	say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_26
+	wait until read
+	// "I have created a few more food miracules for you to practice with."
+	say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_27
+	wait until read
+
+	say HELP_TEXT_GUIDE_EXTRA_LINES_04
+	wait until read
+
+	say HELP_TEXT_GUIDE_EXTRA_LINES_05
+	wait until read
+
+	// "Wake me when you are ready to learn about more"
+	say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_IMPRESSES_TOWN_28
+	wait until read
+   end dialogue
+
+	release MyCreature
+
+	disable Highlight active
+	delete Highlight
+
+end script GuideImpressTownLesson
+
+//------------------------------------------------------------------------------------------------------------------------
+//--GuideAsksToMeetYourCreature----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GuideAsksToMeetYourCreature
+
+	GuideHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Guide
+	MyCreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	BringMeYourCreatureTimer = create timer for 0 seconds
+	VillagePassPos = marker at [2165.21, 28.22, 2826.05]
+	ImpressVillagePos = marker at [2421.95, 40.42, 2634.93]
+	GuideDistance = 0
+	SaidLess20 = 0
+	SaidLess30 = 0
+	OriginalGuideDistance = 0
+	SaidGreater = 0
+	BeginPos = 0
+	BeginFoc = 0
+start
+//Guide waits for your creature
+	while [MyCreature] not near [Guide] radius 45
+		//if hand position near [Guide] radius 10 and camera position near [Guide] radius 90 and get BringMeYourCreatureTimer time remaining == 0
+		if [Guide] viewed and camera position near [Guide] radius 150 and get BringMeYourCreatureTimer time remaining == 0
+			set BringMeYourCreatureTimer time to 20 seconds
+			begin dialogue
+				disable creature sound
+				// "Creature: Bring me your creature" with interaction
+				say single line HELP_TEXT_GUIDE_DIES_14 
+				wait until read
+			end dialogue
+		end if
+	end while
+
+	set MyCreature DEVELOPMENT_PHASE_FRIENDS_WITH_GUIDE development
+	set MyCreature focus to [Guide]
+	set Guide focus to [MyCreature]
+	
+	while not ([MyCreature] near [Guide] radius 45)
+		set Guide focus to [MyCreature]
+		force Guide CREATURE_LOOK_BUT_DONT_APPROACH MyCreature
+		wait until Guide played
+		GuideDistance = get distance from [Guide] to [MyCreature]
+		if GuideDistance < 20 and SaidLess20 == 0
+			start sound LH_HELP_SPRITE_HELP_TEXT_ROTATION_YES_01 AUDIO_SFX_BANK_TYPE_HELP_SPRITES
+			SaidLess20 = 1
+		elsif GuideDistance  < 30 and SaidLess30 == 0
+			start sound LH_HELP_SPRITE_HELP_TEXT_ROTATION_YES_01 AUDIO_SFX_BANK_TYPE_HELP_SPRITES
+			SaidLess30 = 1
+		elsif GuideDistance  > OriginalGuideDistance +10 and SaidGreater == 0
+			start sound LH_HELP_SPRITE_HELP_TEXT_ROTATION_NO_01 AUDIO_SFX_BANK_TYPE_HELP_SPRITES
+			SaidGreater = 1
+		end if
+	end while
+			
+	//------------------------------------------------------------------------------------------------------------------------
+	// Player has taken his creature to the guide
+	//------------------------------------------------------------------------------------------------------------------------
+			
+	begin cinema 
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+			
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set Guide focus to [MyCreature]
+		set MyCreature focus to [Guide]
+		
+		move camera position to [MyCreature] + [-15.0, 3.0, -15.0] time 3			  // Cam look at my creature at guides feet
+		move camera focus to [MyCreature]  + [0.0, MyCreatureHeight*0.50, 0.0] time 3
+
+		wait until camera ready
+		
+		say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_11				// G:Theyre making friends
+		wait until read
+		close dialogue
+
+/*		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_12				// E:What? Oh yes. Phew. That was close.
+		wait until read
+*/
+		detach reaction Guide REACTION_FLEE_FROM_OBJECT
+		
+		detach MyCreature leash
+		force MyCreature CREATURE_EXAMINE_BY_LOOKING Guide
+		
+		force Guide CREATURE_HOLD_OBJECT MyCreature
+
+		move camera focus to [Guide]  + [0.0, GuideHeight*0.75, 0.0] time 6	// Camera look at guide
+
+		wait 6 second
+
+		set Guide focus to camera position
+		force Guide CREATURE_LOOK_AT_CAMERA Guide
+		wait until Guide played
+
+//		move camera position to [MyCreature] + [-15.0, 30.0, -15.0] time 3			  // Cam look at my creature in guides hand
+//		move camera focus to [Guide]  + [0.0, GuideHeight*0.85, 0.0] time 3
+		
+		force MyCreature CREATURE_WAVE_AT_OBJECT Guide
+		wait until MyCreature played
+		
+		disable creature sound
+		force Guide CREATURE_SMILE_AT_FRIEND MyCreature
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_13 // C:Another creature. Is it true ? Are you real ?
+		wait until read
+				
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_15 // C:I have been alone for aeons. I thought I would die without ever seeing anothe god.
+
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_16 with interaction// C:Or another creature.
+		wait until read			
+		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_17 // C:I was once the creature of the most powerful of gods.
+		wait until read	
+		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_18 // C:But his power kept growing, and soon I wasnt bold enough for him.
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_19 // C:So I was cast out. Banished to here. I've been alone ever since.
+
+		Guide play C_INDIVIDUAL_SAD
+		wait until read		
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_20 with interaction // C:Until now.
+		wait until read		
+		
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_23 // E: This guy is awesome, I'm choking up here.
+		wait until read
+		send good spirit home
+		
+		// "In return for your friendship, and that of your Creature." // C:IN return for your friendship, and that of your creature, I will teach him.
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_21
+		wait until read		
+		
+		// ", I will teach you both the ways of gods. There's much for both of you to learn." with interaction// C: He's so young, Theres much for him to learn.
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_24 with interaction
+		Guide play C_INDIVIDUAL_FEELING_NICE
+		wait until Guide played
+		wait until read		
+		wait until camera ready
+
+		force Guide CREATURE_POINT_AT_OBJECT VillagePassPos
+
+		wait 2 seconds
+
+		move camera position to [2135.443, 76.541, 2544.520] time 8
+		move camera focus to [2153.590, 41.781, 2683.690] time 8
+
+		// "When you are ready to learn the first lesson meet me at the town through yonder pass" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_25 with interaction
+		wait until read
+
+		// NEW - Remind player to go to meet guide in town
+		update snapshot success 0.6 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_25)		
+
+		wait until camera ready
+		stop music		
+	end cinema
+		
+	set Guide only desire CREATURE_DESIRE_TO_BE_FRIENDS
+	set MyCreature only desire CREATURE_DESIRE_TO_BE_FRIENDS
+	
+	disable MyCreature development script
+	release MyCreature
+
+	move Guide position to [ImpressVillagePos]
+	release Guide focus
+	wait until [Guide] near [ImpressVillagePos] radius 50
+	
+
+
+end script GuideAsksToMeetYourCreature
+
+//------------------------------------------------------------------------------------------------------------------------
+//--MeetTheGuide----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script MeetTheGuide
+	
+	TriggerPos = marker at [2013.939, 49.727, 2490.340]
+	VillagerTellPos = marker at [1999.41, 50.1322, 2493.35]
+	CitadelPos = marker at [1919.94, 29.5, 2509.8]
+	ValleyPos = marker at [2103.74, 28.42, 2533.23]
+	Villager = 0
+	Town = 0
+	WhileFlag = 0
+	SeenCreature = 0
+	Highlight = 0
+
+start
+
+
+	MyCreature = get player 1 creature
+	set MyCreature DEVELOPMENT_PHASE_FRIENDS_WITH_GUIDE development
+
+// ************ Create guide if Necessary
+	run script CreateGuideCreature
+	set Guide position to [2119.260, 33.291, 2766.583]
+
+	wait until 120 seconds or [MyCreature] near [Guide] radius 75
+
+// ************ Create and move the villager
+	Villager = create VILLAGER MALE at [TriggerPos]
+
+	SPEED of Villager = 0.5
+	disable Villager moveable
+	disable Villager pickup
+	enable Villager indestructible
+	
+	move Villager position to [VillagerTellPos]
+	wait until [Villager] at [VillagerTellPos]
+	set Villager focus to [CitadelPos]
+	
+	Villager play ANM_P_ATTRACT_YOUR_ATTENTION loop -1
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [VillagerTellPos]
+	ALTITUDE of Highlight = 2
+	wait until Highlight clicked
+	enable Highlight active
+
+
+// move the Guide into position
+	stop script "MoveTheGuideAround"
+	move Guide position to [2169.17, 40.87, 2621.51]
+
+	begin cinema
+
+		enable Villager high graphics detail
+
+		move camera to face Villager distance 7 time 3
+		wait camera ready
+		//move camera focus to [Villager] time 4
+		set Villager focus to camera position
+
+		Villager play ANM_P_SCARED_STIFF loop -1
+
+		snapshot quest success 0.5 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_REMINDER_107)
+
+		// "Mighty Lord, I pray for your attention. there is a huge creature in the valley beyond" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_26
+		wait until read
+
+		set Villager focus to [ValleyPos]
+
+		disable jc special SJC_BLEND_ANGLE on Villager					// Villager turn
+		enable jc special SJC_PREPARE_ROTATE180 on Villager
+
+		Villager play ANM_P_TURN_180 loop 1
+		wait until Villager played
+
+		enable jc special SJC_BLEND_ANGLE on Villager
+
+		Villager play ANM_P_TALKING_AND_POINTING loop 3
+
+		// "We all fear for our safety" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_27
+		wait until read
+
+		Villager play ANM_P_SCARED_STIFF loop -1
+
+		eject good spirit
+		//"This may be the creature that Sable was talking about." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_34 with interaction
+		///say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_28 with interaction
+		wait until read	
+
+		close dialogue
+
+		send good spirit home
+
+		move camera position to [1977.854, 67.007, 2460.223] time 4
+		move camera focus to [1998.092, 53.187, 2499.345] time 4
+
+		wait until camera ready
+
+	end cinema
+
+// Release the villager
+	Town=get TOWN at [2419.773, 52.260, 2543.704] radius 20
+	attach Villager to Town 
+	enable Villager moveable
+	enable Villager pickup
+	disable Villager indestructible
+	release Villager
+
+
+
+// loop to move player to creature	
+	WhileFlag=0
+	while WhileFlag == 0
+		set Guide focus to camera position
+		//if hand position near [Guide] radius 10 and camera position near [Guide] radius 90 
+		if [Guide] viewed and camera position near [Guide] radius 90 
+			begin cinema
+				start music MUSIC_TYPE_SCRIPT_EPIC_02
+				move Guide position to [Guide]
+				set Guide focus to camera position
+				move camera to face Guide distance 60 time 4
+
+				eject good spirit
+				
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_29 without interaction	// "GS: Oh my, look at the size of that"
+				wait until read
+				
+				eject evil spirit
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_05				// E:Ah okay, we're dead. We're all dead.
+				wait until read
+				//send evil spirit home
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_06				// G:What is it ? Where is it from ?
+				wait until read
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_07				// G:It doesnt seem to be fighting us though.
+				wait until read
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_08				// E:If it does, we're all dead. Even us spirits. Dead. You too Boss.
+				wait until read
+
+				
+				wait 2 seconds
+
+				move camera to face Guide distance 40 time 6
+
+				disable creature sound
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_14				// GA: Can you hear that ? This giant is communicating. It's telepathic.				
+				wait until read
+				
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_30				// "Creature: Bring me your creature" with interaction 
+				wait until read
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_31				// "EA: No way, not our all powerful creature"
+				wait until read
+
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_32 with interaction	// "GA: I am sure he is friendly, why dont we bring the creaure here with the leash"
+				wait until read
+
+				close dialogue
+				send good spirit home
+				send evil spirit home				
+				wait 1 second
+
+ 				// NEW take a new snapshot
+				snapshot quest success 0.5 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_30)
+
+				Guide play C_INDIVIDUAL_SAD
+				WhileFlag = 1 
+			end cinema
+		end if
+	end while
+
+	delete Highlight
+end		script	MeetTheGuide
+
+//------------------------------------------------------------------------------------------------------------------------
+//-MoveTheGuideAround-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script MoveTheGuideAround
+	CanyonPos1 = marker at [2119.260, 33.291, 2766.583]
+	CanyonPos2 = marker at [2151.360, 29.124, 2580.792]
+	rand = 0
+start
+	begin loop
+		MyCreature = get player 1 creature
+		rand = number from 0 to 5
+		if MoveTheGuideState == 0
+			MoveTheGuideState++ 
+			run script CreateGuideCreature
+			move Guide position to [CanyonPos1]
+			wait until [Guide] at [CanyonPos1] or MoveTheGuideState == 9 or [MyCreature] near [Guide] radius 50
+		elsif MoveTheGuideState == 1
+			if rand <= 2
+				move Guide position to [CanyonPos1]
+				MoveTheGuideState++ 
+				wait until [Guide] at [CanyonPos1] or MoveTheGuideState == 9 or [MyCreature] near [Guide] radius 50
+			elsif rand <= 4
+				Guide play C_INDIVIDUAL_SAD
+				wait until Guide played
+			end if
+		elsif MoveTheGuideState == 2
+			if rand <= 1
+				move Guide position to [CanyonPos2]
+				wait until [Guide] at [CanyonPos2]  or MoveTheGuideState == 9 or [MyCreature] near [Guide] radius 50
+				MoveTheGuideState--
+			elsif rand <= 2
+				if MyCreature exists 
+					set Guide focus to [MyCreature]
+					wait 10 seconds  or MoveTheGuideState == 9
+				end if
+			elsif rand <= 3
+				Guide play C_INDIVIDUAL_SAD
+				wait until Guide played or MoveTheGuideState == 9
+			end if
+		end if 
+		until MoveTheGuideState >= 9 
+	end loop
+end		script	MoveTheGuideAround
+
+//------------------------------------------------------------------------------------------------------------------------
+//--CreatureDevelopmentSet----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureGuideSet
+start
+	run script MeetTheGuide
+	run script GuideAsksToMeetYourCreature
+	run script GuideImpressTownLesson
+    run script GuideImpressTownNextLesson
+	run script CreatureDevGuideTeachesFight
+	run script TheStorm
+end script CreatureGuideSet

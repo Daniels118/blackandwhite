@@ -1,0 +1,226 @@
+challenge LAND_4_METEORITES
+
+//------------------------------------------------------------------------------------------------------------ 
+
+define script KeepCreatureAwayFromVortex(VortexPos)
+
+//------------------------------------------------------------------------------------------------------------
+
+//*****************************************************************************
+//	Sets up all the conditions on Land4 and Opens the vortex.
+//	 If FullScript == 0  then most of the Advisor chat and the camera path is 
+//	 omitted (for testing)
+//*****************************************************************************
+begin script BeginLand4(FullScript)
+
+	LightningPos1 = marker at [2375.560, 13.269, 2631.427]
+	LightningPos2 = marker at [2292.716, 24.738, 2517.751] 
+	LightningPos3 = marker at [1849.574, 67.270, 2703.790] 
+	LightningPos4 = marker at [1738.668, 70.604, 2577.591] 
+	LightningPos5 = marker at [2172.051, 32.034, 2896.895] 
+
+	FirePosStart = marker at [2000.509, 255.0, 3398.165] 
+	FirePos1 = marker at [2024.270, 16.559, 2674.326] 
+	FirePos2 = marker at [1852.294, 87.835, 2509.054] 
+	FirePos3 = marker at [2082.811, 7.176, 2434.599] 
+	FirePos4 = marker at [1940.152, 89.900, 2904.009] 
+	FirePos5 = marker at [2148.364, 18.794, 2680.451]
+	AgressiveFirePos1 = marker at [2217.9824, 29.4800, 2732.3745]
+
+	
+	//VortexPos = marker at [2268.131, 26.130, 2631.761]		// old
+	VortexPos = marker at [2219.2556, 28.1400, 2746.0791]
+	//CreaturePos = marker at [2229.8872, 24.7900, 2636.0728]	// old
+	CreaturePos = marker at [2235.6538, 26.9518, 2693.7429]
+
+	Vortex = 0
+
+	WorkshopPos = marker at [2281.0801, 25.4600, 2683.5500]
+	BigHousePos = marker at [2209.6699, 24.3974, 2670.5200]
+	SmallHousePos = marker at [2249.4700, 25.4600, 2611.5601]
+	TownCentrePos = marker at [2245.58,2662.99]
+	BigHouse = 0
+	SmallHouse = 0
+	NullVortexFlock=0
+
+	MagicShieldSpellDispenser		= 0
+	MagicShieldSpellDispenserPos	= marker at [2345.0369, 22.0079, 2509.5066]
+
+start
+
+	HomeTownL4 = get TOWN at [2245.58,2662.99] radius 150
+	JapaneseTown = get TOWN at [2590.363, 2.680, 3196.893] radius 50
+
+	LighteningMeteorBroken = 0
+	DarknessMeteorBroken = 0
+	FireMeteorBroken = 0
+
+
+	// Create all the atmopheric conditions on Land4 and Open the Vortex
+	run background script VortexEntry(30, VortexPos, HomeTownL4, VortexPos, 20, 80, CreaturePos, NullVortexFlock)
+
+	run background script KeepCreatureAwayFromVortex(VortexPos)
+
+	run background script Land4MeteoritesLighteningMeteorEffect(LightningPos1)
+	run background script Land4MeteoritesLighteningMeteorEffect(LightningPos2)
+	run background script Land4MeteoritesLighteningMeteorEffect(LightningPos3)
+	run background script Land4MeteoritesLighteningMeteorEffect(LightningPos4)
+	run background script Land4MeteoritesLighteningMeteorEffect(LightningPos5)
+
+	run background script Land4MeteoritesDarknessMeteorEffect
+
+	run background script Land4MeteoritesFireMeteorEffect(FirePosStart, FirePos1, FirePos1, 50)
+	run background script Land4MeteoritesFireMeteorEffect(FirePosStart, FirePos2, AgressiveFirePos1, 100)
+	run background script Land4MeteoritesFireMeteorEffect(FirePosStart, FirePos3, FirePos3, 50)
+	run background script Land4MeteoritesFireMeteorEffect(FirePosStart, FirePos4, FirePos4, 50)
+	run background script Land4MeteoritesFireMeteorEffect(FirePosStart, FirePos5, AgressiveFirePos1, 50)
+	FireMeteorWaveActive=1
+	run background script Land4MeteoritesControl
+
+	build building at [L4CitadelPos] desire 1.0
+	L4Citadel = get CITADEL at [L4CitadelPos] radius 50
+	BUILT of L4Citadel = 0.8												// Setup all part built buildings
+
+	build building at [WorkshopPos] desire 0.9
+	WorkshopL4 = get HOUSE at [WorkshopPos] radius 10
+	BUILT of WorkshopL4 = 0.5
+
+	build building at [BigHousePos] desire 0.9
+	BigHouse = get HOUSE at [BigHousePos] radius 10
+	BUILT of BigHouse = 0.5
+
+	build building at [SmallHousePos] desire 0.9
+	SmallHouse = get HOUSE at [SmallHousePos] radius 10
+	BUILT of SmallHouse = 0.5
+
+	build building at [TownCentrePos] desire 0.9
+	L4HomeTownCentre = get HOUSE at [TownCentrePos] radius 10
+	BUILT of L4HomeTownCentre = 0.8
+
+	set HomeTownL4 desire boost TOWN_DESIRE_INFO_FOR_SLEEP -0.5
+	set HomeTownL4 desire boost TOWN_DESIRE_INFO_FOR_FOOD -0.2
+	
+	// Create a magic shield spell disp. and make it 50% built. Give one shot every 1 minute.
+	run background script GiveSpellDispenserReward(MagicShieldSpellDispenserPos, variable MAGIC_TYPE_SHIELD, 0.0, 1, 1*60)	
+	MagicShieldSpellDispenser = get SCRIPT_OBJECT_TYPE_SPELL_DISPENSER ABODE_INFO_NORSE_SPELL_DISPENSER	at [MagicShieldSpellDispenserPos] radius 10
+	BUILT of MagicShieldSpellDispenser = 0.5
+
+	if FullScript == 1
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_NEMESIS
+			set camera position to [VortexPos]								// Start camera in vortex
+			set camera focus to [VortexPos] + [1, -100, 1]
+
+			set fade in time 6
+
+			move camera position to [VortexPos] + [0, 65, 0] time 10		// Move camera out of vortex
+			move camera focus to [VortexPos] + [1, -15, 1] time 10
+
+			wait 8 seconds
+
+			move camera position to [2298.6279, 44.9834, 2628.6230] time 12
+			move camera focus to [2229.5483, 25.6929, 2670.4314] time 12
+
+			wait 14 seconds
+			wait until camera ready
+
+			move camera to T01_000 time 7
+			wait 5 seconds
+			eject evil spirit
+			eject good spirit
+			if LethysKilled == 0
+//				"Wow! Here we are."
+//				GA:	Wow! Here we are.
+				say HELP_TEXT_NEW_L4_INTRO_01
+				wait until read
+//				"I am so glad you didn't kill Lethys."
+//				GA:	You know, you did the right thing by sparing Lethys, Leader.
+				say HELP_TEXT_NEW_L4_INTRO_02
+				wait until read
+			else
+//				"Hey Boss! Here we are!"
+//				EA:	Hey Boss! Here we are!
+				say HELP_TEXT_NEW_L4_INTRO_03
+				wait until read
+//				"You killed Lethys! Thats cool!"
+//				EA:	You killed Lethys! Thats cool!
+/*				say HELP_TEXT_NEW_L4_INTRO_04
+				wait until read
+*/			end if 
+
+			wait until camera ready
+			camera path TRACK01
+			wait 3 seconds
+
+//			 "But!  What has happened to this land."
+//			GA:	Just look at the state of the place. 
+			say HELP_TEXT_NEW_L4_INTRO_05
+			wait 3 seconds
+			wait until read
+//			 "I don't know.  But it's GREAAATTTTT!"
+//			EA:	It's been utterly blasted. How cool is that?
+			say HELP_TEXT_NEW_L4_INTRO_06
+			wait 6 seconds
+			wait until read
+//			"It's not, it's horrible.  It used to be lovely and green and, well perfect."
+//			GA:	It's awful. It used to be green and pleasant.
+			say HELP_TEXT_NEW_L4_INTRO_07
+			wait 5 seconds
+			wait until read
+//			"What are you talking about.  We've never been here before you idiot."
+//			EA:	What? We've never been here before!
+			say HELP_TEXT_NEW_L4_INTRO_08
+			wait until read
+			wait 4 seconds
+//			"Of course we have.  Look, you must remember these gates..."
+//			GA:	We have, actually. You remember these?
+			say HELP_TEXT_NEW_L4_INTRO_09
+			make good spirit point at [Gates]
+			wait until read
+			wait 2 seconds
+			stop good spirit pointing
+			wait 3 seconds
+//			"...and look some of our buildings are still here."
+//			EA:	And I recall some of these buildings.					
+			say HELP_TEXT_NEW_L4_INTRO_10	// WRONG - should be GA speaking
+			wait until read
+			wait 2 seconds
+			make good spirit point at [L4Citadel]
+//			"And our Temple.  Though they are all a little worse for wear."
+//			GA:	And even our Temple. It's all rather damaged, though.
+			say HELP_TEXT_NEW_L4_INTRO_11
+			wait 3 seconds
+			wait until read
+			stop good spirit pointing
+//			"I hate to admit it, but you're right.  Still a much better ambiance I feel."
+//			EA:	Yeah. Still, the atmosphere's better now.
+			say HELP_TEXT_NEW_L4_INTRO_12	// WRONG - Change line to: Ok! You're right. Still the atmosphere's much better now.
+			wait until read					
+			wait 2 seconds
+			stop music
+		end cinema
+	end if
+
+	IntroFlybyFinished = 1
+
+end script BeginLand4
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script KeepCreatureAwayFromVortex(VortexPos)
+
+start
+
+	// Keep creature off vortex until it is closed
+	wait until VortexOpen == 1
+
+	while VortexOpen == 1
+		if MyCreature exists
+			force MyCreature CREATURE_POINT_AT_OBJECT VortexPos
+			wait until MyCreature played
+		end if
+	end while
+
+	release MyCreature
+
+end script KeepCreatureAwayFromVortex

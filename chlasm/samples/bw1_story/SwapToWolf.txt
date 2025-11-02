@@ -1,0 +1,94 @@
+challenge SWAP_TO_WOLF
+
+//run script SwapToWolf
+
+begin script SwapToWolf
+	
+	FlockPosition = marker at [1557.1013, 68.7561, 2270.8848]
+	Shepherd = create VILLAGER MALE at [FlockPosition] + [10,10]
+	Finished = 0
+	Sheep = 0
+	MagicWolf = 0
+	Wolf = 0
+	WolfPosition = 0
+	wolf_was_first_thing_picked_up = 1
+	Object = 0
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [FlockPosition]
+
+
+start
+
+	run script ChallengeHighlightNotify(Highlight, FlockPosition, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_32 StandardReminder(variable HELP_TEXT_REMINDER_30)
+	
+	Sheep = flock at [FlockPosition] 
+	set Sheep properties inner 10 outer 30
+	populate Sheep with 20 ANIMAL SHEEP
+	MagicWolf = create ANIMAL SHEEP at [FlockPosition]
+	attach MagicWolf to Sheep 
+
+	begin cinema
+		move camera position to [FlockPosition] + [-10,10,-10] time 4
+		move camera focus to [Shepherd] time 3
+		set Shepherd focus to camera position 
+		say HELP_TEXT_SWAP_TO_SHEEP_01
+		wait until read
+		eject evil spirit
+		say HELP_TEXT_SWAP_TO_SHEEP_02
+		wait until read
+		eject good spirit
+		say HELP_TEXT_SWAP_TO_SHEEP_03
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_04
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_05
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_06
+		wait until read
+		say HELP_TEXT_SWAP_TO_SHEEP_07
+		wait until read
+	end cinema 
+
+while Finished == 0
+
+	Object = get object held
+	if wolf_was_first_thing_picked_up == 1 and Object exists and (Object != MagicWolf)
+		wolf_was_first_thing_picked_up=0
+	end if
+
+	if MagicWolf is HELD
+		WolfPosition = marker at hand position
+		detach MagicWolf from Sheep
+		delete MagicWolf
+		Wolf = create CREATURE CREATURE_TYPE_WOLF at [WolfPosition]
+		begin cinema
+			if wolf_was_first_thing_picked_up == 1
+				say HELP_TEXT_SWAP_TO_SHEEP_13
+			end if
+			say HELP_TEXT_SWAP_TO_SHEEP_08
+			wait until read
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_SHEEP_09
+			wait until read
+			eject good spirit
+			say HELP_TEXT_SWAP_TO_SHEEP_10
+			wait until read
+			say HELP_TEXT_SWAP_TO_SHEEP_11
+			wait until read
+			say HELP_TEXT_SWAP_TO_SHEEP_12
+			wait until read
+		end cinema
+		Finished = 1
+	end if
+
+end while
+	
+	snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_32 StandardReminder(variable HELP_TEXT_REMINDER_30)
+
+	run background script SwapCreatures(Wolf)
+
+
+
+end script SwapToWolf
+

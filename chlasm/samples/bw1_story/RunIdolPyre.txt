@@ -1,0 +1,12 @@
+challenge RunIdolPyre
+
+run script RunIdolPyre
+
+begin script RunIdolPyre
+	
+start
+	
+	run script IdolPyreMain
+	
+
+end script RunIdolPyre

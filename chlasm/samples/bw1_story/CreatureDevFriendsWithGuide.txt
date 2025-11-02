@@ -1,0 +1,82 @@
+challenge CREATURE_DEV_FRIENDS_WITH_GUIDE
+
+ run script CreatureDevFriendsWithGuide
+
+
+begin script CreatureDevFriendsWithGuide
+
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1911.7795, 18.0900, 2533.7822]
+
+BeginPos = 0
+BeginFoc = 0
+
+Guide = 0
+GuidePos = marker at [2126.7410, 40.8700, 2653.0215]
+GuideSize = 0
+
+start
+
+	Guide = create_creature_from_creature MyCreature 1.0 at [GuidePos] CREATURE_TYPE_COW
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Guide = 1.8
+	teach Guide everything
+	set Guide DEVELOPMENT_PHASE_FULLY_MATURE development
+
+	begin cinema
+		eject good spirit
+		eject evil spirit
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+		force MyCreature CREATURE_LOOK_FOREVER Guide
+		force Guide CREATURE_LOOK_FOREVER MyCreature
+		Guide play C_INDIVIDUAL_ANGRY
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_01
+		wait until read
+		wait until Guide played
+		force Guide CREATURE_SMILE_AT_FRIEND MyCreature
+		wait until Guide played
+		force Guide CREATURE_WAVE_AT_OBJECT MyCreature
+		wait until Guide played
+		force MyCreature CREATURE_WAVE_AT_OBJECT Guide
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_02
+		wait until MyCreature played
+		wait until read
+		force MyCreature CREATURE_POINT_AT_OBJECT Guide
+		force Guide CREATURE_CAST_SMALL_ON_CREATURE Guide
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_03
+		move camera position to [Guide]+[40,30,40] time 4
+		move camera focus to [Guide] time 4
+		// SCALE of Guide = 0.4
+		GuideSize = SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of MyCreature * 1.7
+		wait until Guide played
+		force Guide CREATURE_SMILE_AT_FRIEND MyCreature
+		wait until SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Guide <  GuideSize
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Guide = GuideSize
+		make good spirit play across 0.2 down 0.8 ANIM_SCRATCHHEAD speed 1.0
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_04
+		force Friendly CREATURE_WAVE_AT_OBJECT MyCreature
+		force MyCreature CREATURE_WAVE_AT_OBJECT Friendly
+		wait until Friendly played
+		wait until MyCreature played
+		wait until read
+		make good spirit play across 0.2 down 0.8 ANIM_TRIUMPH speed 1.0
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_05
+		force Friendly CREATURE_KISS_FRIEND MyCreature
+		force MyCreature CREATURE_KISS_FRIEND Friendly
+		wait until Friendly played
+		wait until MyCreature played
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_FRIENDS_WITH_GUIDE_06
+		wait until read
+		set Guide only desire CREATURE_DESIRE_TO_BE_FRIENDS
+		send good spirit home
+		send evil spirit home
+	end cinema
+
+
+
+
+end script CreatureDevFriendsWithGuide

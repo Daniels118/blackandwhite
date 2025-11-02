@@ -1,0 +1,1061 @@
+challenge HERMIT_HUT
+
+// globals
+
+global HermitFinished
+global HermitSeedFound
+global HermitLastSeenPos
+global HermitHunting
+
+//------------------------------------------------------------------------------------------------------------------------
+// Checks where Hermit was last seen before not existing
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitLastSeen (Hermit, SoapBox)
+
+ ReturnerTimer = create timer for 0 seconds
+ OnTheMove = 0
+
+start
+	while Hermit exists and HEALTH of Hermit > 0
+		wait 1 second
+		wait until Hermit is not HELD
+		if Hermit in MyCreature hand
+			HermitLastSeenPos = 1
+		else
+			HermitLastSeenPos = marker at [Hermit]
+		end if
+
+		if dialogue ready and HermitHunting == 0 // checks that the Hermit is not acting or has been told to head into town
+			if [Hermit] not near [SoapBox] radius 75 and get ReturnerTimer time remaining <= 0
+				if Hermit is not FLYING and Hermit is not HELD and not Hermit in MyCreature hand and HEALTH of Hermit > 0
+					move Hermit position to [SoapBox]
+					set ReturnerTimer time to 10 seconds
+					OnTheMove =1
+				end if
+			elsif [Hermit] near [SoapBox] radius 15 and OnTheMove == 1
+				state Hermit WANDER_AROUND position [SoapBox]
+					float 6
+					ulong 4, 20
+				OnTheMove = 0
+			end if
+		end if
+	end while
+
+end script HermitLastSeen
+
+//------------------------------------------------------------------------------------------------------------------------
+// Hermit Killed
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitKilled (HermitHutPos,Hermit,AlignmentTotal)
+	BeginPos	=	0
+	BeginFoc	=	0
+	DeathCamera =	0
+
+start
+
+	if DeathCamera == 0
+
+		begin cinema
+
+			DeathCamera = 1
+			BeginPos = marker at camera position 
+			BeginFoc = marker at camera focus
+			eject good spirit
+			// text line needed
+			// "GS: You killed the Hermit! One of your finest moments. I'm so proud of you."
+			say single line HELP_TEXT_HERMIT_16
+			if Hermit exists
+				set camera focus follow Hermit
+				set	camera position follow Hermit
+				wait until read
+				send good spirit home
+				wait until Hermit is not FLYING
+
+				start music MUSIC_TYPE_SCRIPT_HERMIT
+
+				wait 5 seconds
+
+				stop music
+			elsif HermitLastSeenPos == 1
+				move camera to face MyCreature distance 15 time 2
+				move camera focus to [MyCreature] + [0,7,0]	 time 2
+				wait until read
+				send good spirit home
+				wait until camera ready
+
+				start music MUSIC_TYPE_SCRIPT_HERMIT
+
+				wait 5 seconds
+				stop music
+			else
+				move camera focus to [HermitLastSeenPos] time 3
+				move camera position to [HermitLastSeenPos]+[15,10,15] time 3
+				wait until read
+				send good spirit home
+				wait until camera ready
+
+				start music MUSIC_TYPE_SCRIPT_HERMIT
+				wait 5 seconds
+
+				stop music
+			end if
+
+			close dialogue
+			wait 0.1 seconds
+
+			//snapshot challenge of dead Hermit and alignment alteration
+			AlignmentTotal = AlignmentTotal - 0.6
+			snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_31)
+			move camera position to [BeginPos] time 3
+			move camera focus to [BeginFoc] time 3
+			wait until camera ready	
+
+		end cinema
+
+		HermitFinished = 1
+	end if
+end script HermitKilled
+
+//------------------------------------------------------------------------------------------------------------------------
+// Destroyed the hermits house
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitWardPact(HermitHutPos,Hermit,CauseOfWorship,SoapBox,HermitDead,AlignmentTotal,CamPosHermitSpeechStart,CamPosHermitSpeechEnd)
+
+	Granary = get SCRIPT_OBJECT_TYPE_ABODE at [1819.830, 28.140, 2645.601]
+	GranaryWood = 0
+	GranaryFood = 0
+	GranaryPos = marker at [1819.830, 28.140, 2645.601]
+	GranaryCamPos1 = marker at [1825.1012, 46.3187, 2712.0850]
+	GranaryCamPos2 = marker at [1793.4495, 50.8253, 2723.1594]
+	BeginPos	=	0
+	BeginFoc	=	0
+	EndLoop = 0
+	Reward1	= 0
+	HermitInf = 0
+	SFX = 0
+
+start
+
+	if CauseOfWorship != 4
+
+		disable Hermit pickup
+		wait until Hermit is not HELD
+		wait 1 second
+		enable Hermit pickup
+		enable Hermit moveable
+		disable Hermit indestructible
+
+		if HEALTH of Hermit > 0
+			begin cinema
+
+				start music MUSIC_TYPE_SCRIPT_HERMIT
+				enable Hermit high graphics detail
+				BeginPos = marker at camera position 
+				BeginFoc = marker at camera focus
+
+				wait until Hermit is not FLYING
+
+				// Errr. Him Ward Pacted. You gonna kill him?
+
+				move camera position to [Hermit] + [2,0,2] time 3				// Cam pos to hermit
+				move camera focus to [Hermit] + [0,0.5,0] time 3				// Cam foc follow hermit
+
+				set Hermit focus to camera position								// Hermit is gutted!
+				Hermit play ANM_P_STAND_DESPAIR_1 loop 1
+
+				// "Hermit: Argh. My beloved hut! Please stop, I believe in your power but for that I will never worship you! I'll give you this gesture if you promise to leave me alone"
+
+				say single line HELP_TEXT_HERMIT_11
+				wait until Hermit played 
+
+				Hermit play ANM_P_STAND_DESPAIR_2 loop 1
+
+				wait until read
+				close dialogue
+				wait until camera ready
+				wait until Hermit played 
+
+				Reward1 = reward REWARD_WATER at [Hermit] + [2,0,2] from sky	// Hermit Gives reward
+				run background script displayrewardhelp(Reward1)
+
+				close dialogue
+				wait 0.1 seconds
+
+				AlignmentTotal = AlignmentTotal - 0.4
+				snapshot challenge success 0.99 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_99)
+
+				move camera position to [Hermit] + [6.0,4,6.0] time 3			// Cam pos back off from gutted hermit
+				set Hermit focus to [1350.3199, 52.1004, 2394.9399]
+				Hermit play ANM_P_STAND_DESPAIR_1 loop 1
+
+				disable Hermit high graphics detail
+				stop music
+				HermitHunting = 1
+
+			end cinema with dialogue
+				eject evil spirit
+
+				// "ES: What! He expects you to let him live?!?"
+				say HELP_TEXT_HERMIT_12
+				wait until read
+				eject good spirit
+
+				// "GS: You can't kill him. You made a deal."
+				say HELP_TEXT_HERMIT_13
+				wait until read
+				send evil spirit home
+				send good spirit home
+
+			end dialogue
+		end if
+	end if
+
+	wait 2 seconds
+
+	if HEALTH of Hermit > 0
+		SPEED of Hermit = 0.1
+		move Hermit position to [HermitHutPos]										// Hermit walks to Hut
+		set Hermit anim ANM_P_WALK_DESPAIR_TO_1
+	end if
+
+	wait until [Hermit] at [HermitHutPos] or HEALTH of Hermit <= 0
+
+	if HEALTH of Hermit > 0
+		Hermit play ANM_P_STAND_DESPAIR_2 loop 1
+	end if
+
+	wait until 10 seconds or HEALTH of Hermit <= 0
+
+	// The Hermit is pissed off, so he is gonna torch your storage pit...
+
+	if HEALTH of Hermit > 0
+		SPEED of Hermit = 0.5
+		move Hermit position to [GranaryPos]
+	end if
+
+	wait until [Hermit] at [GranaryPos] or HEALTH of Hermit <= 0
+
+	wait until ((camera position near [GranaryPos] radius 100) and (Granary viewed)) or HEALTH of Hermit <= 0
+
+	if HEALTH of Hermit > 0
+
+		begin cinema
+
+			start music MUSIC_TYPE_SCRIPT_HERMIT
+			BeginPos = marker at camera position 
+			BeginFoc = marker at camera focus
+
+
+			move camera position to [1818.748, 29.517, 2643.861] time 4			// Camera pos inside storage pit
+			move camera focus to [1821.010, 28.996, 2646.200] time 4			// Camera foc look at hermit
+
+			eject evil spirit
+
+			// "ES: That sneaky Hermit is destroying all the resources in your storage pit!"
+
+			say HELP_TEXT_HERMIT_14
+			make good spirit point to Granary
+
+			Hermit play ANM_P_LOOKING_FOR_SOMETHING loop 1
+			wait 3  seconds
+			set Hermit focus to camera position
+			Hermit play ANM_P_ARSONIST loop 1									// Hermit sets fire to pit
+			wait 2 seconds
+
+			move camera position to [1818.748, 39.517, 2643.861] time 2			// Move camera pos out of storage pit
+
+			wait until read
+			
+			// create magical effect from hermit to granary
+
+			wait until Hermit played
+			move camera position to [1816.225, 28.995, 2662.940] time 4			// Camera pos outside storage pit
+			move camera focus to [1818.190, 29.106, 2659.815] time 4			// Camera foc outside storage pit
+
+			SPEED of Hermit = 0.3
+
+			move Hermit position to [1819.892, 28.132, 2655.577]				// Hermit exits storage pit
+			wait until [Hermit] near [1819.892, 28.132, 2655.577] radius 3
+
+			move Hermit position to [1818.187, 28.109, 2661.375]				// Hermit moves to dance position 
+
+			eject good spirit
+
+			// "GS: Well you did destroy everything he owned. You deserved it."
+
+			say HELP_TEXT_HERMIT_15
+			send evil spirit home
+			send good spirit home
+
+			wait 3 seconds
+			enable Granary on fire 0.3
+
+			wait until [Hermit] near [1818.187, 28.109, 2661.375] radius 3
+			set Hermit focus to [Granary]
+
+			move camera position to [1816.225, 32.995, 2662.940] time 8			// Camera pos move up on storage pit
+			move camera focus to [1818.190, 32.106, 2659.815] time 8			// Camera foc move up on storage pit
+
+			Hermit play ANM_P_DANCE_PISS_TAKE_ loop 2							// Hermit dancing round fire
+			wait until read
+			// "Who's your daddy?"
+			say single line HELP_TEXT_HERMIT_30
+
+			wait until read
+
+			move Hermit position to [HermitHutPos]								// Hermit goes back to his house
+
+			move camera position to [BeginPos] time 3
+			move camera focus to [BeginFoc] time 3
+			wait until camera ready
+			stop music
+
+		end cinema
+	end if
+
+	// Hermit heads to remains of hut and stays there eternally
+	wait until [Hermit] at [HermitHutPos] or HEALTH of Hermit <= 0
+	wait until ((camera position not near [Hermit]) and ([Hermit] not viewed)) or HEALTH of Hermit <= 0
+
+	if HEALTH of Hermit > 0
+		HermitFinished = 3
+		delete Hermit with fade
+		update snapshot success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_99)
+	end if
+	
+	if HEALTH of Hermit <= 0 and HermitFinished == 0
+		HermitDead = 1
+		HermitFinished = 2
+		run script HermitKilled (HermitHutPos,Hermit,AlignmentTotal)
+	end if
+
+end script HermitWardPact
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Hermit Worship
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitWorshipping (HermitHutPos,Hermit,CauseOfWorship,SoapBox,HermitDead,CamPosHermitSpeechStart,CamPosHermitSpeechEnd,AlignmentTotal,Rock,RockPos)
+
+
+	HermitHut = get SCRIPT_OBJECT_TYPE_ABODE at [1350.3199, 52.1004, 2394.9399]
+	BeginPos	=	0
+	BeginFoc	=	0
+	HermitInf=0
+	HutInf=0
+	SFX=0
+	SpellCast = 0
+	CreatureSpell = 0
+	SpellRadiusTick = 0
+	HermitNearlyImpressed = 0
+	BottomOfTheHill = marker at [1395.2540, 39.3337, 2440.9976]
+	SpellSeed = 0
+	RewardPos = marker at [1351.983, 54.270, 2407.306]
+
+start
+
+	MyCreature = get player 1 creature
+	
+	HEALTH of HermitHut = 1.0
+
+	begin cinema
+
+		start music MUSIC_TYPE_SCRIPT_HERMIT
+		force MyCreature CREATURE_IDLE MyCreature
+		detach MyCreature leash
+
+		BeginPos = marker at camera position 
+		BeginFoc = marker at camera focus
+
+		move MyCreature position to [1363.148, 53.726, 2399.396]
+		move Hermit position to [SoapBox]
+		wait until [Hermit] at [SoapBox]
+		wait until [MyCreature] near [1363.148, 53.726, 2399.396] radius 0.5  
+
+		set Hermit focus to [MyCreature]
+		set MyCreature focus to [Hermit]
+		start sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		
+		move camera position to [1355.391, 55.429, 2409.324] time 4		// Pos zoom Hermit as he talks
+		move camera focus to [1352.889, 54.505, 2403.202] time 4	 	// Foc zoom on Hermit as he talks
+
+		wait 2.5 seconds
+		stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		// "Hermit: That is a huge creature! I'm with you boss."
+		Hermit play ANM_P_PRAY loop 3
+		say single line HELP_TEXT_HERMIT_17
+		wait 4 seconds
+					
+		move camera focus to [MyCreature] + [0,1,0] time 1				// Cam foc look at creature
+		set MyCreature focus to camera position
+		wait until camera ready
+
+		move camera position to [1355.391, 55.429, 2409.324] time 1		// Cam pos move on creature
+		move camera focus to [MyCreature]  + [0,10,0] time 1.5			// Cam foc move on creature
+
+		MyCreature play C_INDIVIDUAL_SUMMON loop 1
+		wait 3 seconds
+
+		// Hermit tells you about a spell seeds hidden under a rock
+		
+		if HermitSeedFound == 0
+
+			move camera position to [1355.391, 55.429, 2409.324] time 1		// Pos back to Hermit as he talks
+			move camera focus to [1352.889, 54.505, 2403.202] time 1	 	// Foc back to Hermit as he talks
+
+			// "Hermit: I saw a firefly hide under this rock at dawn. They are magical beings these fireflies."
+			set Hermit focus to [RockPos]
+			Hermit play ANM_P_TALKING_AND_POINTING loop 1
+			say HELP_TEXT_HERMIT_21
+			move camera focus to [RockPos] time 4							// Cam foc look at rock
+			wait 3 seconds
+			move camera position to	[1355.391, 115.429, 2409.324] time 8		// Cam pos move up to see rock
+			wait until read
+			
+			move camera position to [RockPos]+[5,6,5] time 3				// Cam pos zoom to rock
+			move camera focus to [RockPos] time 3							// Cam foc zoom to rock
+
+			// "Hermit: Being so big and strong I bet your creature can move that rock and see if it's still there."
+			say HELP_TEXT_HERMIT_22 
+			wait until read
+
+			move camera position to [RockPos]+[5,3,5] time 6				// Cam pos move down while on rock
+
+			// "Move the rock"
+			say HELP_TEXT_HERMIT_23 with interaction
+			wait until read
+
+			close dialogue
+			wait 0.1 seconds
+
+			AlignmentTotal = AlignmentTotal + 0.4
+			snapshot challenge success 0.6 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_98)
+			wait until Hermit played
+			state Hermit WANDER_AROUND position [SoapBox]
+				float 6
+				ulong 4, 20
+			wait until read
+		else
+			close dialogue
+			wait 2 seconds
+			snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_98)
+		end if
+
+		run background script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_WATER, 90, 0, 0)
+		WaterMiracleAvailable = 1
+
+		wait until camera ready
+
+		if HermitSeedFound == 0
+			move camera position to [RockPos]+[10,15,10] time 3
+		end if
+
+		wait 1.5 seconds
+
+		HermitInf=create influence on Hermit radius 4
+		HutInf=create influence on HermitHut radius 20
+		release HermitInf
+		release HutInf
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+		release MyCreature
+		MyCreature = get player 1 creature
+		stop music
+
+	end cinema
+
+	wait until HermitSeedFound == 1 or HEALTH of Hermit <= 0
+
+	// This is the dodgy screenshot at the end of the script if you have picked the rock up
+	update snapshot success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_31)
+
+	if HEALTH of Hermit > 0
+		move Hermit position to [HermitHut]
+		wait until [Hermit] near [HermitHut] radius 2 or HEALTH of Hermit <= 0
+	end if
+	
+//	wait until [Hermit] not viewed or HEALTH of Hermit <= 0
+
+	if HEALTH of Hermit <= 0
+		HermitFinished = 2
+		run script HermitKilled (HermitHutPos,Hermit,AlignmentTotal)		
+	else
+		HermitFinished = 2
+		delete Hermit
+	end if
+
+end script HermitWorshipping
+
+//------------------------------------------------------------------------------------------------------------------------
+// Hermit Seed Hidden
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitSeedHidden (Rock,RockPos,Hermit,HermitHut,BottomOfTheHill,SoapBox)
+
+SpellSeed = 0
+SeedEffect = 0
+BeginPos = 0
+BeginFoc = 0
+CamPosHermitSpeechEnd	=	marker at [1365.7275, 55.0349, 2411.4519]
+
+start
+	MyCreature = get player 1 creature
+
+	while HermitSeedFound == 0
+		if [Rock] not near [RockPos] radius 5 or Rock is HELD or Rock in MyCreature hand
+			SpellSeed = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_CREATURE_SPELL_STRONG at [RockPos]
+			SeedEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [SpellSeed] time 10
+			if HEALTH of Hermit > 0 and [Hermit] near [SoapBox] radius 50
+
+				begin cinema
+
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					if [MyCreature] near [RockPos] radius 30
+						move MyCreature position to [BottomOfTheHill]
+					end if
+					move Hermit position to [SoapBox]
+
+					move camera position to [RockPos]+[10,6,10] time 4
+					move camera focus to [RockPos] time 3
+
+					wait until camera ready
+					eject good spirit
+					// "GA: Nice one. It's a spell seed."
+					say HELP_TEXT_HERMIT_24
+					wait until read
+
+					move camera position to [RockPos]+[10,40,10] time 4
+					move camera focus to [SoapBox] time 3
+
+					wait 3 seconds
+
+					move camera position to [CamPosHermitSpeechEnd] time 4
+
+					set Hermit focus to [CamPosHermitSpeechEnd]
+					// The fireflies hide at dawn
+
+					Hermit play ANM_P_GOSSIP_MAN loop 1
+					say HELP_TEXT_HERMIT_25
+					wait until read
+					wait 2 seconds
+
+					move camera position to [BeginPos] time 4
+					move camera focus to [BeginFoc] time 3
+
+					// "GA: I see. Let's keep an eye out for them."
+					say HELP_TEXT_HERMIT_26
+					wait until read
+					send good spirit home
+					wait until camera ready
+					state Hermit WANDER_AROUND position [SoapBox]
+						float 6
+						ulong 4, 20
+					release MyCreature
+					MyCreature = get player 1 creature
+				end cinema
+			else
+
+				begin cinema
+
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					if [MyCreature] near [RockPos] radius 100
+						move MyCreature position to [BottomOfTheHill]
+					end if
+
+					move camera position to [RockPos]+[20,17,20] time 4
+					move camera focus to [RockPos] time 3
+
+					eject good spirit
+					wait until camera ready
+ 					// "GA:Oooh it's a fairy spell seed."
+					say HELP_TEXT_HERMIT_27
+					wait until read
+
+					move camera position to [RockPos]+[10,7,10] time 8
+
+					eject evil spirit
+					// "EA: Fireflies hide under rocks at dawn."
+					say HELP_TEXT_HERMIT_28
+					wait until read
+					// "GA: Let's keep an eye out for them then."
+					say HELP_TEXT_HERMIT_29
+					wait until read
+					send evil spirit home
+					send good spirit home
+					wait until camera ready
+
+					move camera position to [BeginPos] time 3
+					move camera focus to [BeginFoc] time 3
+
+					wait until camera ready
+					release MyCreature
+					MyCreature = get player 1 creature
+				end cinema
+			end if
+			HermitSeedFound = 1
+		end if
+	end while
+
+end script HermitSeedHidden
+
+//------------------------------------------------------------------------------------------------------------------------
+// Main Hermit script
+//------------------------------------------------------------------------------------------------------------------------
+begin script HermitMain
+	//local variables
+
+	HermitHut = get SCRIPT_OBJECT_TYPE_ABODE at [1350.3199, 52.1004, 2394.9399]
+	HermitHutPos = marker at [HermitHut]
+	SoapBox = marker at [1354.4812, 52.7416, 2406.9570]
+	ExitHutPos = marker at [1356.3799, 52.9300, 2400.1943]
+	BeginPos	=	0
+	BeginFoc	=	0
+	HermitRadiusCount		= 0
+
+	CamPosHermitSpeechStart	= marker at [1355.439, 55.498, 2412.270]
+	CamPosHermitSpeechEnd	= marker at [1356.409, 40.408, 2410.084]
+	CamPosHermitSpeechEnd2	= marker at [1359.7881, 59.9437, 2421.6702]
+	CamPosHermitSpeechEnd3	= marker at [1386.5974, 66.9728, 2417.2732]
+	CamPosHermitSpeechEnd4	= marker at [1408.1111, 86.1582, 2464.4387]
+
+	SpellExistsInRadius	=	0
+	CauseOfWorship	=	0	// 1 = By Spell, 2 = By Creature, 3 = Ward Pact
+	HermitDead = 0
+	Hermit=0
+	CreatureScale=0
+	HutDestroyed = 0
+	CreatureTaunt1 = 0
+	CreatureTaunt2 = 0
+	AlignmentTotal = 0
+	Highlight = 0
+	Campfire = 0
+	CampFirePos = marker at [1357.4812, 52.7416, 2408.9570]
+	RockPos = marker at [1378.6321, 62.9800, 2288.3840] 
+	Rock = 0
+	BottomOfTheHill = marker at [1395.2540, 39.3337, 2440.9976]
+	DidYouKnowPos = marker at [RockPos]+[2.5, 0, 2.5]
+	
+start
+
+	MyCreature = get player 1 creature
+	wait 5 seconds
+	
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HermitHut]
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [CampFirePos]
+
+	run script ChallengeHighlightNotify(Highlight, HermitHut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_05)
+
+	Rock = create OBJECT ROCK at [RockPos]
+	RockPos = marker at [Rock]
+
+	run background script DidYouKnow(DidYouKnowPos, variable HELP_TEXT_DYK_14, variable DYK_CREATURE)			// creature gets stronger by picking up rocks
+
+
+	HEALTH of HermitHut = 1.0	
+
+	if HermitFinished == 0
+		Hermit = create SCRIPT_OBJECT_TYPE_VILLAGER HERMIT at [HermitHutPos]								  
+		run background script HermitLastSeen (Hermit, SoapBox)
+
+		if [Rock] near [RockPos] radius 5
+			run background script HermitSeedHidden (Rock, RockPos,Hermit,HermitHut,BottomOfTheHill,SoapBox)
+		end if
+
+		disable Hermit pickup
+		disable Hermit moveable
+		enable Hermit indestructible
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_HERMIT
+
+			BeginPos = marker at camera position								 
+			BeginFoc = marker at camera focus
+
+			move Hermit position to [ExitHutPos]							// Hermit leaves his abode
+
+			set camera focus follow Hermit									// Camera foc follow hermit
+			move camera position to [1357.117, 56.395, 2412.443] time 7		// Camera pos look at hermit
+
+			wait until [Hermit] near [ExitHutPos] radius 3
+			enable Hermit high graphics detail
+
+			move Hermit position to [SoapBox]							
+
+			wait until [Hermit] near [SoapBox]
+			wait until camera ready
+
+			move camera position to [1355.391, 55.429, 2409.324] time 1		// Pos zoom Hermit as he talks
+			move camera focus to [1352.889, 54.505, 2403.202] time 1	 	// Foc zoom on Hermit as he talks
+
+			// Hermit says" I ain't impressed one bit, prove yourself buddy...."
+
+			set Hermit focus to camera position
+
+			move camera focus to [1352.889, 56.0, 2403.202] time 35			// Foc move on Hermit as he talks
+
+			Hermit play ANM_P_GOSSIP_MAN loop 1
+			say HELP_TEXT_HERMIT_01
+			wait until read
+
+			Hermit play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+			say HELP_TEXT_HERMIT_02
+			wait until read
+
+			Hermit play ANM_P_GOSSIP_MAN loop 1
+			say HELP_TEXT_HERMIT_03
+			wait until read
+
+			move camera position to [1355.041, 55.278, 2408.461] time 1		// Pos zoom Hermit real close
+			move camera focus to [1352.743, 55.702, 2402.220] time 1		// Foc zoom Hermit real close
+
+			Hermit play ANM_P_CROWD_UNIMPRESSED_2 loop 1
+			say HELP_TEXT_HERMIT_04
+
+			move camera focus to [1352.743, 56.702, 2402.220] time 8		// Foc move on Hermit as he talks
+
+			wait until read
+
+			close dialogue
+
+			wait 0.1 seconds
+
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_33 StandardReminder(variable HELP_TEXT_REMINDER_31)
+			state Hermit WANDER_AROUND position [SoapBox]
+				float 6
+				ulong 4, 20
+			move camera position to [BeginPos] time 3						// Cam pos back to player pos
+			move camera focus to [BeginFoc] time 3							// Cam foc back to player pos
+
+			wait until camera ready
+			stop music 
+		end cinema with dialogue
+			eject good spirit
+			eject evil spirit
+			say HELP_TEXT_HERMIT_05
+			wait until read
+			say HELP_TEXT_HERMIT_06
+			wait until read
+			say HELP_TEXT_HERMIT_07
+			wait until read
+			say HELP_TEXT_HERMIT_08
+			wait until read
+			// "GS: Show him your creature. The creature is your most powerful ally."
+			// "ES: Nah. Kill him or better yet destroy that hut he loves so much then he'll bow down before your power."
+			send good spirit home
+			send evil spirit home
+
+		end dialogue
+
+		enable Hermit pickup
+		enable Hermit moveable
+		disable Hermit indestructible
+		
+		while HermitFinished == 0
+
+			HermitRadiusCount++
+  		
+
+			if HermitRadiusCount > 30
+				CreatureScale = SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of MyCreature
+				HermitRadiusCount=0
+
+				if [MyCreature] near [Hermit] radius 50 and [Hermit] near [SoapBox] radius 50 and CreatureScale > 0.4 and Hermit is not HELD and Hermit is not FLYING and not Hermit in MyCreature hand
+					CauseOfWorship = 2
+					disable Hermit pickup
+					disable Hermit moveable
+					enable Hermit indestructible
+					run script HermitWorshipping (HermitHutPos,Hermit,CauseOfWorship,SoapBox,HermitDead,CamPosHermitSpeechStart,CamPosHermitSpeechEnd,AlignmentTotal, Rock, RockPos)
+					enable Hermit pickup
+					enable Hermit moveable
+					disable Hermit indestructible
+					HermitFinished = 1
+				end if
+				
+				//------------------------------------------------------------------------------------------------------------------------
+				// Hermit mocks any really weak creature that shows up.
+				//------------------------------------------------------------------------------------------------------------------------
+				if [MyCreature] near [Hermit] radius 15 and [Hermit] near [SoapBox] radius 50 and CreatureScale < 0.2 and CreatureTaunt1 == 0 and Hermit is not HELD and Hermit is not FLYING and not Hermit in MyCreature hand
+					CreatureTaunt1 = 1
+
+					disable Hermit pickup
+					disable Hermit moveable
+					enable Hermit indestructible
+
+					begin cinema
+						start music MUSIC_TYPE_SCRIPT_HERMIT
+						force MyCreature CREATURE_IDLE MyCreature
+						detach MyCreature leash
+
+						BeginPos = marker at camera position 
+						BeginFoc = marker at camera focus
+
+						move MyCreature position to [1363.148, 53.726, 2399.396]
+						move Hermit position to [SoapBox]
+						wait until [Hermit] at [SoapBox] or 5 seconds
+						wait until [MyCreature] near [1363.148, 53.726, 2399.396] radius 0.5  
+
+						set Hermit focus to [MyCreature]
+						set MyCreature focus to [Hermit]
+						start sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+						move camera position to [1355.391, 55.429, 2409.324] time 4		// Pos zoom Hermit as he talks
+						move camera focus to [1352.889, 54.505, 2403.202] time 4	 	// Foc zoom on Hermit as he talks
+
+						wait 2.5 seconds
+						stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+						// "Hermit: Pah! What the 'ell is that? My mother was more terrifying. It'll have to grow a lot more to impress me"
+						Hermit play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+						say single line HELP_TEXT_HERMIT_09
+						wait 4 seconds
+					
+						move camera focus to [MyCreature] + [0,1,0] time 1				// Cam foc look at creature
+						set MyCreature focus to camera position
+						wait until camera ready
+
+						move camera position to [1355.391, 55.429, 2409.324] time 3		// Cam pos move on creature
+						move camera focus to [MyCreature]  + [0,3,0] time 3				// Cam foc move on creature
+
+						MyCreature play C_INDIVIDUAL_SAD loop 1
+						wait 3 seconds
+
+						move camera position to [BeginPos] time 3
+						move camera focus to [BeginFoc] time 3
+
+						wait until camera ready
+						state Hermit WANDER_AROUND position [SoapBox]
+							float 6
+							ulong 4, 20
+						release MyCreature
+						MyCreature = get player 1 creature
+						stop music
+
+					end cinema
+
+					enable Hermit pickup
+					enable Hermit moveable
+					disable Hermit indestructible
+
+				end if
+
+				if [MyCreature] not near [Hermit] radius 50 and CreatureTaunt1 == 1
+					CreatureTaunt1 = 2
+				end if
+
+				if [MyCreature] near [Hermit] radius 15 and [Hermit] near [SoapBox] radius 50 and CreatureScale < 0.2 and CreatureTaunt1 == 2 and Hermit is not HELD and Hermit is not FLYING and not Hermit in MyCreature hand
+					CreatureTaunt1 = 3
+
+					disable Hermit pickup
+					disable Hermit moveable
+					enable Hermit indestructible
+
+					begin cinema
+
+						start music MUSIC_TYPE_SCRIPT_HERMIT
+						force MyCreature CREATURE_IDLE MyCreature
+						detach MyCreature leash
+
+						BeginPos = marker at camera position 
+						BeginFoc = marker at camera focus
+
+						move MyCreature position to [1363.148, 53.726, 2399.396]
+						move Hermit position to [SoapBox]
+						wait until [Hermit] at [SoapBox] or 5 seconds
+						wait until [MyCreature] near [1363.148, 53.726, 2399.396] radius 0.5 or 5 seconds 
+
+						set Hermit focus to [MyCreature]
+						set MyCreature focus to [Hermit]
+
+						move camera position to [1355.391, 55.429, 2409.324] time 4		// Pos zoom Hermit as he talks
+						move camera focus to [1352.889, 54.505, 2403.202] time 4	 	// Foc zoom on Hermit as he talks
+
+						// "Hermit: It's not grown since I last saw it!"
+						Hermit play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+						say single line HELP_TEXT_HERMIT_20
+
+						wait 4 seconds
+					
+						move camera focus to [MyCreature] + [0,1,0] time 1				// Cam foc look at creature
+						set MyCreature focus to camera position
+						wait until camera ready
+
+						move camera position to [1355.391, 55.429, 2409.324] time 3		// Cam pos move on creature
+						move camera focus to [MyCreature]  + [0,3,0] time 3				// Cam foc move on creature
+
+						MyCreature play C_INDIVIDUAL_IMPRESS loop 1
+						wait 3 seconds
+
+						move camera position to [BeginPos] time 3
+						move camera focus to [BeginFoc] time 3
+
+						wait until camera ready
+						state Hermit WANDER_AROUND position [SoapBox]
+							float 6
+							ulong 4, 20
+						release MyCreature
+						MyCreature = get player 1 creature
+						stop music
+
+					end cinema
+
+					enable Hermit pickup
+					enable Hermit moveable
+					disable Hermit indestructible
+
+				end if
+
+				//------------------------------------------------------------------------------------------------------------------------
+				// Hermit mocks average sized creature
+				//------------------------------------------------------------------------------------------------------------------------
+
+				if [MyCreature] near [Hermit] radius 15 and [Hermit] near [SoapBox] radius 50 and CreatureScale < 0.4 and CreatureScale > 0.2 and CreatureTaunt2 == 0 and Hermit is not HELD and Hermit is not FLYING and not Hermit in MyCreature hand
+					CreatureTaunt2 = 1
+
+					disable Hermit pickup
+					disable Hermit moveable
+					enable Hermit indestructible
+
+					begin cinema
+
+						start music MUSIC_TYPE_SCRIPT_HERMIT
+						force MyCreature CREATURE_IDLE MyCreature
+						detach MyCreature leash
+
+						BeginPos = marker at camera position 
+						BeginFoc = marker at camera focus
+
+						move MyCreature position to [1363.148, 53.726, 2399.396]
+						move Hermit position to [SoapBox]
+						wait until [Hermit] at [SoapBox] or 5 seconds
+						wait until [MyCreature] near [1363.148, 53.726, 2399.396] radius 0.5 or 5 seconds 
+
+						set Hermit focus to [MyCreature]
+						set MyCreature focus to [Hermit]
+
+						move camera position to [1355.391, 55.429, 2409.324] time 4		// Pos zoom Hermit as he talks
+						move camera focus to [1352.889, 54.505, 2403.202] time 4	 	// Foc zoom on Hermit as he talks
+
+						// "Hermit: That creature may be an ally but he ain't very big. Maybe when it grows up a bit more."
+						Hermit play ANM_P_CROWD_UNIMPRESSED_2 loop 1
+						say single line HELP_TEXT_HERMIT_10
+
+						wait 4 seconds
+					
+						move camera focus to [MyCreature] + [0,1,0] time 1				// Cam foc look at creature
+						set MyCreature focus to camera position
+						wait until camera ready
+
+						move camera position to [1355.391, 55.429, 2409.324] time 3		// Cam pos move on creature
+						move camera focus to [MyCreature]  + [0,6,0] time 3				// Cam foc move on creature
+
+						MyCreature play C_INDIVIDUAL_EMBARRASSED loop 1
+						wait 3 seconds
+
+						move camera position to [BeginPos] time 3
+						move camera focus to [BeginFoc] time 3
+
+						wait until camera ready
+						state Hermit WANDER_AROUND position [SoapBox]
+							float 6
+							ulong 4, 20
+						release MyCreature
+						MyCreature = get player 1 creature
+						stop music
+
+					end cinema
+
+					enable Hermit pickup
+					enable Hermit moveable
+					disable Hermit indestructible
+
+				end if
+
+				if [MyCreature] not near [Hermit] radius 50 and CreatureTaunt2 == 1
+					CreatureTaunt2 = 2
+				end if
+
+				if [MyCreature] near [Hermit] radius 30 and [Hermit] near [SoapBox] radius 50 and CreatureScale < 0.4 and CreatureScale > 0.2 and CreatureTaunt2 == 2 and Hermit is not HELD and Hermit is not FLYING and not Hermit in MyCreature hand
+					CreatureTaunt2 = 3
+
+					disable Hermit pickup
+					disable Hermit moveable
+					enable Hermit indestructible
+
+					begin cinema
+
+						start music MUSIC_TYPE_SCRIPT_HERMIT
+						force MyCreature CREATURE_IDLE MyCreature
+						detach MyCreature leash
+
+						BeginPos = marker at camera position 
+						BeginFoc = marker at camera focus
+
+						move MyCreature position to [1363.148, 53.726, 2399.396]
+						move Hermit position to [SoapBox]
+						wait until [Hermit] at [SoapBox] or 5 seconds
+						wait until [MyCreature] near [1363.148, 53.726, 2399.396] radius 0.5 or 5 seconds 
+
+						set Hermit focus to [MyCreature]
+						set MyCreature focus to [Hermit]
+
+						move camera position to [1355.391, 55.429, 2409.324] time 4		// Pos zoom Hermit as he talks
+						move camera focus to [1352.889, 54.505, 2403.202] time 4	 	// Foc zoom on Hermit as he talks
+
+						// "Hermit: It's not grown since I last saw it!"
+						Hermit play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+						say single line HELP_TEXT_HERMIT_20
+
+						wait 4 seconds
+					
+						move camera focus to [MyCreature] + [0,1,0] time 1				// Cam foc look at creature
+						set MyCreature focus to camera position
+						wait until camera ready
+
+						move camera position to [1355.391, 55.429, 2409.324] time 3		// Cam pos move on creature
+						move camera focus to [MyCreature]  + [0,6,0] time 3				// Cam foc move on creature
+
+						MyCreature play C_INDIVIDUAL_ANGRY loop 1
+						wait 3 seconds
+
+						move camera position to [BeginPos] time 3
+						move camera focus to [BeginFoc] time 3
+
+						wait until camera ready
+						state Hermit WANDER_AROUND position [SoapBox]
+							float 6
+							ulong 4, 20
+						release MyCreature
+						MyCreature = get player 1 creature
+
+						stop music
+
+					end cinema
+
+					enable Hermit pickup
+					enable Hermit moveable
+					disable Hermit indestructible
+
+				end if
+
+			end if
+
+			until ((Hermit not exists) or (HEALTH of Hermit <= 0)) and HermitFinished == 0 and dialogue ready
+				HermitDead = 1
+				HermitFinished = 1
+				run script HermitKilled (HermitHutPos,Hermit, AlignmentTotal)
+
+			// He gives you the gesture in return for you leaving him in peace.
+			until SCRIPT_OBJECT_PROPERTY_TYPE_HEALTH of HermitHut < 1 and SCRIPT_OBJECT_PROPERTY_TYPE_HEALTH of Hermit > 0 and dialogue ready
+				CauseOfWorship = 3
+				run script HermitWardPact (HermitHutPos,Hermit,CauseOfWorship,SoapBox,HermitDead,AlignmentTotal,CamPosHermitSpeechStart,CamPosHermitSpeechEnd)
+				HermitFinished = 1
+		end while
+	end if
+
+
+end script HermitMain

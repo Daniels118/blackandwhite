@@ -1,0 +1,2115 @@
+challenge TUTORIAL_LAND
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+global GuidePosReached
+global RotateTalkDone
+global HelperRotateTalkDone		
+global TiltTalkDone 
+global GuideWalking 
+global TutorialLevel
+global OneOffLevel
+global Restart
+global RoundRestart
+global UpDownRestart
+global ValleyRestart
+global ZoomRestart
+global TeddyRestart
+global ClickRestart
+
+global RoundScroll
+global UpDownScroll
+global ValleyScroll
+global ZoomScroll
+global TeddyScroll
+global ClickScroll
+
+global Teddy1
+global Teddy2
+global Teddy3
+global Teddy4
+global Teddy5
+
+global LastScript
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script StopAllLand0Scripts
+start
+		
+	stop script "MoveAroundMountain"
+	stop script "MoveUpAndDownMountain"
+	stop script "MoveDownValley"
+	stop script "ZoomInAndOut"
+	stop script "PickupTeddyBears"
+	stop script "DoubleClicking"
+
+	set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+
+end script StopAllLand0Scripts
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Double Click Practice
+//------------------------------------------------------------------------------------------------------------------------
+begin script DoubleClicking (TutorialGuide, UseScroll)
+
+ IslandPos = marker at [1568.0615, 119.1239, 3194.0161]
+ GuidePos = marker at [2068.9971, 145.3586, 2254.2192]
+
+ StartViewPos = marker at [2071.6099, 148.9160, 2249.8677]
+ StartViewFoc = marker at [2068.6453, 145.5037, 2255.2427]
+
+ ReturnViewPos = marker at [1564.2258, 122.8305, 3202.0798]
+ ReturnViewFoc = marker at [1776.5254, 0.2446, 2775.0461]
+
+ IslandViewPos = marker at [1768.1761, 127.3128, 2879.4348]
+ IslandViewFoc = marker at [1637.2448, 31.4324, 3116.5825]
+ Spangle = 0
+ ReminderTimer = create timer for 0 seconds
+ SnowyViewPos = marker at [1950.6650, 160.5408, 2425.3474]
+ SnowyViewFoc = marker at [2042.7114, 135.1740, 2272.5320]
+ DoubleClickUsed = 0
+ TotalEvent = 0
+ TotalEventTwo = 0
+
+ ScrollPos = marker at [2079.995, 144.053, 2251.899] 
+
+start
+	LastScript=6
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+	if (UseScroll == 1)
+		ClickScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		run script ChallengeHighlightNotify(ClickScroll, ScrollPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+		
+		run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+		stop script "MoveAroundMountain"
+		stop script "MoveUpAndDownMountain"
+		stop script "MoveDownValley"
+		stop script "ZoomInAndOut"
+		stop script "PickupTeddyBears"
+		//stop script "DoubleClicking"
+
+		RoundRestart = 2
+		UpDownRestart = 2 
+		ValleyRestart = 2
+		ZoomRestart = 2
+		TeddyRestart = 2
+		//ClickRestart = 2
+
+		
+	end if
+	
+
+	
+
+	begin cinema
+		//fade out
+		set fade red 0 green 0 blue 0 time 1   
+		set camera position to [StartViewPos]
+		set camera focus to [GuidePos]
+		set TutorialGuide position to [GuidePos]
+		set TutorialGuide focus to [StartViewPos]
+		enable TutorialGuide high graphics detail
+		//fade in
+		set fade in time 1
+		say HELP_TEXT_TUTORIAL_LAND_95
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_96
+		wait until read
+		move camera focus to [IslandViewFoc] time 6
+		wait 2 seconds
+		move camera position to [IslandViewPos] time 3
+		move camera focus to [IslandViewFoc] time 2
+		say HELP_TEXT_TUTORIAL_LAND_97
+		wait until read
+		wait until camera ready
+		move camera position to [StartViewPos] time 3
+		wait until camera ready
+		say HELP_TEXT_TUTORIAL_LAND_98
+		Spangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [IslandPos] time -1
+		wait until read
+
+		say HELP_TEXT_TUTORIAL_LAND_39
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_40
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+		
+		disable TutorialGuide high graphics detail
+	end cinema
+
+	set ReminderTimer time to 15 seconds
+	TotalEvent = get HELP_EVENT_TYPE_DCLICKPOS total event
+	TotalEventTwo = get HELP_EVENT_TYPE_DCLICKOBJECT total event
+	while camera position not near [IslandPos] radius 150
+		if get ReminderTimer time remaining <= 0
+			begin dialogue
+				say single line HELP_TEXT_TUTORIAL_LAND_98
+				wait until read or camera position near [IslandPos] radius 150
+			end dialogue
+			set ReminderTimer time to 15 seconds
+		end if
+
+		if TotalEvent < get HELP_EVENT_TYPE_DCLICKPOS total event or TotalEventTwo < get HELP_EVENT_TYPE_DCLICKOBJECT total event
+			DoubleClickUsed = 1
+		end if
+
+		if camera position near [IslandPos] radius 150 and DoubleClickUsed == 0
+			begin cinema
+				say HELP_TEXT_TUTORIAL_LAND_99
+				wait until read
+				wait 2 seconds
+				// fade out
+				set fade red 0 green 0 blue 0 time 1
+				set camera position to [StartViewPos]
+				set camera focus to [IslandViewFoc]
+				//fade in
+				set fade in time 1
+				say HELP_TEXT_TUTORIAL_LAND_100
+				wait until read
+			end cinema
+		end if
+
+	end while
+
+	set TutorialGuide position to [IslandPos]
+	delete Spangle
+	DoubleClickUsed = 0
+
+	begin cinema
+		enable TutorialGuide high graphics detail
+		move camera position to [ReturnViewPos] time 3
+		move camera focus to [IslandPos] time 3
+		wait until camera ready
+		set TutorialGuide focus to camera position
+		say HELP_TEXT_TUTORIAL_LAND_101
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_102
+		move camera focus to [SnowyViewFoc] time 6
+		wait 2 seconds
+		move camera position to [SnowyViewPos] time 3
+		move camera focus to [SnowyViewFoc] time 2
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_103
+		Spangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [GuidePos] time -1
+		wait 2 seconds
+		move camera position to [ReturnViewPos] time 3
+		wait until read
+		wait until camera ready
+		disable TutorialGuide high graphics detail
+	end cinema
+
+	set ReminderTimer time to 15 seconds
+	TotalEvent = get HELP_EVENT_TYPE_DCLICKPOS total event
+	TotalEventTwo = get HELP_EVENT_TYPE_DCLICKOBJECT total event
+	while camera position not near [GuidePos] radius 150 or DoubleClickUsed == 0
+		if get ReminderTimer time remaining <= 0
+			begin dialogue
+				say single line HELP_TEXT_TUTORIAL_LAND_103
+				wait until read or camera position near [GuidePos] radius 150
+			end dialogue
+			set ReminderTimer time to 15 seconds
+		end if
+
+		if camera position near [GuidePos] radius 150 and DoubleClickUsed == 0
+			begin cinema
+				say HELP_TEXT_TUTORIAL_LAND_99
+				wait until read
+				wait 2 seconds
+				// fade out
+				set fade red 0 green 0 blue 0 time 1
+				set camera position to [ReturnViewPos]
+				set camera focus to [SnowyViewFoc]
+				//fade in
+				set fade in time 1
+				say HELP_TEXT_TUTORIAL_LAND_100
+				wait until read
+			end cinema
+		end if
+
+		if TotalEvent < get HELP_EVENT_TYPE_DCLICKPOS total event or TotalEventTwo < get HELP_EVENT_TYPE_DCLICKOBJECT total event
+			DoubleClickUsed = 1
+		end if
+
+	end while
+
+	delete Spangle
+	set TutorialGuide position to [GuidePos]
+	set TutorialGuide focus to [IslandPos]
+
+	begin cinema
+		enable TutorialGuide high graphics detail
+		move camera position to [StartViewPos] time 3
+		move camera focus to [GuidePos] time 3
+		wait until camera ready
+		set TutorialGuide focus to camera position
+		say HELP_TEXT_TUTORIAL_LAND_104
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_105
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_106
+		wait until read
+		disable TutorialGuide high graphics detail
+	end cinema
+
+	Restart = 0
+	ClickRestart = 0
+end script DoubleClicking
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterGuideWalkingAroundMountain(TutorialGuide)
+Guide1Pos = marker at [1940.548, 99.602, 2243.434] 
+Guide2Pos = marker at [1979.455, 94.190, 2296.931] 
+Guide3Pos = marker at [2058.608, 102.055, 2336.029] 
+Guide4Pos = marker at [2104.069, 109.210, 2332.723] 
+Guide5Pos = marker at [2136.400, 107.627, 2312.751] 
+Guide6Pos = marker at [2130.143, 89.780, 2194.607] 
+Guide7Pos = marker at [2074.154, 87.100, 2147.896] 
+Guide8Pos = marker at [1983.881, 92.460, 2164.210] 
+Guide9Pos = marker at [1957.912, 96.286, 2175.403] 
+Guide10Pos = marker at [1944.722, 99.977, 2206.895] 
+start
+	if camera position near [TutorialGuide] radius 10
+		SPEED of TutorialGuide = 0.5
+	elsif camera position near [TutorialGuide] radius 25
+		SPEED of TutorialGuide = 0.4
+	else
+		SPEED of TutorialGuide = 0.3
+	end if 
+
+	if GuidePosReached == 0
+		if GuideWalking == 1
+			move TutorialGuide position to [Guide1Pos]
+		end if
+		GuidePosReached = 1
+	end if 
+	if GuidePosReached == 1
+		if GuideWalking == 1
+			if [TutorialGuide] at [Guide1Pos]
+				move TutorialGuide position to [Guide2Pos]
+				GuidePosReached = 2
+			end if 
+		else
+			move TutorialGuide position to [Guide2Pos]
+			GuidePosReached = 2
+		end if
+	end if 
+	if GuidePosReached == 2
+		if [TutorialGuide] at [Guide2Pos]
+			move TutorialGuide position to [Guide3Pos]
+			GuidePosReached = 3
+		end if 
+	end if 
+	if GuidePosReached == 3
+		if [TutorialGuide] at [Guide3Pos]
+			move TutorialGuide position to [Guide4Pos]
+			GuidePosReached = 4
+		end if 
+	end if 
+	if GuidePosReached == 4
+		if [TutorialGuide] at [Guide4Pos]
+			move TutorialGuide position to [Guide5Pos]
+			GuidePosReached = 5
+		end if 
+	end if 
+	if GuidePosReached == 5
+		if [TutorialGuide] at [Guide5Pos]
+			move TutorialGuide position to [Guide6Pos]
+			GuidePosReached = 6
+		end if 
+	end if 
+
+	if GuidePosReached == 6
+		if [TutorialGuide] at [Guide6Pos]
+			move TutorialGuide position to [Guide7Pos]
+			GuidePosReached = 7
+		end if 
+	end if 
+	if GuidePosReached == 7
+		if [TutorialGuide] at [Guide7Pos]
+			move TutorialGuide position to [Guide8Pos]
+			GuidePosReached = 8
+		end if 
+	end if 
+	if GuidePosReached == 8
+		if [TutorialGuide] at [Guide8Pos]
+			move TutorialGuide position to [Guide9Pos]
+			GuidePosReached = 9
+		end if 
+	end if 
+	if GuidePosReached == 9
+		if [TutorialGuide] at [Guide9Pos]
+			move TutorialGuide position to [Guide10Pos]
+			GuidePosReached = 10
+		end if 
+	end if 
+	if GuidePosReached == 10
+		if [TutorialGuide] at [Guide10Pos]
+			GuidePosReached = 11
+		end if 
+	end if 
+
+end script LookAfterGuideWalkingAroundMountain
+   
+//------------------------------------------------------------------------------------------------------------------------
+//NOT USED
+begin script LookAfterGuideWalkingUpAndDownMountain(TutorialGuide)
+Guide1Pos = marker at [2038.240, 126.698, 2194.617] 
+Guide2Pos = marker at [1957.912, 96.286, 2175.403]
+start
+	SPEED of TutorialGuide = 0.3
+	if GuidePosReached == 0
+		move TutorialGuide position to [Guide1Pos]
+		GuidePosReached = 1
+	end if 
+	if GuidePosReached == 1
+		if [TutorialGuide] at [Guide1Pos]
+			//move TutorialGuide position to [Guide2Pos]
+			wait 500000 seconds
+			GuidePosReached = 2
+		end if 
+	end if 
+	if GuidePosReached == 2
+		if [TutorialGuide] at [Guide2Pos]
+			GuidePosReached = 3
+		end if 
+	end if 
+end script LookAfterGuideWalkingUpAndDownMountain
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterGuideWalkingDownValley(TutorialGuide)
+Guide1Pos = marker at [2417.381, 63.077, 2584.134] 
+Guide2Pos = marker at [2565.457, 81.368, 2637.583] 
+Guide3Pos = marker at [2654.330, 71.732, 2680.391]
+Guide4Pos = marker at [2762.708, 48.209, 2772.566]  
+Guide5Pos = marker at [2712.820, 51.624, 2806.224]
+Guide6Pos = marker at [2648.625, 60.295, 2796.447]  
+Guide7Pos = marker at [2531.348, 76.343, 2689.710] 
+Guide8Pos = marker at [2508.611, 66.382, 2724.610] 
+Guide9Pos = marker at [2482.636, 63.433, 2767.380] 
+Guide10Pos = marker at [2406.996, 13.479, 2668.829] 
+Guide11Pos = marker at [2350.327, 23.450, 2648.332] 
+Guide12Pos = marker at [2281.814, 29.381, 2620.181] 
+start
+	if camera position near [TutorialGuide] radius 10
+		SPEED of TutorialGuide = 0.5
+	elsif camera position near [TutorialGuide] radius 25
+		SPEED of TutorialGuide = 0.4
+	else
+		SPEED of TutorialGuide = 0.3
+	end if 
+
+	if GuidePosReached == 0
+		move TutorialGuide position to [Guide1Pos]
+		GuidePosReached = 1
+	end if 
+	if GuidePosReached == 1
+		if [TutorialGuide] at [Guide1Pos]
+			move TutorialGuide position to [Guide2Pos]
+			GuidePosReached = 2
+		end if 
+	end if 
+	if GuidePosReached == 2
+		if [TutorialGuide] at [Guide2Pos]
+			move TutorialGuide position to [Guide3Pos]
+			GuidePosReached = 3
+		end if 
+	end if 
+	if GuidePosReached == 3
+		if [TutorialGuide] at [Guide3Pos]
+			move TutorialGuide position to [Guide4Pos]
+			GuidePosReached = 4
+		end if 
+	end if 
+	if GuidePosReached == 4
+		if [TutorialGuide] at [Guide4Pos]
+			move TutorialGuide position to [Guide5Pos]
+			GuidePosReached = 5
+		end if 
+	end if 
+	if GuidePosReached == 5
+		if [TutorialGuide] at [Guide5Pos]
+			move TutorialGuide position to [Guide6Pos]
+			GuidePosReached = 6
+		end if 
+	end if 
+
+	if GuidePosReached == 6
+		if [TutorialGuide] at [Guide6Pos]
+			move TutorialGuide position to [Guide7Pos]
+			GuidePosReached = 7
+		end if 
+	end if 
+	if GuidePosReached == 7
+		if [TutorialGuide] at [Guide7Pos]
+			move TutorialGuide position to [Guide8Pos]
+			GuidePosReached = 8
+		end if 
+	end if 
+	if GuidePosReached == 8
+		if [TutorialGuide] at [Guide8Pos]
+			move TutorialGuide position to [Guide9Pos]
+			GuidePosReached = 9
+		end if 
+	end if 
+	if GuidePosReached == 9
+		if [TutorialGuide] at [Guide9Pos]
+			move TutorialGuide position to [Guide10Pos]
+			GuidePosReached = 10
+		end if 
+	end if 
+	if GuidePosReached == 10
+		if [TutorialGuide] at [Guide10Pos]
+			move TutorialGuide position to [Guide11Pos]
+			GuidePosReached = 11
+		end if 
+	end if 
+	if GuidePosReached == 11
+		if [TutorialGuide] at [Guide11Pos]
+			move TutorialGuide position to [Guide12Pos]
+			GuidePosReached = 12
+		end if 
+	end if 
+	if GuidePosReached == 12
+		if [TutorialGuide] at [Guide12Pos]
+			GuidePosReached = 13
+		end if 
+	end if 
+end script LookAfterGuideWalkingDownValley
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script MoveAroundMountain(TutorialGuide, UseScroll)
+GuideLost = 0
+TalkTimer = 0
+EncourageTalk = 0
+HandState = 0
+MountainTimer = 0
+RotateMode = 0
+//Explosion = 0
+
+ScrollPos = marker at [1936.355, 100.492, 2233.808] 
+
+start
+	LastScript=1
+	
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+	RotateTalkDone=0
+	HelperRotateTalkDone=0
+
+	if (UseScroll == 1)
+		RoundScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		run script ChallengeHighlightNotify(RoundScroll, ScrollPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_05)
+		
+		run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+
+		//stop script "MoveAroundMountain"
+		stop script "MoveUpAndDownMountain"
+		stop script "MoveDownValley"
+		stop script "ZoomInAndOut"
+		stop script "PickupTeddyBears"
+		stop script "DoubleClicking"
+
+		//RoundRestart = 2
+		UpDownRestart = 2 
+		ValleyRestart = 2
+		ZoomRestart = 2
+		TeddyRestart = 2
+		ClickRestart = 2
+	
+
+	end if
+
+	
+
+	begin cinema
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set TutorialGuide position to [1952.072, 97.679, 2272.131]
+		set TutorialGuide focus to [1947.249, 99.569, 2271.024]
+
+		set interaction SCRIPT_INTERFACE_LEVEL_JUST_GRAB
+
+		enable TutorialGuide high graphics detail
+		set camera position to [1568.450, 144.702, 2154.329] 
+		set camera focus to [1839.486, 66.301, 2208.259] 
+		move camera position to [1947.249, 99.569, 2271.024] time 10
+		move camera focus to [1957.385, 96.660, 2273.646] time 10
+		set fade in time 1
+		wait until camera ready
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_01
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_02
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_03
+		wait until read
+
+		set camera position to [1874.291, 147.387, 2240.318] 
+		set camera focus to [1960.012, 118.009, 2235.475] 
+		move camera position to [1928.761, 143.846, 2098.797] time 20
+		move camera focus to [2003.845, 115.831, 2187.815] time 20
+
+		say HELP_TEXT_TUTORIAL_LAND_04
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_05
+		wait until read
+
+		set camera position to [1947.249, 99.569, 2271.024]
+		set camera focus to [1957.385, 96.660, 2273.646] 
+	
+		//set camera position to [1940.585, 101.569, 2205.321]
+		//set camera focus to [1955.017, 98.143, 2210.939] 
+		
+		say HELP_TEXT_TUTORIAL_LAND_06
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_07
+		wait until read
+
+		say HELP_TEXT_TUTORIAL_LAND_08
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_09
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+
+		//move camera position to [1944.570, 104.430, 2195.431] time 4
+		//move camera focus to [1944.588, 100.503, 2206.786] time 4
+		set TutorialGuide focus to [1979.455, 94.190, 2296.931]
+		wait until camera ready
+		move TutorialGuide position to [1979.455, 94.190, 2296.931]
+		set TutorialGuide anim ANM_P_WALK_BECKON02
+		say HELP_TEXT_TUTORIAL_LAND_11
+		wait until read
+		move camera position to [1929.758, 101.886, 2281.298] time 3
+		move camera focus to [1940.123, 100.074, 2283.979] time 3
+		//wait 2 seconds
+		wait until camera ready
+
+		disable TutorialGuide high graphics detail
+	end cinema 	  
+	TalkTimer = create timer for 10 seconds
+
+	GuidePosReached = 0
+	while GuidePosReached != 11
+
+			if not TutorialGuide viewed
+				begin dialogue
+					eject good spirit
+					make good spirit point at [TutorialGuide] 
+					wait until TutorialGuide viewed
+					send good spirit home
+				end dialogue
+			elsif camera position not near [TutorialGuide] radius 100 
+				//Explosion = create special effect SPOT_VISUAL_OBJECT_APPEAR at [TutorialGuide] time 2
+				if get TalkTimer time remaining <= 0
+					begin dialogue
+						eject good spirit
+						make good spirit point at [TutorialGuide] 
+						say single line HELP_TEXT_TUTORIAL_LAND_12
+						wait until read
+						send good spirit home
+					end dialogue
+					set TalkTimer time to 10 seconds
+				end if
+			else
+				if TutorialGuide can view camera in 180 degrees	and get TalkTimer time remaining <= 0
+					begin dialogue
+						say single line HELP_TEXT_TUTORIAL_LAND_13
+						wait until read
+					end dialogue
+					set TalkTimer time to 10 seconds
+				elsif get TalkTimer time remaining <= 0
+					EncourageTalk = number from 1 to 4
+					if EncourageTalk == 1
+						begin dialogue
+							say single line HELP_TEXT_TUTORIAL_LAND_14
+							wait until read
+						end dialogue
+					elsif EncourageTalk == 2
+						begin dialogue
+							say single line HELP_TEXT_TUTORIAL_LAND_15
+							wait until read
+						end dialogue
+					elsif EncourageTalk == 3
+						begin dialogue	
+							say single line HELP_TEXT_TUTORIAL_LAND_16
+							wait until read
+						end dialogue
+					elsif EncourageTalk ==4
+						begin dialogue
+							say single line HELP_TEXT_TUTORIAL_LAND_17
+							wait until read
+						end dialogue
+					end if
+					set TalkTimer time to 10 seconds
+				else
+					run script LookAfterGuideWalkingAroundMountain(TutorialGuide)
+				end if 
+
+				if GuidePosReached == 8 and HelperRotateTalkDone == 0
+					begin dialogue
+						eject evil spirit
+						say HELP_TEXT_TUTORIAL_LAND_18
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_19
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_20
+						wait until read
+						send evil spirit home
+						HelperRotateTalkDone = 1
+					end dialogue
+				end if
+
+				if GuidePosReached == 5 and RotateTalkDone == 0				
+					begin cinema
+						enable TutorialGuide high graphics detail
+						move TutorialGuide position to [TutorialGuide]
+						move camera position to [2100.208, 110.309, 2335.514] time 4
+						move camera focus to [2109.959, 109.315, 2328.846] time 4
+						set TutorialGuide focus to [2100.208, 110.309, 2335.514]
+						wait until camera ready
+						TutorialGuide play ANM_P_AMBIENT2 loop -1
+						say HELP_TEXT_TUTORIAL_LAND_21
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_22
+						wait until read
+						move camera position to [2140.261, 136.519, 2362.513] time 4 
+						move camera focus to [2142.065, 112.558, 2315.229] time 4
+						say HELP_TEXT_TUTORIAL_LAND_23
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_24
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_25
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_26
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_27
+						wait until read
+						say HELP_TEXT_TUTORIAL_LAND_28
+						wait until read
+						move camera position to [2100.208, 110.309, 2335.514] time 4
+						move camera focus to [2109.959, 109.315, 2328.846] time 4
+						wait until camera ready
+						say HELP_TEXT_TUTORIAL_LAND_29
+						move camera position to [2083.583, 123.064, 2347.811] time 4
+						move camera focus to [2110.820, 109.149, 2329.192] time 4
+						wait until read
+						wait until camera ready
+						
+						disable TutorialGuide high graphics detail
+					end cinema with dialogue
+						set interaction SCRIPT_INTERFACE_LEVEL_JUST_ROTATE_AND_DRAG
+	
+						say HELP_TEXT_TUTORIAL_LAND_30
+						wait until read
+					end dialogue
+					
+					wait until within rotation
+					
+					begin dialogue
+						say single line HELP_TEXT_TUTORIAL_LAND_31
+						wait until read
+					end dialogue
+			
+					while HandState != variable HAND_STATE_GRIP_LANDSCAPE
+						HandState = variable get hand state 
+					end while
+					
+					begin dialogue
+						say HELP_TEXT_TUTORIAL_LAND_113
+						wait until read
+					end dialogue
+					
+					begin cinema
+						enable TutorialGuide high graphics detail
+						move camera position to [2100.208, 110.309, 2335.514] time 4
+						move camera focus to [2109.959, 109.315, 2328.846] time 4
+						wait until camera ready
+						say single line HELP_TEXT_TUTORIAL_LAND_32
+						wait until read
+						move TutorialGuide position to [2136.400, 107.627, 2312.751]
+						wait 1 seconds
+						RotateTalkDone = 1	   //< TABLE 
+						disable TutorialGuide high graphics detail
+					end cinema
+				end if 
+				
+			end if 
+	
+	end while 
+
+	
+		set TutorialGuide focus to [1941.046, 100.776, 2205.500]
+		begin cinema
+			enable TutorialGuide high graphics detail
+			move camera position to [1940.585, 101.569, 2205.321] time 4
+			move camera focus to [1955.017, 98.143, 2210.939] time 4
+			wait until camera ready
+			TutorialGuide play ANM_P_AMBIENT2 loop -1
+			say HELP_TEXT_TUTORIAL_LAND_33
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_34
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_35
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_36
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_37
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_38
+			wait until read
+			
+			say HELP_TEXT_TUTORIAL_LAND_39
+			wait until read
+			say HELP_TEXT_TUTORIAL_LAND_40
+			wait until read
+
+			
+			move camera position to [1944.570, 104.430, 2195.431] time 4
+			move camera focus to [1944.588, 100.503, 2206.786] time 4
+			set TutorialGuide focus to [1944.927, 100.500, 2215.655]
+			wait until camera ready
+			move TutorialGuide position to [1940.548, 99.602, 2243.434]
+			set TutorialGuide anim ANM_P_WALK_BECKON02
+			say HELP_TEXT_TUTORIAL_LAND_41
+			wait until read
+			wait 2 seconds
+			disable TutorialGuide high graphics detail
+		end cinema 		
+		
+		SPEED of TutorialGuide = 0.3
+		
+		GuidePosReached = 0
+		GuideWalking = 1
+
+	//	MountainTimer = create countdown timer for 30 seconds
+		MountainTimer = create  timer  for 300 seconds
+	
+	
+	while GuideWalking == 1
+		if not TutorialGuide viewed 
+			begin dialogue
+				eject good spirit
+				make good spirit point at [TutorialGuide] 
+				wait until TutorialGuide viewed
+				send good spirit home
+			end dialogue
+		elsif camera position not near [TutorialGuide] radius 50 
+			
+		elsif TutorialGuide can view camera in 180 degrees
+
+		else
+			run script LookAfterGuideWalkingAroundMountain(TutorialGuide)
+		end if
+
+		if GuidePosReached == 11
+			if get MountainTimer time remaining > 0
+				begin cinema
+					enable TutorialGuide high graphics detail
+					set TutorialGuide focus to [1941.046, 100.776, 2205.500]
+					move camera position to [1940.585, 101.569, 2205.321] time 4
+					move camera focus to [1955.017, 98.143, 2210.939] time 4
+					
+
+					wait until camera ready
+					TutorialGuide play ANM_P_AMBIENT2 loop -1
+					say HELP_TEXT_TUTORIAL_LAND_42
+					wait until read
+					say HELP_TEXT_TUTORIAL_LAND_47
+					wait until read
+					move camera position to [1921.741, 104.796, 2189.570] time 3
+					wait until camera ready
+
+				end cinema
+				GuideWalking = 0
+			else
+				begin cinema
+					enable TutorialGuide high graphics detail
+					set TutorialGuide focus to [1941.046, 100.776, 2205.500]
+					move camera position to [1940.585, 101.569, 2205.321] time 4
+					move camera focus to [1955.017, 98.143, 2210.939] time 4
+					wait until camera ready
+					TutorialGuide play ANM_P_AMBIENT2 loop -1
+					say HELP_TEXT_TUTORIAL_LAND_43
+					wait until read
+					say HELP_TEXT_TUTORIAL_LAND_44
+					wait until read
+					say HELP_TEXT_TUTORIAL_LAND_45
+					wait until read
+					move camera position to [1944.570, 104.430, 2195.431] time 4
+					move camera focus to [1944.588, 100.503, 2206.786] time 4
+					set TutorialGuide focus to [1944.927, 100.500, 2215.655]
+					wait until camera ready
+					move TutorialGuide position to [1944.927, 100.500, 2215.655]
+					set TutorialGuide anim ANM_P_WALK_BECKON02
+					say HELP_TEXT_TUTORIAL_LAND_46
+					wait until read
+					wait 2 seconds
+					disable TutorialGuide high graphics detail
+					set MountainTimer time to 300 seconds
+				end cinema
+				GuidePosReached	= 0
+			end if 
+		end if
+	end while
+	set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+	Restart = 0
+	RoundRestart = 0
+end script MoveAroundMountain
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script MoveUpAndDownMountain(TutorialGuide, UseScroll)
+GuideLost = 0
+TalkTimer = 0
+Guide1Pos = marker at [2038.240, 126.698, 2194.617] 
+Guide2Pos = marker at [1957.912, 96.286, 2175.403]
+
+ScrollPos = marker at [1949.833, 99.589, 2188.217] 
+
+start
+	LastScript=2	
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+	if (UseScroll == 1)
+		UpDownScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		
+		run script ChallengeHighlightNotify(UpDownScroll, ScrollPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+		run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+
+		stop script "MoveAroundMountain"
+		//stop script "MoveUpAndDownMountain"
+		stop script "MoveDownValley"
+		stop script "ZoomInAndOut"
+		stop script "PickupTeddyBears"
+		stop script "DoubleClicking"
+
+		RoundRestart = 2
+		//UpDownRestart = 2 
+		ValleyRestart = 2
+		ZoomRestart = 2
+		TeddyRestart = 2
+		ClickRestart = 2
+	
+
+
+	end if
+
+	
+	
+	begin cinema
+		set fade red 0 green 0 blue 0 time 1		
+		enable TutorialGuide high graphics detail
+		set TutorialGuide position to [1957.912, 96.286, 2175.403]
+		set TutorialGuide focus to [1954.160, 98.340, 2173.563]
+		set camera position to [1954.160, 98.340, 2173.563]
+		set camera focus to [1991.427, 84.677, 2194.062] 
+		set fade in time 1
+		wait 1 seconds
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+
+		say HELP_TEXT_TUTORIAL_LAND_48
+		wait until read
+		move camera position to [1956.463, 98.340, 2167.619] time 4
+		move camera focus to [1996.090, 100.649, 2187.852] time 4
+		wait until camera ready
+		say HELP_TEXT_TUTORIAL_LAND_49
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_50
+		wait until read
+		move camera position to [1954.160, 98.340, 2173.563] time 4
+		move camera focus to [1991.427, 84.677, 2194.062] time 4
+		say HELP_TEXT_TUTORIAL_LAND_51
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_107
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_52
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_53
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_54
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_39
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_40
+		wait until read
+		
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+		
+		move TutorialGuide position to [2026.581, 122.003, 2193.787]
+		wait 2 seconds
+		disable TutorialGuide high graphics detail
+	end cinema
+
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_PITCH
+
+	TalkTimer = create timer for 10 seconds
+	GuideWalking = 1
+	GuideLost = 0
+	GuidePosReached = 0
+	while GuideWalking == 1
+	
+		move TutorialGuide position to [Guide1Pos]
+		
+		while not [TutorialGuide] at [Guide1Pos]
+			if not TutorialGuide viewed
+				if get TalkTimer time remaining <= 0
+					begin dialogue
+						say single line HELP_TEXT_TUTORIAL_LAND_54
+						wait until read
+					end dialogue
+					set TalkTimer time to 10 seconds
+				end if
+				GuideLost = 1
+			end if 
+		end while
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		begin cinema
+			set camera position to [2041.178, 128.054, 2195.139] 
+			set camera focus to [2011.572, 120.735, 2189.137] 
+			set fade in time 1
+			wait until fade ready
+
+			TutorialGuide play ANM_P_AMBIENT2 loop -1
+			if GuideLost == 1
+				say single line HELP_TEXT_TUTORIAL_LAND_60
+				wait until read
+			else
+				say single line HELP_TEXT_TUTORIAL_LAND_61
+				wait until read
+			end if 
+
+			say HELP_TEXT_TUTORIAL_LAND_62
+			wait until read
+
+			move camera position to [2040.550, 134.281, 2194.948]  time 3 
+			move camera focus to [2036.929, 129.217, 2194.213]  time 3
+			wait until camera ready
+		end cinema
+
+		move TutorialGuide position to [Guide2Pos]
+		while not [TutorialGuide] at [Guide2Pos]
+			if not TutorialGuide viewed
+				if get TalkTimer time remaining <= 0
+					begin dialogue
+						say single line HELP_TEXT_TUTORIAL_LAND_54
+						wait until read
+					end dialogue
+					set TalkTimer time to 10 seconds
+				end if
+				GuideLost = 1
+			end if 
+		end while
+		
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		if GuideLost == 1
+			GuideLost = 0
+			GuidePosReached = 0
+			begin cinema
+				enable TutorialGuide high graphics detail
+				set camera position to [1954.160, 98.340, 2173.563] 
+				set camera focus to [1991.427, 84.677, 2194.062] 
+				set TutorialGuide focus to [1954.160, 98.340, 2173.563]
+				set fade in time 1
+				wait until fade ready
+				
+				TutorialGuide play ANM_P_AMBIENT2 loop -1
+				say HELP_TEXT_TUTORIAL_LAND_63
+				wait until read
+				say HELP_TEXT_TUTORIAL_LAND_64
+				wait until read
+				disable TutorialGuide high graphics detail
+			end cinema
+		else 
+			GuideWalking = 0	
+			begin cinema
+				enable TutorialGuide high graphics detail
+				set camera position to [1954.160, 98.340, 2173.563] 
+				set camera focus to [1991.427, 84.677, 2194.062] 
+				set TutorialGuide focus to [1954.160, 98.340, 2173.563]
+				set fade in time 1
+				wait until fade ready
+
+				TutorialGuide play ANM_P_AMBIENT2 loop -1
+				say HELP_TEXT_TUTORIAL_LAND_65
+				wait until read
+				say HELP_TEXT_TUTORIAL_LAND_66
+				wait until read
+				disable TutorialGuide high graphics detail
+			end cinema
+		end if
+	end while
+
+	Restart = 0
+	UpDownRestart = 0
+	set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+end script MoveUpAndDownMountain
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script MoveDownValley(TutorialGuide, UseScroll)
+TalkTimer = 0
+ScrollPos = marker at [2179.074, 78.822, 2505.218] 
+
+start
+	LastScript=3
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+	if (UseScroll == 1)
+		ValleyScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		run script ChallengeHighlightNotify(ValleyScroll, ScrollPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_08)
+	
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+
+
+		run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+		stop script "MoveAroundMountain"
+		stop script "MoveUpAndDownMountain"
+		//stop script "MoveDownValley"
+		stop script "ZoomInAndOut"
+		stop script "PickupTeddyBears"
+		stop script "DoubleClicking"
+
+		RoundRestart = 2
+		UpDownRestart = 2 
+		//ValleyRestart = 2
+		ZoomRestart = 2
+		TeddyRestart = 2
+		ClickRestart = 2
+	
+
+	end if
+	
+
+
+	
+	begin cinema
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		enable TutorialGuide high graphics detail
+		set camera position to [2295.006, 66.660, 2540.351]   
+		set camera focus to [2326.850, 55.639, 2544.679]    
+		set TutorialGuide position to [2299.745, 64.490, 2540.890]  
+		set TutorialGuide focus to [2294.183, 66.774, 2540.239]  
+		set fade in time 1
+		wait until fade ready
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_67
+		wait until read
+		set camera position to [2209.409, 162.850, 2592.428]  
+		set camera focus to [2304.939, 63.397, 2580.013]  
+		move camera position to [2305.182, 219.591, 2686.336] time 20
+		move camera focus to [2448.160, 70.696, 2667.413] time 20
+		say HELP_TEXT_TUTORIAL_LAND_68
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_69
+		wait until read
+
+		set camera position to [2295.006, 66.660, 2540.351]   
+		set camera focus to [2326.850, 55.639, 2544.679]    
+		
+		say HELP_TEXT_TUTORIAL_LAND_39
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_40
+		wait until read
+
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+		
+
+		move TutorialGuide position to [2417.381, 63.077, 2584.134] 
+		set TutorialGuide anim ANM_P_WALK_BECKON02
+		say HELP_TEXT_TUTORIAL_LAND_70
+		wait until read
+		wait 2 seconds
+	
+		disable TutorialGuide high graphics detail
+	end cinema
+				
+	TalkTimer = create timer for 10 seconds
+	GuidePosReached = 0
+	while GuidePosReached != 13
+		if not TutorialGuide viewed or camera position not near [TutorialGuide] radius 50 
+			if get TalkTimer time remaining <= 0
+				begin dialogue
+					say single line HELP_TEXT_TUTORIAL_LAND_71
+					wait until read
+				end dialogue
+				set TalkTimer time to 10 seconds
+			end if
+		elsif TutorialGuide can view camera in 180 degrees 
+			if get TalkTimer time remaining <= 0
+				begin dialogue
+					say single line HELP_TEXT_TUTORIAL_LAND_72
+					wait until read
+				end dialogue
+				set TalkTimer time to 10 seconds
+			end if
+		else
+			run script LookAfterGuideWalkingDownValley(TutorialGuide)
+		end if
+	end while	
+
+	begin cinema
+		enable TutorialGuide high graphics detail
+
+		move camera position to [2277.522, 31.266, 2618.501] time 4
+		move camera focus to [2286.336, 28.517, 2621.674] time 4
+		wait until camera ready 
+		
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_73
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_74
+		wait until read
+		disable TutorialGuide high graphics detail
+	end cinema	
+	Restart = 0
+	ValleyRestart = 0
+	
+end script MoveDownValley
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ZoomInAndOut(TutorialGuide, UseScroll)
+ZoomStone1 = 0
+ZoomStone2 = 0
+HandState = 0
+
+ScrollPos = marker at [2817.866, 100.791, 3140.415] 
+
+start
+	LastScript=4
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+	if (UseScroll == 1)
+		ZoomScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		run script ChallengeHighlightNotify(ZoomScroll, ScrollPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+		
+		
+
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+		stop script "MoveAroundMountain"
+		stop script "MoveUpAndDownMountain"
+		stop script "MoveDownValley"
+		//stop script "ZoomInAndOut"
+		stop script "PickupTeddyBears"
+		stop script "DoubleClicking"
+
+		RoundRestart = 2
+		UpDownRestart = 2 
+		ValleyRestart = 2
+		//ZoomRestart = 2
+		TeddyRestart = 2
+		ClickRestart = 2
+	
+
+	end if
+
+
+
+	
+	begin cinema
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		enable TutorialGuide high graphics detail
+		set camera position to [2817.746, 102.354, 3140.050]  
+		set camera focus to [2815.388, 100.054, 3152.068] 
+		ZoomStone1 = create OBJECT MOBILE_STATIC_INFO_ROCK at [2203.605, 66.278, 2146.888] 
+		ZoomStone2 = create OBJECT MOBILE_STATIC_INFO_ROCK at [2707.850, 60.300, 3217.669]   
+		set TutorialGuide position to [2816.967, 101.230, 3143.982] 
+		set TutorialGuide focus to [2817.983, 102.460, 3138.680]
+		set fade in time 1
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_75
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_76
+		wait until read
+		move camera position to [2817.293, 115.944, 3141.507] time 6
+		move camera focus to [2816.900, 102.232, 3144.206] time 6
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_77
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_78
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_79
+		wait until read			
+		say HELP_TEXT_TUTORIAL_LAND_39
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_40
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+		
+		disable TutorialGuide high graphics detail
+	end cinema with dialogue
+		say HELP_TEXT_TUTORIAL_LAND_80
+		wait until read
+	end dialogue
+
+	while HandState != variable HAND_STATE_ZOOM_LANDSCAPE
+		HandState = variable get hand state 
+	end while
+	
+	begin dialogue
+		say HELP_TEXT_TUTORIAL_LAND_81
+		wait until read
+		if player has mouse wheel
+			eject good spirit 
+			say HELP_TEXT_INTERFACE_LOOK_AT_LAND_04
+			wait until read
+			send good spirit home
+		end if
+	end dialogue
+
+	
+
+	wait until ZoomStone1 viewed and ZoomStone2 viewed 
+
+	begin dialogue
+		say single line HELP_TEXT_TUTORIAL_LAND_82
+		wait until read
+	end dialogue
+
+	wait until not ZoomStone1 viewed and not ZoomStone2 viewed
+	
+	begin cinema
+		enable TutorialGuide high graphics detail
+		move camera position to [2817.746, 102.354, 3140.050] time 6
+		move camera focus to [2815.388, 100.054, 3152.068] time 6
+		wait until camera ready
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_83
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_84
+		wait until read
+	end cinema
+
+	Restart = 0
+	ZoomRestart = 0
+end script ZoomInAndOut
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SpellDispensors
+A0 = marker at [2824.629, 97.820, 3094.802] 
+A1 = marker at [2823.929, 97.820, 3084.922] 
+A2 = marker at [2824.744, 97.820, 3074.897] 
+A3 = marker at [2824.534, 97.820, 3065.223] 
+A4 = marker at [2824.647, 97.820, 3054.956] 
+A5 = marker at [2824.539, 97.820, 3045.252] 
+
+B0 = marker at [2804.122, 90.055, 3095.164] 
+B1 = marker at [2803.746, 90.029, 3085.088] 
+B2 = marker at [2804.210, 90.060, 3074.795] 
+B3 = marker at [2804.590, 90.086, 3065.318] 
+B4 = marker at [2804.767, 90.406, 3055.452] 
+B5 = marker at [2803.944, 90.450, 3045.376] 
+
+C0 = marker at [2784.654, 81.740, 3094.617] 
+C1 = marker at [2784.089, 81.740, 3084.856] 
+C2 = marker at [2784.043, 81.740, 3075.181] 
+C3 = marker at [2784.346, 81.740, 3065.163] 
+C4 = marker at [2785.162, 81.740, 3055.144] 
+C5 = marker at [2783.876, 82.067, 3045.123] 
+
+D0 = marker at [2765.384, 72.656, 3104.840] 
+D1 = marker at [2764.005, 71.690, 3094.905] 
+D2 = marker at [2763.964, 71.690, 3085.040] 
+D3 = marker at [2764.288, 71.690, 3075.652] 
+D4 = marker at [2764.558, 71.690, 3065.346] 
+D5 = marker at [2764.736, 71.690, 3055.446] 
+D6 = marker at [2764.309, 71.978, 3045.366] 
+
+CA0 = marker at [2824.829, 98.490, 2966.479] 
+CA1 = marker at [2815.474, 98.490, 2965.755] 
+CA2 = marker at [2805.727, 98.477, 2965.928] 
+CA3 = marker at [2795.586, 98.398, 2965.813] 
+CA4 = marker at [2785.504, 98.186, 2965.744] 
+CA5 = marker at [2775.410, 97.820, 2965.164] 
+CA6 = marker at [2765.310, 97.820, 2966.208] 
+CA7 = marker at [2755.246, 97.820, 2965.950] 
+
+CB0 = marker at [2825.382, 90.696, 2986.350] 
+CB1 = marker at [2815.603, 90.973, 2986.629] 
+CB2 = marker at [2805.758, 91.120, 2986.042] 
+CB3 = marker at [2795.635, 91.091, 2986.067] 
+CB4 = marker at [2785.370, 90.450, 2986.580] 
+CB5 = marker at [2775.493, 90.450, 2986.010] 
+CB6 = marker at [2765.292, 90.406, 2985.965] 
+CB7 = marker at [2755.025, 90.084, 2985.493] 
+
+start
+	//TOP ROW
+	if spell MAGIC_TYPE_FIREBALL for player 1	
+		run background script GiveSpellDispenserReward(A0, variable MAGIC_TYPE_FIREBALL, 250.0, 1, 0)	
+	end if 
+
+	if spell MAGIC_TYPE_FIREBALL_PU_ONE for player 1	
+		run background script GiveSpellDispenserReward(A1, variable MAGIC_TYPE_FIREBALL_PU_ONE, 250.0, 1, 0)	
+	end if 
+		
+	if spell MAGIC_TYPE_FIREBALL_PU_TWO for player 1	
+		run background script GiveSpellDispenserReward(A2, variable MAGIC_TYPE_FIREBALL_PU_TWO, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_LIGHTNING_BOLT for player 1	
+		run background script GiveSpellDispenserReward(A3, variable MAGIC_TYPE_LIGHTNING_BOLT, 250.0, 1, 0)	
+	end if
+  
+	if spell MAGIC_TYPE_LIGHTNING_BOLT_PU_ONE for player 1	
+		run background script GiveSpellDispenserReward(A4, variable MAGIC_TYPE_LIGHTNING_BOLT_PU_ONE, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_LIGHTNING_BOLT_PU_TWO for player 1	
+		run background script GiveSpellDispenserReward(A5, variable MAGIC_TYPE_LIGHTNING_BOLT_PU_TWO, 250.0, 1, 0)	
+	end if
+
+/////////////////
+	//Second Row
+	if spell MAGIC_TYPE_EXPLOSION_ONE for player 1		
+		run background script GiveSpellDispenserReward(B0, variable MAGIC_TYPE_EXPLOSION_ONE, 250.0, 1, 0)	
+	end if
+
+		
+	if spell MAGIC_TYPE_EXPLOSION_ONE_PU_ONE for player 1		
+		run background script GiveSpellDispenserReward(B1, variable MAGIC_TYPE_EXPLOSION_ONE_PU_ONE, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_EXPLOSION_ONE_PU_TWO for player 1		
+		run background script GiveSpellDispenserReward(B2, variable MAGIC_TYPE_EXPLOSION_ONE_PU_TWO, 250.0, 1, 0)	
+	end if 
+
+	if spell MAGIC_TYPE_HEAL for player 1		
+		run background script GiveSpellDispenserReward(B3, variable MAGIC_TYPE_HEAL, 250.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_HEAL_PU_ONE for player 1		
+		run background script GiveSpellDispenserReward(B4, variable MAGIC_TYPE_HEAL_PU_ONE, 250.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_TELEPORT for player 1		
+		run background script GiveSpellDispenserReward(B5, variable MAGIC_TYPE_TELEPORT, 250.0, 1, 0)	
+	end if
+
+	//Third row
+	if spell MAGIC_TYPE_FOREST for player 1		
+		run background script GiveSpellDispenserReward(C0, variable MAGIC_TYPE_FOREST, 250.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_FOOD for player 1		
+		run background script GiveSpellDispenserReward(C1, variable MAGIC_TYPE_FOOD, 250.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_FOOD_PU_ONE for player 1		
+		run background script GiveSpellDispenserReward(C2, variable MAGIC_TYPE_FOOD_PU_ONE, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_STORM_WIND_RAIN for player 1		
+		run background script GiveSpellDispenserReward(C3, variable MAGIC_TYPE_STORM_WIND_RAIN, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_STORM_WIND_RAIN_LIGHTNING for player 1		
+		run background script GiveSpellDispenserReward(C4, variable MAGIC_TYPE_STORM_WIND_RAIN_LIGHTNING, 250.0, 1, 0)	
+	end if
+
+	if spell MAGIC_TYPE_TORNADO for player 1		
+		run background script GiveSpellDispenserReward(C5, variable MAGIC_TYPE_TORNADO, 250.0, 1, 0)	
+	end if
+
+	//Bottom row.
+	if spell MAGIC_TYPE_SHIELD for player 1		
+		run background script GiveSpellDispenserReward(D0, variable MAGIC_TYPE_SHIELD, 0.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_PHYSICAL_SHIELD for player 1		
+		run background script GiveSpellDispenserReward(D1, variable MAGIC_TYPE_PHYSICAL_SHIELD, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_WOOD for player 1	
+		run background script GiveSpellDispenserReward(D2, variable MAGIC_TYPE_WOOD, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_WATER for player 1		
+		run background script GiveSpellDispenserReward(D3, variable MAGIC_TYPE_WATER, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_WATER_PU_ONE for player 1		
+		run background script GiveSpellDispenserReward(D4, variable MAGIC_TYPE_WATER_PU_ONE, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_FLOCK_FLYING for player 1		
+		run background script GiveSpellDispenserReward(D5, variable MAGIC_TYPE_FLOCK_FLYING, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_FLOCK_GROUND for player 1		
+		run background script GiveSpellDispenserReward(D6, variable MAGIC_TYPE_FLOCK_GROUND, 0.0, 1, 0)
+	end if
+
+	//CREATURE SPELLS
+
+	//TOP ROW
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_FREEZE for player 1		
+		run background script GiveSpellDispenserReward(CA0, variable MAGIC_TYPE_CREATURE_SPELL_FREEZE, 0.0, 1, 0)	
+	end if
+	
+	if spell MAGIC_TYPE_CREATURE_SPELL_SMALL for player 1		
+		run background script GiveSpellDispenserReward(CA1, variable MAGIC_TYPE_CREATURE_SPELL_SMALL, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_BIG for player 1	
+		run background script GiveSpellDispenserReward(CA2, variable MAGIC_TYPE_CREATURE_SPELL_BIG, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_WEAK for player 1		
+		run background script GiveSpellDispenserReward(CA3, variable MAGIC_TYPE_CREATURE_SPELL_WEAK, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_STRONG for player 1		
+		run background script GiveSpellDispenserReward(CA4, variable MAGIC_TYPE_CREATURE_SPELL_STRONG, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_FAT for player 1		
+		run background script GiveSpellDispenserReward(CA5, variable MAGIC_TYPE_CREATURE_SPELL_FAT, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_THIN for player 1		
+		run background script GiveSpellDispenserReward(CA6, variable MAGIC_TYPE_CREATURE_SPELL_THIN, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_INVISIBLE for player 1		
+		run background script GiveSpellDispenserReward(CA7, variable MAGIC_TYPE_CREATURE_SPELL_INVISIBLE, 0.0, 1, 0)
+	end if
+
+//	//BOTTOM ROW
+	if spell MAGIC_TYPE_CREATURE_SPELL_COMPASSION for player 1		
+		run background script GiveSpellDispenserReward(CB0, variable MAGIC_TYPE_CREATURE_SPELL_COMPASSION, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_ANGRY for player 1		
+		run background script GiveSpellDispenserReward(CB1, variable MAGIC_TYPE_CREATURE_SPELL_ANGRY, 0.0, 1, 0)
+	end if
+
+  
+	if spell MAGIC_TYPE_CREATURE_SPELL_HUNGRY for player 1		
+		run background script GiveSpellDispenserReward(CB2, variable MAGIC_TYPE_CREATURE_SPELL_HUNGRY, 0.0, 1, 0)
+	end if
+
+  
+	if spell MAGIC_TYPE_CREATURE_SPELL_FRIGHTENE for player 1		
+		run background script GiveSpellDispenserReward(CB3, variable MAGIC_TYPE_CREATURE_SPELL_FRIGHTENE, 0.0, 1, 0)
+	end if
+
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_TIRED for player 1		
+		run background script GiveSpellDispenserReward(CB4, variable MAGIC_TYPE_CREATURE_SPELL_TIRED, 0.0, 1, 0)
+	end if
+
+  
+	if spell MAGIC_TYPE_CREATURE_SPELL_ILL for player 1		
+		run background script GiveSpellDispenserReward(CB5, variable MAGIC_TYPE_CREATURE_SPELL_ILL, 0.0, 1, 0)
+	end if
+
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_THIRSTY for player 1		
+		run background script GiveSpellDispenserReward(CB6, variable MAGIC_TYPE_CREATURE_SPELL_THIRSTY, 0.0, 1, 0)
+	end if
+
+	if spell MAGIC_TYPE_CREATURE_SPELL_ITCHY for player 1		
+		run background script GiveSpellDispenserReward(CB7, variable MAGIC_TYPE_CREATURE_SPELL_ITCHY, 0.0, 1, 0)
+	end if
+
+end script SpellDispensors 
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script PickupTeddyBears(TutorialGuide, UseScroll)
+Crater = marker at [2961.836, 14.285, 2968.407] 
+
+ScrollPos = marker at [2933.001, 51.569, 3034.557] 
+ObjectAppear = 0
+
+start
+	LastScript=5	
+	if Teddy1 exists
+		delete Teddy1
+	end if
+	if Teddy2 exists
+		delete Teddy2
+	end if
+	if Teddy3 exists
+		delete Teddy3
+	end if
+	if Teddy4 exists
+		delete Teddy4
+	end if
+	if Teddy5 exists
+		delete Teddy5
+	end if
+
+
+	run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+	if (UseScroll == 1)
+		TeddyScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+		run script ChallengeHighlightNotify(TeddyScroll, ScrollPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_09)
+	
+		run SCRIPT_DEV_FUNCTION_RESET_ESCAPE_STATE developer function	
+
+		delete  RoundScroll
+		delete  UpDownScroll
+		delete  ValleyScroll
+		delete  ZoomScroll
+		delete	TeddyScroll
+		delete	ClickScroll
+
+		stop script "MoveAroundMountain"
+		stop script "MoveUpAndDownMountain"
+		stop script "MoveDownValley"
+		stop script "ZoomInAndOut"
+		//stop script "PickupTeddyBears"
+		stop script "DoubleClicking"
+
+		RoundRestart = 2
+		UpDownRestart = 2 
+		ValleyRestart = 2
+		ZoomRestart = 2
+		//TeddyRestart = 2
+		ClickRestart = 2
+	
+	end if
+
+	//Moved here, so they get created after the scroll is clicked on.
+	Teddy1 = create with angle 120 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2836.910, 102.233, 3145.873]  
+	Teddy2 = create with angle 100 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2834.211, 102.596, 3147.766] 
+	Teddy3 = create with angle 100 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2831.947, 102.889, 3153.153] 
+	Teddy4 = create with angle 70 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2833.906, 102.607, 3156.228]  
+	Teddy5 = create with angle 20 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2837.649, 102.570, 3158.386]  
+
+
+
+	
+	begin cinema
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		enable TutorialGuide high graphics detail
+		
+		set camera position to [2829.701, 91.558, 2987.762] 
+		set camera focus to [3840.241, -60.373, 117.987] 
+		
+		//set camera position to [2829.419, 97.661, 3020.059] 	
+		//set camera focus to [18.220, -1048.005, -2509.443] 
+		
+		set TutorialGuide position to [2831.429, 91.591, 2982.992] 
+		set TutorialGuide focus to [2830.087, 90.706, 2986.102] 
+		set fade in time 1
+		wait until fade ready
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_85
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_86
+		wait until read
+
+		set camera position to [2849.385, 106.006, 3155.032] 
+		set camera focus to [2825.315, 99.510, 3151.518] 
+		move camera position to [2852.504, 106.914, 3155.488] time 20
+		move camera focus to [2828.434, 100.418, 3151.974] time 20
+		say HELP_TEXT_TUTORIAL_LAND_87
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_88
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_89
+		wait until read
+		set camera position to [2904.173, 113.311, 3046.318] 
+		set camera focus to [2974.293, 24.856, 2951.847] 
+		//set camera position to [2829.701, 91.558, 2987.762] 
+		//set camera focus to [3840.241, -60.373, 117.987] 
+	
+
+		say HELP_TEXT_TUTORIAL_LAND_90
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_91
+		wait until read
+		move camera position to [2824.189, 116.373, 3170.414] time 10
+		move camera focus to [2837.283, 102.979, 3152.772] time 10
+		say HELP_TEXT_TUTORIAL_LAND_92
+		wait until read
+
+		say HELP_TEXT_TUTORIAL_LAND_39
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_40
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_10
+		wait until read
+		
+		
+		wait until camera ready
+		disable TutorialGuide high graphics detail
+	end cinema
+	
+	move TutorialGuide position to [2598.672, 80.183, 3104.134] 
+	
+	begin loop
+		if not Teddy1 exists
+			Teddy1 = create with angle 120 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2836.910, 102.233, 3145.873]  
+			ObjectAppear = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Teddy1] time 2
+		end if 
+		if not Teddy2 exists
+			Teddy2 = create with angle 100 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2834.211, 102.596, 3147.766] 
+			ObjectAppear = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Teddy2] time 2
+		end if
+		if not Teddy3 exists
+			Teddy3 = create with angle 100 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2831.947, 102.889, 3153.153] 
+			ObjectAppear = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Teddy3] time 2
+		end if
+		if not Teddy4 exists
+			Teddy4 = create with angle 70 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2833.906, 102.607, 3156.228]  
+			ObjectAppear = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Teddy4] time 2
+		end if
+		if not Teddy5 exists
+			Teddy5 = create with angle 20 and scale 1 OBJECT MOBILE_STATIC_INFO_TOY_CUDDLY at [2837.649, 102.570, 3158.386]  
+			ObjectAppear = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Teddy5] time 2
+		end if
+		until [Teddy1] near [Crater] radius 30 and [Teddy2] near [Crater] radius 30 and [Teddy3] near [Crater] radius 30 and [Teddy4] near [Crater] radius 30 and [Teddy5] near [Crater] radius 30 and Teddy1 is not HELD and Teddy2 is not HELD and Teddy3 is not HELD and Teddy4 is not HELD and Teddy5 is not HELD
+	end loop
+
+	set fade red 0 green 0 blue 0 time 1
+	wait until fade ready
+	begin cinema
+		enable TutorialGuide high graphics detail
+		set TutorialGuide position to [2831.429, 91.591, 2982.992] 
+		set TutorialGuide focus to [2830.087, 90.706, 2986.102] 
+		set camera position to [2829.701, 91.558, 2987.762] 
+		set camera focus to [3840.241, -60.373, 117.987] 
+
+		set fade in time 1
+		wait until fade ready
+		TutorialGuide play ANM_P_AMBIENT2 loop -1
+		say HELP_TEXT_TUTORIAL_LAND_93
+		wait until read
+		say HELP_TEXT_TUTORIAL_LAND_94
+		wait until read
+		//move camera position to [2836.825, 143.549, 3028.283] time 4
+		//move camera focus to [2685.043, 64.124, 3114.350] time 4
+		//wait until camera ready
+		disable TutorialGuide high graphics detail
+	end cinema
+
+	Restart = 0	
+	TeddyRestart = 0
+end script PickupTeddyBears
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script KeepRunningRoundMountain
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [1936.355, 100.492, 2233.808] 
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 1
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts
+		run background script MoveAroundMountain(TutorialGuide, 0)
+		
+	end loop
+end script KeepRunningRoundMountain
+
+begin script KeepRunningUpDownMountain
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [1949.833, 99.589, 2188.217] 
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 2
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts
+		run background script MoveUpAndDownMountain(TutorialGuide, 0)
+		
+	end loop
+end script KeepRunningUpDownMountain
+
+begin script KeepRunningValley
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [2179.074, 78.822, 2505.218] 
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 3
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts
+		run background script MoveDownValley(TutorialGuide, 0)
+		
+	end loop
+
+end script KeepRunningValley
+
+begin script KeepRunningZoom
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [2817.866, 100.791, 3140.415] 
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 4
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts
+		run background script ZoomInAndOut(TutorialGuide, 0)
+		
+	end loop
+
+end script KeepRunningZoom
+
+
+begin script KeepRunningTeddy
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [2933.001, 51.569, 3034.557] 
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 5
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts
+		run background script PickupTeddyBears(TutorialGuide, 0)
+		
+		
+	end loop
+
+end script KeepRunningTeddy
+
+begin script KeepRunningDoubleClick
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [0.0, 0.0, 0.0] 
+Scroll = 0
+ScrollPos = marker at [2079.995, 144.053, 2251.899] 
+
+start
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	Scroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	begin loop
+		begin loop
+			until Scroll clicked
+			until key constant 57 down and LastScript == 6
+		end loop
+		clear clicked object
+		
+		run script StopAllLand0Scripts	
+		run background script DoubleClicking(TutorialGuide, 0)
+		
+	end loop
+
+end script KeepRunningDoubleClick
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script KeepRunningControl
+start
+	run background script KeepRunningRoundMountain
+	run background script KeepRunningUpDownMountain	
+	run background script KeepRunningValley
+	run background script KeepRunningZoom
+	run background script KeepRunningTeddy
+	run background script KeepRunningDoubleClick
+end script KeepRunningControl
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LandControlT
+TutorialGuide = create VILLAGER VILLAGER_INFO_SHAOLIN at [1952.072, 97.679, 2272.131]
+Influence = 0
+
+start
+	begin camera
+		set camera position to [1568.450, 144.702, 2154.329] 
+		set camera focus to [1839.486, 66.301, 2208.259] 
+	end camera
+
+	disable TutorialGuide pickup
+	disable TutorialGuide moveable
+	enable TutorialGuide indestructible
+
+	run script SpellDispensors	
+
+	Influence = create influence at [2185.616, 94.651, 2409.528] radius 1000
+
+	RotateTalkDone = 0
+	GuideWalking = 0
+
+	if OneOffLevel == 0
+			TutorialLevel = 1
+	end if
+
+	Restart = 0
+	if TutorialLevel == 1
+		Restart = 1
+		while Restart == 1
+			run background script MoveAroundMountain(TutorialGuide, 0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2
+					stop script "MoveAroundMountain"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+	
+		if OneOffLevel == 0
+			TutorialLevel = 2
+		end if
+	end if //LEVEL 1	 
+	
+	if TutorialLevel == 2
+		Restart = 1
+		while Restart == 1
+			run background script MoveUpAndDownMountain(TutorialGuide, 0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2
+					stop script "MoveUpAndDownMountain"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+		if OneOffLevel == 0
+			TutorialLevel = 3
+		end if
+	end if //LEVEL 2
+	
+	if TutorialLevel == 3
+		Restart = 1
+		while Restart == 1
+			run background script MoveDownValley(TutorialGuide,  0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2
+					stop script "MoveDownValley"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+		if OneOffLevel == 0
+			TutorialLevel = 4
+		end if
+
+	end if //LEVEL 3
+	
+	if TutorialLevel == 4
+		Restart = 1
+		while Restart == 1
+			run background script ZoomInAndOut(TutorialGuide, 0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2
+					stop script "ZoomInAndOut"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+		if OneOffLevel == 0
+			TutorialLevel = 5
+		end if
+	end if //LEVEL 4
+
+	if TutorialLevel == 5
+		Restart = 1
+		while Restart == 1
+			run background script PickupTeddyBears(TutorialGuide, 0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2 
+					stop script "PickupTeddyBears"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+		if OneOffLevel == 0
+			TutorialLevel = 6
+		end if
+	end if // LEVEL 5
+
+	if TutorialLevel == 6
+		Restart = 1
+		while Restart == 1
+			run background script DoubleClicking(TutorialGuide, 0)
+			while Restart == 1
+				if key constant 57 down
+					Restart = 2 
+					stop script "DoubleClicking"
+				end if
+			end while
+			if Restart == 2
+				Restart = 1
+			end if
+		end while
+		if OneOffLevel == 0
+			TutorialLevel = 7
+		end if
+	end if
+
+	run background script KeepRunningControl
+	delete TutorialGuide
+end script LandControlT
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+//IMPORTANT: ADDITIONAL TEXT JUST IN CASE:
+
+/*
+
+Press the spacebar to return to this start position.
+Remember if you're lost, just press the spacebar and we can start again.
+To return to the Temple just click on this scroll using the Action Button.
+Remember you can go back to the temple by clicking on the scroll at the starting point.
+Take your time, there are only friends here.
+This bit is a little tricky.
+There are plenty fun things hidden around my island.
+Have a look over there.
+Ahh, you've found something,
+Freezing,
+Very Cold,
+Cold,
+Chilly.
+Warm,
+Very Warm,
+Hot,
+Roasting Hot,
+Here are some things to play with.
+You can have great fun with a ball.
+These Dies are fun.
+Try for a double six.
+Tots! Lovely.
+Set the pins up on some flat ground and have a game.
+Lets Practice some throwing.
+Click and briefly hold the Action Button to pick things up.
+Click and hold the Action Button to prepare to throw something.
+Now, still with the Action button held down, move the mouse forward and release the Action Button when you want to throw it.
+How you move the mouse after you release the mousebutton affects how things roll.
+Practice some more with different mouse speeds and direction.
+You'll soon get the hang of it.
+Practice throwing rocks.
+Tap the rocks with the Action Button to break them if you need more.
+Practice throwing trees.
+Use the action button to pull up a tree.
+Lets try moving further a field.
+Double click the Move Button to zoom you to a location.
+If you've got a mouse wheel you can use it to zoom and rotate, try it out.
+Press and hold the 'Control' and 'Shift' keys to zoom in quickly to a spot.
+Release the keys and you'll return to your starting location.
+Try pressing 'Control' and a Number key.
+This places a marker on the landscape.
+To return to the marker, simply press the Number key again.
+Have a look around this Village.
+It's up to you whether you help them or not?
+This dispenser gives you Fireball spells.
+You can never have too much spellcasting practice.
+
+  sh
+
+*/

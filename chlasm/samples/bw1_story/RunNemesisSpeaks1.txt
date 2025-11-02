@@ -1,0 +1,12 @@
+challenge RunNemesisSpeaks1
+
+run script RunNemesisSpeaks1
+
+begin script RunNemesisSpeaks1
+	
+start
+	
+	run script NemesisSpeaks1
+	
+
+end script RunNemesisSpeaks1

@@ -1,0 +1,12 @@
+challenge RunHanoiFlood
+
+run script RunHanoiFlood
+
+begin script RunHanoiFlood
+	
+start
+	
+	run script HanoiFlood
+	
+
+end script RunHanoiFlood

@@ -1,0 +1,545 @@
+challenge LAND2_FIREBALL_CHALLENGE
+
+//------------------------------------------------------------------------------------------------------------------------
+// Ready to learn lessons then are we?
+//------------------------------------------------------------------------------------------------------------------------
+begin script FireBallChallenge
+	Highlight = 0
+	Hut1Pos = marker at [3456.3601, 9.0581, 2957.6001]
+	Hut1 = get HOUSE at [Hut1Pos]
+	Hut2Pos = marker at [3428.1799, 3.2244, 2975.4199]
+	Hut2 = get HOUSE at [Hut2Pos]
+	Hut3Pos = marker at [3418.6399, 2.8344, 2962.4297]
+	Hut3 = get HOUSE at [Hut3Pos]
+
+	TargetTotal = 0
+	FireInArea = 0
+	HutDamaged = 0
+	Hut1Damaged = 0
+	Hut2Damaged = 0
+	Hut3Damaged = 0
+	OldHutDamaged = 0
+
+	FireBallSeedPos1 = marker at [3246.5798, 25.4600, 3165.6497]
+	FireBallSeedPos2 = marker at [FireBallSeedPos1]+[-2,-2]
+	FireBallSeedPos3 = marker at [FireBallSeedPos1]+[2,2]
+	FireBallSeedLandPos1 = marker at [3246.5798, 25.1106, 3165.6497]
+	FireBallSeedLandPos2 = marker at [3244.0581, 25.6703, 3163.1289]
+	FireBallSeedLandPos3 = marker at [3249.1016, 25.6622, 3168.1802]
+
+	FireBallSeed1 = 0
+	FireBallSeed2 = 0
+	FireBallSeed3 = 0
+	FireBallsExisting = 0
+	FireBallActive = 0
+	SpellInHand = 0
+	FireBallNotInHand = 0
+	ObjectInHand = 0
+	StillNotSucceeded = 0
+	FireBallMiracleOwnedSpeech = 0
+
+	SeedTimer = create timer for 0 seconds
+	XBonus = 0
+	ZBonus = 0
+
+	RewardSeed = 0
+	RetrySeed1 = 0
+	Seed1Gone = 0
+	RetrySeed2 = 0
+	Seed2Gone = 0
+	RetrySeed3 = 0
+	Seed3Gone = 0
+
+	FireInfluence = 0
+	HutAntiInfluence = create anti influence at position [Hut1Pos] radius 50
+	HighCamPosAboveCitadel = marker at [3333.6067, 233.1279, 3238.7915]
+	ShieldScrollCamPos = marker at [3580.8599, 32.6802, 3489.5591]
+	ShieldScrollCamFoc = marker at [3611.9944, 8.7162, 3461.9143]
+	FireBallScrollCamPos = marker at [3372.1199, 34.0321, 2990.1270]
+	FireBallScrollCamFoc = marker at [3446.8381, 8.9181, 2965.5549]
+	SeeFireBallsPos = marker at [3217.1858, 45.1551, 3189.6023]
+	SeeFireBallsFoc = marker at [3413.1665, 1.9431, 3017.7273]
+	TryLaterSpeech = 0
+	LoopEnd = 0
+	PositionTick=0
+
+	BeginPos = 0
+	BeginFoc = 0
+
+	Town = get town with id 0
+
+	SuccessValue = 0
+
+start
+	Highlight = create highlight HIGHLIGHT_QUEST at [Hut2Pos]
+
+	// Challenge Notify
+	run script CheckForKhazarChallengeHighlightNotify(Highlight, Hut2Pos, variable EVIL_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_02)	
+
+	if KhazarGone == 0
+		FireInfluence = create influence at [FireBallSeedPos1] radius 40
+
+		HEALTH of Hut1 = 1
+		HEALTH of Hut2 = 1
+		HEALTH of Hut3 = 1
+
+		set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_INTERACTION
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+
+			KhazarInScript=1
+			move camera position to [FireBallScrollCamPos] time 4
+			move camera focus to [FireBallScrollCamFoc] time 2
+
+			move computer player 2 to [3457.5776, 2.6800, 2985.5186] speed 300 with fixed height
+
+			//"Destroy these buildings."
+			say HELP_TEXT_NEW_LAND_2_FIREBALL_01
+			wait until read
+			wait until camera ready
+
+			close dialogue
+			wait 0.1 seconds
+
+			snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+			move computer player 2 to [3281.6060, 21.3248, 3126.7168] speed 100 with fixed height
+
+			FireBallSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos1]
+			FireBallSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos2]
+			FireBallSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos3]
+
+			// MOVE TO JUST BEHIND THE ONE SHOTS
+			move camera position to [SeeFireBallsPos] time 4
+			wait 3 seconds
+			move camera focus to [SeeFireBallsFoc] time 2
+
+			// "With these Fireball miracle seeds."
+			say HELP_TEXT_NEW_LAND_2_FIREBALL_16
+			wait until read
+
+			move computer player 2 to [3240.0005,40, 3116.0645] speed 75
+
+			wait until camera ready
+
+			// Fireball challenge hand demo
+			run script Fireball
+ 		end cinema
+
+		//Wait for the player to pickup a fireball for the first time.
+		while FireBallNotInHand == 0
+			//remind about getting seeds.
+			if get SeedTimer time remaining <= 0
+				begin dialogue
+					// "To use a miracle seed tap it to break it."
+					say single line HELP_TEXT_NEW_LAND_2_FIREBALL_02
+					wait until read
+					set SeedTimer time to 30 seconds
+				end dialogue
+			end if
+
+			//Have we got a fireball?
+			ObjectInHand = get object held
+			if ObjectInHand exists
+				if ObjectInHand type SCRIPT_OBJECT_TYPE_SPELL_SEED SPELL_SEED_TYPE_FIRE
+					FireBallNotInHand = 1
+				end if
+			end if
+
+			FireBallsExisting = 0
+
+			PositionTick++
+			if FireBallSeed1 exists
+				if PositionTick > 5	and FireBallSeed1 is not HELD
+					if [FireBallSeed1] not viewed or [FireBallSeed1] not near [FireBallSeedLandPos1] radius 15
+						delete FireBallSeed1 with fade
+						FireBallSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos1]
+					end if
+				end if
+				FireBallsExisting++
+			end if
+			if FireBallSeed2 exists
+				if PositionTick > 5	and FireBallSeed2 is not HELD
+					if [FireBallSeed2] not viewed or [FireBallSeed2] not near [FireBallSeedLandPos1] radius 15
+						delete FireBallSeed2 with fade
+						FireBallSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos2]
+					end if
+				end if
+				FireBallsExisting++
+			end if
+			if FireBallSeed3 exists
+				if PositionTick > 5 and FireBallSeed3 is not HELD
+					if [FireBallSeed3] not viewed or [FireBallSeed3] not near [FireBallSeedLandPos1] radius 15
+						delete FireBallSeed3 with fade
+						FireBallSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos3]
+					end if
+				end if
+				FireBallsExisting++
+			end if
+
+			if PositionTick > 5
+				PositionTick = 0
+			end if
+
+			if FireBallsExisting == 0
+				FireBallNotInHand = 2
+			end if
+		end while
+
+		if FireBallNotInHand < 2
+			begin dialogue
+				eject evil spirit
+				// "To cast a Fireball spell throw it like a rock."
+				say single line HELP_TEXT_NEW_LAND_2_FIREBALL_04
+				wait until read
+			end dialogue
+		end if
+
+		begin loop // does the following code twice
+			FireBallActive = 0
+			if LoopEnd >= 1
+				FireBallSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos1]
+				FireBallSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos2]
+				FireBallSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos3]
+				begin dialogue
+					// Khazar says !!
+					// "Here's another three seeds to try again with."
+					if LoopEnd == 1			
+						say single line HELP_TEXT_NEW_LAND_2_FIREBALL_12
+						wait until read
+					else 
+						// "Try again"
+						say single line HELP_TEXT_NEW_LAND_2_FIREBALL_13
+						wait until read
+					end if
+				end dialogue
+			end if
+
+			while FireBallActive < 2 and HutDamaged < 3
+				if Hut1Damaged == 0
+					if HEALTH of Hut1 < 1
+						Hut1Damaged = 1
+						HutDamaged++
+					end if
+				end if
+
+				if Hut2Damaged == 0
+					if HEALTH of Hut2 < 1
+						Hut2Damaged = 1
+						HutDamaged++
+					end if
+				end if
+
+				if Hut3Damaged == 0
+					if HEALTH of Hut3 < 1
+						Hut3Damaged = 1
+						HutDamaged++
+					end if
+				end if
+
+				FireBallsExisting = 0
+
+				PositionTick++
+				if FireBallSeed1 exists
+					if PositionTick > 5	and FireBallSeed1 is not HELD
+						if [FireBallSeed1] not viewed or [FireBallSeed1] not near [FireBallSeedLandPos1] radius 15
+							delete FireBallSeed1 with fade
+							FireBallSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos1]
+						end if
+					end if
+					FireBallsExisting++
+				end if
+				if FireBallSeed2 exists
+					if PositionTick > 5	and FireBallSeed2 is not HELD
+						if [FireBallSeed2] not viewed or [FireBallSeed2] not near [FireBallSeedLandPos1] radius 15
+							delete FireBallSeed2 with fade
+							FireBallSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos2]
+						end if
+					end if
+					FireBallsExisting++
+				end if
+				if FireBallSeed3 exists
+					if PositionTick > 5 and FireBallSeed3 is not HELD
+						if [FireBallSeed3] not viewed or [FireBallSeed3] not near [FireBallSeedLandPos1] radius 15
+							delete FireBallSeed3 with fade
+							FireBallSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FIRE at [FireBallSeedPos3]
+						end if
+					end if
+					FireBallsExisting++
+				end if
+
+				if PositionTick > 5
+					PositionTick = 0
+				end if
+
+				if FireBallActive == 1
+					// allows one last check on Hut healths
+					FireBallActive = 2
+				end if
+
+				if FireBallsExisting == 0 and FireBallActive == 0
+					wait 1 second
+					ObjectInHand = get object held
+					while ObjectInHand exists
+						ObjectInHand = get object held
+					end while
+					
+					wait 6 seconds
+					FireBallActive = 1
+				end if
+			end while
+
+			if HutDamaged == 3
+				begin cinema
+					
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+
+					set camera position to [3407.408, 11.411, 2989.360] 
+					set camera focus to [3433.327, 5.964, 2965.524] 
+
+					move camera position to [3401.510, 11.292, 2982.083] time 10
+					move camera focus to [3431.779, 5.344, 2965.851] time 10
+
+					wait 0.1 seconds
+					snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+					eject evil spirit
+					// "Great shooting, Boss. You damaged all three huts."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_06
+					wait until read
+					// "Fire tends to spread and can decimate a town in minutes."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_07
+					wait until read
+					send evil spirit home
+					LoopEnd = 3
+
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+
+				end cinema
+			elsif HutDamaged == 2
+				begin cinema
+					
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+
+					set camera position to [3407.408, 11.411, 2989.360] 
+					set camera focus to [3433.327, 5.964, 2965.524] 
+
+					move camera position to [3401.510, 11.292, 2982.083] time 10
+					move camera focus to [3431.779, 5.344, 2965.851] time 10
+
+					wait 0.1 seconds
+					snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+					eject evil spirit
+					// "Pretty good. Two of the three huts are damaged."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_08
+					wait until read
+					// "Fire tends to spread and can decimate a town in minutes."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_07
+					wait until read
+					send evil spirit home
+					LoopEnd = 3
+
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+
+				end cinema
+			elsif HutDamaged == 1
+				begin cinema
+					
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+
+					set camera position to [3407.408, 11.411, 2989.360] 
+					set camera focus to [3433.327, 5.964, 2965.524] 
+
+					move camera position to [3401.510, 11.292, 2982.083] time 10
+					move camera focus to [3431.779, 5.344, 2965.851] time 10
+
+					wait 0.1 seconds
+					snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+					eject evil spirit
+					// "Not bad. You managed to damage one of the huts."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_09
+					wait until read
+					// "Fire tends to spread and can decimate a town in minutes."
+					say HELP_TEXT_NEW_LAND_2_FIREBALL_07
+					wait until read
+					send evil spirit home
+					LoopEnd = 3	
+
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+
+				end cinema
+			elsif HutDamaged == 0
+				begin cinema
+
+					SuccessValue = SuccessValue + 0.33
+
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+
+					set camera position to [3407.408, 11.411, 2989.360] 
+					set camera focus to [3433.327, 5.964, 2965.524] 
+
+					move camera position to [3401.510, 11.292, 2982.083] time 8
+					move camera focus to [3431.779, 5.344, 2965.851] time 8
+
+					update snapshot success SuccessValue alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+					eject evil spirit
+					
+					if LoopEnd == 0
+						// "Hmmm. None of the huts got burnt."
+						say single line HELP_TEXT_NEW_LAND_2_FIREBALL_10
+					elsif LoopEnd == 1
+						say single line HELP_TEXT_FIREBALL_CHALLENGE_EXTRA_01
+					else
+						say single line HELP_TEXT_FIREBALL_CHALLENGE_EXTRA_01
+					end if 					
+					
+					wait until read
+					send evil spirit home
+
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+
+				end cinema
+				LoopEnd++
+			end if
+
+		until LoopEnd == 3
+		end loop
+
+		stop music
+		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_101 StandardReminder(variable HELP_TEXT_REMINDER_41)
+
+		set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+		//The challenge is complete
+		begin dialogue
+			enable spell SPELL_FIREBALL_LEVEL_1 in Town
+
+			//My fireball challenge is complete
+			say HELP_TEXT_NEW_LAND_2_FIREBALL_14
+			wait until read
+
+			// "You've been rewarded with fireballs for your village"
+			say HELP_TEXT_NEW_LAND_2_FIREBALL_11
+			wait until read
+			//From now on you can do it at your village
+			say HELP_TEXT_NEW_LAND_2_FIREBALL_18
+			wait until read
+			say HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_01
+			wait until read
+
+		end dialogue
+		
+		release computer player 2
+		KhazarInScript=0
+
+		delete FireBallSeed1 with fade
+		delete FireBallSeed2 with fade
+		delete FireBallSeed3 with fade
+	end if
+end script FireBallChallenge
+
+//------------------------------------------------------------------------------------------------------------------------
+//-MiracleChallenges-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script MiracleChallenges(ScrollPos)
+	Highlight=0
+	SpeedTimer=create timer for 60*2 seconds
+	IntroEndViewPos = marker at [3525.8425, 43.5703, 2863.6768]
+	IntroEndViewFoc = marker at [3487.5261, 1.9752, 2992.0344]
+
+start
+	//The two miracle challenges.
+	Highlight = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	ALTITUDE of Highlight = 6
+
+	run script CheckForKhazarChallengeHighlightNotify(Highlight, ScrollPos, variable EVIL_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_03)
+	
+	if KhazarGone == 0
+		run background script PhysicalShieldChallenge
+		run background script FireBallChallenge
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+			//SET KHAZAR POSITION TO IN VIEW
+			move computer player 2 to [3327.986, 77.636, 3168.236]  speed 300 with fixed height// Khazar returns to teach lessons!!!
+		
+			move camera position to [3335.352, 89.985, 3174.738] time 5
+			move camera focus to [3090.393, 0.282, 2989.686] time 5
+
+			wait 2 seconds
+			wait until camera ready
+
+			move camera position to [3318.349, 91.391, 3172.451] time 12
+			move camera focus to [3545.830, 0.341, 3068.400] time 12 
+
+			//Check if quick to trigger this miracle learning.
+			if get SpeedTimer time remaining > 0
+				say HELP_TEXT_NEW_LAND_2_ENTRY_19 //Boy you were keen.
+			else 
+				say HELP_TEXT_NEW_LAND_2_ENTRY_20 //I'm here...
+			end if
+
+			wait until read
+
+			// "Come with me to an area in which you can practice your skills."
+			say HELP_TEXT_NEW_LAND_2_ENTRY_21
+			wait 2 seconds 
+
+			move camera position to [3342.328, 106.629, 3213.116] time 3		// Cam move on Khazar
+			move computer player 2 to [3616.889, 8.959, 3463.719] speed 30	
+			wait 2 seconds
+
+			enable highlight draw
+			// Show Shield challenge
+			move computer player 2 to [3619.5701, 8.7100, 3457.7200] speed 150	with fixed height	// Khazar shows shield challenge
+			
+			move camera position to [3602.371, 18.574, 3446.076] time 7			// Cam look at shield challenge
+			move camera focus to [3618.708, 10.886, 3458.665] time 4
+
+			wait 3 seconds
+			
+			clear dialogue
+			// "Here you can learn about defence, with a Physical Shield."
+			say HELP_TEXT_NEW_LAND_2_ENTRY_22
+			wait until read
+			wait until camera ready
+
+			// Show Fireball challenge
+			move computer player 2 to [3428.1799, 3.2244, 2975.4199] speed 150	 with fixed height	// Khazar shows fireball challenge
+			
+			move camera position to [3423.4902, 21.2429, 3011.4858] time 7
+			move camera focus to [3439.0603, 6.8129, 2967.0659] time 4
+
+			wait 3 seconds
+			
+			// "And here you can learn about attack, using a Fireball."
+			say HELP_TEXT_NEW_LAND_2_ENTRY_23
+			wait until read
+			wait until camera ready
+
+			move camera position to [3354.431, 26.719, 2962.199] time 4
+			move camera focus to [3424.527, 1.668, 3012.232] time 4
+			wait until camera ready
+			//activate the scroll of your choice.
+			say HELP_TEXT_NEW_LAND_2_ENTRY_24
+			wait until read
+			move computer player 2 to [2507.265, 105.190, 1800.361] speed 100  with fixed height		// Khazar goes home
+			stop music
+		end cinema
+
+		release computer player 2
+		KhazarInScript=0
+	end if
+	
+end script MiracleChallenges

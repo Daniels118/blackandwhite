@@ -1,0 +1,16 @@
+challenge LandControl3
+
+begin script LandControl3
+
+start
+	
+	run script SetupLand3
+	run background script ThrowBlokeMain
+	run background script FreeTheCreature
+	run script GetThroughVortexL2					// Enter the land
+	run background script SwapToApe
+	run background script ShaolinMonk				// waits until player start to take over Japanese Town
+	run background script TreePuzzleTwo
+	wait until FinishedLand3 == 1
+
+end script LandControl3

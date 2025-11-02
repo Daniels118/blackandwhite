@@ -1,0 +1,15 @@
+challenge MAKE_BALL
+
+
+// globals
+
+run script MakeBall
+
+begin script MakeBall
+Ball = 0
+start
+
+	wait 3 seconds
+	Ball = create BALL at hand position
+
+end script MakeBall

@@ -1,0 +1,78 @@
+challenge CREATURE_DEV_LEARN_TO_POO
+
+ run script CreatureDevLearnToPoo
+
+
+begin script CreatureDevLearnToPoo
+
+CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+CitadelPos = marker at [1915.0500, 18.0900, 2508.8899]
+
+CamPosStart = marker at [1895.2290, 35.7275, 2497.7000]
+CamPos1 = marker at [1894.2354, 28.8333, 2508.1797]
+CamPos2 = marker at [1895.1014, 25.0483, 2514.3584]
+HighCam = marker at [1883.5487, 48.5542, 2519.3435]
+
+PooSite = marker at [1964.5896, 17.1138, 2537.2874]
+
+
+start
+	begin cinema
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		set MyCreature position to [MyCreaturePos]
+		move Trainer position to [TrainerPos]
+		move camera position to [CamPos1] time 8
+		set MyCreature focus to [CamPos1]
+		MyCreature play C_INDIVIDUAL_NEED_A_POO
+		wait until [Trainer] near [TrainerPos] radius 2
+		wait 2 seconds
+		set Trainer focus to [CamPos1]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_01
+		wait until read
+		move camera focus to [MyCreature] time 4
+		move camera position to [CamPos2] time 8
+		wait 4 seconds
+		move camera position to [HighCam] time 12
+		set set camera focus follow MyCreature
+		move MyCreature position to [PooSite]
+		wait until [MyCreature] near [PooSite] radius 5
+		wait 2 seconds
+		force MyCreature CREATURE_POO PooSite
+		wait 1 second
+		wait until MyCreature played
+		move MyCreature position to [MyCreaturePos]
+		move camera position to [CamPos1] time 8
+		wait until [MyCreature] near [MyCreaturePos] radius 5
+		move camera focus to [Trainer] time 3
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_02
+		wait until read
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait 2 seconds
+		force MyCreature CREATURE_BE_SILLY_WITH_PLAYER MyCreature
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_03
+		move camera focus to [MyCreature] time 4
+		move camera position to [CamPos2] time 8
+		move Trainer position to [CitadelEntrancePos]
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_04
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_05
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_POO_06
+		wait until read
+		send good spirit home
+		send evil spirit home
+		wait until [Trainer] near [CitadelEntrancePos] radius 2
+		delete Trainer
+		wait until camera ready
+	end cinema
+
+end script CreatureDevLearnToPoo

@@ -1,0 +1,12 @@
+challenge RunLostTreasure
+
+run script RunLostTreasure
+
+begin script RunLostTreasure
+	
+start
+	
+	run script LostTreasureMain
+	
+
+end script RunLostTreasure

@@ -1,0 +1,22 @@
+begin script displayrewardhelp(reward1)
+
+helptextenum = 0
+
+start
+
+	wait until reward1 clicked
+		
+	helptextenum = get reward1 help
+
+	if dialogue ready
+	
+		begin dialogue
+			wait 1 second
+			say constant helptextenum
+			wait until read
+		end dialogue
+
+	end if
+
+
+end script displayrewardhelp

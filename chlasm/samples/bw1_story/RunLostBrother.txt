@@ -1,0 +1,14 @@
+challenge RunLostBrother
+
+run script RunLostBrother
+
+begin script RunLostBrother
+	
+start
+	
+	run script SetupLand1
+	ProtectGateKeysFlag = 1
+	run background script ProtectGateKeys
+	run script LostBrother
+
+end script RunLostBrother

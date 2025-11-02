@@ -1,0 +1,453 @@
+challenge LandControl2
+
+//------------------------------------------------------------------------------------------------------------------------
+global DoneFinalGold=0
+
+//------------------------------------------------------------------------------------------------------------------------
+// Script which checks for the expansion trigger
+//------------------------------------------------------------------------------------------------------------------------
+begin script ExpansionCheck(HomeTown, Town1)
+	ExpansionTimer = create timer for 0 seconds
+	Exit = 0
+start
+	//Time before Khazar suggests expansion
+	set ExpansionTimer time to 60*20 seconds
+
+	while Exit == 0
+		wait 3 seconds
+		//Check for expansion 
+		if get ExpansionTimer time remaining <= 0
+			if get PLAYER of HomeTown == 1
+				run background script LearnGestures(Town1)
+				Exit = 1
+				TriggeredGestures = 1
+			end if
+		end if
+	end while
+end script ExpansionCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town1 and trigger the camera shot and then Khazar comes over and tells you about influence.
+//------------------------------------------------------------------------------------------------------------------------
+begin script InfluenceCheck(Town)
+	Exit = 0
+start
+	while Exit == 0
+		if LearnGesturesCompleted == 1
+			if PLAYER of Town == 1
+				run script LearnInfluence
+					if DoneFinalGold == 0
+						DoneFinalGold=1
+						run background script Land2FinalScroll
+					end if
+				Exit = 1
+			end if
+		end if
+	end while
+end script InfluenceCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for plague script
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlagueCheck(Town)
+	Exit = 0
+	Worship = 0
+	Altar=marker at [3343.1909, 77.7200, 3220.2014]
+start
+	while Exit == 0
+		if PLAYER of Town == 1
+			Worship = get WORSHIP at [Altar] radius 15
+			if Worship exists
+				if BUILT of Worship >=1.0
+					//Delay the start of the plague script for 5 mins.
+					wait 5*60 seconds
+					run background script PlagueMain
+					Exit = 1
+				end if
+			else
+				wait 33 seconds
+			end if
+		end if
+	end while
+end script PlagueCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// When the towns worship site is built.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SacrificeCheck(Town)
+	Exit = 0
+	Altar=marker at [3343.1909, 77.7200, 3220.2014]
+	Worship = 0
+start
+	while Exit == 0
+		wait 11 seconds
+		Worship = get WORSHIP at [Altar] radius 15
+		if Worship exists
+			if BUILT of Worship == 1
+				if PLAYER of Town == 1
+					run background script Sacrifice(Town, Altar)
+					Exit = 1
+				end if
+			end if
+		end if
+	end while
+end script SacrificeCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town3 every 6 minutes.
+//------------------------------------------------------------------------------------------------------------------------
+begin script LostTreasureCheck(Town)
+	Exit = 0
+start
+	while Exit == 0
+		wait 6*60 seconds
+		if PLAYER of Town == 1
+			run background script LostTreasureMain
+			Exit = 1
+		end if
+	end while
+end script LostTreasureCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town4.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SlaversCheck(Town)
+	Exit = 0
+start
+	while Exit == 0
+		wait 1.7 seconds
+		if PLAYER of Town == 1
+			run background script TheSlaversMain(Town)
+			Exit = 1
+		end if
+	end while
+end script SlaversCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town5.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SpiritualHealerCheck(Town)
+	Exit = 0
+start
+	while Exit == 0
+		wait 1.3 seconds
+		if PLAYER of Town == 1
+			run background script SpiritualHealerMain
+			Exit = 1
+		end if
+	end while
+end script SpiritualHealerCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town6 and Town2 every 4 minutes for Baywatch triggered on Town 2.
+//------------------------------------------------------------------------------------------------------------------------
+begin script BayWatchCheck(Town6, Town2)
+	Exit = 0
+start
+	while Exit == 0
+		wait 4*60 seconds
+		if PLAYER of Town6 == 1
+			if PLAYER of Town2 == 1
+				run background script BaywatchMain
+				Exit = 1
+			end if
+		end if
+	end while
+end script BayWatchCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check for take over of Town7 every 8 minutes.
+//------------------------------------------------------------------------------------------------------------------------
+begin script GreedyFarmerCheck(Town)
+	Exit = 0
+start
+	while Exit == 0
+		wait 8*60 seconds
+		if PLAYER of Town == 1
+			run background script GreedyFarmer
+			Exit = 1
+		end if
+	end while
+end script GreedyFarmerCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TownOwnershipCheck(Town1, Town2, Town3, Town4, Town5, Town6, Town7, Town8, Town9, Town10, Town11)
+	Town1Owner=0
+	Town2Owner=0
+	Town3Owner=0
+	Town4Owner=0
+	Town5Owner=0
+	Town6Owner=0
+	Town7Owner=0
+	Town8Owner=0
+	Town9Owner=0
+	Town10Owner=0
+	Town11Owner=0
+	OldTown1Owner=0
+	OldTown2Owner=0
+	OldTown3Owner=0
+	OldTown4Owner=0
+	OldTown5Owner=0
+	OldTown6Owner=0
+	OldTown7Owner=0
+	OldTown8Owner=0
+	OldTown9Owner=0
+	OldTown10Owner=0
+	OldTown11Owner=0
+
+start
+	OldTown1Owner=PLAYER of Town1
+	OldTown2Owner=PLAYER of Town2
+	OldTown3Owner=PLAYER of Town3
+	OldTown4Owner=PLAYER of Town4
+	OldTown5Owner=PLAYER of Town5
+	OldTown6Owner=PLAYER of Town6
+	OldTown7Owner=PLAYER of Town7
+	OldTown8Owner=PLAYER of Town8
+	OldTown9Owner=PLAYER of Town9
+	OldTown10Owner=PLAYER of Town10
+	OldTown11Owner=PLAYER of Town11
+
+	while KhazarGone == 0 or LethysGone == 0
+		
+		//Check each town for a change of owner.
+		Town1Owner=PLAYER of Town1
+		if Town1Owner != OldTown1Owner
+			run background script Land2TownTakeOver(OldTown1Owner, Town1Owner, Town1)
+			OldTown1Owner=Town1Owner
+		end if
+		wait 0.1 seconds
+		
+		Town2Owner=PLAYER of Town2
+		if Town2Owner != OldTown2Owner
+			run background script Land2TownTakeOver(OldTown2Owner, Town2Owner, Town2)
+			OldTown2Owner=Town2Owner
+		end if
+		wait 0.1 seconds
+
+		Town3Owner=PLAYER of Town3
+		if Town3Owner != OldTown3Owner
+			run background script Land2TownTakeOver(OldTown3Owner, Town3Owner, Town3)
+			OldTown3Owner=Town3Owner
+		end if
+		wait 0.1 seconds
+
+		Town4Owner=PLAYER of Town4
+		if Town4Owner != OldTown4Owner
+			run background script Land2TownTakeOver(OldTown4Owner, Town4Owner, Town4)
+			OldTown4Owner=Town4Owner
+		end if
+		wait 0.1 seconds
+
+		Town5Owner=PLAYER of Town5
+		if Town5Owner != OldTown5Owner
+			run background script Land2TownTakeOver(OldTown5Owner, Town5Owner, Town5)
+			OldTown5Owner=Town5Owner
+		end if
+		wait 0.1 seconds
+
+		Town6Owner=PLAYER of Town6
+		if Town6Owner != OldTown6Owner
+			run background script Land2TownTakeOver(OldTown6Owner, Town6Owner, Town6)
+			OldTown6Owner=Town6Owner
+		end if
+		wait 0.1 seconds
+
+		Town7Owner=PLAYER of Town7
+		if Town7Owner != OldTown7Owner
+			run background script Land2TownTakeOver(OldTown7Owner, Town7Owner, Town7)
+			OldTown7Owner=Town7Owner
+		end if
+		wait 0.1 seconds
+
+		Town8Owner=PLAYER of Town8
+		if Town8Owner != OldTown8Owner
+			run background script Land2TownTakeOver(OldTown8Owner, Town8Owner, Town8)
+			OldTown8Owner=Town8Owner
+		end if
+		wait 0.1 seconds
+
+		Town9Owner=PLAYER of Town9
+		if Town9Owner != OldTown9Owner
+			run background script Land2TownTakeOver(OldTown9Owner, Town9Owner, Town9)
+			OldTown9Owner=Town9Owner
+		end if
+		wait 0.1 seconds
+
+		Town10Owner=PLAYER of Town10
+		if Town10Owner != OldTown10Owner
+			run background script Land2TownTakeOver(OldTown10Owner, Town10Owner, Town10)
+			OldTown10Owner=Town10Owner
+		end if
+		wait 0.1 seconds
+
+		Town11Owner=PLAYER of Town11
+		if Town11Owner != OldTown11Owner
+			run background script Land2TownTakeOver(OldTown11Owner, Town11Owner, Town11)
+			OldTown11Owner=Town11Owner
+		end if
+		wait 0.1 seconds
+	end while
+
+end script TownOwnershipCheck
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LandControl2
+	HomeTown = get town with id 0
+	KhazarHomeTown = get town with id 1
+	LethysHomeTown = get town with id 5
+	Town1 = get town with id 12				//Nearest Town (Norse) Used For Learn Gestures & idol pyre
+	Town2 = get town with id 10				//Indian Town Used where learn influence occurs but learn gestures triggered by town1, baywatch, sacrfice and plague is at town 2
+	Town3 = get town with id 13				//Indian Town - Lost treasure
+	Town4 = get town with id 2				//Norse Near Khazar Slavers
+	Town5 = get town with id 9				//Norse Spiritual Healer town
+	Town6 = get town with id 11				//Indian Near snow edge of Lethys - no challenge but triggers Baywatch.
+	Town7 = get town with id 4				//Celtic - Greedy Farmer 
+	Town8 = get town with id 3				//Celtic near Lethys
+
+	//Condition flags.
+	CanDoIdol=0
+	DoneIdol=0
+	CanKillKhazar=0
+	DoneKillKhazar=0
+	CanLethysVortex=0
+	DoneLethysVortex=0
+	DoneWorkshop=0
+
+	//Counts
+	TownCount=0
+	Player3TownCount=0
+
+	//DYK
+	dyk34 = marker at [3346.0181, 77.7200, 3244.8525]			// spruce up worship site
+	dyk39 = marker at [3320.5674, 48.1850, 3390.8323]			// empty bldgs deteriorate
+	dyk42 = marker at [1946.6857, 21.7488, 2602.3938]			// relocate villagers
+   	dyk46 = marker at [3250.2188, 46.2300, 3457.0820]			// action button fields to pick up more food
+	dyk55 = marker at [3285.1609, 44.9319, 3220.4285]			// water fields
+	dyk58 = marker at [2074.0334, 15.4100, 2590.4585]			// fireflies
+	dyk03 = marker at [3229.724, 47.633, 3419.595]
+	dyk112 = marker at [2739.382, 50.920, 3052.035]
+	
+	LethysCitadelPos = marker at [1010.740, 149.410, 3676.572]
+	LethysCitadel=0
+
+start
+	//Exit vortex do the intro and start the landscape town independant scripts.
+	run script SetupLand2
+// Do not need the following lines as they are in the map file. Also teleport is not on this town but the next one. SPL
+//	enable spell SPELL_HEAL_LEVEL_1 in Town1
+//	enable spell SPELL_TELEPORT in Town1
+	run background script DidYouKnow(dyk42, variable HELP_TEXT_DYK_42, variable DYK_VILLAGE_LIFE)
+	run background script DidYouKnow(dyk46, variable HELP_TEXT_DYK_46, variable DYK_NAVIGATION)
+	run background script DidYouKnow(dyk55, variable HELP_TEXT_DYK_55, variable DYK_VILLAGE_LIFE)
+	run background script DidYouKnow(dyk58, variable HELP_TEXT_DYK_58, variable DYK_MISC)
+	run background script DidYouKnow(dyk03,	variable HELP_TEXT_DYK_03, variable DYK_VILLAGE_LIFE)			// learn disciples
+	run background script DidYouKnow(dyk112, variable HELP_TEXT_DYK_112, variable DYK_VILLAGE_LIFE)
+	
+	LethysCitadel = get CITADEL at [LethysCitadelPos] radius 10
+	
+	run background script SingingStonesSongsMain
+	run background script HanoiFlood
+	run background script TreePuzzleOne
+	run script EnterLand2
+
+	run background script DidYouKnow(dyk39, variable HELP_TEXT_DYK_39, variable DYK_VILLAGE_LIFE)		// empty buildings deteriorate
+	run background script LearnWorshipping
+
+	run background script PlagueCheck(Town2)
+	run background script LostTreasureCheck(Town3)
+	run background script SlaversCheck(Town4)
+	run background script SpiritualHealerCheck(Town5)
+	run background script SacrificeCheck(Town6)
+	run background script BayWatchCheck(Town6, Town2)
+	run background script GreedyFarmerCheck(Town7)
+	run background script TownOwnershipCheck(Town1, Town2, Town3, Town4, Town5, Town6, Town7, Town8, HomeTown, KhazarHomeTown, LethysHomeTown)
+		
+	while LeavingLandTwo == 0
+		wait 9 seconds //To slow process hit.
+
+		if LearnWorshipCompleted == 1 and DoneWorkshop == 0
+			DoneWorkshop=1
+			run background script DidYouKnow(dyk34, variable HELP_TEXT_DYK_34, variable DYK_VILLAGE_LIFE)		// spruce up worship site
+			run background script TheWorkshop
+			run background script ExpansionCheck(HomeTown, Town1)
+			run background script InfluenceCheck(Town1)
+		end if
+
+		CanDoIdol=0
+		CanKillKhazar=0
+		CanLethysVortex=0
+
+		if PLAYER of Town1 == 1
+			CanDoIdol=1
+		end if
+ 
+		if PLAYER of Town7 != 3
+			CanKillKhazar++
+		end if
+
+		if PLAYER of Town8 != 3
+			CanKillKhazar++
+		end if
+
+		if PLAYER of LethysHomeTown != 3
+			CanKillKhazar++
+		end if
+
+		if CanKillKhazar >= 2
+			CanLethysVortex=1
+		end if
+
+		//Calculate Town Count
+		TownCount=get player 1 town total
+
+		if TownCount > 5
+			CanKillKhazar++
+	
+			//FireIdol check
+			if DoneIdol == 0
+				if CanDoIdol == 1
+					DoneIdol = 1
+					run background script IdolPyreMain
+				end if
+			end if
+		end if
+
+		Player3TownCount=get player 3 town total
+
+		//KillKhazar check
+		if DoneKillKhazar == 0
+			if get player 2 town total <= 0 or Player3TownCount <= 2
+				CanKillKhazar++
+			end if
+
+			if CanKillKhazar != 0
+				if KhazarInScript == 0
+					run script KillKhazarMain
+					DoneKillKhazar=1
+					if DoneFinalGold == 0
+						DoneFinalGold=1
+						run background script Land2FinalScroll
+					end if
+				end if
+			end if
+		else
+			//Lethys Vortex check
+			if DoneLethysVortex == 0
+				if CanLethysVortex == 1 or Player3TownCount <= 1
+					run script LethysVortex
+					DoneLethysVortex=1
+				end if
+			end if
+		end if
+		
+		//Leave through vortex check
+		if DoneExitLethysVortex == 0 and LeavingLandTwo == 0
+			if get player 3 town total <= 0	and HEALTH of LethysCitadel <= 0.1
+				DoneExitLethysVortex=1
+				run script LeaveThroughVortexL2
+			end if
+		end if
+	end while
+
+end script LandControl2

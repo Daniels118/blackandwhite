@@ -1,0 +1,351 @@
+challenge SWAP_TO_COW
+
+global SwapCowKilled
+global SwapCowArrived
+global BestDistance = 9999
+
+/// TRIGGER THIS SCRIPT AFTER OGRE FIGHT
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script CattleReactions (Cow, CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+
+RetreatPos = 0
+CowPos = 0
+MyCreaturePos = 0
+SpangleOnCow = 0
+
+ThisPos = 0
+AltThis = 0
+AltRetreat = 0
+AltDiff = 0
+RetreatAngle = 0
+RetreatDist = 0
+DistanceToGo = 0
+
+start
+	disable Cow pickup
+	attach Cow to CattleOnMoveFlock
+	state Cow LIVING_MOVE_IN_FLOCK
+	while HEALTH of Cow > 0 and [Cow] not near [CattleEndPos] radius 20
+		wait 1 second
+		if [MyCreature] near [Cow] radius 50 and Cow is not HELD and Cow not in MyCreature hand
+			CowPos = marker at [Cow]
+			MyCreaturePos = marker at [MyCreature]
+
+			AltDiff = 2.0
+			while AltDiff >= 2.0
+				RetreatAngle =  number from -60 to 60
+				RetreatDist =  number from 4 to 20
+				ThisPos = marker at get target from [MyCreature] to [Cow] distance 0.5 angle 0
+				RetreatPos = marker at get target from [MyCreature] to [Cow] distance RetreatDist angle RetreatAngle
+				AltThis = get ALTITUDE of ThisPos
+				AltRetreat = get ALTITUDE of RetreatPos
+				AltDiff = AltThis - AltRetreat
+				if AltDiff < 0
+					AltDiff = -AltDiff
+				end if
+			end while
+
+			move Cow position to [RetreatPos]
+			SPEED of Cow = 0.3
+			wait 3 seconds
+		elsif [Cow] not near [MyCreature] radius 60 and Cow is not HELD and Cow not in MyCreature hand
+			state Cow LIVING_MOVE_IN_FLOCK
+		end if
+
+		DistanceToGo = get distance from [Cow] to [CattleEndPos]
+		if DistanceToGo < BestDistance
+			BestDistance = DistanceToGo
+			set CattleOnMoveFlock position to [Cow]
+		end if
+
+	end while
+
+	if HEALTH of Cow <= 0 or Cow not exists
+		SwapCowKilled++
+	elsif [Cow] near [CattleEndPos] radius 21 and Cow is not HELD and Cow is not FLYING and HEALTH of Cow > 0
+		SwapCowArrived++
+		attach Cow to CowSafeFlock
+		SpangleOnCow = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Cow] time 3
+	end if
+
+end script CattleReactions
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SwapToCow
+
+Herder = 0
+HerderPos = marker at [2593.6863, 2.6800, 3196.5676]
+HerderHutPos = marker at [2590.6699, 2.6800, 3201.2202]
+HerderHut = get HOUSE at [HerderHutPos]
+
+CowSafeFlock = 0
+CattleOnMoveFlock = 0
+Cow = 0
+
+CattleStartPos = marker at [2286.6836, 36.3030, 3110.2861]
+CattleEndPos = marker at [2063.817, 17.420, 2708.311]
+
+Highlight = 0
+
+BeginPos = 0
+BeginFoc = 0
+
+AlignmentTotal = 0
+AmountComplete = 0
+SwapCowKilledLast = 0
+SwapCowArrivedLast = 0
+HerdingComplete = 0
+
+Trader = 0
+TraderHutPos = marker at [2209.6699, 24.3974, 2670.5200]
+TraderHut = get HOUSE at [TraderHutPos]
+TraderPos = marker at [2048.046, 17.420, 2718.308]
+TraderStartPos = marker at [2034.520, 17.420, 2721.024]
+
+MagicCow = 0
+MagicCowPos = marker at [2192.0530, 24.2561, 2669.0825]
+
+Size = 2
+Fencing = 0
+SeedSpangle = 0
+RewardSeed = 0
+
+
+start
+/*	while TraderHut not exists
+		TraderHut = get HOUSE at [TraderHutPos]
+	end while
+
+	while BUILT of TraderHut < 1
+	end while
+
+	wait until [HerderHut] not viewed
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HerderHut]
+	run script ChallengeHighlightNotify(Highlight, HerderHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_09)
+	MyCreature = get player 1 creature
+*/
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		Herder = create VILLAGER GREEK_FARMER at [HerderHutPos]
+		move Herder position to [HerderPos]
+		move camera position to [HerderPos]+[-10,6,-10] time 3
+		move camera focus to [HerderPos] time 3
+		wait until [Herder] near [HerderPos] radius 2
+		wait 1 second
+		wait until camera ready
+		// **** Off camera preperations start ****
+
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [5*Size,0]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [3.5*Size,3.5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [0,5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [-3.5*Size,3.5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [-5*Size,0]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [-3.5*Size,-3.5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [0,-5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+		Fencing = create OBJECT MOBILE_STATIC_INFO_CELT_FENCE_SHORT at [CattleEndPos] + [3.5*Size,-3.5*Size]
+		set Fencing focus to [CattleEndPos]
+		ANGLE of Fencing += 90
+
+		CowSafeFlock = flock at [CattleEndPos]
+		set CowSafeFlock properties inner 5 outer 10
+		CattleOnMoveFlock = flock at [CattleStartPos]
+		set CattleOnMoveFlock properties inner 15 outer 20
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		run background script CattleReactions (create ANIMAL BOVINE at [CattleStartPos]+[number from -10 to 10,number from -10 to 10], CattleEndPos, CowSafeFlock, CattleOnMoveFlock)
+		// **** Off camera preperations end ****
+		set Herder focus to camera position
+		Herder play ANM_P_PRAY loop 1
+		// "I'm a herder and my cattle need to be taken to your home town."
+		say HELP_TEXT_SWAP_TO_COW_13
+		wait until read
+		// "Unforunately I've sprained my ankle and can't handle the walk."
+		say HELP_TEXT_SWAP_TO_COW_14
+		wait until read
+		set camera position to [CattleStartPos]+[25,20,25]
+		set camera focus to [CattleStartPos]
+		wait 1 second
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_27 StandardReminder(variable HELP_TEXT_REMINDER_25)
+		// "My cattle are scared of your massive creature and will avoid him."
+		say HELP_TEXT_SWAP_TO_COW_15
+		wait until read
+		wait 2 seconds
+		set camera position to [CattleEndPos]+[25,15,25]
+		set camera focus to [CattleEndPos]
+		// "Could you get him to shepherd the cattle to the pen near your hometown?"
+		say HELP_TEXT_SWAP_TO_COW_16
+		wait until read
+		// "Please try and chase as many cows into the pen as possible."
+		say HELP_TEXT_SWAP_TO_COW_17
+		wait until read
+		move Herder position to [HerderHutPos]
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 4
+		wait until camera ready
+		delete Herder
+	end cinema
+
+	while HerdingComplete < 10
+		wait 3 seconds
+		HerdingComplete = SwapCowArrived + SwapCowKilled
+
+		if SwapCowKilled > SwapCowKilledLast or SwapCowArrived > SwapCowArrivedLast
+			SwapCowKilledLast = SwapCowKilled
+			SwapCowArrivedLast = SwapCowArrived
+			AlignmentTotal = ((SwapCowArrived) - (SwapCowKilled)) * (0.1)
+			AmountComplete = ((SwapCowArrived) + (SwapCowKilled)) * (0.1)
+			update snapshot success AmountComplete alignment AlignmentTotal HELP_TEXT_TITLE_27 StandardReminder(variable HELP_TEXT_REMINDER_25)
+		end if
+
+	end while
+
+	wait until camera position near [TraderPos] radius 150 and [TraderPos] viewed
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		Trader = create VILLAGER MALE at [TraderStartPos]
+		move Trader position to [TraderPos]
+		move camera position to [TraderPos]+[15,10,15] time 3
+		move camera focus to [TraderPos] time 3
+		wait until [Trader] near [TraderPos] radius 1
+		wait 1 second
+		wait until camera ready
+
+		MyCreature = get player 1 creature
+		if MyCreature type CREATURE CREATURE_TYPE_COW
+			AlignmentTotal = ((SwapCowArrived) - (SwapCowKilled)) * (0.1)
+			snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_27 StandardReminder(variable HELP_TEXT_REMINDER_25)
+			set Trader focus to camera position
+			if SwapCowArrived == 10
+				// "Thanks godly dude. You got all the beasts here safely"
+				say HELP_TEXT_SWAP_TO_COW_18
+				wait until read
+				// "Here's a small gift as way of thanks"
+				say HELP_TEXT_SWAP_TO_COW_19
+				// CREATE SPELLSEED REWARD
+				SeedSpangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Trader]+[2,2] time 3
+				wait 1 second
+				RewardSeed = create SPELL_SEED CREATURE_SPELL_STRONG at [Trader]+[2,2]
+				wait until read
+				wait 2 seconds
+			elsif SwapCowArrived > SwapCowKilled
+				// "Thanks for getting most of the cattle here safely."
+				say HELP_TEXT_SWAP_TO_COW_20
+				wait until read
+				// "Here's a small gift as way of thanks"
+				say HELP_TEXT_SWAP_TO_COW_19
+				// CREATE SPELLSEED REWARD
+				SeedSpangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Trader]+[2,2] time 3
+				wait 1 second
+				RewardSeed = create SPELL_SEED CREATURE_SPELL_STRONG at [Trader]+[2,2]
+				wait until read
+				wait 2 seconds
+			elsif SwapCowKilled < 10
+				// "Well at least some cows made it here."
+				say HELP_TEXT_SWAP_TO_COW_21
+				wait until read
+				// "Here's a small gift as way of thanks"
+				say HELP_TEXT_SWAP_TO_COW_19
+				// CREATE SPELLSEED REWARD
+				SeedSpangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Trader]+[2,2] time 3
+				wait 1 second
+				RewardSeed = create SPELL_SEED CREATURE_SPELL_STRONG at [Trader]+[2,2]
+				wait until read
+				wait 2 seconds
+			else
+				// "Not one cow survived the journey.We'll not ask any favours from you in future."
+				say single line HELP_TEXT_SWAP_TO_COW_22
+				wait until read
+				wait 2 seconds
+			end if
+		else
+			MagicCow = create CREATURE CREATURE_TYPE_COW at [MagicCowPos]
+			force MagicCow CREATURE_IDLE MagicCow
+			force MagicCow CREATURE_LOOK_AT_CAMERA MagicCow
+			AlignmentTotal = ((SwapCowArrived) - (SwapCowKilled)) * (0.1)
+			snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_27 StandardReminder(variable HELP_TEXT_REMINDER_25)
+			set Trader focus to camera position
+			if SwapCowArrived == 10
+				// "Thanks godly dude. You got all the beasts here safely"
+				say HELP_TEXT_SWAP_TO_COW_23
+				wait until read
+				move camera focus to [MagicCow] time 3
+				force MagicCow CREATURE_WAVE_AT_PLAYER MagicCow
+				// "Take this magical cow as repayment for your troubles."
+				say HELP_TEXT_SWAP_TO_COW_24
+				wait until read
+			elsif SwapCowArrived > SwapCowKilled
+				// "Thanks for getting most of the cattle here safely."
+				say HELP_TEXT_SWAP_TO_COW_25
+				wait until read
+				move camera focus to [MagicCow] time 3
+				force MagicCow CREATURE_WAVE_AT_PLAYER MagicCow
+				// "Take this magical cow as repayment for your troubles."
+				say HELP_TEXT_SWAP_TO_COW_24
+				wait until read
+			elsif SwapCowKilled < 10
+				// "Well at least some cows made it here."
+				say HELP_TEXT_SWAP_TO_COW_26
+				wait until read
+				move camera focus to [MagicCow] time 3
+				force MagicCow CREATURE_WAVE_AT_PLAYER MagicCow
+				// "Take this magical cow as repayment for your troubles."
+				say HELP_TEXT_SWAP_TO_COW_24
+				wait until read
+			else
+				// "None of the cattle survived. There could be a famine coming."
+				say HELP_TEXT_SWAP_TO_COW_27
+				wait until read
+				move camera focus to [MagicCow] time 3
+				force MagicCow CREATURE_WAVE_AT_PLAYER MagicCow
+				// "Here, take and use this magical cow."
+				say HELP_TEXT_SWAP_TO_COW_28
+				wait until read
+				// "It might get eaten otherwise."
+				say HELP_TEXT_SWAP_TO_COW_29
+				wait until read
+			end if
+			wait until camera ready
+			wait 3 seconds
+		end if
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+
+	release Trader
+
+	run background script SwapCreatures(MagicCow)
+
+end script SwapToCow

@@ -1,0 +1,330 @@
+challenge CREATURE_CURSE
+
+//run script BeginLand5
+begin script BeginLand5
+	Town = get TOWN at [1294.81,3551.24] radius 5
+	VortexPos = marker at [1480.0723, 13.0441, 3425.2756]
+	CreaturePos =marker at [1298.227, 31.490, 3575.326] 
+	L5CitadelPos = marker at [1554.08,3394.72]
+	L5HomeTownCentrePos =  marker at [1294.81,3551.24]
+	Lightning1 = 0
+	Lightning2 = 0
+	Lightning3 = 0
+	CreatureHeight = 0
+	Nothing = 0
+start
+	pause computer player 2
+	set computer player 2 attitude to player 1 to 2.0
+	set player 1 ally with player 2 percentage 0					// Make sure they are not allies
+	MyCreature = get player 1 creature
+	run background script VortexEntry(30, VortexPos, Town, VortexPos, 20, 50, CreaturePos, Nothing)
+	
+	move computer player 2 to [1538.532, 30.946, 3336.446]  speed 400
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		set fade in time 6
+		set camera position to [1480.107, 15.752, 3426.675] 
+		set camera focus to [1480.511, 12.371, 3426.137] 
+
+		move camera position to [1474.251, 64.741, 3434.465] time 10
+		move camera focus to [1480.510, 12.371, 3426.137] time 10
+		wait 3 seconds
+		eject evil spirit
+		say HELP_TEXT_NEW_L5_INTRO_01
+		wait until read
+		say HELP_TEXT_NEW_L5_INTRO_02
+		wait until read
+		close dialogue
+		wait until camera ready
+		close dialogue
+		send evil spirit home
+
+		move camera position to [1502.923, 26.478, 3365.905] time 6 
+		move camera focus to [1554.679, 32.223, 3328.948] time 6
+		wait 3 seconds
+		say HELP_TEXT_NEW_L5_INTRO_03
+		wait until read
+		wait until camera ready
+
+		set camera lens 100 time 15
+		move computer player 2 to [1444.775, 26.478, 3404.448]  speed 8
+		move camera position to [1435.353, 26.193, 3411.864] time 20
+		move camera focus to [2874.347, 44.085, 2384.355] time 20
+		say HELP_TEXT_NEW_L5_INTRO_04
+		wait until read
+		say HELP_TEXT_NEW_L5_INTRO_05
+		wait until read
+
+		if alignment of player < 0
+			//TODO - Add back in when the spreadsheet is ready
+			say HELP_TEXT_NEW_L5_INTRO_15
+			//"Once I destroy you every living creature in Eden will worship me, Nemesis, the embodiment of Good."
+			wait until read
+		else
+			say HELP_TEXT_NEW_L5_INTRO_16
+			//"Once I destroy you every living creature in Eden will worship me, Nemesis, the embodiment of Evil."
+			wait until read
+		end if 
+		wait until camera ready
+
+		set fade red 64 green 0 blue 0 time 3
+		wait until fade ready
+		close dialogue
+		set camera lens 70
+		
+		
+		//set camera position to [1580.163, 115.201, 2311.845]
+		//set camera focus to [1656.195, 78.280, 2328.713] 
+		set camera position to [1593.840, 73.950, 2245.655] 
+		set camera focus to [1673.327, 78.435, 2335.811] 
+		move camera position to [1546.647, 111.270, 2395.997]  time 10
+		move camera focus to [1671.776, 83.415, 2355.734]  time 10
+		
+		set fade in time 2
+		wait until fade ready
+
+		say single line HELP_TEXT_NEW_L5_INTRO_06
+		wait until read
+		close dialogue
+		
+		wait until camera ready
+
+		set fade red 64 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [2250.154, 96.810, 2726.343]
+		set camera focus to [2272.245, 26.462, 2594.653] 
+		move camera position to [2219.496, 48.281, 2625.072] time 10
+		move camera focus to [2356.166, 42.147, 2579.263] time 10
+		set fade in time 2
+		wait until fade ready
+
+		say single line HELP_TEXT_NEW_L5_INTRO_07
+		wait until read
+		close dialogue
+		
+		wait until camera ready
+		set fade red 64 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [2607.256, 196.707, 3657.960] 
+		set camera focus to [2670.347, 110.558, 3726.450] 
+		move camera position to [2624.013, 123.205, 3803.628] time 10
+		move camera focus to [2691.398, 105.347, 3731.442] time 10
+		set fade in time 2
+		wait until fade ready
+
+		say single line HELP_TEXT_NEW_L5_INTRO_08
+		wait until read
+		close dialogue
+		
+		wait until camera ready
+		set fade red 64 green 0 blue 0 time 3
+		wait until fade ready
+		close dialogue
+		set MyCreature position to [CreaturePos]  
+		set MyCreature focus to [1396.906, 20.969, 3509.955]  
+		set camera position to [1435.353, 26.193, 3411.864] 
+		set camera focus to [2874.347, 44.085, 2384.355] 
+		set fade in time 2
+		wait until fade ready 
+		stop music
+		say single line HELP_TEXT_NEW_L5_INTRO_09
+		wait until read	  
+		close dialogue
+					
+		set MyCreature position to [CreaturePos]  
+		set MyCreature focus to [1396.906, 20.969, 3509.955]  
+		MyCreature play C_INDIVIDUAL_CONFUSED loop 2
+		
+		start sound LH_SCRIPT_SAMPLE_IMPHUM	AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		set camera position to [1468.538, 13.236, 3407.696] 
+		set camera focus to [MyCreature]
+		wait 1 seconds 
+		//force MyCreature CREATURE_BEHAVE_STRANGELY MyCreature
+		//MyCreature play C_INDIVIDUAL_TIRED loop 100
+		wait 5 seconds
+		
+		move camera focus to [1465.242, 13.278, 3427.486] time 1
+		wait until camera ready
+		wait 1 seconds
+		
+		move camera focus to [MyCreature] time 1
+		wait until camera ready
+		wait 0.5 seconds
+		start sound LH_SCRIPT_SAMPLE_IMPGIGGLE_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX		
+		set camera position to [1468.538, 13.286, 3407.696] 
+		wait 0.1 seconds
+		set camera position to [1468.538, 13.236, 3407.696] 
+		wait 0.1 seconds
+		set camera position to [1468.538, 13.286, 3407.696] 
+		wait 0.1 seconds
+		set camera position to [1468.538, 13.236, 3407.696] 
+		wait 0.1 seconds
+		set camera position to [1468.538, 13.286, 3407.696] 
+		wait 0.1 seconds
+		set camera position to [1468.538, 13.236, 3407.696] 
+		wait 0.1 seconds
+		wait 0.5 seconds
+		
+		
+		move camera focus to [1459.076, 15.211, 3485.813] time 1
+		
+		move camera position to [1459.076, 15.211, 3485.813] time 4
+		start sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		wait 2 seconds
+		move camera focus to [MyCreature] time 2
+		wait until camera ready
+		stop sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		wait 2 seconds
+
+		stop sound LH_SCRIPT_SAMPLE_IMPHUM AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		start sound LH_SCRIPT_SAMPLE_MUZAK AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		set camera position to [1253.464, 63.225, 3572.301] 
+		set camera focus to [1318.206, 31.764, 3546.840] 
+		MyCreature play C_INDIVIDUAL_SNEEZE loop 2
+		wait 4 seconds
+
+		stop sound LH_SCRIPT_SAMPLE_MUZAK AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		start sound LH_SCRIPT_SAMPLE_IMPHUM_C2 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		set camera focus to [MyCreature] 
+		set camera position to [1459.076, 15.211, 3485.813]
+		wait 3 seconds
+		move camera position to [1455.602, 15.211, 3479.572] time 4
+		wait until camera ready
+		MyCreature play C_INDIVIDUAL_CONFUSED loop 2
+		move camera position to [1456.739, 15.211, 3481.614] time 1
+		wait until camera ready
+	
+	//	MyCreature play C_INDIVIDUAL_CONFUSED loop 1	
+		start sound LH_SCRIPT_SAMPLE_IMPGIGGLE_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX		
+		set camera position to [1456.739, 15.251, 3481.614]
+		wait 0.1 seconds
+		set camera position to [1456.739, 15.211, 3481.614]
+		wait 0.1 seconds
+		set camera position to [1456.739, 15.251, 3481.614]
+		wait 0.1 seconds
+		set camera position to [1456.739, 15.211, 3481.614]
+		wait 0.1 seconds
+		set camera position to [1456.739, 15.251, 3481.614]
+		wait 0.1 seconds
+		set camera position to [1456.739, 15.211, 3481.614]
+		wait 0.1 seconds
+
+		wait 2 seconds
+		move camera position to [1455.602, 15.211, 3479.572] time 2
+		wait until camera ready
+		
+		start sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		move camera position to [1351.254, 17.873, 3483.347] time 5
+		wait until camera ready
+		stop sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		
+		set MyCreature focus to [1396.906, 20.969, 3509.955]  
+		wait 1 seconds
+		
+		stop sound LH_SCRIPT_SAMPLE_IMPHUM_C2 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		start sound LH_SCRIPT_SAMPLE_MUZAK AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		set camera position to [1253.464, 63.225, 3572.301] 
+		set camera focus to [1318.206, 31.764, 3546.840] 
+		MyCreature play C_INDIVIDUAL_SCRATCH loop 2
+		wait 4 seconds		
+		stop sound LH_SCRIPT_SAMPLE_MUZAK AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		start sound LH_SCRIPT_SAMPLE_IMPHUM_C3 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		set camera focus to [MyCreature] 
+		set camera position to [1351.254, 17.873, 3483.347] 
+		wait 3 seconds
+		move camera position to [1353.578, 18.408, 3485.633] time 2
+		wait until camera ready
+		start sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		move camera position to [1347.105, 34.278, 3540.530] time 3
+		wait until camera ready
+		stop sound LH_SCRIPT_SAMPLE_IMPFOOTSTEPS AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		wait 2 seconds
+		move camera position to [1349.471, 34.278, 3541.804] time 3
+		wait until camera ready
+		move camera position to [1347.105, 34.278, 3540.530] time 1
+		wait until camera ready
+		wait 1 seconds
+		
+		move MyCreature position to [CreaturePos]  
+		set MyCreature focus to [1396.906, 20.969, 3509.955]  
+		wait 1 seconds
+
+		start sound LH_SCRIPT_SAMPLE_IMPGIGGLE_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX		
+		CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+		move camera focus to [MyCreature]+[0, CreatureHeight*0.7, 0] time 3
+		move camera position to [1349.471, 34.278, 3541.804] time 2
+		wait until camera ready
+		
+		// russ changed this so check it paul
+		stop sound LH_SCRIPT_SAMPLE_IMPHUM_C3 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		start sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		move camera focus to [MyCreature]+[0, CreatureHeight*0.9, 0] time 0.5
+		move camera position to [MyCreature]+[0, CreatureHeight*0.9, 0] time 1.5
+		set fade red 64 green 0 blue 0 time 1
+
+		wait 1.0 seconds
+		stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		start sound LH_SCRIPT_SAMPLE_FIGHTBODYPUNCH_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		wait 0.5 seconds
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		MyCreature play C_RECOIL_HI	loop 1
+		wait until fade ready
+		close dialogue
+		wait until camera ready
+		force MyCreature CREATURE_DIE_PERMANENTLY MyCreature
+		
+		wait 2 seconds
+		set camera position to [1360.515, 109.387, 3531.782]
+		set camera focus to [1358.471, 34.803, 3546.476]
+		move camera position to [1222.528, 109.387, 3600.703] time 30
+		move camera focus to [1220.675, 41.783, 3614.022] time 30 
+		wait until fade ready
+		set fade in time 2
+		
+		say single line HELP_TEXT_NEW_L5_INTRO_10
+		wait until read
+		close dialogue
+
+		// Do not want this line anymore
+		//"LINE IS MISSING: HELP_TEXT_NEW_L5_INTRO_11"
+		//HELP_TEXT_NEW_L5_INTRO_11
+		//wait until read
+
+		//"LINE IS MISSING: HELP_TEXT_NEW_L5_INTRO_12"
+		start say sound HELP_TEXT_NEW_L5_INTRO_12
+		//wait until read
+
+		close dialogue
+		wait 8 seconds
+
+		snapshot quest success 0.0 alignment 0.0 HELP_TEXT_NEW_L5_INTRO_09 StandardReminder(variable HELP_TEXT_NEW_L5_CREATURE_CURSE_03)
+		
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+
+		set camera position to [1281.012, 56.889, 3635.228] 
+		set camera focus to [1469.705, 4.279, 3319.571] 
+		set fade in time 2
+		wait until fade ready
+		wait 3 seconds
+		release MyCreature
+		wait 2 seconds
+		stop music
+	end cinema with dialogue
+		eject good spirit
+		say HELP_TEXT_NEW_L5_INTRO_13
+		wait until read
+		say HELP_TEXT_NEW_L5_INTRO_14
+		wait until read
+	end dialogue
+	release computer player 2
+
+	// Make Villagers want to build the citadel and Town Centre.
+	wait 2 seconds
+	build building at [L5CitadelPos] desire 1.0
+	build building at [L5HomeTownCentrePos] desire 1.0
+
+end script BeginLand5
+

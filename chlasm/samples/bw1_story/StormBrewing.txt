@@ -1,0 +1,79 @@
+challenge STORM_BREWING
+
+//run script StormBrewing
+
+begin script StormBrewing
+
+	storm=0
+	storm1=0
+	storm2=0
+	storm3=0
+	storm4=0
+	storm5=0
+	StormCenter = marker at [7376.1880, 0.0000, 880.8337]
+	Seeker = create MALE VILLAGER at [3755.1394, 13.1488, 2359.0952]
+	BeginFoc = 0
+	BeginPos = 0
+start
+	
+
+	begin dialogue
+
+		say "Creating Rain Storm"
+		wait until read
+		storm = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm properties time 2000000 fade 50
+				set storm properties degrees 25 rainfall 0.1 snowfall 0 overcast 0.6 speed 1
+				set storm properties clouds 20 shade 1 height 240
+				set storm properties sheetmin 5 sheetmax 10 forkmin 5 forkmax 10
+				set storm properties inner 400 outer 800 
+		storm1 = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm1 properties time 2000000 fade 50
+				set storm1 properties degrees 25 rainfall 0.1 snowfall 0 overcast 0.6 speed 1
+				set storm1 properties clouds 20 shade 1 height 240
+				set storm1 properties sheetmin 5 sheetmax 10 forkmin 5 forkmax 10
+				set storm1 properties inner 400 outer 800 
+		storm2 = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm2 properties time 2000000 fade 50
+				set storm2 properties degrees 25 rainfall 0 snowfall 0 overcast 0.6 speed 1
+				set storm2 properties clouds 20 shade 1 height 260
+				set storm2 properties sheetmin 5 sheetmax 10 forkmin 5 forkmax 10
+				set storm2 properties inner 400 outer 800 
+
+		storm3 = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm3 properties time 2000000 fade 50
+				set storm3 properties degrees 25 rainfall 0 snowfall 0 overcast 0.6 speed 1
+				set storm3 properties clouds 10 shade 1 height 240
+				set storm3 properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+				set storm3 properties inner 400 outer 800 
+
+		storm4 = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm4 properties time 2000000 fade 50
+				set storm4 properties degrees 25 rainfall 0 snowfall 0 overcast 0.6 speed 1
+				set storm4 properties clouds 10 shade 1 height 260
+				set storm4 properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+				set storm4 properties inner 400 outer 800	
+
+
+		storm5 = create WEATHER_INFO_MONSOON SCRIPT_OBJECT_TYPE_WEATHER_THING at [StormCenter] + [number from 100 to -100, number from 100 to -100]
+				set storm5 properties time 2000000 fade 50
+				set storm5 properties degrees 25 rainfall 0 snowfall 0 overcast 0.6 speed 1
+				set storm5 properties clouds 10 shade 1 height 280
+				set storm5 properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+				set storm5 properties inner 400 outer 800	
+	end dialogue
+
+	wait until camera position near [Seeker] radius 50
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+	begin cinema
+		move camera position to [3738.8872, 16.0378, 2364.1089] time 6	
+		move camera focus to [3759.5908, 13.6802, 2359.1982] time 8
+		wait until camera ready
+		say "I don't like the look of that storm over there"
+		wait until read
+		say "perhaps it will miss us"
+		wait until read
+	end cinema
+
+end script StormBrewing

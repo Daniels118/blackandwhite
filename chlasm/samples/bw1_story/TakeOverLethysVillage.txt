@@ -1,0 +1,23 @@
+//------------------------------------------------------------------------------------------------------------------------
+begin script TakeOverLethysVillage
+LethysTown = get TOWN at [1846.9600, 120.9021, 2322.6499] radius 50   // Tibetan town at base of Lethys plateau
+LethysTownNotAttacked = 0
+PlayerBelief = 0
+LethysBelief = 0
+start
+	// Maintain disbelief in LethysTown until all other three are taken over and creature is freed.
+	while CreatureFreed == 0
+		wait 10 seconds
+		set LethysTown player 1 relative belief -1
+	end while
+
+	while LethysTownNotAttacked == 0
+		PlayerBelief = get LethysTown belief for player 1
+		LethysBelief = get LethysTown belief for player 2
+		if (LethysBelief - PlayerBelief) < 0.4
+			LethysTownNotAttacked = 1
+		end if
+	end while
+	wait until get PLAYER of LethysTown == 1
+end script TakeOverLethysVillage
+//------------------------------------------------------------------------------------------------------------------------

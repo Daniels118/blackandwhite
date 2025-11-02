@@ -1,0 +1,12 @@
+challenge RunLethysSpeaks
+
+run script RunLethysSpeaks
+
+begin script RunLethysSpeaks
+	
+start
+	
+	run script LethysSpeaks
+	
+
+end script RunLethysSpeaks

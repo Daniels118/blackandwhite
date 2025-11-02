@@ -1,0 +1,700 @@
+challenge CREATURE_RETRIEVE
+
+//------------------------------------------------------------------------------------------------------------------------
+global CreatureRetrieve
+global CreatureRetrieveFinished
+global StartedSculpting
+global Sculpting
+global TimeSpent
+global ScriptStarted
+global SculptorScriptRunning
+global SculptorSculptingOn
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Deletes old Sculptors when player not looking
+//------------------------------------------------------------------------------------------------------------------------
+begin script SculptorDeathThroes (DeadDude)
+start
+	wait until [DeadDude] not viewed and camera position not near [DeadDude] radius 100
+	delete DeadDude with fade
+end script SculptorDeathThroes
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script KeepRockScripted (Granite)
+start
+	wait until Granite is HELD or CreatureRetrieveFinished !=0
+end script KeepRockScripted
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SetupSculptor(Sculptor)
+	Granite = 0
+start
+
+	Granite  = get ROCK_OBJECT at [Sculptor] radius 30 excluding scripted
+	while Granite exists
+		run background script KeepRockScripted (Granite)
+		Granite  = get ROCK_OBJECT at [Sculptor] radius 30 excluding scripted
+	end while
+end script SetupSculptor
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script AdvisorSpotsRock
+ DelayTimer = create timer for 0 seconds
+ KeepLooking = 0
+start
+	while KeepLooking == 0
+		if StartedSculpting > 0
+			KeepLooking = 1
+		elsif QuarryRock is HELD
+			// Don't say anything while it's held
+//		elsif camera position near [QuarryRock] radius 100 and [QuarryRock] viewed and QuarryRock is not HELD and get DelayTimer time remaining <= 0
+		elsif dialogue ready				// Don't want to hang around!
+			if camera position near [QuarryRock] radius 200 and [QuarryRock] viewed and QuarryRock is not HELD and get DelayTimer time remaining <= 0 // and [QuarryRock] near [QuarryPos] radius 50
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [QuarryRock]
+					// "Look, there's the rock the sculptor wants."
+					say single line HELP_TEXT_NEW_CREATURE_RETRIEVE_17
+					wait until read
+					stop evil spirit pointing
+				end dialogue
+				set DelayTimer time to 30 seconds
+			end if
+		end if
+	end while
+
+end script AdvisorSpotsRock
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SculptorSculptingOutside(Sculptor)
+SculptorPosi = marker at [1768.988, 28.810, 2690.706]  //sculptor working outside house  
+SculpturProg = marker at  [1769.958, 28.810, 2690.667] 
+start
+
+	move Sculptor position to [SculptorPosi]
+
+	wait until [Sculptor] at [SculptorPosi] or Sculptor is HELD or Sculptor is FLYING or HEALTH of Sculptor <= 0
+		
+	while ScriptStarted == 0
+		
+		if [Sculptor]  not at [SculptorPosi]
+			move Sculptor position to [SculptorPosi]
+			wait until [Sculptor] at [SculptorPosi] or Sculptor is HELD or Sculptor is FLYING or HEALTH of Sculptor <= 0
+			set Sculptor focus to [SculpturProg]
+			Sculptor play ANM_P_SCULPTOR loop 1
+		end if 
+
+		Sculptor play ANM_P_SCULPTOR loop 1
+		wait until Sculptor played or HEALTH of Sculptor <= 0
+	end while
+
+end script SculptorSculptingOutside
+
+//-------------------------------------\z-----------------------------------------------------------------------------------
+
+begin script SculptorSculpting(Sculptor)  //default sculpting
+GiveUpTimer = create timer for 0 seconds
+start
+	
+	while SculptorScriptRunning == 1 and HEALTH of Sculptor > 0
+		while SculptorSculptingOn == 1
+			Sculptor play ANM_P_SCULPTOR loop 1
+			set GiveUpTimer time to 5 seconds
+			wait until Sculptor played or get GiveUpTimer time remaining <= 0
+		end while
+		wait 0.1 seconds
+	end while
+
+end script SculptorSculpting
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SculptingRock(Sculptor)
+
+start
+/*	begin cinema //originally commented out 
+		StartedSculpting = 1
+		Sculpting = 1
+		move Sculptor position to [QuarryRock] + [2,2]
+		wait until 3 seconds
+		set Sculptor focus to [QuarryRock]
+		Sculptor play ANM_P_SLEDGEHAMMER loop 10
+		//Sculptor start Sculpting
+		TimeSpent = create timer for 90 seconds
+		sy "KEN: once the stone is finished when the player is near the sulptor the adviors should say the stone is finished" with interaction
+	end cinema	 //originally commented out
+*/
+end script SculptingRock
+
+//------------------------------------------------------------------------------------------------------------------------
+
+//begin script CreatureRetrieveRockReturned(Sculptor) //give reward script
+begin script CreatureRetrieveRockReturned(Sculptor, RockOffset) //give reward script
+
+	RewardPos = marker at [Sculptor] + [10,0,10] //reward position for returning rock
+
+
+start
+
+	begin cinema
+
+		enable Sculptor high graphics detail
+		move Sculptor position to [QuarryRock] + [RockOffset]
+		move camera position to [QuarryRock] +[7, 5, -7] time 3
+		move camera focus to [QuarryRock] + [0, 3, 0] time 3
+
+		wait until [Sculptor] near [QuarryRock] + [RockOffset] radius 0.5 
+
+		set Sculptor focus to [QuarryRock]
+		Sculptor play ANM_P_CROWD_IMPRESSED_1 loop 1
+
+		snapshot quest success 0.8 alignment 1 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_37)
+		// Also update the ChooseYourCreature reminder at the Gate
+		//update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_43 StandardReminder(variable HELP_TEXT_REMINDER_37)
+
+		say HELP_TEXT_NEW_CREATURE_RETRIEVE_05
+		wait until read
+						
+		set Sculptor focus to camera position
+
+		Sculptor play ANM_P_TALK_TO_NEIGHBOUR loop 1
+
+		say HELP_TEXT_NEW_CREATURE_RETRIEVE_06
+		wait until read
+
+		XANGLE of QuarryRock = 0
+		ZANGLE of QuarryRock = 0
+		ALTITUDE of QuarryRock = 0
+
+		StartedSculpting = 1
+		set Sculptor focus to [QuarryRock]
+
+		TimeSpent = create timer for 60 seconds	// Was set to 30 seconds
+
+		Sculpting = 1
+	end cinema
+	//run script rewardfromsky(variable REWARD_BOLT, RewardPos, 0, 1)
+	// Start Sculpting
+
+	//run background script SculptingRock(Sculptor) //start sculpting again
+
+end script CreatureRetrieveRockReturned
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script TheSculptor
+
+	//Creature = 	get player 1 creature	
+	House = get SCRIPT_OBJECT_TYPE_ABODE at [1755.047, 28.810, 2691.962] //sculptors house
+	Sculptor = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_SCULPTOR at [1762.284, 28.810, 2692.834] //originally [1767.111, 28.810, 2690.604] //?????
+	BeginPos = 0
+	BeginFoc = 0
+	SculptorDead = 0
+	MyTimer = create timer for 0 seconds
+	Highlight=0									   
+	Rock1Marker = 0
+	TimeLeft = 0
+	Granite = 0
+	QuarryRockAngle = 0
+	QuarrySize = 5
+	WalkTime = 0
+	GotLost	 = 0
+	QuarryRockSpangle = 0
+	BlankGateKeyPos = marker at [1410.884, 61.493, 2349.399] 
+
+	QuarryInfluence = 0
+	Seagull = 0
+	SculpturProgress = 	 0
+
+	// Distance Sculptor stands away from the centre of the rock
+	RockOffset	= marker at [1.5, 0, 1.5]		// Originally was [1.5, 0, 1.5]
+	WhileFlag = 0
+	PresetPos = 0
+	FirstHeld = 0
+	WrongRock = 0
+
+	Plinth = marker at [1774.5000, 32.0789, 2793.3003]
+	
+start
+	run script SetupSculptor(Sculptor)
+
+	SculptorScriptRunning =1
+	disable Sculptor hurt by fire
+	enable Sculptor indestructible
+	disable Sculptor moveable
+	disable Sculptor pickup
+	
+	ScriptStarted = 0
+	SculpturProgress = create OBJECT  MOBILE_STATIC_INFO_SCULPTURE_IN_PROGRESS at [1769.958, 28.810, 2690.667] 
+	disable SculpturProgress pickup
+	disable SculpturProgress moveable
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [1760.61,0,2692.3]
+	ALTITUDE of Highlight = 5.5
+
+	run background script SculptorSculptingOutside(Sculptor)
+	run script ChallengeHighlightNotify(Highlight, House, variable GOOD_ADVISOR, variable HELP_TEXT_NEW_CREATURE_RETRIEVE_01)
+
+	ScriptStarted = 1
+
+	set QuarryRock position to [QuarryPos]
+	
+	//QuarryRockSpangle=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on QuarryRock time -1
+	HighlightQuarryRockActive = 1
+
+
+	// This checks for rocks around sculptor and keeps them in script until picked up
+	run script SetupSculptor(Sculptor)
+	Granite  = get OBJECT ROCK at [Sculptor] radius 20 excluding scripted
+	while Granite exists
+		run background script KeepRockScripted (Granite)
+		wait 0.2 seconds // This must occur after running the background to ensure the rock is scripted by the next game turn
+		Granite  = get OBJECT ROCK at [Sculptor] radius 30 excluding scripted
+	end while
+
+	Granite = 0
+	
+	QuarryInfluence = create influence on QuarryPos radius 30
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_01
+			enable Sculptor high graphics detail
+			
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			//move camera position to [1773.169, 44.849, 2694.568] time 2	//camera flyover sculptor
+			//move camera focus to [1768.437, 29.761, 2693.217] time 1
+			//wait 1 seconds
+
+			move camera position to [1769.470, 31.810, 2696.257] time 4 //camera on sculptor		
+			move camera focus to [1772.415, 28.818, 2680.312] time 3
+			wait 3 seconds
+
+			enable jc special SJC_PREPARE_TURN_LEFT on Sculptor
+			Sculptor play ANM_P_TURN_90_LEFT loop 1
+			wait until Sculptor played
+			enable jc special SJC_BLEND_ANGLE on Sculptor
+
+			set Sculptor focus to camera position
+
+			Sculptor play ANM_P_GOSSIP_MAN loop 1
+
+			snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_06)
+			// Also update the ChooseYourCreature reminder at the Gate
+			//update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_43 StandardReminder(variable HELP_TEXT_REMINDER_06)
+		
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_02 with interaction
+			wait until read
+
+			Sculptor play ANM_P_THANK_YOU loop 1
+
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_03 with interaction
+			wait until read
+			
+			enable jc special SJC_PREPARE_TURN_LEFT on Sculptor
+			Sculptor play ANM_P_TURN_90_LEFT  loop 1
+			wait until Sculptor played
+			enable jc special SJC_BLEND_ANGLE on Sculptor
+			
+			set Sculptor focus to [1482.126, 37.795, 2545.840] //points to quarrey
+			
+			Sculptor play ANM_P_INTO_POINTING loop 1
+			
+			move camera focus to [1736.237, 28.927, 2687.320] time 5   //looks at quarrey
+			move camera position to [1779.207, 44.218, 2707.760] time 4 //looks at quarrey
+			
+			wait until Sculptor played
+			wait until read
+			
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_04 with interaction
+
+			wait until read
+			
+			set Sculptor focus to [1770.609, 28.810, 2690.894]		//sculptor looks at unfinished sculpture 
+			
+			SculptorSculptingOn = 1
+			
+			run background script SculptorSculpting(Sculptor)
+			
+			set fade red 0 green 0 blue 0 time 2
+
+			wait 2 second
+
+			Seagull = flock at [1410.771, 61.504, 2349.563] 
+			populate Seagull with 20 ANIMAL ANIMAL_INFO_DOVE
+
+			wait 1 second
+
+			set camera position to [QuarryRock] + [ 16,3,16]			// Show the stone for a sec
+			set camera focus to [QuarryRock] + [0,1,0]					// Show the stone for a sec
+												   
+			set fade in time 2
+
+			wait 2 seconds
+
+			move camera position to [1427.229, 94.762, 2326.960] time 3	//move around stone
+			move camera focus to [1412.068, 61.643, 2352.774]  time 3 //move around stone
+
+			wait 1 seconds
+			
+			move camera position to [1369.366, 98.865, 2327.330] time 5//move around stone	look back
+			move camera focus to [1427.270, 67.269, 2390.186] time 3 //move around stone look back
+			wait 5 seconds
+			
+			set fade red 0 green 0 blue 0 time 2
+			wait 3 seconds
+
+			set camera position to [1769.470, 31.810, 2696.257]		//camera back on sculptor		
+			set camera focus to [1772.415, 28.818, 2680.312] 
+
+			set fade in time 2
+			
+			// "I promise this will be the greatest work" with interaction
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_18 with interaction
+			wait until read
+
+			move camera position to [1779.207, 44.218, 2707.760] time 5		//looks at quarrey
+			move camera focus to [1736.237, 28.927, 2687.320] time 5		//looks at quarrey
+
+			wait until camera ready
+			stop music
+
+		end cinema
+
+		enable Sculptor hurt by fire
+		disable Sculptor indestructible
+		enable Sculptor moveable
+		enable Sculptor pickup
+	
+		run background script AdvisorSpotsRock
+		
+		while CreatureRetrieveFinished == 0
+
+			if FirstHeld == 0
+				if QuarryRock is HELD // or QuarryRock in MyCreature hand
+					update snapshot success 0.3 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_111)
+					FirstHeld = 1
+				end if
+			end if
+
+			if Sculptor is FLYING and HEALTH of Sculptor <0.1 and SculptorDead == 0
+				SculptorSculptingOn = 0
+			end if 
+			
+			if Sculptor is HELD 
+				SculptorSculptingOn = 0	
+				wait until (Sculptor is not HELD and Sculptor is not FLYING) or (HEALTH of Sculptor <= 0)
+	
+				if [QuarryRock] near [Sculptor] radius 30 and HEALTH of Sculptor > 0
+					PresetPos = marker at [QuarryRock] + [RockOffset]
+					move Sculptor position to [PresetPos]
+					wait until [Sculptor] near [PresetPos] radius 2 or HEALTH of Sculptor <= 0 or Sculptor is HELD or Sculptor is FLYING
+					wait 1 second
+					set Sculptor focus to [QuarryRock]
+				elsif HEALTH of Sculptor > 0
+					move Sculptor position to [1768.988, 28.810, 2690.706]
+					wait until [Sculptor] at [1768.988, 28.810, 2690.706] or HEALTH of Sculptor <= 0 or Sculptor is FLYING or Sculptor is HELD
+					set Sculptor focus to [SculpturProgress]
+				end if
+				SculptorSculptingOn = 1	
+			end if
+			
+			if HEALTH of Sculptor <=0 and SculptorDead == 0
+				wait 2 seconds
+				SculptorSculptingOn = 0
+				run background script SculptorDeathThroes (Sculptor)
+				enable Sculptor skeleton
+				ScriptStarted = 1
+				wait 1 second
+				Sculptor = 0
+				Sculptor = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_SCULPTOR at [1762.284, 28.810, 2692.834] //originally [1767.111, 28.810, 2690.604] //?????
+				AGE of Sculptor = 33
+				//ScriptStarted = 0
+				run background script SculptorSculptingOutside(Sculptor)
+				begin cinema
+					eject good spirit
+					make good spirit point to Sculptor
+					if GotLost == 0
+						say HELP_TEXT_KILLING_GA_01
+						wait until read
+						eject evil spirit
+						say HELP_TEXT_KILLING_EA_14
+						wait until read
+					else
+						// "Oh dear, it looks like this poor guy got lost forever"
+						say HELP_TEXT_NEW_CREATURE_RETRIEVE_11
+						wait until read
+						eject evil spirit
+						// "Ohhh deaaar..maybe his brain forgot everything about pathfinding, ey?"
+						say HELP_TEXT_NEW_CREATURE_RETRIEVE_12
+						wait until read
+					end if 
+
+					move Sculptor position to [1768.988, 28.810, 2690.706] 
+					move camera position to [1769.470, 31.810, 2696.257] time 4 //camera on sculptor		
+					move camera focus to [1772.415, 28.818, 2680.312] time 4
+					// move out sculptor
+					wait 3 seconds
+					wait until [Sculptor] at [1768.988, 28.810, 2690.706] 
+					
+					if [QuarryRock] near [Sculptor] radius 15 
+
+						if GotLost == 1
+							// "Oh my god, my cousin seems to be lost, so I have to finish his work for you, my lord"
+							say HELP_TEXT_NEW_CREATURE_RETRIEVE_13
+						else
+							// "Hey. You killed my cousin. But I'll finish his work for you."
+							say HELP_TEXT_NEW_CREATURE_RETRIEVE_14
+						end if 
+						wait until read
+						
+						PresetPos = marker at [QuarryRock] + [RockOffset]
+						move Sculptor position to [PresetPos]
+						wait until [Sculptor] near [PresetPos] radius 2
+						wait 1 second
+						set Sculptor focus to [QuarryRock]
+					else
+					
+						if GotLost == 1 
+							// "Hm, my cousin doesnt seem to be around to finish the work, so I have to do it."
+							say HELP_TEXT_NEW_CREATURE_RETRIEVE_15
+						else
+
+							// "Hey! You killed my cousin! I've to do finish his life-work now!"
+							say HELP_TEXT_NEW_CREATURE_RETRIEVE_16
+						end if
+						wait until read
+				
+						move Sculptor position to [1768.988, 28.810, 2690.706]
+						wait until [Sculptor] at [1768.988, 28.810, 2690.706]
+						set Sculptor focus to [SculpturProgress]
+
+					end if
+					Sculptor play ANM_P_SCULPTOR loop 10
+					wait 1 second
+					SculptorSculptingOn = 1
+					Sculpting = 1
+					run background script SculptorSculpting(Sculptor)
+
+				end cinema
+			end if
+			
+			if [SculpturProgress] not near [Sculptor] radius 1 and Sculpting == 0
+				SculptorSculptingOn=0
+				if Sculptor is HELD 
+					wait until Sculptor is not HELD
+				end if 
+				if Sculptor is 	FLYING 
+					wait until Sculptor is not FLYING
+				end if
+				
+				WalkTime = create timer for 60 seconds				
+				move Sculptor position to [1768.988, 28.810, 2690.706] 
+
+				WhileFlag = 0
+				while WhileFlag == 0
+					if [Sculptor] at [1768.988, 28.810, 2690.706]  or get WalkTime time remaining <= 0 or HEALTH of Sculptor <= 0
+						WhileFlag = 1
+					elsif Sculptor is HELD or Sculptor is FLYING
+						wait until Sculptor is not HELD and Sculptor is not FLYING
+						move Sculptor position to [1768.988, 28.810, 2690.706] 
+					end if
+				end while
+
+				//wait until [Sculptor] at [1768.988, 28.810, 2690.706]  or Sculptor is FLYING or Sculptor is HELD or get WalkTime time remaining <= 0 or HEALTH of Sculptor <= 0
+
+				if get WalkTime time remaining <= 0 or HEALTH of Sculptor <= 0
+					HEALTH of Sculptor = 0.0
+					  
+					GotLost = 1
+				else
+					set Sculptor focus to [SculpturProgress]
+					SculptorSculptingOn=1
+					 // added by george
+					//run background script SculptorSculpting(Sculptor)
+				end if 
+			end if 
+			
+			if [QuarryRock] near [Sculptor] radius 15  and (QuarryRock is not HELD) and StartedSculpting == 0 and QuarryRock is not FLYING and Sculptor is not FLYING and HEALTH of Sculptor > 0
+				disable QuarryRock pickup	
+				SculptorSculptingOn =0
+				run script CreatureRetrieveRockReturned(Sculptor, RockOffset)
+				enable QuarryRock pickup	
+				SculptorSculptingOn =1
+				Sculpting = 1
+
+			end if
+
+			if ((QuarryRock is HELD) or ([QuarryRock] not near [Sculptor] radius 3)) and StartedSculpting == 1  
+				if Sculpting == 1
+					begin dialogue
+						say single line HELP_TEXT_NEW_CREATURE_RETRIEVE_07
+						wait until read
+					end dialogue
+					update snapshot success 0.3 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_111)
+					Sculpting = 0
+					SculptorSculptingOn =0
+				end if
+			end if
+/*			
+			if QuarryRock is not HELD and SculptorSculptingOn == 0 and Sculpting == 0  and [QuarryRock]  near [Sculptor] radius 30 
+					move Sculptor position to [QuarryRock] + [RockOffset]
+					wait until [Sculptor] at [QuarryRock] + [RockOffset] or Sculptor is HELD or Sculptor is FLYING or HEALTH of Sculptor <= 0
+					set Sculptor focus to [QuarryRock]
+					SculptorSculptingOn = 1
+					Sculpting = 1 
+			end if 
+
+			if [QuarryRock] not near [Sculptor] radius 3 and StartedSculpting == 1 and Sculpting == 1 and (QuarryRock is not HELD)
+				SculptorSculptingOn = 0
+				Sculpting = 0
+				move Sculptor position to [QuarryRock] + [RockOffset]
+				wait until [Sculptor] at [QuarryRock] + [RockOffset] or Sculptor is HELD or Sculptor is FLYING or HEALTH of Sculptor <= 0
+				//wait until 3 seconds
+				set Sculptor focus to [QuarryRock]
+				Sculpting = 1
+				SculptorSculptingOn = 1				
+			
+			end if
+*/
+			if [QuarryRock] near [Sculptor] radius 15 and QuarryRock is not HELD and StartedSculpting == 1 and QuarryRock is not FLYING and Sculpting == 0 and HEALTH of Sculptor >0 and Sculptor is not FLYING
+				SculptorSculptingOn =0
+				begin dialogue
+					say single line HELP_TEXT_NEW_CREATURE_RETRIEVE_08
+					PresetPos = marker at [QuarryRock] + [RockOffset]
+					move Sculptor position to [PresetPos]
+					wait until [Sculptor] near [PresetPos] radius 2 or Sculptor is HELD or Sculptor is FLYING or HEALTH of Sculptor <= 0
+					wait 1 second
+					set Sculptor focus to [QuarryRock]
+					Sculptor play ANM_P_SCULPTOR loop 10
+					wait until read	
+					XANGLE of QuarryRock = 0
+					ZANGLE of QuarryRock = 0
+					ALTITUDE of QuarryRock = 0
+					wait until 3 seconds
+					update snapshot success 0.8 alignment 1 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_37)
+					Sculpting = 1
+					SculptorSculptingOn = 1
+					// Start Sculpting
+				end dialogue
+			end if
+
+			if TimeSpent exists 
+				if get TimeSpent time remaining <= 1 and Sculpting == 1
+					SculptorSculptingOn=0
+					begin cinema
+						Rock1Marker = marker at [QuarryRock]
+						QuarryRockAngle = get ANGLE of QuarryRock
+						GateKey3 = create with angle QuarryRockAngle - 180 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_COW at [Rock1Marker]
+						delete QuarryRock with fade
+						QuarryRockDeleted = 1
+						//run background script GateKeyPostPos (Rock1Marker, GateKeyPostPos)
+						// MAKE SURE THIS NEXT LINE IS NOT DELETED
+						run background script ProtectGateKey3 (Rock1Marker, GateKeyPostPos)
+
+						// SPL
+						move camera position to [GateKey3] + [7, 5, -7] time 3
+						move camera focus to [GateKey3] + [0, 3, 0] time 3
+						wait until camera ready
+						set Sculptor focus to camera position
+						Sculptor play ANM_P_GOSSIP_MAN loop 1
+						snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_38)
+						say single line HELP_TEXT_NEW_CREATURE_RETRIEVE_09
+						wait until read
+						move camera position to [GateKey3] + [0, 15, -25] time 3
+						move camera focus to [Plinth] time 3
+						// SPL end
+
+						// Also update the ChooseYourCreature reminder at the Gate
+						//update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_43 StandardReminder(variable HELP_TEXT_REMINDER_38)
+						move Sculptor position to [1748.3323, 29.4512, 2717.9075]
+						wait until read
+						CreatureRetrieveFinished = 1
+					end cinema
+				end if
+
+				if StartedSculpting == 1 and Sculpting == 0
+					TimeLeft = get TimeSpent time remaining
+					TimeSpent = 2
+				end if
+
+			else
+
+				if StartedSculpting == 1 and Sculpting == 1
+					TimeSpent = create timer for TimeLeft seconds
+				end if
+
+			end if
+
+			if WrongRock == 0
+
+				if get MyTimer time remaining <= 0 
+					Granite  = get ROCK_OBJECT at [Sculptor] radius 15  excluding scripted
+					set MyTimer time to 3 seconds
+				end if
+
+				if Granite exists and StartedSculpting == 0
+					run background script KeepRockScripted (Granite)
+					wait 0.2 seconds // This must occur after running the background to ensure the rock is scripted by the next game turn
+					if Granite is not HELD and Granite is not FLYING
+						SculptorSculptingOn=0
+
+						begin cinema
+
+							move camera position to [Sculptor] + [4,0,4] time 2
+							move camera focus to [Sculptor] time 2
+
+							wait until camera ready
+
+							set Sculptor focus to camera position
+
+							Sculptor play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+
+							say HELP_TEXT_NEW_CREATURE_RETRIEVE_10 with interaction
+							wait until read
+
+							move camera position to [1779.207, 44.218, 2707.760] time 2		//looks at quarrey
+							move camera focus to [1736.237, 28.927, 2687.320] time 2		//looks at quarrey
+
+							wait until camera ready
+
+
+						end cinema
+						SculptorSculptingOn = 1
+						set Sculptor focus to [SculpturProgress]
+						WrongRock = 1
+					end if
+
+				end if
+
+			end if
+			
+
+		end while
+		
+		SculptorScriptRunning =0
+		wait 0.2 seconds
+		ScriptStarted=0
+		wait 1 second
+		ScriptStarted=1
+		run background script SculptorSculptingOutside(Sculptor)
+		wait until 60 seconds or HEALTH of Sculptor <= 0
+		/// Do a reminder loop to take the GateKey3 to the others.
+		if HEALTH of Sculptor > 0
+			wait 2 seconds		
+			move Sculptor position to	[1768.507, 28.810, 2688.703]
+			wait until [Sculptor] near [1768.507, 28.810, 2688.703] or HEALTH of Sculptor <= 0 or Sculptor is FLYING or Sculptor is HELD
+			wait until Sculptor is not FLYING and Sculptor is not HELD
+			move Sculptor position to [1767.698, 28.810, 2692.575]
+			wait until [Sculptor] near [1767.698, 28.810, 2692.575] or HEALTH of Sculptor <= 0 or Sculptor is FLYING or Sculptor is HELD
+		end if
+		
+		release Sculptor
+
+end script TheSculptor

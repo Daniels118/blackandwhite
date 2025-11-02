@@ -1,0 +1,314 @@
+challenge LEAVE_THROUGH_VORTEX_LAND2
+
+global ChanceMissed
+
+// run script LethysVortex
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script DecidedToGoThrough (VortexPos)
+
+ Highlight = create highlight HIGHLIGHT_CHALLENGE at [VortexPos]
+
+start
+	// specific highlight wait until clicked or ChanceMissed == 1, no advisor reminders
+	ALTITUDE of Highlight = 20
+	begin loop
+	until Highlight clicked or VortexPos clicked or ChanceMissed == 1
+	end loop
+	enable Highlight active
+
+
+	if ChanceMissed == 0
+		LeavingLandTwo = 1
+		begin cinema
+			move camera to T00_000 time 4
+			wait until camera ready
+			camera path TRACK00
+			wait 2 seconds
+			set fade red 0 green 0 blue 0 time 2							// Fade to Black
+			wait until camera ready and 2 seconds
+		end cinema
+	end if
+
+end script DecidedToGoThrough
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script Storms
+
+PinkFluffyCloud = 0
+PinkFluffyCloudPos =  marker at [1014.126, 149.119, 3639.799] 
+PinkFluffyCloud2 = 0
+PinkFluffyCloud2Pos	= marker at [974.697, 149.410, 3664.884] 
+PinkFluffyCloud3 = 0
+PinkFluffyCloud3Pos	= marker at [972.396, 149.410, 3713.539] 
+PinkFluffyCloud4 = 0
+PinkFluffyCloud4Pos	= marker at [1035.052, 149.583, 3717.542] 
+PinkFluffyCloud5 = 0
+PinkFluffyCloud5Pos	= marker at [1037.182, 148.813, 3658.271] 
+start
+
+//  create enormous black storm cloud
+
+	PinkFluffyCloud = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [PinkFluffyCloudPos]
+			set PinkFluffyCloud properties time 80 fade 0
+			set PinkFluffyCloud properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+			set PinkFluffyCloud properties clouds 5 shade 1.5 height 80
+			set PinkFluffyCloud properties sheetmin 15 sheetmax 40 forkmin 3 forkmax 20
+			set PinkFluffyCloud properties inner 100 outer 150 
+			SPEED of PinkFluffyCloud = 0
+			disable PinkFluffyCloud affected by wind
+   wait 0.5 seconds
+
+   PinkFluffyCloud2 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [PinkFluffyCloud2Pos]
+			set PinkFluffyCloud2 properties time 80 fade 0
+			set PinkFluffyCloud2 properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+			set PinkFluffyCloud2 properties clouds 5 shade 1.6 height 80
+			set PinkFluffyCloud2 properties sheetmin 15 sheetmax 40 forkmin 4 forkmax 19
+			set PinkFluffyCloud2 properties inner 100 outer 150 
+			SPEED of PinkFluffyCloud2 = 0
+			disable PinkFluffyCloud2 affected by wind
+   wait 1.2 seconds
+
+   PinkFluffyCloud3 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [PinkFluffyCloud3Pos]
+			set PinkFluffyCloud3 properties time 80 fade 0
+			set PinkFluffyCloud3 properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+			set PinkFluffyCloud3 properties clouds 5 shade 1.7 height 80
+			set PinkFluffyCloud3 properties sheetmin 15 sheetmax 40 forkmin 2 forkmax 20
+			set PinkFluffyCloud3 properties inner 100 outer 150 
+			SPEED of PinkFluffyCloud3 = 0
+			disable PinkFluffyCloud3 affected by wind
+   wait 0.7 seconds
+
+   PinkFluffyCloud4 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [PinkFluffyCloud4Pos]
+			set PinkFluffyCloud4 properties time 80 fade 0
+			set PinkFluffyCloud4 properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+			set PinkFluffyCloud4 properties clouds 5 shade 1.4 height 80
+			set PinkFluffyCloud4 properties sheetmin 15 sheetmax 40 forkmin 3 forkmax 19
+			set PinkFluffyCloud4 properties inner 100 outer 150 
+			SPEED of PinkFluffyCloud4 = 0
+			disable PinkFluffyCloud4 affected by wind
+   wait 2.1 seconds
+
+   PinkFluffyCloud5 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [PinkFluffyCloud5Pos]
+			set PinkFluffyCloud5 properties time 80 fade 0
+			set PinkFluffyCloud5 properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+			set PinkFluffyCloud5 properties clouds 5 shade 1.5 height 80
+			set PinkFluffyCloud5 properties sheetmin 15 sheetmax 40 forkmin 3 forkmax 20
+			set PinkFluffyCloud5 properties inner 100 outer 150 
+			SPEED of PinkFluffyCloud5 = 0
+			disable PinkFluffyCloud5 affected by wind
+
+
+end script Storms
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysVortex
+
+	BeginPos = 0 
+	BeginFoc = 0
+
+	VortexPos = marker at [1073.1617, 146.5913, 3597.9407] // copy to LeaveThroughVertex as well when new position got
+	Vortex = 0
+	MyCreatureStartPos = marker at [1256.0850, 105.3261, 3436.5767]
+	CamPosHigh = marker at [1143.2607, 302.0841, 3476.7754]
+	LethysPosition = marker at [VortexPos]+[0,20,0]
+	LethysSpell = 0
+	MessageSaid=0
+
+start
+	challenge LEAVE_THROUGH_VORTEX_LAND2_SNAP_SHOT
+	stop script "LethysTauntAI, ComputerPlayerConfrontPlayer"
+	LethysGone=1
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		pause computer player 3
+
+		move computer player 3 to [992.9495, 180, 3665.9316] speed 200
+		wait until computer player 3 ready
+
+		// move Lethys Sparkle to above vortex
+		
+
+		//run background script Storms
+
+		wait 1 second
+
+		set camera position to [973.7133, 186.1699, 3679.7419]
+		set camera focus to [1089.8088, 138.3635, 3620.5652]
+
+		set game time 20.00
+		disable game time
+
+		move computer player 3 to [LethysPosition] speed 50
+		// "You failed to defeat me.  So watch as my Vortex"
+		say HELP_TEXT_KIDNAPPED_11
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		set camera position to [1162.438, 155.119, 3580.937] 
+		set camera focus to [1125.885, 153.344, 3592.374]
+
+		VortexOpen = 1
+		Vortex = create VORTEX VORTEX_TYPE_IN at [VortexPos] 
+
+		set MyCreature position to [MyCreatureStartPos]
+		set MyCreature focus to [VortexPos]
+
+		move camera position to [1187.324, 197.020, 3597.769] time 11
+		move camera focus to [1069.363, 148.039, 3615.283] 	time 7
+		wait 2 seconds
+
+		// "lets see how tough you are without you critter me old scooter" 
+		say HELP_TEXT_KIDNAPPED_12
+		wait until read
+
+		// Lethys casts an spell to mimic taking control of MyCreature
+
+		LethysSpell =  create special effect SPOT_VISUAL_MAGIC_BEAM on LethysPosition time 60
+		add LethysSpell target on MyCreature
+
+		move computer player 3 to [LethysPosition] speed 200
+
+		move MyCreature position to [VortexPos]
+
+		disable leash on MyCreature
+
+		// Stop creature appearing in creature cave when being stolen
+		disable creature in temple
+		
+//		move camera position to [1281.725, 151.763, 3380.817]  time 3 
+
+		set camera position to [1253.302, 129.455, 3391.838] 
+		set camera focus to [1224.272, 112.168, 3463.618]
+
+		move camera position to [1312.9611, 147.1858, 3370.6492] time 6
+		move camera focus to [1197.5056, 115.0723, 3457.8169] time 6
+
+		close dialogue
+		wait 0.1 second
+
+		// Snapshot here because it's a big story bit. No reminder though.
+		snapshot quest success 1.0 alignment 0.0 HELP_TEXT_KIDNAPPED_05 StandardReminder(variable HELP_TEXT_NONE)
+				
+		// Moralities shout warning about creature
+
+		make evil spirit appear
+		//	make evil spirit point at [MyCreature]
+
+		// "EA: The creature's legging it for the Vortex."
+		say HELP_TEXT_KIDNAPPED_02
+		wait until read
+
+		make good spirit appear
+		//	make good spirit point at [MyCreature]
+//		wait 1 second
+
+		say HELP_TEXT_KIDNAPPED_01
+		wait until read
+		make evil spirit disappear
+		make good spirit disappear
+//		wait 0.2 seconds
+
+		// Make sure the creature cannot get hurt so he will not return to the Temple in the middle of being kidnapped
+		run SCRIPT_DEV_FUNCTION_MY_CREATURE_CANNOT_DIE developer function
+
+	end cinema
+
+//		wait 2 seconds
+
+		while not [MyCreature] near [VortexPos] radius 5 and MyCreature exists
+			if MessageSaid == 0
+				if MyCreature leashed
+					begin dialogue
+						//"The leash isn't working!"
+						say single line HELP_TEXT_KIDNAPPED_13
+						wait until read
+					end dialogue
+					MessageSaid=1
+				end if
+			end if
+		end while
+
+		// The creature has been kidnapped, so make him killable again
+		run SCRIPT_DEV_FUNCTION_MY_CREATURE_CAN_DIE developer function
+		//delete LethysSpell
+
+		wait 1.5 seconds
+		move computer player 3 to [1073.1617, 0, 3597.9407] speed 20
+		wait 2 seconds
+
+	begin cinema
+
+		set camera position to [1004.945, 154.456, 3480.713] 
+		set camera focus to [VortexPos]
+ 
+		wait 1.5 seconds
+
+		move camera position to [1173.296, 200.024, 3605.016]  time 36
+
+		move camera focus to [VortexPos] + [0,20,0]	 time 20
+
+		make evil spirit appear
+		// "EA: He's gone through!"
+		say HELP_TEXT_KIDNAPPED_04
+		make  good spirit appear
+		wait until read
+		// get Lethys sparkle to go down vortex after MyCreature
+		say HELP_TEXT_KIDNAPPED_05
+		wait until read
+		say HELP_TEXT_KIDNAPPED_06
+		wait until read
+
+		say HELP_TEXT_KIDNAPPED_07
+		wait until read
+		stop music
+
+	end cinema with dialogue
+
+		run background script DecidedToGoThrough (VortexPos)
+
+		say HELP_TEXT_KIDNAPPED_08
+		wait until read
+		// "But we don't know what's on the other side!"
+		say HELP_TEXT_KIDNAPPED_09
+		wait until read
+		// "Our Creature! That's all we need to know. Let's go!"
+		say HELP_TEXT_KIDNAPPED_10
+		wait until read
+
+		make evil spirit disappear
+		make good spirit disappear
+
+	end dialogue
+	
+	wait 10 seconds
+
+	if LeavingLandTwo == 0
+		ChanceMissed = 1
+		start Vortex fade out
+		VortexOpen=0
+		enable game time
+	
+		begin dialogue
+			make evil spirit appear
+			//EA We gotta destroy his temple
+			say HELP_TEXT_EXTRA_EVIL_ADVISOR_LINES_02
+			wait until read
+			send evil spirit home
+			make evil spirit disappear
+		end dialogue
+	else
+		enable game time
+	end if
+
+
+end script LethysVortex
+

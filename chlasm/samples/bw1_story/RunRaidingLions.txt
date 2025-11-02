@@ -1,0 +1,12 @@
+challenge RunRaidingLions
+
+run script RunRaidingLions
+
+begin script RunRaidingLions
+	
+start
+	
+	run script RaidingLions
+	
+
+end script RunRaidingLions

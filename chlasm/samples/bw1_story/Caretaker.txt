@@ -1,0 +1,119 @@
+challenge CARETAKER
+
+// globals
+global CaretakerFinished
+
+run script CaretakerMain
+
+// **** KILLED ****
+begin script CaretakerKilled (Caretaker,CaretakerChickens,Neighbour)
+/// set camera follow etc.
+/// Morality comments.
+/// If chickens following Creature they will do so eternally.
+start
+
+end script CaretakerKilled
+
+// **** GOOD RETURNED ****
+begin script GoodCaretakerReturned (Caretaker,CaretakerChickens,Neighbour)
+
+start
+/// Count chickens
+/// If Avatar alive do funky thangs.
+/// If Marauders alive do funky thangs.
+/// If both alive sort it out.
+end script GoodCaretakerReturned
+
+
+// **** EVIL RETURNED ****
+begin script EvilCaretakerReturned (Caretaker,CaretakerChickens,Neighbour)
+
+start
+
+end script EvilCaretakerReturned
+
+
+// **** GOOD ADVENTURE ****
+begin script GoodCaretakerAdventure (Caretaker,CaretakerChickens,Neighbour)
+
+CaretakerWaypoint = 0
+AnimalFlock1 = 0
+AnimalFlock2 = 0
+
+start
+
+/// Constantly check if chickens are prone and spawn predators? Or just spawn constantly :o)
+/// Move Caretaker from waypoint0 to waypoint1. Move Neighbour from waypoint1 to waypoint2.
+/// argh. Loop code setting variables on untils so I know which dude is being decided on and breaking loop. Then start new loop with some repeated code.
+/// argh. The damn creature and chickens problem.
+
+end script GoodCaretakerAdventure
+
+// **** EVIL ADVENTURE ****
+begin script EvilCaretakerAdventure (Caretaker,CaretakerChickens,Neighbour)
+
+start
+
+/// Move Caretaker from waypoint1 to waypoint2. Move Neighbour from waypoint0 to waypoint1.
+/// argh. Loop code setting variables on untils so I know which dude is being decided on and breaking loop. Then start new loop with some repeated code.
+
+end script EvilCaretakerAdventure
+
+
+// **** MAIN ****
+begin script CaretakerMain
+
+CaretakerHut = 0
+CaretakerHutPos = 0
+Caretaker = 0
+CaretakerChickens = 0
+Neighbour = 0
+NeighbourHut = 0
+NeighbourHutPos = 0
+
+start
+/// wait until hut clicked or does this trigger on an event. Unstoppable? Vary on Alignment?
+
+///	if PLAYER ALIGNMENT EVIL == 0
+	///Caretaker = create VILLAGER_INFO_NORSE_FARMER_MALE SCRIPT_OBJECT_TYPE_VILLAGER at [CaretakerHutPos]
+/// Create Neighbour
+	///Neighbour = create VILLAGER_INFO_NORSE_FARMER_MALE SCRIPT_OBJECT_TYPE_VILLAGER at [NeighbourHutPos]
+/// Create Chicken Flock
+/// Create Marauders and lethal obstacles
+/// Give Neighbour radius of Anti-Influence.
+	///create anti influence on Neighbour radius 15
+/// Give Caretaker a radius of Influence
+	///create influence on Caretaker radius 15
+
+	///		begin cinema
+///			Camera pan and focus
+///			Caretaker Speech - Get chickens to other town while he goes off on vital adventure. Doesn't trust neighbour.
+///			?? Caretaker speech - Give me a sign! Knock over this barrel if you you want me to complete this adventure. (Delay so player can wait until he is ready)
+///			After knocking over barrel you see a cinema with the Neighbour in the background sneaking off. Camera pans to him as he leaves town influence. Caretaker mentions distrust.
+///			Make chicken flock follow creature
+///			Move Neighbour through tunnel
+	///		end cinema
+
+///		run script GoodCaretakerAdventure (Caretaker,CaretakerChickens,Neighbour)
+/// end if
+
+/// if PLAYER ALIGNMENT EVIL == 1
+/// create Caretaker
+	///Caretaker = create VILLAGER_INFO_NORSE_FARMER_MALE SCRIPT_OBJECT_TYPE_VILLAGER at [CaretakerHutPos]
+/// Create Neighbour
+	///Neighbour = create VILLAGER_INFO_NORSE_FARMER_MALE SCRIPT_OBJECT_TYPE_VILLAGER at [NeighbourHutPos]
+/// Create Chicken Flock
+/// Set Chickens to stay in pen.
+/// Create Marauders and lethal obstacles
+/// Give Caretaker a radius of anti-Influence.
+	///create abti influence on Caretaker radius 15
+/// Give neighbour a radius of Influence
+	///create influence on Neighbour radius 15
+/// Move Caretaker out of town onwards on adventure.
+/// Camera pan and focus.
+/// Neighbour speech - Caretaker follows another god and is on a quest to free that gods avatar. I'll go get some marauders to nail him
+/// During camera pans with speech you see Caretaker just leave the area of the town into some mogul area.
+/// run script EvilCaretakerAdventure (Caretaker,CaretakerChickens,Neighbour)
+/// end if
+
+end script CaretakerMain

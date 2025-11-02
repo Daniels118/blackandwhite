@@ -1,0 +1,60 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashPull
+
+begin script CreatureDevLeashPull
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+	Tree = create TREE TREE_INFO_PALM at [1883.0200, 28.1400, 2621.7800]
+	NearTreePos = marker at [Tree]+[4, 0, 4]
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	disable leash on MyCreature
+	move MyCreature position to [MyCreaturePos]	
+	begin cinema
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		Trainer play ANM_P_BECKON loop 1
+		wait until Trainer played
+		set Trainer focus to [Tree]
+		wait until Trainer played
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_OUT_OF_POINTING loop 1
+		wait until Trainer played
+		say "You can pull the creature about with the leash"
+		wait until read
+		begin dual camera to Trainer Tree
+			say "You see that tree over there?"
+			wait until read
+			set Trainer focus to [Tree]
+			eject good spirit
+			make good spirit point at [Tree]
+			release MyCreature
+			enable leash on MyCreature
+			wait until Trainer played
+		end dual camera
+		Trainer play ANM_P_INTO_POINTING loop 1
+		say "Pull your creature towards it"
+		wait until Trainer played
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		wait until read
+		send good spirit home
+	end cinema
+	move Trainer position to [NearTreePos]
+	wait until MyCreature leashed and [MyCreature] near [Tree] radius 10 and [Trainer] near [NearTreePos] radius 3
+	begin cinema
+		say "That's right. Well done."
+		wait until read
+	end cinema
+	delete Trainer
+end script CreatureDevLeashPull

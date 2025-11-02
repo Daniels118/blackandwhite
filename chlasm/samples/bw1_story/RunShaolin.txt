@@ -1,0 +1,13 @@
+challenge RunShaolin
+
+run script RunShaolin
+
+begin script RunShaolin
+	
+start
+
+	run script SetupLand3	
+	run script ShaolinMonk
+	
+
+end script RunShaolin

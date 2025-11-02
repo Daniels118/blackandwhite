@@ -1,0 +1,326 @@
+challenge SEE_THE_CITADEL
+
+//run script SeeTheCitadel
+
+begin script SeeTheCitadel
+
+	
+	RotateTimer = create timer for 0 seconds
+	MoveTimer = create timer for 0 seconds
+	RockInfl = 0
+	VillagerCount = 0
+	SFX = 0
+	
+	WoodPile = 0
+	FoodPile = 0
+	Finished = 0
+
+	ObjectInHand = 0
+	FoodInHand = 0
+	WoodInHand = 0
+	FoodObject = 0
+	WoodObject = 0
+	TotalFoodGiven = 0
+	TotalWoodGiven = 0
+
+	ShowWoodPile = marker at [1956.7152, 32.7524, 2524.6565]
+	ShowFoodPile = marker at [1890.0857, 31.0023, 2453.7434]
+	
+	BuildingArea = marker at [1892.8142, 2523.7285]
+	SpeechDone = 0
+
+	CitadelDoneLow = marker at [1863.8190, 34.4500, 2540.4495]
+	ScrollBloke = 0
+	ScrollBlokePos = marker at [1892.8247, 18.0900, 2550.5190]
+	ScrollPos = marker at [1894.1205, 18.0900, 2555.9104]
+	InfoScroll = 0
+	CitadelDoneBloke = marker at [1873.6750, 25.6700, 2563.4805]
+	ChallengeScroll = 0
+	QuestScroll = 0
+	CitadelDoneLast = marker at [1879.5269, 35.5975, 2576.9810]
+
+	ExplainCitadelPos1 = marker at [1838.2471, 81.1524, 2551.5337]
+	ExplainCitadelPos2 = marker at [1890.7756, 37.0785, 2534.1487]
+	InfoOrbPos = marker at [1892.8142, 25.0900, 2523.7285]
+	ExplainCitadelPos3 = marker at [1890.9750, 27.2305, 2517.8267]
+	CitadelEntrancePos = marker at [1907.2350, 18.0900, 2516.8657]
+
+	Citadel = get CITADEL at [1915.05,2508.89] radius 5
+	Town = get TOWN at [1784.67,2683.48] radius 10
+
+
+start
+	if BUILT of Citadel != 0.3
+		BUILT of Citadel = 0.3
+	end if
+
+	set MoveTimer time to 30 seconds
+
+	while camera position not near [Citadel] radius 100 
+		
+		if get MoveTimer time remaining == 0
+			begin dialogue
+				eject good spirit
+				make good spirit point at [Citadel]
+				say HELP_TEXT_FOLLOW_US_EXTRA_07
+				wait until read
+				set MoveTimer time to 30 seconds
+			end dialogue
+		end if
+
+	end while
+
+	set camera zones to "Land1Building.exc"
+
+	if WoodPile not exists
+		WoodPile = create STORE WOOD at [1961.2755, 17.3363, 2496.8867]
+	end if
+	if FoodPile not exists
+		FoodPile = create STORE FOOD at [1909.3157, 17.4200, 2455.0479]
+	end if
+
+	add resource FOOD 6000 to FoodPile
+	add resource WOOD 6000 to WoodPile
+
+	begin cinema
+		move camera position to [1867.5237, 54.5025, 2539.1250] time 3
+		move camera focus to [Citadel] time 2
+		wait until camera ready
+		eject good spirit
+		make good spirit cling across 0.4 down 1.0
+		say "*** HAND DEMO INITIATED ***"
+		wait 1 second
+		say HELP_TEXT_NEWEST_ROTATE_01
+		/// play rotate hand interaction anim
+		wait until read
+		eject evil spirit
+		make evil spirit cling across 0.7 down 1.0
+		say HELP_TEXT_NEWEST_ROTATE_02
+		wait until read
+		/// wait until hand interaction anim played
+	end cinema
+
+	set interaction SCRIPT_INTERFACE_LEVEL_JUST_ROTATE
+
+
+	begin loop 
+		if get HELP_EVENT_TYPE_ROTATE total event < 15 and get RotateTimer time remaining == 0
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_NEWEST_ROTATE_01
+				wait until read
+				eject evil spirit
+				say HELP_TEXT_NEWEST_ROTATE_02
+				wait until read
+			end dialogue
+			set RotateTimer time to 30 seconds
+		end if
+
+		if get HELP_EVENT_TYPE_ROTATE total event < 15 and get HELP_EVENT_TYPE_ROTATE total event > 0 and SpeechDone == 0
+			begin dialogue
+				say HELP_TEXT_NEWEST_ROTATE_03
+				wait until read
+			end dialogue
+			SpeechDone = 1
+		end if
+
+		until get HELP_EVENT_TYPE_ROTATE total event > 30
+	end loop
+/*
+		begin dialogue
+			eject evil spirit
+			say HELP_TEXT_NEWEST_ROTATE_04
+			wait until read
+			send evil spirit home
+		end dialogue
+
+		wait until get HELP_EVENT_TYPE_ROTATE total event > 60
+*/
+		begin dialogue
+			eject evil spirit
+			say HELP_TEXT_NEWEST_ROTATE_05
+			wait until read
+//			eject good spirit
+//			say HELP_TEXT_NEWEST_ROTATE_06
+//			wait until read
+//			say HELP_TEXT_NEWEST_ROTATE_07
+//			wait until read
+			send evil spirit home
+		end dialogue
+
+		wait until get HELP_EVENT_TYPE_ROTATE total event > 90
+	
+	set interaction	SCRIPT_INTERFACE_LEVEL_JUST_ROTATE_INTERACT
+
+	//BeginPos = marker at camera position
+
+	begin cinema
+		eject evil spirit
+		move camera position to [ShowWoodPile] time 3
+		move camera focus to [WoodPile] time 3
+		say "They'll build the temple a lot quicker if you supply them with the wood they need."
+		//make evil spirit point at [1961.2755, 17.3363, 2496.8867]
+		make evil spirit point at [WoodPile]
+		wait until read
+		stop evil spirit pointing
+		make evil spirit cling across 0.7 down 1.0
+		say "*** HAND DEMO INITIATED ***"
+		wait 1 second
+		say "Pick up some wood from the supplies here and drop it near the builders."
+		/// play Move Wood hand interaction anim
+		///wait until it has played
+		wait until read
+		eject good spirit
+		move camera position to [ShowFoodPile] time 3
+		move camera focus to [FoodPile] time 3
+		say "Dont you forget to feed them though."
+		//make good spirit point at [1860.9229, 18.0900, 2532.1187]
+		wait until read
+		make good spirit point at [FoodPile]
+		say "They need food if they're going to be happy little workers."
+		wait until read
+		stop good spirit pointing
+		make good spirit cling across 0.4 down 1.0
+		say "*** HAND DEMO INITIATED ***"
+		wait 1 second
+		say "Pick up some food from the supplies here and drop it near the builders."
+		/// play Move Food hand interaction anim
+		///wait until it has played
+		wait until read
+		say "It's up to you what help you give the villagers."
+		move camera position to [1867.5237, 54.5025, 2539.1250] time 3
+		move camera focus to [Citadel] time 3
+		wait until read
+		wait until camera ready
+	end cinema
+
+
+while BUILT of Citadel != 1
+
+// Count how many times food & wood is given to the villagers.
+	ObjectInHand = get object held
+
+	if FoodInHand == 1
+		if FoodObject is not HELD // and FoodObject is not FLYING
+			FoodInHand = 0
+			if [FoodObject] near [BuildingArea] radius 20
+				begin dialogue
+					eject good spirit
+					say "Gotta keep up your strength chaps."
+					wait until read
+					send good spirit home
+				end dialogue
+				TotalFoodGiven++
+			end if
+		end if
+	elsif ObjectInHand type STORE POT_INFO_HAND_FOOD
+		FoodInHand = 1
+		FoodObject = ObjectInHand
+	end if
+
+	if WoodInHand == 1
+		if WoodObject is not HELD
+			WoodInHand = 0
+			if [WoodObject] near [BuildingArea] radius 20
+				begin dialogue
+					eject evil spirit
+					say "Work, bitches, work!"
+					wait until read
+					send evil spirit home
+				end dialogue
+				TotalWoodGiven++
+			end if
+		end if
+	elsif ObjectInHand type STORE POT_INFO_HAND_WOOD
+		WoodInHand = 1
+		WoodObject = ObjectInHand
+	end if
+
+// Remind them of the task ??
+
+// If they havent picked up anything, remind them how to ??
+
+end while
+
+	set camera zones to "Land1Zone2.exc"
+
+//snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_09 StandardReminder(variable HELP_TEXT_REMINDER_01)
+
+set interaction	SCRIPT_INTERFACE_LEVEL_NORMAL
+
+/// **** CINEMA EXPLAINING THREE SCROLLS AND CREATE DUDE WITH SCROLL ****
+begin cinema
+	eject good spirit
+	move camera position to [CitadelDoneLow] time 3
+	move camera focus to [Citadel] time 3
+	say HELP_TEXT_FOLLOW_US_EXTRA_11
+	wait until read
+	send good spirit home
+	wait until camera ready
+	ScrollBloke = create VILLAGER MALE at [ScrollBlokePos]
+	InfoScroll = create highlight HIGHLIGHT_TIPS at [ScrollPos]
+	set ScrollBloke focus to [CitadelDoneBloke]
+	move camera position to [CitadelDoneBloke] time 4
+	move camera focus to [ScrollBloke] time 5
+	wait until camera ready
+	eject good spirit
+	make good spirit point at [InfoScroll]+[0,2,0]
+	say "This is an information scroll. There's lots more to be learnt from these scrolls"
+	wait until read
+	stop good spirit pointing
+	wait 2 seconds
+	delete InfoScroll
+	ChallengeScroll = create highlight HIGHLIGHT_CHALLENGE at [ScrollPos]
+	make good spirit point at [ChallengeScroll]+[0,2,0]
+	say "This kind of scroll will give you rewards."
+	wait until read
+	stop good spirit pointing
+	wait 2 seconds
+	delete ChallengeScroll
+	QuestScroll = create highlight HIGHLIGHT_QUEST at [ScrollPos]
+	make good spirit point at [QuestScroll]+[0,2,0]
+	say "And these scrolls are special scrolls. Keep an eye out for them."
+	wait until read
+	stop good spirit pointing
+	wait 2 seconds
+	delete QuestScroll
+	move camera position to [CitadelDoneLast] time 4
+	InfoScroll = create highlight HIGHLIGHT_TIPS at [ScrollBlokePos]+[0,10,0]
+	make good spirit point at [ScrollBloke]+[0,2,0]
+	say "Click on the one above this bloke's head to learn about the citadel."
+	wait until read
+	stop good spirit pointing
+end cinema
+
+
+
+ wait until InfoScroll clicked or ScrollBloke clicked
+
+
+ begin cinema
+	move camera position to [ExplainCitadelPos1] time 4
+	move camera focus to [Citadel] time 4
+	say "The citadel is the centre of your power. The citadel blah blah."
+	wait until read
+	wait until camera ready
+	move camera position to [ExplainCitadelPos2] time 4
+	move camera focus to [InfoOrbPos] time 4
+	wait 3 seconds
+	make good spirit point at [InfoOrbPos]
+	say "This is the info orb. Pick it up and click on things for info."
+	wait until read
+	stop good spirit pointing
+	wait until camera ready
+	move camera position to [ExplainCitadelPos3] time 4
+	move camera focus to [CitadelEntrancePos] time 2
+	wait 3 seconds
+	say "This is the entrance. Click on it to go inside or press F at any time."
+	wait until read
+	say "You can go in now or take a look around the village first."
+	wait until read
+	wait 1 second
+ end cinema
+
+
+end script SeeTheCitadel
+

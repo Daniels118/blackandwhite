@@ -1,0 +1,558 @@
+challenge CREATURE_GUARDIAN
+
+//------------------------------------------------------------------------------------------------------------------------
+global CreatureGuardianFinished
+global FightOver
+global DayToNightActive
+global EndSendMyCreatureAwayFromGuardianFlag
+//------------------------------------------------------------------------------------------------------------------------
+begin script DayToNight (Position)
+OriginalTime = 0
+LighteningStorm = 0
+start
+
+/*	
+DayToNightActive = 0
+	while DayToNightActive == 0
+		if camera position near [Position] radius 200
+			LighteningStorm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_DRIZZLE at [2524.857, 35.123, 3174.385]
+			set LighteningStorm properties degrees 15 rainfall 0 snowfall 0 overcast 0.3 fallspeed 0
+			set LighteningStorm properties time 20 fade 5
+			set LighteningStorm properties clouds 8 shade 0.8 height 120
+			set LighteningStorm properties sheetmin 2 sheetmax 10 forkmin 100 forkmax 600
+			set LighteningStorm properties inner 150 outer 300
+			disable LighteningStorm affected by wind
+
+			wait 15 seconds
+		end if
+	end while
+
+	DayToNightActive = 0
+	while DayToNightActive == 0
+		if camera position near [Position] radius 200
+			move game time 07.50 time 4
+			wait 4 seconds
+		else
+			move game time OriginalTime time 3
+		end if
+	end while
+  */
+	/// set time to OriginalTime
+end script DayToNight
+
+//------------------------------------------------------------------------------------------------------------------------
+// Scale Guardian creature to always be 20% bigger than your creature
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureGuardianScale(CreatureGuardian)
+
+start
+	enable CreatureGuardian auto scale 1.2
+
+end script CreatureGuardianScale
+
+//------------------------------------------------------------------------------------------------------------------------
+// You WON !!
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureGuardianYouWin(CreatureGuardian)
+
+	BeginPos = 0
+	BeginFoc = 0
+	TunnelStartPos = marker at [2522.3699, 55.0772, 3125.6274]
+	TunnelStartFoc = marker at [2555.1174, 40.4945, 3197.8330]
+	TunnelEndPos = marker at [2613.5029, 98.1509, 3284.9036]
+	TunnelEndFoc = marker at [2521.1511, 47.9494, 3369.6125]
+	SeeRewardPos = marker at [2554.8062, 71.6572, 3342.4971]
+	SeeRewardFoc = marker at [2514.21, 48.1667, 3368.67]
+
+start
+
+begin cinema
+		move camera position to [CreatureGuardian]+[30,20,20] time 3
+		move camera focus to [CreatureGuardian] time 3
+		force MyCreature CREATURE_IDLE MyCreature
+		force CreatureGuardian CREATURE_DEAD_FOREVER CreatureGuardian
+		wait until camera ready
+		say single line HELP_TEXT_CREATURE_GUARDIAN_07
+		wait until read
+		FightOver = 1
+		CreatureGuardianFinished = 1
+		///KenCinema
+		move camera position to [TunnelStartPos] time 3
+		move camera focus to [TunnelStartFoc] time 2
+		wait 2 seconds
+		move camera position to [TunnelEndPos] time 4
+		move camera focus to [TunnelEndFoc] time 4
+		wait 3 seconds
+		move camera position to [SeeRewardPos] time 4
+		move camera focus to [SeeRewardFoc] time 3
+		wait until camera ready
+		release MyCreature
+end cinema
+
+
+end script CreatureGuardianYouWin
+
+//------------------------------------------------------------------------------------------------------------------------
+// You were BEATEN !
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureGuardianYouRetire(CreatureGuardian, Lair)
+
+start
+begin dialogue
+	force CreatureGuardian CREATURE_IDLE CreatureGuardian
+	force MyCreature CREATURE_IDLE MyCreature
+	say single line HELP_TEXT_CREATURE_GUARDIAN_08
+	wait until read
+	update snapshot success 0.0 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+	move CreatureGuardian position to [Lair]
+	wait until [CreatureGuardian] near [Lair] radius 10
+	set CreatureGuardian focus to [MyCreature]
+	release MyCreature
+	FightOver = 1
+end dialogue
+
+end script CreatureGuardianYouRetire
+
+//------------------------------------------------------------------------------------------------------------------------
+// FIGHT !
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureGuardianFight(CreatureGuardian, Lair)
+
+start
+
+	FightOver = 0
+
+	force MyCreature CREATURE_IDLE MyCreature
+	disable leash on MyCreature
+	detach MyCreature leash
+
+	begin dialogue
+		say single line HELP_TEXT_CREATURE_GUARDIAN_06
+		wait until read
+	end dialogue
+	detach MyCreature leash
+
+	force CreatureGuardian CREATURE_FIGHT MyCreature
+	
+	//force CreatureGuardian CREATURE_FIGHT MyCreature
+	//force MyCreature CREATURE_FIGHT CreatureGuardian
+
+	wait until MyCreature fighting
+
+	STRENGTH of CreatureGuardian -= 0.2
+
+	wait until not MyCreature fighting
+	wait until not CreatureGuardian fighting
+
+	enable leash on MyCreature
+	release MyCreature
+
+	if FIGHTHEALTH of CreatureGuardian < FIGHTHEALTH of MyCreature
+		run script CreatureGuardianYouWin(CreatureGuardian)
+	else
+		run script CreatureGuardianYouRetire(CreatureGuardian, Lair)
+		run background script HealFightVictorOverTime(CreatureGuardian)
+	end if
+
+
+end script CreatureGuardianFight
+
+//------------------------------------------------------------------------------------------------------------------------
+
+
+
+begin script CreatureGuardianFedOnce(CreatureGuardian,FoodFound,Lair)
+
+		BeginPos = 0
+		BeginFoc = 0
+start
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+	begin cinema
+
+		move camera position to [FoodFound] + [-10,5,-10] time 6
+		move camera focus to [CreatureGuardian] time 4
+
+		move CreatureGuardian position to [FoodFound]
+
+		wait until [CreatureGuardian] near [FoodFound] radius 10
+
+		force CreatureGuardian CREATURE_EAT_FROM_MAGIC_FOOD_PILE FoodFound
+		wait until CreatureGuardian played
+
+		if FoodFound exists
+			delete FoodFound
+		end if
+
+		update snapshot success 0.25 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+		say single line HELP_TEXT_CREATURE_GUARDIAN_04
+
+		move CreatureGuardian position to [Lair]
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+		wait until read
+
+	end cinema
+
+	
+end script CreatureGuardianFedOnce
+
+
+
+begin script CreatureGuardianFedTwice(CreatureGuardian,FoodFound)
+
+	BeginPos = 0
+	BeginFoc = 0
+	TunnelStartPos = marker at [2522.3699, 55.0772, 3125.6274]
+	TunnelStartFoc = marker at [2555.1174, 40.4945, 3197.8330]
+	TunnelEndPos = marker at [2613.5029, 98.1509, 3284.9036]
+	TunnelEndFoc = marker at [2521.1511, 47.9494, 3369.6125]
+	SeeRewardPos = marker at [2554.8062, 71.6572, 3342.4971]
+	SeeRewardFoc = marker at [2514.21, 48.1667, 3368.67]
+
+start
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+	begin cinema
+		move camera position to [FoodFound] + [-10,5,-10] time 6
+		move camera focus to [CreatureGuardian] time 4
+
+		move CreatureGuardian position to [FoodFound]
+		wait until [CreatureGuardian] near [FoodFound] radius 10
+
+		force CreatureGuardian CREATURE_EAT_FROM_MAGIC_FOOD_PILE FoodFound
+		wait until CreatureGuardian played
+
+		force CreatureGuardian CREATURE_SLEEP_BY_OBJECT CreatureGuardian
+
+		if FoodFound exists
+			delete FoodFound
+		end if
+
+		say single line HELP_TEXT_CREATURE_GUARDIAN_05
+		wait until read
+
+		update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+		///KenCinema
+
+		move camera position to [TunnelStartPos] time 3
+		move camera focus to [TunnelStartFoc] time 2
+		wait 2 seconds
+
+		move camera position to [TunnelEndPos] time 4
+		move camera focus to [TunnelEndFoc] time 4
+		wait 3 seconds
+		move camera position to [SeeRewardPos] time 4
+		move camera focus to [SeeRewardFoc] time 3
+		wait until camera ready
+		release MyCreature
+
+		//move camera position to [BeginPos] time 4
+		//move camera focus to [BeginFoc] time 3
+		//wait until camera ready
+	end cinema	
+
+end script CreatureGuardianFedTwice
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script SendMyCreatureAwayFromGuardian(CreatureGuardian)
+	SendCreaturePos = marker at [2531.85, 30.82, 3044.55]
+	ForceCreatureTimer=create timer for 5 seconds
+	MovingCreature = 0
+start
+	while EndSendMyCreatureAwayFromGuardianFlag==0
+		if [MyCreature] near [CreatureGuardian] radius 70
+			if get ForceCreatureTimer time remaining <= 0
+				detach MyCreature leash
+				move MyCreature position to [SendCreaturePos]
+				MovingCreature = 1
+				ForceCreatureTimer=create timer for 5 seconds
+			end if
+		elsif MovingCreature == 1
+			release MyCreature
+			MovingCreature = 0
+		end if
+	end while
+end script SendMyCreatureAwayFromGuardian
+
+//------------------------------------------------------------------------------------------------------------------------
+//-CreatureGuardian-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureGuardian
+
+	Lair = marker at [2538.6931, 38.1298, 3160.6001]
+	CreatureGuardian = 0
+	Rewarded = marker at [2514.21, 48.1667, 3368.67] //position of reward 
+	RewardCameraPos = marker at [2581.71, 67.6351, 3384.18] //position of reward 
+	BeginPos = 0
+	BeginFoc = 0
+	CreatureFed = 0
+	CreatureGuardianFriendly = 0
+	FoodFound = 0
+	MyTimer = 0
+	FullUp = 0
+	TriggerPos = marker at [2553.5718, 40.3806, 3184.6072]
+	Treasure = 0
+	Highlight=0
+	TreasureInfluence = 0
+	LairInfluence = 0
+	Reward = 1
+	SpellDispenserPos = marker at [1873.4656, 29.0403, 2496.8665]
+	CreatureGuardianHeight = 0
+	RecoveryTimer = create timer for 0 seconds
+	NoReturn = marker at [2560.872, 40.985, 3199.425] 
+
+start
+
+	wait until CreatureDevelopment_Fight == 1
+	MyCreature = get player 1 creature
+	CreatureGuardian = create_creature_from_creature MyCreature 1 at [Lair] CREATURE_TYPE_OGRE
+
+	CreatureGuardianHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of CreatureGuardian
+	CreatureGuardianHeight = CreatureGuardianHeight * 0.8
+	
+	// Set the CreatureGuardians name to 'Sleg'
+	set CreatureGuardian name HELP_TEXT_OGRE_NAME_02
+	
+	run background script DayToNight (CreatureGuardian)
+	
+	ALIGNMENT of CreatureGuardian = -1
+	set CreatureGuardian all desires SCRIPT_FALSE
+	set CreatureGuardian desire HUNGER SCRIPT_TRUE
+	set CreatureGuardian desire HUNGER to 0.1
+	set CreatureGuardian desire maximum HUNGER to 0.1
+	set CreatureGuardian desire ANGER SCRIPT_TRUE
+	set CreatureGuardian desire ANGER to 0.05
+	set CreatureGuardian desire maximum ANGER to 0.05
+
+	set CreatureGuardian priority 0.00001
+	force CreatureGuardian CREATURE_SLEEP_BY_OBJECT CreatureGuardian 
+
+	run background script CreatureGuardianScale(CreatureGuardian)
+	run background script SendMyCreatureAwayFromGuardian(CreatureGuardian)
+
+	CreatureGuardianInitiated = 0
+	
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [TriggerPos]
+	run script ChallengeHighlightNotify(Highlight, TriggerPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	CreatureGuardianInitiated = 1
+
+//	disable creature help 
+
+	force CreatureGuardian CREATURE_IDLE CreatureGuardian
+	set CreatureGuardian focus to [MyCreature]
+	
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+		
+//	run script GiveSpellDispenserReward(Rewarded, variable MAGIC_TYPE_HEAL_PU_ONE, 0.0, 1)
+	Reward = reward REWARD_OBJECT_TOY_BALL at [Rewarded]
+	
+	TreasureInfluence = create anti influence at position [Rewarded] radius 50
+	LairInfluence=create influence at [Lair] radius 50
+
+//	run background script displayrewardhelp(Treasure)
+
+	begin cinema
+
+		start music	 MUSIC_TYPE_SCRIPT_SLEG
+		detach MyCreature leash
+		force MyCreature CREATURE_IDLE MyCreature
+		
+		move camera position to [2531.179, 38.814, 3115.384] time 3 //view entrance from bottom right
+		move camera focus to [CreatureGuardian] + [0,CreatureGuardianHeight,0] time 3
+
+		wait 3 seconds
+		detach MyCreature leash
+		
+		CreatureGuardian play C_INDIVIDUAL_SCRATCH loop 1
+		wait 1 seconds
+
+		eject good spirit
+		make good spirit point to CreatureGuardian
+
+		//sy "What a brute, I think he trying to say something"
+		say single line HELP_TEXT_CREATURE_GUARDIAN_11
+		wait until read
+
+		stop good spirit pointing
+
+		make good spirit cling across 0.5 down 1
+
+		move camera position to [2524.7, 35.918, 3137.47]  time 3 //view entrance from bottom left  
+		move camera focus to [CreatureGuardian] + [0,CreatureGuardianHeight,0]  time 3
+		close dialogue
+		wait 2 seconds
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+		
+		//sy "Me Hungry, me guard here...."
+		say HELP_TEXT_CREATURE_GUARDIAN_12
+
+		wait 2 second
+
+		move camera position to [2518.19, 31.8942, 3122.62]  time 3 //view entrance from bottom left  
+		move camera focus to [CreatureGuardian] + [0,CreatureGuardianHeight,0]  time 3
+
+		wait until read
+		
+		say HELP_TEXT_CREATURE_GUARDIAN_01 // "seems to be guarding something, a reward perhaps?"
+		wait until read
+		 				
+		send good spirit home
+//		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+		
+		eject evil spirit //evil appears
+
+		make evil spirit look at camera position
+
+		//sy "He must be guiding this pass, as we are outside our influence lets send our creature in to fight it" //look here it is. We can fight our way up to it.
+		say HELP_TEXT_CREATURE_GUARDIAN_13
+		
+		wait until read
+		wait 1 seconds
+
+		send evil spirit home //evil goes away
+		wait until camera ready
+				
+		set CreatureGuardian focus to [MyCreature]
+		CreatureGuardian play C_INDIVIDUAL_HUNGRY loop 1
+		wait 1 seconds
+		
+		make good spirit point to CreatureGuardian
+		make good spirit look at CreatureGuardian
+		
+		move camera position to [2524.7, 41.918, 3137.47]  time 3 //view entrance from bottom left  
+		move camera focus to [CreatureGuardian] + [0,CreatureGuardianHeight,0]  time 3
+		
+		
+		say HELP_TEXT_CREATURE_GUARDIAN_03 //we shouldn't resort to nasty combat. There'll be another way.
+		wait until read
+		send evil spirit home
+		send good spirit home
+
+		move camera focus to [2529.401, 49.212, 3164.469] time 6
+		//wait 2 seconds
+
+		EndSendMyCreatureAwayFromGuardianFlag=1
+
+		force MyCreature POINT_AT CreatureGuardian
+		
+		force CreatureGuardian CREATURE_EXAMINE_BY_LOOKING MyCreature
+		CreatureGuardian play C_INDIVIDUAL_ANGRY loop 1
+		wait until CreatureGuardian played
+		force CreatureGuardian CREATURE_SLEEP_BY_OBJECT CreatureGuardian
+
+		move camera position to [2565.281, 71.800, 3180.084] time 3
+		move camera focus to [2531.328, 31.393, 3133.406] time 3
+		wait until camera ready
+		stop music
+
+	end cinema
+
+	release MyCreature
+//	enable creature help
+	MyTimer = create timer for 0 seconds
+
+	while CreatureGuardianFinished == 0
+
+		if get MyTimer time remaining <= 0
+			FoodFound = get STORE FOODSTORE at [CreatureGuardian] radius 50
+			MyTimer = create timer for 3 seconds
+		end if
+
+		if ([MyCreature] near [CreatureGuardian] radius 30 and FullUp == 0 and get RecoveryTimer time remaining <= 0) or [MyCreature] near [NoReturn] radius 30
+			run script CreatureGuardianFight(CreatureGuardian, Lair)
+			set RecoveryTimer time to 30 seconds 
+		end if	
+
+
+		// Changed by Steve to stop errors.  Replaces the follwing lines:
+		//when FoodFound exists and [MyCreature] not near [FoodFound] radius 50 and CreatureFed == 0
+		//	run script CreatureGuardianFedOnce(CreatureGuardian,FoodFound,Lair)
+		//	CreatureFed = 1
+
+		if FoodFound exists
+			if [MyCreature] not near [FoodFound] radius 50
+				if CreatureFed == 0
+					run script CreatureGuardianFedOnce(CreatureGuardian,FoodFound,Lair)
+					CreatureFed = 1
+				end if
+			end if
+		end if
+
+		// Changed by Steve to stop errors.  Replaces the following lines:
+		//when FoodFound exists and CreatureFed == 1 and [MyCreature] not near [FoodFound] radius 50 and FullUp == 0
+		//	run script CreatureGuardianFedTwice(CreatureGuardian,FoodFound)
+		//	FullUp = 1
+
+		if FoodFound exists
+			if CreatureFed == 1
+				if [MyCreature] not near [FoodFound] radius 50
+					if FullUp == 0
+						run script CreatureGuardianFedTwice(CreatureGuardian,FoodFound)
+						FullUp = 1
+						CreatureGuardianFinished = 2
+					end if
+				end if
+			end if
+		end if
+
+	//	when CreatureGuardian is hit by a rock
+	//		run script CreatureGuardianRunsAfterYourCreature 
+
+	//	when influence at [Rewarded] >= 0.5
+	//		run script CreatureGuardianGotReward
+	end while
+
+	delete TreasureInfluence
+	TreasureInfluence = create influence at [Rewarded] radius 50
+	delete LairInfluence
+
+	update snapshot success 0.75 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_55)
+	DayToNightActive = 1
+	if CreatureGuardian exists
+		wait until camera position not near [CreatureGuardian] radius 100 and [CreatureGuardian] not viewed
+		delete CreatureGuardian
+	end if
+
+	wait until Reward active
+	update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_03 StandardReminder(variable HELP_TEXT_REMINDER_05)
+
+	if GlobalHealSpell == 1
+		run script GiveSpellDispenserReward(SpellDispenserPos, variable MAGIC_TYPE_HEAL_PU_ONE, 0.0, 1, 0)
+	else
+		run script GiveSpellDispenserReward(SpellDispenserPos, variable MAGIC_TYPE_HEAL, 0.0, 1, 0)
+		GlobalHealSpell = 1
+	end if
+
+	begin dialogue
+		eject evil spirit
+		//sy "A beach ball, we went thought all that for a beach ball...."
+		say HELP_TEXT_CREATURE_GUARDIAN_14
+		wait 1 second
+		eject good spirit
+		wait until read
+		//sy "Hang on a second a spell dispenser just apeard near our citadel"
+		say HELP_TEXT_CREATURE_GUARDIAN_15
+		wait until read
+	end dialogue
+
+	CreatureGuardianInitiated = 2
+	
+end script CreatureGuardian
+
+

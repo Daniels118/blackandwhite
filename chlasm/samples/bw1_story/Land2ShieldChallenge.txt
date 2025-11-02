@@ -1,0 +1,388 @@
+challenge LAND2_SHIELD_CHALLENGE
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** SHIELD CHALLENGE ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script PhysicalShieldChallenge
+	HutPos = marker at [3619.5701, 8.7100, 3457.7200]
+	Hut = get HOUSE at [HutPos]
+	
+	ShieldSeedPos1 = marker at [3600.7354, 0.0000, 3421.8164]
+	ShieldSeedPos2 = marker at [ShieldSeedPos1]+[2,2]
+	ShieldSeedPos3 = marker at [ShieldSeedPos1]+[-2,-2]
+	ShieldSeed1 = 0
+	ShieldSeed2 = 0
+	ShieldSeed3 = 0
+	
+	ShieldSeedTotal = 0
+	SeedTimer = create timer for 0 seconds
+	XBonus = 0
+	ZBonus = 0
+	SpellNotInHand = 0
+	ObjectInHand = 0
+	FindSpell = 0
+	OutOfSpells = 0
+	BoulderCount = 3
+	Boulder = 0
+	BoulderScale = 0
+	//DropBouldersTimer = create timer for 0 seconds
+	Highlight = 0
+	ShieldInfluence = 0
+
+	// NEW VARIABLES
+	Rock1		= 0
+	Rock2		= 0
+	Rock3		= 0
+	RockPos		= marker at [3539.0313, 0.0000, 3432.0298]
+	CPShield	= 0
+	InHand		= 0
+
+	Town = get town with id 0
+	AimAtShieldCamPos = marker at [3493.4492, 29.3241, 3422.4954]
+	AimAtShieldCamFoc = marker at [3539.7832, 1.9970, 3433.8701]
+
+	KhazarPos = marker at [3600.1455, 2.4602, 3400.7100]
+	PositionTick=0
+
+	CheckForObjectInHand = 0
+
+start
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HutPos]
+	run script CheckForKhazarChallengeHighlightNotify(Highlight, HutPos, variable GOOD_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_01)
+	
+	if KhazarGone == 0
+		KhazarInScript=1
+		move computer player 2 to [KhazarPos] speed 300 with fixed height
+
+		ShieldInfluence = create influence at [HutPos] radius 40
+		HEALTH of Hut = 1
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+			
+			move camera position to [3600.7085, 15.9263, 3446.6738]	time 3
+			move camera focus to [3618.9600, 8.9070, 3460.0784] time 3
+
+			wait until camera ready
+
+			snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_102 StandardReminder(variable HELP_TEXT_REMINDER_42)
+
+			// "There will be a time when you need to protect your townsfolk and their buildings."
+			say HELP_TEXT_NEW_LAND_2_SHIELD_17
+			wait until read
+
+			move camera position to [3596.6575, 15.6125, 3456.2690] time 6
+			move camera focus to [3618.1702, 9.0025, 3458.2437] time 6
+
+
+			Rock1 = create with angle 0.0 and scale 0.7 OBJECT ROCK at [RockPos]
+			Rock2 = create with angle 0.0 and scale 0.7 OBJECT ROCK at [RockPos] + [2, 2]
+			Rock3 = create with angle 0.0 and scale 0.7 OBJECT ROCK at [RockPos] + [-2, -2]
+
+			// "You can use the physical shield to protect from any physical attack."
+			say HELP_TEXT_NEW_LAND_2_SHIELD_18
+			wait until read
+
+			// "This is how you cast a shield."
+			say HELP_TEXT_NEW_LAND_2_SHIELD_19
+			wait until read
+
+			// Make sure there is no object in the hand before the hand demo plays. If so delete it.
+			CheckForObjectInHand = get object held
+			if CheckForObjectInHand exists
+				delete CheckForObjectInHand
+			end if
+
+			// Cast Physical Shield hand demo
+			run script PShield
+
+			// MOVE THE CAMERAS POSITION SO IT IS GOOD FOR AIMING AT THE SHIELD
+			move camera position to [AimAtShieldCamPos] time 2
+			move camera focus to [AimAtShieldCamFoc] time 2
+			set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_INTERACTION
+		end cinema with dialogue
+ 			// "Now throw these rocks at the hut and watch what happens to the shield."
+			say HELP_TEXT_NEW_LAND_2_SHIELD_20
+			wait until read
+		end dialogue
+
+		clear hit object
+		CPShield = get spell SPELL_PHYSICAL_SHIELD at [HutPos] radius 5
+
+		// NEED TO GET RID OF THE SHIELD ALREADY CAST AND GET THE PLAYER TO CAST A SHIELD
+		wait until CPShield not exists or CPShield hit or 20 seconds
+
+		set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+
+		if CPShield not exists or CPShield hit
+			begin cinema
+				move camera position to [3559.6484, 64.1569, 3443.4514] time 6
+				move camera focus to [3604.9004, 6.7596, 3456.4651] time 6
+
+				// "See the shield protects the hut, but excessive attacks will destroy the shield."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_21
+				wait until read
+
+				// "Now you have a try.  Shield the hut and I will attack it."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_22
+				wait until read
+			end cinema
+		else
+			begin cinema
+				// "Don't worry about hitting the shield"
+				say HELP_TEXT_NEW_LAND_2_SHIELD_24
+
+				move camera position to [3559.6484, 64.1569, 3443.4514] time 6
+				move camera focus to [3604.9004, 6.7596, 3456.4651] time 6
+
+				wait until read
+
+				// "Now you have a try.  Shield the hut and I will attack it."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_22
+				wait until read
+			end cinema
+		end if
+
+		// create three spellseeds at [ShieldSeedPos] - Create them early to give them time to settle
+		ShieldSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos1]
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed1 = 3.0
+		ShieldSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos2]
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed2 = 3.0
+		ShieldSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos3]
+		SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed3 = 3.0
+		wait until read
+
+		delete CPShield
+		HEALTH of Hut = 1
+
+		// *** END OF STEVE'S SHIELD TEST *** //
+
+		set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_INTERACTION
+
+		snapshot quest success 0.3 alignment 0.0 HELP_TEXT_TITLE_102 StandardReminder(variable HELP_TEXT_REMINDER_57)
+		
+		while SpellNotInHand == 0
+			if get SeedTimer time remaining <= 0
+				begin dialogue
+					// "To use a miracle seed tap it to break it."
+					say HELP_TEXT_NEW_LAND_2_SHIELD_02
+					wait until read
+					set SeedTimer time to 30 seconds
+				end dialogue
+			end if
+
+			ObjectInHand = get object held
+			if ObjectInHand exists
+				if ObjectInHand type SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD
+					SpellNotInHand = 1
+				end if
+			else
+				FindSpell = get spell SPELL_PHYSICAL_SHIELD at [Hut] radius 5
+				if FindSpell exists
+					SpellNotInHand = 1
+				end if
+			end if
+
+			PositionTick++
+			if ShieldSeed1 exists
+				if PositionTick > 5	and ShieldSeed1 is not HELD
+					if [ShieldSeed1] not viewed or [ShieldSeed1] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed1 with fade
+						ShieldSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos1]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed1 = 3.0
+					end if
+				end if
+			end if
+			if ShieldSeed2 exists
+				if PositionTick > 5	and ShieldSeed2 is not HELD
+					if [ShieldSeed2] not viewed or [ShieldSeed2] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed2 with fade
+						ShieldSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos2]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed2 = 3.0
+					end if
+				end if
+			end if
+			if ShieldSeed1 exists
+				if PositionTick > 5	and ShieldSeed3 is not HELD
+					if [ShieldSeed3] not viewed or [ShieldSeed3] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed3 with fade
+						ShieldSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos3]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed3 = 3.0
+					end if
+				end if
+			end if
+
+			if PositionTick > 5
+				PositionTick = 0
+			end if
+		end while
+
+		begin dialogue
+			say HELP_TEXT_NEW_LAND_2_SHIELD_04
+			wait until read
+		end dialogue
+
+		//set DropBouldersTimer time to 30 seconds
+
+		while FindSpell not exists and OutOfSpells == 0 // or get DropBouldersTimer time remaining <= 0
+
+			wait 1 second
+			FindSpell = get spell SPELL_PHYSICAL_SHIELD at [Hut] radius 5
+
+			ShieldSeedTotal = 0
+
+			PositionTick++
+			if ShieldSeed1 exists
+				if PositionTick > 5	and ShieldSeed1 is not HELD
+					if [ShieldSeed1] not viewed or [ShieldSeed1] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed1 with fade
+						ShieldSeed1 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos1]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed1 = 3.0
+					end if
+				end if
+			end if
+			if ShieldSeed2 exists
+				if PositionTick > 5	and ShieldSeed2 is not HELD
+					if [ShieldSeed2] not viewed or [ShieldSeed2] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed2 with fade
+						ShieldSeed2 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos2]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed2 = 3.0
+					end if
+				end if
+			end if
+			if ShieldSeed1 exists
+				if PositionTick > 5	and ShieldSeed3 is not HELD
+					if [ShieldSeed3] not viewed or [ShieldSeed3] not near [ShieldSeedPos1] radius 12
+						delete ShieldSeed3 with fade
+						ShieldSeed3 = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_PHYSICAL_SHIELD at [ShieldSeedPos3]
+						SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of ShieldSeed3 = 3.0
+					end if
+				end if
+			end if
+
+			if PositionTick > 5
+				PositionTick = 0
+			end if
+
+			if ShieldSeedTotal == 0
+				wait 1 second
+				ObjectInHand = get object held
+				while ObjectInHand exists
+					ObjectInHand = get object held
+				end while
+			
+				wait 3 seconds
+				OutOfSpells = 1
+			end if
+		end while
+
+		set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+
+		FindSpell = get spell SPELL_PHYSICAL_SHIELD at [Hut] radius 5
+		if FindSpell exists
+			begin dialogue
+				eject good spirit
+				// "That's it! You've cast the shield."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_07
+				wait until read
+				send good spirit home
+			end dialogue
+		end if
+
+		begin cinema
+			HEALTH of Hut = 1
+				
+			move computer player 2 to [Hut] + [0,20,0] speed 100
+
+			move camera position to	[3564.9956, 20.0000, 3414.3716] time 4
+			move camera focus to [Hut] + [0, 10, 0] time 4
+
+			//The challenge is over and ready for test.
+			say HELP_TEXT_NEW_LAND_2_SHIELD_05
+			wait until read
+
+			wait until camera ready
+// OLD
+//			move camera position to [3582.1614, 8.4752, 3477.8291] time 4
+//			move camera focus to [3604.5310, 11.8767, 3464.8325] time 4
+
+			while BoulderCount > 0
+				BoulderScale = number from 60 to 80
+				BoulderScale = BoulderScale / 100
+				Boulder = create with angle 0 and scale BoulderScale OBJECT ROCK at [Hut]+[number from -25 to 25, 50, number from -25 to 25]
+				set Boulder target [Hut] time 2
+				wait 0.5 seconds
+				BoulderCount--
+			end while
+
+			close dialogue
+			wait 3 seconds
+
+			move computer player 2 to [KhazarPos] speed 100 with fixed height
+
+			if HEALTH of Hut == 1
+
+				move camera position to [3607.324, 16.454, 3474.254] time 3
+				move camera focus to [3615.512, 9.010, 3452.059] time 3
+				wait until camera ready
+
+				snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_102 StandardReminder(variable HELP_TEXT_REMINDER_57)
+
+				// "The hut survived the pounding. That's a handy spell."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_08
+				wait until read
+
+				// "Different size rocks do different damage etc"
+				say HELP_TEXT_NEW_LAND_2_SHIELD_15
+				wait until read
+
+				say HELP_TEXT_NEW_LAND_2_SHIELD_16
+				wait until read
+			else
+			
+				move camera position to [3607.324, 16.454, 3474.254] time 3
+				move camera focus to [3615.512, 9.010, 3452.059] time 3
+				wait until camera ready
+
+				snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_102 StandardReminder(variable HELP_TEXT_REMINDER_57)
+
+				// "ah. You didn't shield the hut and it got pounded."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_10
+				wait until read
+
+				// "Never mind. You'd better practice though for when you need this spell."
+				say HELP_TEXT_NEW_LAND_2_SHIELD_11
+				wait until read
+			end if
+
+			move camera position to [3538.443, 32.359, 3475.574] time 4
+			move camera focus to [3607.217, 3.954, 3443.860] time 4
+
+			// "I have rewarded you with the Miracle of Shield"
+			enable spell SPELL_PHYSICAL_SHIELD in Town
+			say HELP_TEXT_NEW_LAND_2_SHIELD_09
+			wait until read
+
+			//Your people can chant for it now baby.
+			say HELP_TEXT_NEW_LAND_2_SHIELD_06
+			wait until read
+			wait until camera ready
+			stop music
+
+		end cinema
+
+		release computer player 2
+		KhazarInScript=0
+
+//		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_102 StandardReminder(variable HELP_TEXT_REMINDER_57)
+
+		delete ShieldSeed1 with fade
+		delete ShieldSeed2 with fade
+		delete ShieldSeed3 with fade
+	end if
+
+end script PhysicalShieldChallenge
+
+//------------------------------------------------------------------------------------------------------------------------

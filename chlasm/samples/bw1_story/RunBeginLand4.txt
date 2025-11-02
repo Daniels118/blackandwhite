@@ -1,0 +1,11 @@
+challenge RunBeginLand4
+
+run script RunBeginLand4
+
+begin script RunBeginLand4
+	
+start
+	run script BeginLand4(1)
+	
+
+end script RunBeginLand4

@@ -1,0 +1,12 @@
+challenge RunGetThroughVortexL2
+
+run script RunGetThroughVortexL2
+
+begin script RunGetThroughVortexL2
+	
+start
+	
+	run script GetThroughVortexL2
+	
+
+end script RunGetThroughVortexL2

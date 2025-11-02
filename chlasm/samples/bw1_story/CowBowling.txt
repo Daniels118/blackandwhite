@@ -1,0 +1,396 @@
+/*===========================================================================*/
+/**
+ *		@section:	Introduction
+ *		@memo:		An example of the Challenge system in action!
+ *		@doc:			In this document we describe a complete script... Cow Bowling!
+ *		@end:			Introduction
+ */
+/*===========================================================================*/
+/**
+ *		@section:	Global Variable Declarations
+ *		@memo:		Variables accessible from anywhere in the file.
+ */
+/*===========================================================================*/
+/**
+ *		@name:		Score
+ *		@memo:		A global variable which contains the number of flying objects.
+ *		@doc:			This global variable is used to keep track of the number of flying script objects,
+ *						bowling ball plus bowling pins.  If it ever hits eleven, we know we've knocked
+ *						everything over.
+ *		@exm:			global Score
+ *		@key:			Score
+ */
+global Score
+/*---------------------------------------------------------------------------*/
+/**
+ *		@name:		End
+ *		@memo:		A global variable which specifies whether the script has finished or not.
+ *		@doc:			This global variable is used to decide whether or not to exit the scripts.  It is
+ *						set to true after the player knocks all of the pins over with the bowling ball.
+ *		@exm:			global End
+ *		@key:			End
+ */
+global End
+/*===========================================================================*/
+/**
+ *		@end:	Global Variable Declarations
+ */
+/*===========================================================================*/
+/**
+ *		@section:	Auto-Run Declarations
+ *		@memo:		Scripts which are run upon start-up.
+ */
+/*===========================================================================*/
+/**
+ *		@name:		run script CowBowling
+ *		@memo:		The CowBowling script will be run automatically.
+ *		@doc:			This statement causes the CowBowling script to be run automatically when the bytecode
+ *						is loaded into the game.
+ *		@exm:			run script CowBowling
+ *		@key:			run script CowBowling
+ */
+run script CowBowling
+/*===========================================================================*/
+/**
+ *		@end:	Auto-Run Declarations
+ */
+/*===========================================================================*/
+/**
+ *		@section:	Scripts
+ *		@memo:		The scripts which constitute the Cow Bowling game.
+ */
+/*===========================================================================*/
+/**
+ *		@name:		ChallengeNotify
+ *		@memo:		Let the player know that there's something for them to do.
+ *		@doc:			The ChallengeNotify() script is run by the CowBowling() script.  It simply
+ *						waits for the player to stumble upon the location of the Cow Bowling site,
+ *						and, when they do, it sends out a spirit to entice them to play.
+ *		@exm:
+begin script ChallengeNotify(Location, Radius)
+	Spirit = 0
+start
+	wait until position of camera near [Location] radius Radius and Location viewed
+	Spirit = eject random spirit
+	make Spirit point to Location
+	say "Have a game of cow bowling!"
+	wait until read
+	say "Try to get a strike!"
+	wait until read
+	send  Spirit home
+end script ChallengeNotify
+ *		@key:			ChallengeNotify(
+ */
+
+begin script MyChallengeNotify(Location, Radius)
+	Spirit = 0
+start
+	wait until camera position near [Location] radius Radius and Location viewed
+	begin dialogue
+		eject good spirit
+		make good spirit point to Location
+		say "Have a game of cow bowling!"
+		wait until read
+		say "Try to get a strike!"
+		wait until read
+	end dialogue
+end script MyChallengeNotify
+
+/*---------------------------------------------------------------------------*/
+/**
+ *		@name:		CowBowlingBall
+ *		@memo:		Control the behaviour of the bowling ball.
+ *		@doc:			Control the behaviour of the bowling ball, which is passed to this script as a parameter.
+ *						The bowling ball is a cow.  The cow creates itself if it doesn't exist, or if it dies,
+ *						and it keeps track of the score and whether or not it is standing.  This script exits
+ *						as soon as the End global variable becomes equal to one.
+ *		@exm:
+begin script CowBowlingBall(Cow)
+	TmpPos = 0
+	CowPos = marker at [Cow]
+	Standing = 1
+start
+	begin loop
+	when Cow not exists
+		Cow = create ANIMAL BOVINE at [CowPos]
+		Standing = 1
+	when multi HEALTH of Cow<=0.1 and Cow is not FLYING
+		say "Cow died"
+		TmpPos = marker at [Cow]
+		remove Cow
+		Cow = create ANIMAL BOVINE at [TmpPos]
+		if(Standing==0)
+			Score--
+			Standing=1
+		end if
+	when Cow is FLYING or Cow is HELD and Standing==1
+		Score++
+		Standing=0
+	when Cow is not FLYING and Cow is not HELD and Standing==0
+		Score--
+		Standing=1
+	when [Cow] not near [CowPos] radius 20
+		set Cow position to [CowPos]
+	when [Cow] not at [CowPos]
+		move Cow position to [CowPos]
+	end loop
+until End==1
+end script CowBowlingBall
+ *		@key:			CowBowlingBall(
+ */
+begin script CowBowlingBall(Cow)
+	TmpPos = 0
+	CowPos = marker at [Cow]
+	Standing = 1
+start
+	begin loop
+	when Cow not exists
+		Cow = create ANIMAL BOVINE at [CowPos]
+		Standing = 1
+	when HEALTH of Cow<=0.1 and Cow is not FLYING
+		say "Cow died"
+		TmpPos = marker at [Cow]
+		delete Cow
+		Cow = create ANIMAL BOVINE at [TmpPos]
+		if(Standing==0)
+			Score--
+			Standing=1
+		end if
+	when Cow is FLYING  or Cow is HELD and Standing==1
+		Score++
+		Standing=0
+	when Cow is not FLYING and Cow is not HELD and Standing==0
+		Score--
+		Standing=1
+	when [Cow] not near [CowPos] radius 20
+		set Cow position to [CowPos]
+	when [Cow] not at [CowPos]
+		move Cow position to [CowPos]
+	end loop
+until End==1
+end script CowBowlingBall
+/*---------------------------------------------------------------------------*/
+/**
+ *		@name:		CowBowlingPin
+ *		@memo:		Control the behaviour of a bowling pin.
+ *		@doc:			xxx
+ *		@exm:
+begin script CowBowlingPin(Man)
+	ManPos = marker at [Man]
+	TmpPos = 0
+	Standing = 1
+	Moving = 0
+start
+	begin loop
+	when Man not exists
+		Man = create VILLAGER MALE at [ManPos]
+		Standing = 1
+		Moving = 0
+	when HEALTH of Man<=0.1 and Man is not FLYING
+		say "Man died"
+		TmpPos = marker at [Man]
+		remove Man
+		Man = create VILLAGER MALE at [TmpPos]
+		if(Standing==0)
+			Score--
+			Standing=1
+		end if
+	when Man is FLYING and Standing==1
+		say "Man got knocked over"
+		Score++
+		Standing=0
+	when Man is not FLYING and Standing==0
+		say "Man stood up"
+		Score--
+		Standing=1
+	when [Man] not at [ManPos] and Moving==0
+		say "Moving Man"
+		move Man position to [ManPos]
+		Moving=1
+	when [Man] at [ManPos] and Moving==1
+		Moving=0
+	end loop
+until End==1
+end script CowBowlingPin
+ *		@key:			CowBowlingPin(
+ */
+begin script CowBowlingPin(Man)
+	ManPos = marker at [Man]
+	TmpPos = 0
+	Standing = 1
+	Moving = 0
+start
+	begin loop
+	when Man not exists
+		Man = create VILLAGER MALE at [ManPos]
+		Standing = 1
+		Moving = 0
+	when HEALTH of Man<=0.1 and Man is not FLYING
+		say "Man died"
+		TmpPos = marker at [Man]
+		delete Man
+		Man = create VILLAGER MALE at [TmpPos]
+		if(Standing==0)
+			Score--
+			Standing=1
+		end if
+	when Man is FLYING and Standing==1
+		say "Man got knocked over"
+		Score++
+		Standing=0
+	when Man is not FLYING and Standing==0
+		say "Man stood up"
+		Score--
+		Standing=1
+	when [Man] not at [ManPos] and Moving==0
+		say "Moving Man"
+		move Man position to [ManPos]
+		Moving=1
+	when [Man] at [ManPos] and Moving==1
+		Moving=0
+	end loop
+until End==1
+end script CowBowlingPin
+/*---------------------------------------------------------------------------*/
+/**
+ *		@name:		CowBowling
+ *		@memo:		Start everything up, then monitor the progress of the game.
+ *		@doc:			xxx
+ *		@exm:
+begin script CowBowling
+	PinPos = marker at [3279,3403]
+	CowPos = marker at [PinPos] + [10,10]
+	Size = 0.8
+	Spirit = 0
+	Lock = 0
+start
+	Score = 0
+	End = 0
+	run background script CowBowlingBall(create ANIMAL BOVINE at [CowPos])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[0,0,0])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-Size,0,2*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[Size,0,2*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-2*Size,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[0,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[2*Size,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-3*Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[3*Size,0,6*Size])
+	run script ChallengeNotify(CowPos, 60)
+	begin loop
+	until End==1
+	when Score>0 and Lock==0
+		say "Slow-mo"
+		set game speed to 0.5
+		Lock=1
+	when Score==0 and Lock!=0
+		say "Normal"
+		set game speed to 1.0
+		Lock=0
+	when Score==11
+		Spirit = eject random spirit
+		make Spirit point to PinPos
+		say "You got a strike!"
+		wait until read
+		send Spirit home
+		End=1
+	end loop
+	say "Thanks for playing!"
+	wait until read
+end script CowBowling
+ *		@key:			CowBowling(
+ */
+begin script CowBowling
+	PinPos = marker at hand position
+	CowPos = marker at [PinPos] + [10,10]
+	Size = 0.8
+	Spirit = 0
+	Lock = 0
+start
+	Score = 0
+	End = 0
+	run background script CowBowlingBall(create ANIMAL BOVINE at [CowPos])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[0,0,0])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-Size,0,2*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[Size,0,2*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-2*Size,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[0,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[2*Size,0,4*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-3*Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[-Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[Size,0,6*Size])
+	run background script CowBowlingPin(create VILLAGER MALE at [PinPos]+[3*Size,0,6*Size])
+	run script MyChallengeNotify(CowPos, 60)
+	begin loop
+	until End==1
+	when Score>0 and Lock==0
+	begin game speed
+		say "Slow-mo"
+		set game speed to 0.5
+		Lock=1
+	end game speed
+	when Score==0 and Lock!=0
+	begin game speed
+		say "Normal"
+		set game speed to 1.0
+		Lock=0
+	end game speed
+
+	when Score==11
+		begin dialogue
+			eject good spirit
+			make good spirit point to PinPos
+			say "You got a strike!"
+			wait until read
+		end dialogue
+		End=1
+	end loop
+	say "Thanks for playing!"
+	wait until read
+end script CowBowling
+/*===========================================================================*/
+/**
+ *		@end:	Scripts
+ */
+/*===========================================================================*/
+/**
+@header:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+"http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<TITLE>Script Example Documentation</TITLE>
+<LINK REL=StyleSheet HREF="style.css" TYPE="text/css" MEDIA=screen>
+<LINK REV="made" HREF="mailto:jhutchens@lionhead.co.uk">
+</HEAD>
+<BODY>
+<H1>Script Example Documentation</H1>
+[
+<A HREF="index.htm">Index</A>
+|
+<A HREF="lhdoc.htm">LHDOC</A>
+|
+<A HREF="lhdll.htm">LHDLL</A>
+|
+<A HREF="script_api.htm">Script API</A>
+|
+<A HREF="script_language.htm">Script Language</A>
+|
+Script Example
+|
+<A HREF="script_compiler.htm">Script Compiler</A>
+|
+<A HREF="script_machine.htm">Script Machine</A>
+|
+<A HREF="language_api.htm">Language API</A>
+|
+<A HREF="language_stub.htm">Language Stub</A>
+]
+
+*/
+/**
+@footer:
+</BODY>
+</HTML>
+*/
+/*===========================================================================*/

@@ -1,0 +1,17 @@
+challenge RunLeaveThroughVortexL3
+
+run script RunLeaveThroughVortexL3
+
+begin script RunLeaveThroughVortexL3
+
+VortexPos = marker at [2274.4810, 29.8098, 2043.0614] 
+
+start
+	
+	run script LeaveThroughVortexL3(VortexPos)
+	// managed by the main script control
+	stop all scripts excluding files "RunLeaveThroughVortexL3.txt"
+	load map "scripts/land4.txt"
+	set fade in time 6
+
+end script RunLeaveThroughVortexL3

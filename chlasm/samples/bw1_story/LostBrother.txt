@@ -1,0 +1,1134 @@
+challenge LOST_BROTHER
+
+global LostBrotherFinished
+global LostBrotherMet
+global LostBrotherGoingHome
+global LostBrotherKeyTaken
+global LB_Highlight
+global LostBrotherStartHealth
+global LBSFX
+global GKSFX
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script HeadingHome (Person)
+start
+	wait until [Person] near [LostBrotherHouse] radius 2 or Person is HELD or HEALTH of Person <= 0 or Person not exists
+	attach Person to NorseTown
+	release Person
+end script HeadingHome
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LostBrotherAdvisorSpottedHim (Sister, Brother, LBPos)
+ DelayTimer = create timer for 0 seconds
+ KeepLooking = 0
+start
+	while KeepLooking == 0 and LostBrotherFinished == 0
+		if Brother is HELD
+			KeepLooking = 1
+		elsif camera position near [Brother] radius 150 and [Brother] viewed and get DelayTimer time remaining <= 0	and [Sister] not near [Brother] radius 30
+			begin dialogue
+				eject evil spirit
+				make evil spirit point at [Brother]
+				// "Look there's the sick brother."
+				say single line HELP_TEXT_LOST_BROTHER_37
+				wait until read
+				stop evil spirit pointing
+			end dialogue
+			set DelayTimer time to 30 seconds
+		elsif get DelayTimer time remaining <= 0 and camera position near [Sister] radius 200 and [1568.9137, 14.0700, 2604.5210] viewed
+			if [Brother] near [LBPos] radius 10	and [Sister] not near [Brother] radius 30
+				begin dialogue
+					eject good spirit
+					make good spirit point at [Brother]
+					//"The Lost Brother is in some trees through the pass."
+					say single line HELP_TEXT_LOST_BROTHER_54
+					wait until read
+					stop good spirit pointing
+				end dialogue
+			end if
+			set DelayTimer time to 30 seconds
+		end if
+	end while
+
+end script LostBrotherAdvisorSpottedHim
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Give reward
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script GiveReward(LBsuccess, LBalignment)
+
+Spangle = 0
+ 
+start
+
+	begin known cinema
+
+		enable GateKey1 pickup
+		enable GateKey1 moveable
+
+		set GateKey1 position to [1704.38,18.09,2594.82]
+		GKSFX = create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1
+		LostBrotherKeyTaken = 1
+		Spangle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [GateKey1] time 10
+//		wait 2 seconds
+
+		// Check to see if we are near stone if not then do different cinema
+		if camera position near [GateKey1] radius 100
+			move camera position to [1690.290, 26.742, 2588.444] time 10		// Cam look at gates in distance
+			move camera focus to [1700.588, 23.589, 2597.883]	time 10
+		else
+			set fade red 0 green 0 blue 0 time 1.5
+			wait 1.5 seconds
+
+			set camera position to [1699.38,18.09,2590.82]
+			set camera focus to [1704.38,18.09,2594.82]
+
+			set fade in time 3
+
+			move camera position to [1690.290, 26.742, 2588.444] time 10		// Cam look at gates in distance
+			move camera focus to [1700.588, 23.589, 2597.883]	time 10
+		end if
+
+		wait until camera ready
+
+		if LB_Highlight exists
+			delete LB_Highlight
+		end if
+
+		close dialogue
+		wait 0.1 seconds
+
+		// Getting Reward (Gatestone) - New - LBsuccess% complete - DONE"
+		//This snapshot needs to be sucesess
+		snapshot quest success LBsuccess alignment LBalignment HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+
+
+		LostBrotherFinished=1
+
+	end known cinema
+
+end script GiveReward
+
+//------------------------------------------------------------------------------------------------------------------------
+// Breaking sisters house
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherBreakIn (SoapBox, Sister)
+
+start
+	begin cinema
+		if HEALTH of Sister > 0.0
+
+			move Sister position to [Sister]
+			wait 0.5 seconds
+			set Sister focus to camera position
+			Sister play ANM_P_ATTRACT_YOUR_ATTENTION loop 1
+			// "*Oi! Stop decking my house! I'll give you the Gate Key when you find my brother.*"
+			// "Stop! Stop! I will give you the gate key" with interaction
+			say single line HELP_TEXT_LOST_BROTHER_38 with interaction
+			wait until read
+
+			close dialogue
+
+			run script GiveReward(0.5, -0.3)
+
+			LostBrotherFinished=0
+		
+			// "Now you have the gate key Please Find My Brother" with interaction
+			say single line HELP_TEXT_LOST_BROTHER_39 with interaction
+			wait until read
+		else 
+			run script GiveReward(1, -0.7)
+			eject evil spirit
+			// "Okay lets take the gates stone back" with interaction
+			say single line HELP_TEXT_LOST_BROTHER_40 with interaction
+			wait until read
+			send evil spirit home
+
+		end if
+
+	end cinema
+
+	LostBrotherKeyTaken = 1
+
+	state Sister WANDER_AROUND
+		position [SoapBox]
+		float 6
+		ulong 4, 20
+
+end script LostBrotherBreakIn
+
+//------------------------------------------------------------------------------------------------------------------------
+// Lost brother and Sister arrive at Home
+//------------------------------------------------------------------------------------------------------------------------
+/*************** ======================= ****************
+**************** SCRIPT NOT USED ANYMORE ****************
+**************** ======================= ****************
+begin script LostBrotherAndSisterSafe(SoapBox)
+Spangle = 0
+BeginPos = 0
+BeginFoc = 0
+start
+
+	LostBrotherFinished=5
+	if LostBrotherKeyTaken == 0
+
+		begin cinema
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			move camera position to [SoapBox]+[-5,3,-5] time 4
+			move camera focus to [SoapBox] time 3
+
+			wait until camera ready
+
+			say HELP_TEXT_LOST_BROTHER_14
+			wait until read
+
+			run script GiveReward(1, 1)
+
+			// Update percentage on snapshot
+			update snapshot success 1 alignment 0.8 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+			wait 1 second
+
+			move camera position to [BeginPos] time 4
+			move camera focus to [BeginFoc] time 3
+
+			wait until camera ready
+
+		end cinema with dialogue
+			eject good spirit
+			say HELP_TEXT_LOST_BROTHER_10
+			wait until read
+			send good spirit home
+		end dialogue
+
+	end if
+
+
+end script LostBrotherAndSisterSafe
+*/
+//------------------------------------------------------------------------------------------------------------------------
+// You've got the brother in your hand and waving it over the sister
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherSoClose(Sister, Brother) start
+	set Sister focus to [Brother]
+	Sister play ANM_P_JUMP_AT_HAND loop 1
+	wait until Sister played
+end script LostBrotherSoClose
+
+//------------------------------------------------------------------------------------------------------------------------
+// You've killed the brother and the sister
+//------------------------------------------------------------------------------------------------------------------------
+/*************** ======================= ****************
+**************** SCRIPT NOT USED ANYMORE ****************
+**************** ======================= ****************
+begin script LostBrotherKilledAll(SoapBox) start
+
+	begin dialogue
+
+		eject evil spirit
+		wait until 2 seconds
+		if LostBrotherKeyTaken == 0
+			snapshot quest success 0.5 alignment -0.8 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		else
+			snapshot quest success 1.0 alignment -0.8 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		end if
+		say single line HELP_TEXT_LOST_BROTHER_08
+		wait until 4 seconds and read
+
+		send evil spirit home
+
+	end dialogue
+
+end script LostBrotherKilledAll
+*/
+//------------------------------------------------------------------------------------------------------------------------
+// Lost brother is healed and runs home.
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherHealed(Sister, Brother) start
+	move Brother position to [LostBrotherHouse]			
+
+	if LBSFX exists
+		delete LBSFX
+	end if
+	if LostBrotherGoingHome==0
+		LostBrotherGoingHome=1
+		begin cinema
+			// "Brother healed - New - 70% complete - Changed to Update - DONE"
+			update snapshot success 0.7 alignment 0.5 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+			eject good spirit
+			eject evil spirit
+			wait until 2 seconds
+			say HELP_TEXT_LOST_BROTHER_23
+			wait until read
+			say HELP_TEXT_LOST_BROTHER_24
+			wait until read
+			send good spirit home
+			send evil spirit home
+			if LostBrotherKeyTaken == 0
+				move Sister position to [LostBrotherHouse]
+				run script GiveReward(1, 0.8)
+			end if
+		end cinema
+	end if
+end script LostBrotherHealed
+
+//------------------------------------------------------------------------------------------------------------------------
+// The sister and brother are reunited and walk home
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherReunitedAwayFromHouse(Sister,Brother,SoapBox) 
+	BeginPos = 0
+	BeginFoc = 0
+	Spangle = 0
+start
+	if LostBrotherMet==0
+		LostBrotherMet=1
+
+		begin cinema
+
+			enable Sister high graphics detail
+			enable Brother high graphics detail
+
+			start music MUSIC_TYPE_SCRIPT_GENERIC_03
+			
+			move camera position to [Brother] + [-8,8,-6] time 3 //move to overview
+			move camera focus to [Brother] time 3
+			set Sister focus to [Brother]
+			move Sister position to [Brother] + [-0.6,0.6]
+			SPEED of Sister = 0.4
+			set Sister anim ANM_P_RUN_WOMAN
+			wait until [Sister] near [Brother] + [-0.6,0.6] radius 0.2
+			move camera position to [Brother] + [-7,7,-7] time 10
+			set Sister focus to [Brother]
+			Sister play ANM_P_PRAY loop 3
+			wait 2 seconds
+			//-----------------------		
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			say single line HELP_TEXT_LOST_BROTHER_21
+			set Sister position to [Brother] + [-0.0,0.3] // positioning to help up
+			set Sister focus to [Brother] + [-0.5,-0.5]
+			set Brother focus to [Sister]
+			set camera position to [Brother] + [2,3,3]				// Cam pos watch bruv & sis help up
+			set camera focus to [Sister] + [0,1,0]
+			move camera position to [Brother] + [1.8,2,2] time 12
+			wait 0.25 seconds
+			set fade in time 1
+			//------------------------
+			Brother play ANM_P_HELP_SOMEONE_HELPEE loop 1
+			wait 0.18 seconds
+			Sister play ANM_P_HELP_SOMEONE_HELPER loop 1
+			wait 4.5 seconds
+			set fade red 0 green 0 blue 0 time 1 
+ 			wait until fade ready
+ 			set Sister position to [Brother] + [-0.6,0.55]
+			set Sister focus to [Brother]
+			set Brother focus to [Sister]
+			set camera position to [Brother] + [1,2,1]					// close in Cam pos to watch bruv & sis hug
+			move camera position to [Brother] + [1.1,2,1.1] time 12
+			set camera focus to [Brother] + [0,1,0]
+			move camera focus to [Sister] + [0,1,0.1] time 4
+			set Sister focus to [Brother]
+			wait 0.25 seconds
+			set fade in time 0.8
+			wait until fade ready
+			//-------------------------------
+			Sister play ANM_P_HUG loop 1										// Siblings hug each other 
+			Brother play ANM_P_HUG loop 1
+			wait until read
+			close dialogue
+			wait until camera ready
+
+			wait until Sister played
+			wait until Brother played
+ 			set Sister focus to camera position
+			Sister play ANM_P_GOSSIP_WOMAN_2 loop 2								
+ 			Brother play ANM_P_PUZZLED loop -1								
+
+			if LostBrotherKeyTaken == 0
+				// "Thank you; you are truly a benovolent god, here is the gate stone you seek" with interaction
+				say single line HELP_TEXT_LOST_BROTHER_41 with interaction
+				wait until read
+
+				run script GiveReward(1, 0.9)
+			else
+				// "Take Sister to Brother - New - 100% complete - DONE"
+				snapshot quest success 1 alignment -0.3 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+
+			end if
+
+
+			HEALTH of Brother += 0.1
+
+			//wait until camera ready
+
+			disable Sister high graphics detail
+			disable Brother high graphics detail
+
+		stop music
+		end cinema
+
+	end if
+	SPEED of Sister = 0.3
+	move Sister position to [LostBrotherHouse]
+	run background script HeadingHome (Sister)
+	SPEED of Brother = 0.3
+	move Brother position to [LostBrotherHouse]
+	run background script HeadingHome (Brother)
+
+	LostBrotherFinished = 82
+
+end script LostBrotherReunitedAwayFromHouse
+
+//------------------------------------------------------------------------------------------------------------------------
+// The brother is at home, but his sister is not there to help him.
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherNearHouseButSisterDead(VisitedHome) start
+	begin dialogue
+		// "Brother is at home, but Sister is missing - New - 50% complete - Changed to update - DONE"
+		update snapshot success 0.5 alignment -0.3 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		eject good spirit
+		say single line HELP_TEXT_LOST_BROTHER_22
+		wait until read
+		send good spirit home
+	end dialogue
+end script LostBrotherNearHouseButSisterDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// You killed the brother and then dropped his body in front of his sister
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherDeadSisterFoundHim(Sister,Brother) start
+
+begin cinema
+
+	start music MUSIC_TYPE_SCRIPT_GENERIC_03
+
+
+	move camera focus to [Brother] + [0,2,0]	time 4
+	move camera position to [Sister] + [-6,3,-6] time 3
+
+	move Sister position to [Brother] + [0.5,0.5]
+	wait until [Sister] near [Brother] radius 2
+	set Sister focus to [Brother]
+
+	Sister play ANM_P_INTO_MOURNING loop 1
+	wait until Sister played
+	Sister play ANM_P_MOURNING loop -1
+	say single line HELP_TEXT_LOST_BROTHER_29 with interaction
+
+	wait until read
+	if LostBrotherKeyTaken == 0
+		// "You are a cruel god, take the gate stone and leave me in peace" with interaction
+		say single line HELP_TEXT_LOST_BROTHER_42 with interaction
+		wait until read
+		run script GiveReward(1, -0.5)
+	else
+		run script GiveReward(1, -0.8)
+	end if
+	stop music
+
+end cinema
+
+//	wait until Sister played
+
+	LostBrotherFinished=111
+
+	wait until not Sister viewed and not Brother viewed
+
+	attach Sister to NorseTown
+	release Sister
+
+end script LostBrotherDeadSisterFoundHim
+
+//------------------------------------------------------------------------------------------------------------------------
+// You killed the sister and placed the body next to the brother
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherFoundDeadSister(Sister,Brother)
+	CamPos = 0
+	CamFoc = 0
+start
+begin cinema
+	CamPos = marker at camera position
+	CamFoc = marker at camera focus
+	move camera position to [Brother] + [-10,10,-10] time 2
+	move camera focus to [Sister] time 2
+	wait until camera ready
+	set Brother focus to [Sister]
+	say HELP_TEXT_LOST_BROTHER_30
+	wait until read
+	move camera position to [Brother] + [-7,5,-7] time 2
+	say HELP_TEXT_LOST_BROTHER_31
+	Brother play ANM_P_DEAD1 loop -1
+	wait until read
+	close dialogue
+	HEALTH of Brother = 0
+	wait until 3 seconds
+	
+	if LostBrotherKeyTaken == 0					// Need to get gatestone
+		// "Killed Sister and dropped next to Brother - New - 50% complete - Need to get gatestone - DONE"
+		snapshot quest success 0.5 alignment -1 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		eject evil spirit
+		make evil spirit point at [LostBrotherHousePos]
+		// "We have tosted the both now lets smash the house up"
+		say HELP_TEXT_LOST_BROTHER_43
+		wait until read
+		stop evil spirit pointing
+	else										// Already got the gatestone
+		// "Killed Sister and dropped next to Brother - New - 100% complete - Already got Gatestone - DONE"
+		snapshot quest success 1 alignment -1 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+	end if
+end cinema
+end script LostBrotherFoundDeadSister
+
+//------------------------------------------------------------------------------------------------------------------------
+// You've killed the sister
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherSisterDead(Sister)
+
+start
+	if Sister exists
+		begin cinema
+			set camera position follow Sister
+			set camera focus follow Sister
+			wait until ((Sister is not FLYING or land height at [Sister] < 0 ) and camera position near [Sister] radius 20) or Sister not exists
+			if Sister exists
+				move camera focus to [Sister] time 2
+				move camera position to [Sister] + [3,3,3] time 3
+				wait until camera ready
+			end if
+			// "Killed Sister - Sister exists - New - 50% complete - Haven't got Gatestone - Changed to update - DONE"
+			update snapshot success 0.5 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		end cinema
+	else
+		// "Killed Sister - Sister NOT exists - New - 50% complete - Haven't got Gatestone - Changed to update - DONE"
+		update snapshot success 0.5 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+	end if
+
+	begin dialogue
+		eject evil spirit
+		// "Totally awesome I can see your world will be one of pain and obediance." with interaction
+		say HELP_TEXT_LOST_BROTHER_44
+		wait until read
+
+		if LostBrotherKeyTaken == 0
+			make evil spirit point at [LostBrotherHousePos]
+			// "Now we need to smash the house with a rock to get the gate stone"
+			say HELP_TEXT_LOST_BROTHER_45 with interaction
+			wait until read
+			stop evil spirit pointing
+		else
+			// "Killed Sister - Sister exists - New - 100% complete - Got Gatestone - Changed to update - DONE"
+			update snapshot success 1 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		end if
+
+		eject good spirit
+		//sy "Terrible; please remember life is sacred"
+		say HELP_TEXT_LOST_BROTHER_46
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+	end dialogue
+end script LostBrotherSisterDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// You've killed the brother
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherDead(Brother, Sister) 
+start
+	if LBSFX exists
+		delete LBSFX
+	end if
+	if Brother exists
+		begin cinema
+			set camera position follow Brother
+			set camera focus follow Brother
+			wait until ((Brother is not FLYING or land height at [Brother] < 0 ) and camera position near [Brother] radius 20) or Brother not exists
+			if Brother exists
+				move camera focus to [Brother] time 2
+				move camera position to [Brother] + [3,3,3] time 3
+				wait until camera ready
+			end if
+		end cinema
+	end if
+
+	begin dialogue
+		eject evil spirit
+
+		if HEALTH of Sister > 0
+			// "Killed Brother - Sister alive - New - 50% complete - Changed to update - DONE"
+			update snapshot success 0.5 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_04)
+		else
+			// "Killed Brother - Sister dead - New - 50% complete - Changed to update - DONE"
+			update snapshot success 0.5 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		end if
+
+		// "*You killed the Brother*"
+
+		if HEALTH of Sister > 0
+			make evil spirit point at [Brother]
+			// "EA: Awesome. You wasted the sick dude. lets show him to the sister hehehe"
+			say single line HELP_TEXT_LOST_BROTHER_48
+		else
+			if LostBrotherKeyTaken == 0
+
+				make evil spirit point at [LostBrotherHouse]
+				say single line HELP_TEXT_LOST_BROTHER_09
+			else 
+				make evil spirit point at [Brother]
+				// "Killed Brother - Sister dead - New - 100% complete - Got Gatestone - Changed to update - DONE"
+				update snapshot success 1 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+			end if
+		end if
+
+		wait until 4 seconds and read
+		stop evil spirit pointing
+		send evil spirit home
+
+	end dialogue
+
+end script LostBrotherDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// You've done nothing to help the brother and he dies naturally.
+//------------------------------------------------------------------------------------------------------------------------
+/*************** ======================= ****************
+**************** SCRIPT NOT USED ANYMORE ****************
+**************** ======================= ****************
+begin script LostBrotherLeftForDead start
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+		wait until 2 seconds
+		update snapshot success 0.5 alignment -0.2 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+		say HELP_TEXT_LOST_BROTHER_16
+		wait until read
+		say HELP_TEXT_LOST_BROTHER_17
+		wait until read
+		send good spirit home
+		send evil spirit home
+	end dialogue
+	LostBrotherFinished=1
+end script LostBrotherLeftForDead
+*/
+//------------------------------------------------------------------------------------------------------------------------
+// The Lost Brother is close to death. You only have 60 seconds to find him
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrotherQuickly start
+	begin dialogue
+		eject evil spirit
+		wait until 2 seconds
+
+		// "EA: Yea, No pain no gain, kill the sucker (maybe a GA dispair anim)"
+		say single line HELP_TEXT_LOST_BROTHER_49
+		wait until read
+		send evil spirit home
+	end dialogue
+	//create timer 61
+end script LostBrotherQuickly
+
+//------------------------------------------------------------------------------------------------------------------------
+// Lost brother script starts here ***************************************************************************************
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LostBrother
+
+	SickBed = marker at [1368.2720, 34.1726, 2568.3125]
+	SoapBox = marker at [1700.3606,16.8992,2592.5974]
+	CamPos = marker at [1690.2539,20.3941,2579.2622]
+	CamPosTwo = marker at [3474.39, 13.96, 3305.3]
+	Sister=0
+	Brother=0
+	Count = time-31
+	LocalTimer=0	
+	SoundTimer=0	
+	FaceReturnPos = marker at [3460.3430, 18.2803, 3292.6335] 
+	FaceReturnFocus = marker at [3468.6323, 12.5338, 3296.8201]
+	FaceClosePos = marker at [1698.6354,18.6285,2590.1890] 
+	BrotherCamPos = marker at  [1347.1235, 47.2811, 2502.7412] 
+	BeginPos2 = 0
+	BeginFoc2 = 0
+	SisterDead=0
+	BrotherDead=0
+	TimeOut=time
+	Informed = 0
+	VisitedHome=0
+	timerstart=0
+	BroInfluence=0
+	SisterInfluence=0
+	HouseMashed = 0
+	KeyReminderTimer = create timer for 0 seconds
+	Storm = 0
+	CurrentTime = 0
+	LostBrotherDeadWaitTimer = create timer for 0 seconds
+	LBDWTimerSet = 0
+	SeeIfTheyHealTimer = create timer for 0 seconds
+	SITHTimerSet = 0
+	ZoomStartPos = marker at [1720.7271, 29.9020, 2583.9180]
+	ZoomStartFoc = marker at [1664.5585, 17.3963, 2589.4702]
+	DeathTimer = create timer for 0 seconds
+	DeathTimerStart = 0
+	BrotherExists = 0
+	
+
+
+start
+	LostBrotherFinished=0
+	LostBrotherGoingHome=0
+	LostBrotherMet=0
+	LostBrotherStartHealth=0.4
+
+	LB_Highlight = create highlight HIGHLIGHT_QUEST at [LostBrotherHouse]
+	ALTITUDE of LB_Highlight = 6
+
+	disable GateKey1 pickup
+	disable GateKey1 moveable
+	
+	run script ChallengeHighlightNotify(LB_Highlight, LostBrotherHouse, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+
+	if LostBrotherFinished==0
+		Sister = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE  at [LostBrotherHouse]
+		Brother = create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE  at [SickBed]
+		HEALTH of Brother = LostBrotherStartHealth
+		Brother play ANM_P_DYING loop -1
+		BroInfluence=create influence on Brother radius 5
+		SisterInfluence=create influence on Sister radius 5
+
+//------------------------------------------------------------------------------------------------------------------------
+
+		begin cinema
+			enable Sister high graphics detail
+			enable Brother high graphics detail
+			enable Sister indestructible
+
+			LBSFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on Brother time -1 // LB_Highlight !st gate stone
+
+			// Create a moody storm
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_DRIZZLE at [Brother]  
+ 			set Storm properties degrees 15 rainfall 1 snowfall 0 overcast 1 fallspeed 2
+			set Storm properties time 120 fade 40
+			set Storm properties clouds 8 shade 0.8 height 130
+			set Storm properties sheetmin 0 sheetmax 0 forkmin 0 forkmax 0
+			set Storm properties inner 600 outer 1000
+			disable Storm affected by wind
+		
+			start music MUSIC_TYPE_SCRIPT_GENERIC_03
+			BeginPos2 = marker at camera position
+			BeginFoc2 = marker at camera focus
+
+			HEALTH of Sister = 1
+			SPEED of Sister = 0.12
+
+			move Sister position to [SoapBox]	 
+			set Sister anim ANM_P_WALK_DESPAIR_TO_1
+			set camera focus follow Sister
+			move camera position to [SoapBox] + [-3,4,-3] time 10					// Cam look at Sister
+
+			wait until [Sister] near [SoapBox] radius 1 or HEALTH of Sister == 0.0
+
+			SPEED of Sister = 0.2
+
+ 			Sister play ANM_P_SCRIPT1 loop 1
+
+			wait 4.5 seconds
+			
+			say HELP_TEXT_LOST_BROTHER_01
+			wait until camera ready
+			
+			// First set off the script
+			snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+
+			move camera position to [Sister] + [-2,1,-2] time 8						// Cam look zoom on Sister
+			move camera focus to [Sister] + [0,0.7,0]  time  8
+
+			wait until read 
+
+			wait until Sister played or HEALTH of Sister <= 0
+
+			set Sister focus to [SickBed]
+			Sister play ANM_P_TALKING_AND_POINTING loop 1 
+
+			say HELP_TEXT_LOST_BROTHER_02
+
+			move camera position to [1702.8187, 18.0497, 2592.3166] time 5			// Cam pos behind sister
+			move camera focus to [Sister] + [0,0,0]  time  8
+			
+			wait until Sister played
+			Sister play ANM_P_STAND_DESPAIR_1 loop 3
+			wait until camera ready
+			set fade red 0 green 0 blue 0 time 1.5
+  		   		   
+			wait until read
+			wait 1 seconds
+
+			close dialogue
+
+			move camera to T00_000 time 3											// Cam look at dying brother
+			CurrentTime = get game time
+			
+//			set game time 15.99
+		    set fade in time 2
+			
+			camera path TRACK00
+			
+			set Brother focus to [BrotherCamPos]
+			set Sister position to [SoapBox]
+	
+			wait 1 second  
+
+			Brother play ANM_P_POISONED loop 1
+
+			start sound LH_SCRIPT_SAMPLE_BROTHER_GROAN_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Brother]
+
+			wait 2 seconds
+
+			say single line HELP_TEXT_LOST_BROTHER_03
+
+			wait until read
+			wait until camera ready
+
+			move camera position to [Brother] + [2,0.3,-2] time 4
+			move camera focus to [Brother] time 3
+
+			wait 2 seconds
+
+			start sound LH_SCRIPT_SAMPLE_BROTHER_GROAN_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Brother]
+
+			set fade red 0 green 0 blue 0 time 2
+			wait 3 seconds
+			close dialogue
+
+			Brother play ANM_P_DYING loop -1
+
+			set camera position to [1702.5187, 18.0497, 2592.5166]					// Cam Back to crying Sister
+			set camera focus to [Brother]
+
+			set game time CurrentTime 
+
+			set fade in time 2
+			say single line HELP_TEXT_LOST_BROTHER_04
+			Sister play ANM_P_MOURNING loop 4
+
+			wait 1 seconds
+ 
+			move camera position to [1725.790, 27.962, 2576.046]  time 8			// Cam look at stormy mountain
+			move camera focus to [1667.320, 17.171, 2589.379]  time 8
+
+			wait until camera ready
+
+			clear dialogue
+
+			state Sister WANDER_AROUND
+				position [SoapBox]
+				float 6
+				ulong 4, 20
+
+			wait until camera ready
+
+			stop music
+
+			eject good spirit
+			eject evil spirit
+
+			make evil spirit point at [1708.488, 18.090, 2587.614]
+
+			say HELP_TEXT_LOST_BROTHER_05
+			wait until 2 seconds
+			wait until read
+			stop evil spirit pointing
+
+			say HELP_TEXT_LOST_BROTHER_06
+			wait until read
+
+			say HELP_TEXT_LOST_BROTHER_07
+			wait until read
+
+			wait 2 seconds
+
+			clear dialogue
+			send evil spirit home
+			
+			// Remind player to zoom if they haven't used it enough	
+			//if zoom not used enough
+			if StopTracking == 0
+				// Leader.  You haven't used the zoom function very much
+				say HELP_TEXT_LOST_BROTHER_55
+				wait until read
+
+				// You will need to use it if you are going to find the Brother
+				say HELP_TEXT_LOST_BROTHER_56
+				wait until read
+
+				// Here's a quick reminder
+				say HELP_TEXT_LOST_BROTHER_57
+				wait until read
+
+				send good spirit home
+				clear dialogue
+
+				run script ZoomReminder(ZoomStartPos, ZoomStartFoc)
+			end if
+			StopTracking = 2
+
+			disable Sister high graphics detail
+			disable Brother high graphics detail
+
+			disable Sister indestructible
+
+			run background script LostBrotherAdvisorSpottedHim (Sister, Brother, SickBed)
+
+		end cinema
+
+		while LostBrotherFinished==0
+			LocalTimer++
+			SoundTimer++
+
+			if HouseMashed == 0
+				if HEALTH of LostBrotherHouse < 0.75 and LostBrotherKeyTaken == 0
+					run script LostBrotherBreakIn (SoapBox, Sister)
+					HouseMashed = 1
+				end if
+			end if
+
+
+//			if SisterDead==1 and BrotherDead==1
+//				run script LostBrotherKilledAll(SoapBox)
+//				run script LostBrotherReward(SoapBox)
+//			end if
+
+			if  [Sister] near  [LostBrotherHouse] radius 1 and
+				[Brother] near [LostBrotherHouse] radius 1 and 
+				[Brother] near [Sister] radius 1 and 
+				SisterDead==0 and BrotherDead==0 and LostBrotherKeyTaken == 0
+
+//				run script LostBrotherAndSisterSafe(SoapBox)
+//				delete LB_Highlight
+				//run script LostBrotherReward(SoapBox)
+			end if
+
+			if [Brother] near [Sister] radius 2 and Brother is HELD and HEALTH of Sister > 0 and land height at [Sister] > 0
+				run script LostBrotherSoClose(Sister, Brother)
+			end if
+
+	//		if [Brother] near [Sister] radius 15 and Brother is FLYING
+	//			run script LostBrotherSuperMan(Sister, Brother)
+	//		end if
+
+			if HEALTH of Brother <= 0.01 and BrotherDead==0
+				BrotherDead=1
+				run script LostBrotherDead(Brother, Sister)
+				// Give them 5 minutes to put his body next to the sister should they want to
+				set LostBrotherDeadWaitTimer time to 300 seconds
+				LBDWTimerSet = 1
+			end if
+
+			if BrotherDead == 1 and BrotherExists == 0 and Brother not exists
+				if LostBrotherKeyTaken == 0	 
+					begin dialogue
+						make evil spirit point at [LostBrotherHousePos]
+						update snapshot success 0.5 alignment -0.3 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+						// "Now we need to smash the house with a rock to get the gate stone"
+						say HELP_TEXT_LOST_BROTHER_45 with interaction
+						wait until read
+						stop evil spirit pointing
+					end dialogue
+				end if
+				BrotherExists = 1
+			end if
+
+
+			if LBDWTimerSet == 1 and get LostBrotherDeadWaitTimer time remaining <= 0 and LostBrotherKeyTaken == 1
+				// Timed out - 5 minutes
+				update snapshot success 1.0 alignment -0.4 HELP_TEXT_TITLE_15 StandardReminder (variable HELP_TEXT_NEW_REMINDER_05)
+				LostBrotherFinished = 88
+			end if
+
+			if HEALTH of Sister <=0.01 and SisterDead==0
+				SisterDead=1
+				HEALTH of Sister = 0.0
+				run script LostBrotherSisterDead(Sister)
+			end if
+			
+			if HEALTH of Brother > LostBrotherStartHealth
+				run script LostBrotherHealed(Sister, Brother)
+			end if
+
+			if ([Brother] near [Sister] radius 10 or LostBrotherMet==1) and 
+				BrotherDead==0 and SisterDead==0 and 
+				Sister is not FLYING and Brother is not FLYING and 
+				Sister is not HELD and Brother is not HELD and dialogue ready and land height at [Sister] > 0 and land height at [Brother] > 0
+				
+				if LBSFX exists
+					delete LBSFX
+				end if
+
+				run script LostBrotherReunitedAwayFromHouse(Sister, Brother, SoapBox)
+			end if
+
+			if [Brother] near [LostBrotherHouse] radius 10 and 
+				SisterDead==1 and 
+				VisitedHome==0 and 
+				BrotherDead==0 and 
+				Brother is not HELD	and 
+				HEALTH of Brother < LostBrotherStartHealth and
+				Brother is not FLYING
+				
+				VisitedHome=1
+				run script LostBrotherNearHouseButSisterDead(VisitedHome)
+				set SeeIfTheyHealTimer time to 90 seconds
+				SITHTimerSet = 1
+			end if
+			if SITHTimerSet == 1 and get SeeIfTheyHealTimer time remaining <= 0
+				// Timed out - 90 seconds after healing the brother
+				update snapshot success 1 alignment -0.8 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+				LostBrotherFinished = 77
+			end if
+
+			if [Brother] near [LostBrotherHouse] radius 1 and SisterDead==1 and BrotherDead==0
+				LostBrotherFinished=42
+			end if
+
+			if [Sister] near [Brother] radius 10 and BrotherDead==1 and SisterDead==0	and 
+				Brother is not HELD	and Sister is not HELD and 
+				Sister is not FLYING and Brother is not FLYING and land height at [Brother] > 0
+
+				if LBSFX exists
+					delete LBSFX
+				end if
+				run script LostBrotherDeadSisterFoundHim(Sister, Brother)
+			end if
+
+			if [Sister] near [Brother] radius 10 and SisterDead==1 and BrotherDead==0 and 
+				Sister is not HELD and Brother is not HELD and Brother is not FLYING and 
+				Sister is not FLYING and land height at [Sister] > 0 
+				
+				run script LostBrotherFoundDeadSister(Sister, Brother)
+				BrotherDead = 1
+				delete LBSFX
+				//run script LostBrotherReward(SoapBox)
+			end if
+		
+			if HEALTH of Brother < LostBrotherStartHealth and BrotherDead == 0 and 
+				timerstart==0 and Brother is not HELD and LostBrotherFinished == 0
+					timerstart=1
+					run script LostBrotherQuickly
+			end if
+				
+//			if timerstart==1 and Brother is not HELD and
+//				HEALTH of Brother <= LostBrotherStartHealth/2.5 // remove when timer goes back in
+//					HEALTH of Brother = 0.0
+//					BrotherDead=1
+//					run script LostBrotherLeftForDead
+//			end if
+
+//			if LocalTimer>=1200
+//				LocalTimer=0
+//				HEALTH of Brother -= 0.02
+//			end if
+				
+			if SoundTimer>=75 and BrotherDead==0 and HEALTH of Brother < LostBrotherStartHealth
+				SoundTimer=number from 0 to 50
+				start sound constant from LH_SCRIPT_SAMPLE_BROTHER_GROAN_01 to LH_SCRIPT_SAMPLE_BROTHER_GROAN_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Brother]
+			end if
+
+			if SisterDead == 1 and BrotherDead == 0	and DeathTimerStart == 0 and HEALTH of Brother <= LostBrotherStartHealth
+				DeathTimer = create timer for 120 seconds
+				DeathTimerStart = 1
+			end if
+
+			if DeathTimerStart == 1 and get DeathTimer time remaining == 0 and HEALTH of Brother <= LostBrotherStartHealth
+				HEALTH of Brother = 0
+				state Brother VILLAGER_STATE_DEAD
+				BrotherDead = 1
+
+				if LostBrotherKeyTaken == 0
+					// Time out - After damaging (not killing) the brother - Still got to get the Gatestone
+					update snapshot success 0.75 alignment -0.5 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+
+				else
+					// Time out - After damaging (not killing) the brother - Got the Gatestone
+					update snapshot success 1 alignment -0.5 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+				
+				end if
+
+				LostBrotherFinished=69
+			end if
+
+		end while
+
+	end if
+
+	if LBSFX exists
+		delete LBSFX
+	end if
+
+	wait 5 seconds
+
+	if GateKey1 exists
+		enable GateKey1 pickup
+		enable GateKey1 moveable
+		while [GateKey1] near [LostBrotherHouse] radius 5
+			if [GateKey1] near [LostBrotherHouse] radius 5 and get KeyReminderTimer time remaining <= 0
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [LostBrotherHouse]
+					// "It doesn't look like that woman is going to give us the Gate Key."
+					say single line HELP_TEXT_LOST_BROTHER_09
+					wait until read
+					stop evil spirit pointing
+					send evil spirit home
+				end dialogue
+				set KeyReminderTimer time to 30 seconds
+			end if
+		end while
+	end if
+
+	//if GKSFX exists
+	//	delete GKSFX
+	//end if
+
+	if Brother exists and (LostBrotherFinished != 82 or LostBrotherFinished != 69)
+		delete Brother with fade
+	end if
+
+	wait until GateKey1 is HELD or GateKey1 not exists
+
+	if LostBrotherFinished==69
+		// Making sure the total is 100% if you have hurt the brother and the time out times out
+		update snapshot success 1 alignment -0.5 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_LOST_BROTHER_09)
+	end if
+
+	// Clean up - Just in case
+	if LB_Highlight exists
+		delete LB_Highlight
+	end if
+
+	if Brother exists
+		attach Brother to NorseTown
+		release Brother
+	end if
+
+	if Sister exists
+		attach Sister to NorseTown
+		release Sister
+	end if
+
+end script LostBrother
+
+

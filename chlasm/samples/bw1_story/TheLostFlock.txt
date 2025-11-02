@@ -1,0 +1,479 @@
+challenge LOST_FLOCK
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheLostFlockKilledShepherd(Shepherd, SoapBox)
+
+start
+	begin dialogue
+		eject evil spirit
+		if Shepherd exists
+			make evil spirit point to Shepherd
+		end if
+//		snapshot challenge success 1.0 alignment -1 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+		update snapshot success 1.0 alignment -1 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+		say HELP_TEXT_LOST_FLOCK_18
+		wait until read
+		stop evil spirit pointing
+		eject good spirit
+		if Shepherd exists
+			make good spirit look at Shepherd
+		end if
+		say HELP_TEXT_LOST_FLOCK_19
+		wait until read
+		say HELP_TEXT_LOST_FLOCK_20
+		wait until read
+	end dialogue
+
+	TheLostFlockFinished = 2
+
+end script TheLostFlockKilledShepherd
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LostFlockRewardedOnce(Shepherd, Field, Highlight) //got 5 sheep now
+	BeginPos = 0
+	BeginFoc = 0
+	RewardPos = marker at [1848.5687, 38.8600, 2757.7080]
+	SoapBox = marker at [1852.780, 38.860, 2776.141] 
+
+start
+	begin cinema
+		enable Shepherd high graphics detail //blend anims etc
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move Shepherd position to [SoapBox]
+
+		move camera position to [1852.344, 40.174, 2778.152] time 5
+		move camera focus to [1852.623, 40.051, 2774.724]   time 5
+	
+		wait until camera ready
+		wait until [Shepherd] near [SoapBox] radius 0.5
+		
+		set Shepherd focus to camera position
+
+		Shepherd play ANM_P_FARMER_SOWING_SEEDS // shepherd shifts position
+		wait 3 seconds
+		snapshot challenge success 0.99 alignment 0.4 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_32)
+		// "Thanks a lot. I've got 5 sheep in my flock."
+		say single line HELP_TEXT_LOST_FLOCK_26
+	   	
+		Shepherd play ANM_P_AMBIENT2 // shepherd shifts position
+		
+		wait until read
+		wait 4 seconds
+
+		Shepherd play ANM_P_GOSSIP_WOMAN_2// shepherd points
+		
+		run script rewardnosky(variable REWARD_LARGE_FOOD, RewardPos, 0)
+
+		// "I can't offer much but take this"
+		say single line HELP_TEXT_LOST_FLOCK_27
+		wait 2.2 seconds
+ 		Shepherd play ANM_P_AMBIENT2 // shepherd shifts position
+		wait until read
+
+		set Shepherd focus to [RewardPos]
+
+		move camera focus to [RewardPos] time 3
+		move camera position to [1848.241, 44.221, 2764.314]  time 3
+		wait until camera ready
+
+	end cinema
+    
+	state Shepherd WANDER_AROUND position [Field]
+	float 6
+	ulong 4, 20
+	delete Highlight
+	LostFlockCompletedNow = 1	// it's not really finished but as far as CreatureGuide.txt is concerned it is
+
+end script LostFlockRewardedOnce
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheLostFlockGotAllSheep(Shepherd, Field, ShepherdFlock)
+
+	SFX = 0
+	SheepCreature=0
+
+start
+
+	MyCreature = get player 1 creature
+    begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_04
+		
+
+		enable Shepherd high graphics detail //blend anims etc
+		
+		move Shepherd position to [1856.320, 38.860, 2775.535]  
+
+       	move camera position to [1849.103, 43.040, 2770.106] time 4
+		move camera focus to [1855.887, 39.161, 2780.352] time 4
+		
+		say HELP_TEXT_LOST_FLOCK_12
+        wait until read
+
+		wait until camera ready
+
+		SFX = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Field] time 3
+		SheepCreature = create CREATURE CREATURE_TYPE_SHEEP at [Field]
+
+		say HELP_TEXT_LOST_FLOCK_13
+		
+		set Shepherd focus to [Field]
+		Shepherd play ANM_P_CROWD_IMPRESSED_1 //shepherd prays
+
+		wait until read
+
+		move camera position to [1854.833, 41.946, 2769.781] time 8
+		move camera focus to [1851.693, 39.046, 2784.802] time 3
+		
+		set Shepherd focus to camera position
+		Shepherd play ANM_P_PRAY //shepherd thanks
+
+		wait until camera ready
+
+		snapshot challenge success 1 alignment 0.6 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+
+		move camera position to [1837.476, 56.434, 2745.928] time 3
+		move camera focus to [1855.260, 39.272, 2779.440] time 3
+    	
+		wait until camera ready
+
+		detach Shepherd from ShepherdFlock
+		release ShepherdFlock
+		attach Shepherd to NorseTown
+	   	release Shepherd
+		stop music
+	end cinema
+
+	TheLostFlockFinished=1
+
+	run background script SwapCreatures(SheepCreature)
+
+end script TheLostFlockGotAllSheep
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SheepBaa(Sheep, Sample, Frequency, PlusRandomFrequency, PenPos)
+	Exit = 0
+	Time = 0
+start
+	while Exit == 0	and TheLostFlockFinished == 0
+		if Sheep exists
+			if HEALTH of Sheep <= 0
+				Exit = 1
+			elsif not [Sheep] near [PenPos] radius 10
+				//Play a sample for wait for a random amount of time
+				start sound constant Sample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Sheep]
+			
+				Time=Frequency + number from 0 to PlusRandomFrequency
+				wait Time seconds
+			else
+				Exit = 1
+			end if
+		else
+			Exit=1
+		end if
+	end while
+end script SheepBaa
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheLostFlockIntro(ShepherdFlock, ShepherdPos, SoapBox, Sheep10, Field)
+	Shepherd = 0
+	Sheep = 0
+	BeginPos = 0
+   	BeginFoc = 0
+	
+start
+   	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_01
+
+		Shepherd = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [ShepherdPos]
+		Sheep = create ANIMAL SHEEP at [1867.5673, 38.8600, 2777.9543]
+
+		move Sheep position to [Field]
+
+		BeginPos = marker at camera position
+   		BeginFoc = marker at camera focus
+
+		enable Shepherd high graphics detail //blend anims etc
+      	
+		SPEED of Shepherd = 0.08
+		move Shepherd position to [SoapBox]	//shepherd comes out of house
+		set Shepherd anim ANM_P_WALK_TIRED_EYES
+
+		move camera position to [1855.696, 40.126, 2756.845] time 4	//soapbox camera
+      	move camera focus follow Shepherd
+        wait until [Shepherd] at [SoapBox]
+		move camera focus to  [1857.127, 40.287, 2779.848] time 3	//soapbox focus
+		
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+								   		 
+		set Shepherd focus to camera position  // shepherd looks at camera
+		
+		 
+		say HELP_TEXT_LOST_FLOCK_02	 //cheesy voice 1 "I've been asleep"
+		Shepherd play ANM_P_YAWN2	//shepherd yawns
+		wait 2 seconds
+		wait until read	  //stop talking
+	   				
+		move camera focus to  [1858.127, 40.287, 2778.848] time 12
+				
+		say HELP_TEXT_LOST_FLOCK_03 //cheesy voice 2 "I was supposed to watch my flock but I dozed off" 
+        Shepherd  play ANM_P_CROWD_LOST //shepherd pissed off
+		wait until read	 //stop talking
+		wait 1.2 seconds
+
+		say HELP_TEXT_LOST_FLOCK_04 //cheesy voice 3 "please find my missing sheep, I pray"
+		Shepherd play ANM_P_LOOKING_FOR_SOMETHING  //looks about
+		wait until read
+
+		close dialogue
+		
+		if [Sheep10] near [1457.754, 111.107, 2627.792] radius 10 // checks that at least Sheep10's body is there to see
+			set camera position to [1455.512, 113.167, 2627.904] //camera cuts to lost sheep 
+			set camera focus to [1465.702, 110.181, 2630.866] 
+			
+			move camera position to [1453.512, 113.0, 2627.904] time 4
+
+			wait 2 seconds	//look at sheep
+
+			start sound LH_SCRIPT_SAMPLE_A_SHEEPBAA_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			
+			wait 2 seconds	//look at sheep
+			set camera position to [1855.224, 41.860, 2754.937] //camera cuts back to shepherd crying
+			set camera focus to [1855.591, 39.139, 2764.353] // focus on crying shepherd  
+		else
+			move camera position to [1855.224, 41.860, 2754.937] time 1 //camera is close anyway
+			move camera focus to [1855.591, 39.139, 2764.353] time 1 // focus on crying shepherd  
+		end if
+
+		move camera focus to [1854.591, 39.139, 2763.353] time 6 // shift focus on crying shepherd
+
+		Shepherd  play ANM_P_STAND_DESPAIR_2 // cuts back to shepherd weeping
+		wait until read	 //stop talking	
+		
+		set Shepherd focus to [Field]  // shepherd looks at field
+
+	
+		move camera position to [1838.189, 45.130, 2761.927] time 2	 //end camera, looking at field
+        move camera focus to [1861.013, 39.092, 2772.911] time 3	// end focus, looking at field
+            
+		SPEED of Shepherd = 0.15
+		move Shepherd position to [Field] //shepherd walks to field
+		
+		wait until camera ready
+		
+		disable Shepherd high graphics detail //turn off blend anims etc
+
+		stop music
+    end cinema with dialogue
+		attach Shepherd to ShepherdFlock as leader
+		attach Sheep to ShepherdFlock
+
+		state Shepherd WANDER_AROUND position [Field]
+		float 6
+		ulong 1, 1
+		
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_LOST_FLOCK_05
+		wait until read
+		say HELP_TEXT_LOST_FLOCK_06
+		wait until read
+		say HELP_TEXT_LOST_FLOCK_07
+		wait until read
+	end dialogue
+
+end script TheLostFlockIntro
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheLostFlock
+
+	FlockSize=0
+	OldShepherdFlockSize=0
+	House = get SCRIPT_OBJECT_TYPE_ABODE at [1864.9866, 37.1824, 2769.2749]	
+
+	Sheep2Pos = marker at [1649.017, 17.420, 2619.968] 	
+
+	Sheep2 = create ANIMAL SHEEP at [Sheep2Pos] // sheep in other farmers field
+	Sheep2Flock = 0
+	Sheep3 = create ANIMAL SHEEP at [1802.643, 37.596, 2833.384]  //sheep behind creature gates
+	Sheep4 = create ANIMAL SHEEP at [1538.6907, 44.0473, 2223.6208] //sheep near hermit's cottage
+	Sheep5 = create ANIMAL SHEEP at [1764.388, 28.810, 2687.860]   //sheep at sculptors' house
+	Sheep6 = create ANIMAL SHEEP at [1588.374, 12.918, 2268.972]  // sheep in beach gulley
+	Sheep7 = create ANIMAL SHEEP at [1996.912, 14.596, 2330.437] // sheep at throwing stones
+	Sheep8 = create ANIMAL SHEEP at [1377.553, 34.790, 2560.769] //sheep by lost brother
+	Sheep9 = create ANIMAL SHEEP at [1842.9502, 17.3467, 2199.4866]  // sheep on peninsula near CrowdPosition
+	Sheep10 = create ANIMAL SHEEP at [1457.754, 111.107, 2627.792] //sheep on hill overlooking town
+	SoapBox = marker at [1856.0729, 38.8600, 2759.2322]	//soapbox pos
+	Field = marker at [1852.9114, 34.9002, 2780.7761]
+
+ 	ShepherdFlock = 0
+	ShepherdPos = marker at [1860.348, 38.860, 2763.137]
+	Shepherd=0
+
+	Highlight=0
+
+	DeadSheepTimer = create timer for 0 seconds
+	DeadSheep = 0
+	DeadSheepCount = 0
+	FindSheep = 0
+	FirstSheepSpeech = 3
+	GotRewardedOnce=0
+	SaidMoreThanFive=0
+	IncrementSpeechNumber=5
+ 	 
+start
+	//Always see them
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep2
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep3
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep4
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep5
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep6
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep7
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep8
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep9
+	enable jc special SJC_ALWAYS_VISIBLE on Sheep10
+
+	//Attaches sound
+	run background script SheepBaa(Sheep10, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_05_C2, 6, 2, Field)
+	run background script SheepBaa(Sheep9, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_02, 6, 2, Field)
+	run background script SheepBaa(Sheep8, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_03, 6, 2, Field)
+	run background script SheepBaa(Sheep7, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_03_C2, 6, 2, Field)
+	run background script SheepBaa(Sheep6, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_01, 6, 2, Field)
+	run background script SheepBaa(Sheep5, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_06, 6, 2, Field)
+	run background script SheepBaa(Sheep4, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_08, 6, 2, Field)
+	run background script SheepBaa(Sheep3, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_09, 6, 2, Field)
+	run background script SheepBaa(Sheep2, variable LH_SCRIPT_SAMPLE_A_SHEEPBAA_10, 6, 2, Field)
+
+	//Create flock of pigs with a hidden sheep
+	Sheep2Flock = flock at [Sheep2Pos]
+    set Sheep2Flock properties inner 5 outer 8
+	populate Sheep2Flock with 5 ANIMAL ANIMAL_INFO_PIG
+	attach Sheep2 to Sheep2Flock
+
+	//Create the flock where the Shepherd is holding sheep.
+	ShepherdFlock = flock at [ShepherdPos]
+	set ShepherdFlock properties inner 5 outer 12
+
+	TheLostFlockFinished = 0
+	wait until LostFlockWanted == 1
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [House]
+	run script ChallengeHighlightNotify(Highlight, House, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+
+	run script TheLostFlockIntro(ShepherdFlock, ShepherdPos, SoapBox, Sheep10, Field)
+	Shepherd=get VILLAGER in ShepherdFlock
+
+	// See if others have already been returned
+	FindSheep = get ANIMAL SHEEP at [ShepherdFlock] radius 50 excluding scripted
+	while FindSheep exists
+		attach FindSheep to ShepherdFlock
+		FindSheep = get ANIMAL SHEEP at [ShepherdFlock] radius 50 excluding scripted 
+	end while
+	
+	if size of ShepherdFlock > 3
+		FirstSheepSpeech = size of ShepherdFlock
+	end if
+
+	LostFlockInitiated = 1
+	
+	while TheLostFlockFinished==0
+
+		FlockSize=size of ShepherdFlock
+
+		//Look for dead sheep.
+		if get DeadSheepTimer time remaining <= 0
+			DeadSheep = get ANIMAL SHEEP in state ANIMAL_STATE_DEAD at [Field] radius 30
+			if DeadSheep exists 
+				if DeadSheep is not HELD and DeadSheep is not FLYING
+					DeadSheepCount++
+					delete DeadSheep with fade
+					if DeadSheepCount == 1
+						begin dialogue
+							// "Oh dear. One of my sheep has died. I could still survive with the rest though."
+							say single line HELP_TEXT_LOST_FLOCK_29
+							wait until read
+						end dialogue
+					elsif DeadSheepCount == 5
+						begin dialogue
+							// "Oh no. Too many sheep have died for me to make a living any more."
+							say single line HELP_TEXT_LOST_FLOCK_30
+							wait until read
+							// "As a shephard you royally suck god."
+							say single line HELP_TEXT_LOST_FLOCK_31
+							wait until read
+							update snapshot success 1.0 alignment -0.6 HELP_TEXT_TITLE_34 StandardReminder(variable HELP_TEXT_REMINDER_33)
+							TheLostFlockFinished = 3
+						end dialogue
+					else
+						begin dialogue
+							// "Oh dear. Another dead sheep."
+							say single line HELP_TEXT_LOST_FLOCK_32
+							wait until read
+						end dialogue
+					end if
+				end if
+			end if
+			set DeadSheepTimer time to 2 seconds
+		end if
+
+		if FlockSize == 1
+			//We only have the shepherd in the flock... so no automated flocking.
+			FindSheep = get ANIMAL SHEEP at [ShepherdFlock] radius 50
+			if FindSheep exists
+				attach FindSheep to ShepherdFlock
+			end if
+			wait 0.7 seconds
+		elsif FirstSheepSpeech	>= 3 and FirstSheepSpeech <=5 and FirstSheepSpeech == FlockSize
+			//From 3 to 5 sheep....
+			begin dialogue
+				// "Ta matey. Keep 'em coming."
+				say single line HELP_TEXT_LOST_FLOCK_28
+				wait until read
+				FirstSheepSpeech++
+			end dialogue
+		elsif FlockSize == 6 and GotRewardedOnce == 0
+			wait until Shepherd is not HELD and Shepherd not in MyCreature hand
+			if [Shepherd] not near [1851.887, 38.860, 2768.597] radius 50
+				set Shepherd position to [1851.887, 38.860, 2768.597]
+			end if
+			move ShepherdFlock position to [1851.887, 38.860, 2768.597]
+			run script LostFlockRewardedOnce(Shepherd, Field, Highlight)
+			OldShepherdFlockSize = size of ShepherdFlock
+			GotRewardedOnce = 1
+		elsif GotRewardedOnce == 1 and FlockSize > OldShepherdFlockSize
+			if FlockSize == 11
+				wait until Shepherd is not HELD and Shepherd not in MyCreature hand
+				if [Shepherd] not near [Field] radius 50
+					set Shepherd position to [Field]
+				end if
+				run script TheLostFlockGotAllSheep(Shepherd, Field, ShepherdFlock)
+			else
+				OldShepherdFlockSize = FlockSize
+				begin dialogue
+					if SaidMoreThanFive == 0
+						//Wow i did not think there's more than 5.
+						say single line HELP_TEXT_LOST_FLOCK_21
+						wait until read
+						SaidMoreThanFive=1
+					else
+						IncrementSpeechNumber++
+						if IncrementSpeechNumber > 2
+							IncrementSpeechNumber=0
+						end if
+						// "Wow! Thanks. The more the merrier."
+						say single line constant (variable HELP_TEXT_LOST_FLOCK_22 + IncrementSpeechNumber)
+						wait until read
+					end if
+				end dialogue
+			end if
+		end if
+	until HEALTH of Shepherd <= 0.0 and Shepherd is not FLYING
+		run script TheLostFlockKilledShepherd(Shepherd, SoapBox)
+	end while
+
+
+	LostFlockCompletedNow = 1
+
+end script TheLostFlock

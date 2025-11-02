@@ -1,0 +1,399 @@
+challenge CREATURE_SAVING_PEOPLE
+
+//------------------------------------------------------------------------------------------------------------------------
+global CreatureSavingPeopleSavedCounter
+global CreatureSavingPeopleDrowningCounter
+global CreatureSavingPeopleDrownedCounter
+global CreatureSavingPeopleTimer
+global CreatureSavingPeopleIsFinished
+global FoundMe
+global FisherWife
+global CreatureSavingPeopleLastDeathWasInaction
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureNullReminder
+
+start
+
+end script CreatureNullReminder
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script Alert
+
+start
+
+	while FoundMe == 0
+
+		set FisherWife focus to camera position
+		FisherWife play ANM_P_ATTRACT_YOUR_ATTENTION loop 1
+		wait 2 seconds
+
+	end while
+
+end script Alert
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureSavingPeopleDrowningMan(Man, SafePos, TimerBonus, Town)
+	StartPos = marker at [Man]
+	EndWhileLoop = 0
+	Drowned=0
+
+start
+	Man play ANM_P_DROWNING loop -1
+	enable jc special SJC_ALWAYS_VISIBLE on Man
+	CreatureSavingPeopleDrowningCounter++
+	
+	while Man exists and EndWhileLoop == 0
+		if [Man] near [StartPos] radius 5 and HEALTH of Man > 0 or Man is DROWNING
+			if get CreatureSavingPeopleTimer time remaining <= TimerBonus
+				Man play ANM_P_INTO_DEAD_DROWNED loop 1
+				wait until Man played
+				CreatureSavingPeopleDrownedCounter++
+				CreatureSavingPeopleLastDeathWasInaction=1
+				Drowned=1
+				delete Man
+			end if
+		elsif not Man is HELD and not Man is FLYING and Man not in MyCreature hand
+			EndWhileLoop = 1
+			CreatureSavingPeopleLastDeathWasInaction=0
+		end if
+	end while
+	
+	CreatureSavingPeopleDrowningCounter--
+
+	//OK we either have a man or we don't have one.
+	if Man exists and HEALTH of Man > 0
+		attach Man to Town
+		release Man
+		while CreatureSavingPeopleIsFinished == 0
+		until HEALTH of Man <= 0
+			begin dialogue
+				eject evil spirit
+				// "Nice one, Boss. That's one less idiot to deal with."
+				say single line HELP_TEXT_DROWNINGFISHERMEN_12
+				wait until read
+				send evil spirit home
+			end dialogue
+		end while
+		CreatureSavingPeopleSavedCounter++
+	else
+		if Drowned != 1
+			begin dialogue
+				eject evil spirit
+				// "Nice one, Boss. That's one less idiot to deal with."
+				say single line HELP_TEXT_DROWNINGFISHERMEN_12
+				wait until read
+				send evil spirit home
+			end dialogue
+		end if
+	end if
+
+end script CreatureSavingPeopleDrowningMan
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureSavingPeople
+	DangerPos = marker at [1800.7135, 0.0000, 2467.1555]
+	ShorePos = marker at [1745.4685, 13.3607, 2513.7329]
+	OldShorePos = marker at [1775, 2483]
+	Highlight=0
+	RewardPos = marker at [ShorePos] + [10,0,10]
+	Influence=0
+	TimerBonus = 0
+	MyCreatureScale = 0
+	AlignmentTotal = 0
+	NewFisherWife = 0
+	Reward = 0
+	Town = get town with id 0
+	Man1=0
+	Man2=0
+	Man3=0
+	Man4=0
+	Man5=0
+	DeadCount=0
+	CreatureSavingPeopleMurderCount=0
+	KilledAll=0
+	SavedAll=0
+	Witness = 0
+
+start
+	MyCreature = get player 1 creature
+
+	CreatureSavingPeopleIsFinished=0
+	CreatureSavingPeopleSavedCounter = 0
+	CreatureSavingPeopleDrowningCounter = 0
+
+	FisherWife = create VILLAGER FEMALE at [ShorePos]
+
+	disable FisherWife pickup
+	disable FisherWife moveable
+	enable FisherWife indestructible
+
+	Influence=create anti influence at position [DangerPos] radius 30
+
+	run background script Alert
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [ShorePos] + [10,0,10]
+	run script ChallengeHighlightNotify(Highlight, ShorePos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+	
+	CreatureSavingPeopleTimer = create timer for 300 seconds
+
+	FoundMe = 1
+
+	begin cinema
+
+		enable jc special SJC_ALWAYS_VISIBLE on FisherWife
+		
+		enable FisherWife high gfx detail
+		
+		Man1=create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1777.861, 0.000, 2454.776] 
+		Man2=create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1792.752, 0.000, 2449.020] 
+		Man3=create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1789.306, 0.000, 2460.487] 
+		Man4=create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1777.621, 0.000, 2443.252] 
+		Man5=create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1780.953, 0.000, 2460.015] 
+
+		TimerBonus = 1
+		run background script CreatureSavingPeopleDrowningMan(Man1, ShorePos, TimerBonus, Town)
+		wait 0.1 seconds
+		TimerBonus = 51
+		run background script CreatureSavingPeopleDrowningMan(Man2, ShorePos, TimerBonus, Town)
+		wait 0.2 seconds
+		TimerBonus = 101
+		run background script CreatureSavingPeopleDrowningMan(Man3, ShorePos, TimerBonus, Town)
+		wait 0.3 seconds
+		TimerBonus = 181
+		run background script CreatureSavingPeopleDrowningMan(Man4, ShorePos, TimerBonus, Town)
+		wait 0.4 seconds
+		TimerBonus = 221
+		run background script CreatureSavingPeopleDrowningMan(Man5, ShorePos, TimerBonus, Town)
+
+		start music MUSIC_TYPE_SCRIPT_GENERIC_03
+		make evil spirit appear
+		say single line HELP_TEXT_DROWNINGFISHERMEN_01
+		move camera position to [1744.080, 16.602, 2523.206] time 3
+		move camera focus to [1790.688, 1.652, 2482.824] time 3
+		wait until read
+		close dialogue
+		make evil spirit disappear
+
+		move camera position to [1743.591, 14.621, 2517.615] time 4
+		move camera focus to [1816.143, 0.178, 2453.759] time 4
+
+		set FisherWife focus to [Man1]
+		FisherWife play ANM_P_STAND_DESPAIR_1 loop 1
+		
+		wait until camera ready
+
+		set FisherWife focus to camera position
+
+		FisherWife play ANM_P_STAND_DESPAIR_2 loop 1
+		say single line HELP_TEXT_DROWNINGFISHERMEN_02
+		wait until read
+
+		ShorePos = OldShorePos
+		SPEED of FisherWife = 0.5
+		move FisherWife position to [ShorePos]
+		send evil spirit home
+		close dialogue
+		wait 2 second
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_06 StandardReminder(variable HELP_TEXT_REMINDER_08)
+
+		eject evil spirit
+		move camera position to [1770.485, 5.680, 2490.528] time 8
+		move camera focus to [1777.699, 2.196, 2483.579] time 6
+		
+//		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_06 StandardReminder(variable HELP_TEXT_REMINDER_08)
+		wait 1 second
+		say single line HELP_TEXT_DROWNINGFISHERMEN_03
+		wait until read
+		eject good spirit
+		wait until camera ready
+		wait until [FisherWife] near [ShorePos] radius 1
+		set FisherWife focus to [DangerPos]
+		FisherWife play ANM_P_STAND_DESPAIR_2 loop -1
+
+		say single line HELP_TEXT_DROWNINGFISHERMEN_04 
+		wait until read
+		
+		disable FisherWife high gfx detail
+		enable FisherWife pickup
+		enable FisherWife moveable
+		disable FisherWife indestructible
+
+		stop music
+
+	end cinema
+
+	set CreatureSavingPeopleTimer time to 300 seconds
+
+	enable FisherWife pickup
+	disable FisherWife indestructible
+
+	//Wait until time elapsed or people saved or dead
+	wait until CreatureSavingPeopleDrowningCounter <= 0 or get CreatureSavingPeopleTimer time remaining <= 0
+	CreatureSavingPeopleIsFinished=1
+
+	//Need this wait for the calculation scripts to finish.
+	wait 1 second
+
+	CreatureSavingPeopleMurderCount=5-CreatureSavingPeopleDrownedCounter-CreatureSavingPeopleSavedCounter
+
+
+	//CREATE NEW SCROLL now completed
+
+	AlignmentTotal = ((CreatureSavingPeopleSavedCounter - CreatureSavingPeopleMurderCount) * 0.2)
+	AlignmentTotal -= CreatureSavingPeopleDrownedCounter*0.1
+
+	update snapshot success 0.8 alignment AlignmentTotal HELP_TEXT_TITLE_06 CreatureNullReminder
+
+	//If it was inaction which ended this script...
+	if	CreatureSavingPeopleLastDeathWasInaction == 1
+		run script ChallengeHighlightNotify(Highlight, ShorePos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+	end if
+	
+	begin cinema
+		if HEALTH of FisherWife <= 0
+			NewFisherWife++
+			FisherWife = create VILLAGER MALE at [ShorePos]
+			Witness = create VILLAGER FEMALE at [ShorePos] + [5,5]
+			enable jc special SJC_ALWAYS_VISIBLE on FisherWife
+			set FisherWife focus to [DangerPos]
+		end if
+
+		move camera to face FisherWife distance 10 time 3
+		wait 3.2 seconds
+		set FisherWife focus to camera position
+		
+		if Witness exists
+			set Witness focus to camera position
+		end if
+
+		if NewFisherWife > 0
+			//"My sister asked for your help and you killed her!"
+			say single line HELP_TEXT_DROWNINGFISHERMEN_17
+			FisherWife play ANM_P_STAND_DESPAIR_2 loop 3
+			wait until read
+		end if
+
+		//Did we save them all, and not kill the NewFisherWife <= 0
+		if CreatureSavingPeopleSavedCounter >=5
+			//All people are saved
+
+			//Did we kill the wife?
+			if NewFisherWife <= 0			
+				//We're well happy
+				say HELP_TEXT_DROWNINGFISHERMEN_05
+				eject evil spirit
+				wait until read
+				//Sure you are now we've done some stuff.
+				say HELP_TEXT_DROWNINGFISHERMEN_06
+				wait until read
+				SavedAll = 1
+			else
+				//All saved but woman dead
+				if Witness exists
+					Witness play ANM_P_STAND_DESPAIR_1 loop 1
+				end if
+				// "At least some survived. We thank you for that."
+				say single line HELP_TEXT_DROWNINGFISHERMEN_14
+				wait until read
+			end if
+		//We saved some
+		elsif CreatureSavingPeopleSavedCounter > 0
+			// "At least some survived. We thank you for that."
+			say single line HELP_TEXT_DROWNINGFISHERMEN_14
+			wait until read 
+
+			if CreatureSavingPeopleMurderCount > 0
+				if Witness exists
+					Witness play ANM_P_SHAKE_FIST_FEMALE loop 1
+				end if
+				// "Those that didn't drown you murdered."
+				say single line HELP_TEXT_DROWNINGFISHERMEN_15
+				wait until read
+				if Witness exists
+					Witness play ANM_P_STAND_DESPAIR_1 loop 2
+				end if
+				// "We will remember that."
+				say single line HELP_TEXT_DROWNINGFISHERMEN_16
+				wait until read
+			end if
+		else
+		//We saved none
+			if CreatureSavingPeopleMurderCount < 5
+				//We murdered some
+				if CreatureSavingPeopleMurderCount > 0
+					if Witness exists
+						Witness play ANM_P_SHAKE_FIST_FEMALE loop 1
+					end if
+					// "Those that didn't drown you murdered."
+					say HELP_TEXT_DROWNINGFISHERMEN_15
+					wait until read
+					if Witness exists
+						Witness play ANM_P_STAND_DESPAIR_1 loop 2
+					end if
+					// "We will remember that."
+					say HELP_TEXT_DROWNINGFISHERMEN_16
+					wait until read
+				else
+					//At times like this I wish we had another god.
+					say single line HELP_TEXT_DROWNINGFISHERMEN_08
+				end if
+
+				eject good spirit
+				eject evil spirit
+				wait until read
+				//I'm gutted
+				say HELP_TEXT_DROWNINGFISHERMEN_09
+				wait until read
+				//Give it a rest
+				say HELP_TEXT_DROWNINGFISHERMEN_11
+				wait until read
+
+			else //You murdered them all
+				//I saw that it was murder
+				say HELP_TEXT_DROWNINGFISHERMEN_13
+				wait until read
+				eject good spirit
+				eject evil spirit
+				wait until read
+				//I'm gutted
+				say HELP_TEXT_DROWNINGFISHERMEN_09
+				wait until read
+				//Give it a rest
+				say HELP_TEXT_DROWNINGFISHERMEN_11
+				wait until read
+				KilledAll = 1
+			end if
+		end if
+
+		send good spirit home
+		send evil spirit home
+
+		AlignmentTotal = ((CreatureSavingPeopleSavedCounter - CreatureSavingPeopleMurderCount) * 0.2)
+		AlignmentTotal -= CreatureSavingPeopleDrownedCounter*0.1
+
+		close dialogue
+		wait 1 seconds
+
+		snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_06 StandardReminder(variable HELP_TEXT_REMINDER_08)
+	end cinema
+
+	delete Highlight
+	
+	if FisherWife exists
+		attach FisherWife to Town
+		release FisherWife
+	end if
+
+	if KilledAll == 1 or SavedAll == 1
+
+		run script GiveSpellDispenserReward(RewardPos, variable CREATURE_SPELL_STRONG, 180, 0, 5*60)
+
+	end if
+
+
+	delete Influence
+
+end script CreatureSavingPeople

@@ -1,0 +1,789 @@
+challenge MORE_SINGING_STONES
+
+begin script MoreSingingStonesMain
+
+SingingStone1 = 0 // G1 Initially in correct position
+SingingStone2 = 0 // A1 Initially in correct position
+SingingStone3 = 0 // G2 Initially in correct position
+SingingStone4 = 0 // B1 Initially in correct position
+SingingStone5 = 0 // C1 Initially in correct position
+SingingStone6 = 0 // A2 Initially hidden elsewhere on map
+SingingStone7 = 0 // B2 Initially hidden elsewhere on map
+SingingStone8 = 0 // C2 Initially hidden elsewhere on map
+
+Size = 3.5 // Dictates the size of the stone circle
+CentreOfCircle = marker at [2218.9993, 6.0300, 2918.6782]
+SingingStone1Pos = marker at [CentreOfCircle] + [5*Size,0]
+SingingStone2Pos = marker at [CentreOfCircle] + [3.5*Size,3.5*Size]
+SingingStone3Pos = marker at [CentreOfCircle] + [0,5*Size]
+SingingStone4Pos = marker at [CentreOfCircle] + [-3.5*Size,3.5*Size]
+SingingStone5Pos = marker at [CentreOfCircle] + [-5*Size,0]
+
+SingingStone6Pos = marker at [CentreOfCircle] + [-3.5*Size,-3.5*Size]
+Pos6 = 0
+SingingStone7Pos = marker at [CentreOfCircle] + [0,-5*Size]
+Pos7 = 0
+SingingStone8Pos = marker at [CentreOfCircle] + [3.5*Size,-3.5*Size]
+Pos8 = 0
+
+SingingStone6AwayPos = marker at [2757.7781, 27.9725, 2836.8560]
+SingingStone7AwayPos = marker at [2026.6111, 14.0700, 2081.2632]
+SingingStone8AwayPos = marker at [1591.5173, 67.7982, 3007.4624]
+
+SingingStone6InPlace = 0
+SingingStone7InPlace = 0
+SingingStone8InPlace = 0
+
+SingingStonesAllInPlace = 0
+
+FirstNote = 0
+SecondNote = 0
+LookingForNote = 0
+
+NotePairTotal = 0
+NotePair1 = 0
+NotePair2 = 0
+NotePair3 = 0
+NotePair4 = 0
+
+Reward1Given = 0
+Reward2Given = 0
+Reward3Given = 0
+
+VillagerHutPos = marker at [2191.6899, 34.8400, 3203.2300] // next to StoragePit
+VillagerHut = get SCRIPT_OBJECT_TYPE_ABODE at [VillagerHutPos]
+Villager = 0
+VillagerPos = marker at [CentreOfCircle]+[5,0,0]
+DeadChild = 0
+DeadChildPos = marker at [2222.074, 6.030, 2919.442] 
+HighlightPos = marker at [2184.251, 8.354, 2930.728] 
+
+BeginPos = 0
+BeginFoc = 0
+PermEffectTimer = 0
+ResetTimer = 0
+
+DeadChildMoved = 0
+VillagerDeath = 0
+ChildRedeath = 0
+VillagerSaved = 0
+DeadChildSaved = 0
+ChildAlive = 0
+FamilyOnWayHome = 0
+Sparkle1 = 0
+Sparkle2 = 0
+
+FirstNoteEffect = 0
+SecondNoteEffect = 0
+EffectsWanted = 0
+NotePair1Effect1 = 0
+NotePair1Effect2 = 0
+NotePair2Effect1 = 0
+NotePair2Effect2 = 0
+NotePair3Effect1 = 0
+NotePair3Effect2 = 0
+NotePair4Effect1 = 0
+NotePair4Effect2 = 0
+NotePair1EffectOn = 0
+NotePair2EffectOn = 0
+NotePair3EffectOn = 0
+NotePair4EffectOn = 0
+
+FoodReward = 0
+WoodReward = 0
+Chimp = 0
+
+
+AlignmentTotal = 0
+Spell=0
+SFX=0
+
+CursedTownPos= marker at [2197.3223, 34.8400, 3092.6162]
+FearRay1 = 0
+FearRay2 = 0
+FearRay3 = 0
+FearRay4 = 0
+FearRay5 = 0
+FearRay6 = 0
+FearRay7 = 0
+FearRay8 = 0
+FearRayToTown = 0
+
+Highlight = 0
+
+start
+ // There five stones in a circle, two of which are the same note but an octave apart. Pairing them up gets a reward.
+ // There are three other paired notes that provide different benefits but all of these involve the 3 missing stones.
+
+	wait until [CentreOfCircle] not viewed
+
+	SingingStone1 = create OBJECT SINGINGSTONE1 at [SingingStone1Pos]
+				set SingingStone1 focus to [CentreOfCircle]
+				disable SingingStone1 moveable
+				disable SingingStone1 pickup
+	SingingStone2 = create OBJECT SINGINGSTONE1 at [SingingStone2Pos]
+				set SingingStone2 focus to [CentreOfCircle]
+				disable SingingStone2 moveable
+				disable SingingStone2 pickup
+	SingingStone3 = create OBJECT SINGINGSTONE1 at [SingingStone3Pos]
+				set SingingStone3 focus to [CentreOfCircle]
+				disable SingingStone3 moveable
+				disable SingingStone3 pickup
+	SingingStone4 = create OBJECT SINGINGSTONE1 at [SingingStone4Pos]
+				set SingingStone4 focus to [CentreOfCircle]
+				disable SingingStone4 moveable
+				disable SingingStone4 pickup
+	SingingStone5 = create OBJECT SINGINGSTONE1 at [SingingStone5Pos]
+				set SingingStone5 focus to [CentreOfCircle]
+				disable SingingStone5 moveable
+				disable SingingStone5 pickup
+	Pos6 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [SingingStone6Pos]
+	Pos7 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [SingingStone7Pos]
+	Pos8 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_BASE at [SingingStone8Pos]
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HighlightPos] 
+	run script ChallengeHighlightNotify(Highlight, CentreOfCircle, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_09)
+	
+	SingingStone6 = create OBJECT SINGINGSTONE1 at [SingingStone6AwayPos]
+	SingingStone7 = create OBJECT SINGINGSTONE1 at [SingingStone7AwayPos]
+	SingingStone8 = create OBJECT SINGINGSTONE1 at [SingingStone8AwayPos]
+
+
+
+	Villager = create VILLAGER VILLAGER_INFO_INDIAN_HOUSEWIFE_FEMALE at [VillagerPos]
+	DeadChild = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_INDIAN_FARMER_MALE at [DeadChildPos]
+	AGE of DeadChild = 9
+	HEALTH of DeadChild = 0
+	DeadChild play ANM_P_DEAD1 loop -1
+	begin cinema
+
+		enable Villager high gfx detail
+		enable DeadChild high gfx detail
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set Villager focus to camera position
+
+		move camera position to [2220.082, 7.191, 2916.504] time 5
+		move camera focus to [2228.844, 6.310, 2922.238] time 5
+		wait until camera ready
+
+		set Villager focus to camera position
+		Villager play ANM_P_INTO_PRAY loop 1
+		wait until Villager played
+
+		Villager play ANM_P_PRAY loop 1
+		wait 1 second
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_19 StandardReminder(variable HELP_TEXT_REMINDER_19)
+		// "Villager: These five stones are meant to have great powers when it is activated. Can you activate them for me, I'm hoping to bring my child back from the dead"
+		say HELP_TEXT_SINGING_STONES2_01
+		wait until Villager played
+
+		Villager play ANM_P_OUT_OF_PRAY loop 1
+		wait until Villager played
+
+		Villager play ANM_P_GOSSIP_WOMAN_3 loop -1
+
+		wait until read
+
+		set Villager focus to [DeadChild]
+
+		Villager play ANM_P_MOURNING loop -1
+
+		move camera focus to [DeadChild] + [0,0.5,0] time 2
+		say HELP_TEXT_SINGING_STONES2_02
+		wait until read
+
+		wait 2 seconds
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		wait until camera ready
+	end cinema
+
+	while LookingForNote < 4
+		// looks for all pairs and checks to see if new stones are being added
+
+		/// Should I check if the hand is over any stones and play the relevant note if it is? If I do MAKE SURE THE CAMERA IS NEAR THE CIRCLE, otherwise it'll cause major chug
+		// if so do 5-8 checks, inside IF camera position near [CentreOfCircle] bracket, to see if hand over stone and play note if it is
+
+		if SingingStonesAllInPlace == 0
+
+			if [SingingStone6] near [SingingStone6Pos] radius 5 and SingingStone6 is not HELD and SingingStone6 is not FLYING and SingingStone6InPlace == 0
+				set SingingStone6 position to [SingingStone6Pos]
+				set SingingStone6 focus to [CentreOfCircle]
+				SingingStone6InPlace = 1
+				disable SingingStone6 moveable
+				disable SingingStone6 pickup
+
+			elsif [SingingStone6] near [SingingStone7Pos] radius 5 and SingingStone6 is not HELD and SingingStone6 is not FLYING and SingingStone6InPlace == 0 and SingingStone7InPlace == 0
+//				set SingingStone6 position to [SingingStone7Pos]
+//				set SingingStone6 focus to [CentreOfCircle]
+				set SingingStone6 velocity heading [SingingStone7Pos]+[0,10,0] speed 1
+
+			elsif [SingingStone6] near [SingingStone8Pos] radius 5 and SingingStone6 is not HELD and SingingStone6 is not FLYING and SingingStone6InPlace == 0 and SingingStone8InPlace == 0
+//				set SingingStone6 position to [SingingStone8Pos]
+//				set SingingStone6 focus to [CentreOfCircle]
+				set SingingStone6 velocity heading [SingingStone8Pos]+[0,10,0] speed 1
+
+
+			elsif [SingingStone7] near [SingingStone7Pos] radius 5 and SingingStone7 is not HELD and SingingStone7 is not FLYING and SingingStone7InPlace == 0
+				set SingingStone7 position to [SingingStone7Pos]
+				set SingingStone7 focus to [CentreOfCircle]
+				SingingStone7InPlace = 1
+				disable SingingStone7 moveable
+				disable SingingStone7 pickup
+
+			elsif [SingingStone7] near [SingingStone6Pos] radius 5 and SingingStone7 is not HELD and SingingStone7 is not FLYING and SingingStone7InPlace == 0 and SingingStone6InPlace == 0
+//				set SingingStone7 position to [SingingStone6Pos]
+//				set SingingStone7 focus to [CentreOfCircle]
+				set SingingStone7 velocity heading [SingingStone6Pos]+[0,10,0] speed 1
+
+			elsif [SingingStone7] near [SingingStone8Pos] radius 5 and SingingStone7 is not HELD and SingingStone7 is not FLYING and SingingStone7InPlace == 0 and SingingStone8InPlace == 0
+//				set SingingStone7 position to [SingingStone8Pos]
+//				set SingingStone7 focus to [CentreOfCircle]
+				set SingingStone7 velocity heading [SingingStone8Pos]+[0,10,0] speed 1
+
+			
+			elsif [SingingStone8] near [SingingStone8Pos] radius 5 and SingingStone8 is not HELD and SingingStone8 is not FLYING and SingingStone8InPlace == 0
+				set SingingStone8 position to [SingingStone8Pos]
+				set SingingStone8 focus to [CentreOfCircle]
+				SingingStone8InPlace = 1
+				disable SingingStone8 moveable
+				disable SingingStone8 pickup
+
+			elsif [SingingStone8] near [SingingStone6Pos] radius 5 and SingingStone8 is not HELD and SingingStone8 is not FLYING and SingingStone8InPlace == 0 and SingingStone6InPlace == 0
+//				set SingingStone8 position to [SingingStone6Pos]
+//				set SingingStone8 focus to [CentreOfCircle]
+				set SingingStone8 velocity heading [SingingStone6Pos]+[0,10,0] speed 1
+
+			elsif [SingingStone8] near [SingingStone7Pos] radius 5 and SingingStone8 is not HELD and SingingStone8 is not FLYING and SingingStone8InPlace == 0 and SingingStone7InPlace == 0
+//				set SingingStone8 position to [SingingStone7Pos]
+//				set SingingStone8 focus to [CentreOfCircle]
+				set SingingStone8 velocity heading [SingingStone7Pos]+[0,10,0] speed 1
+			end if
+
+			if SingingStone6InPlace == 1 and SingingStone7InPlace == 1 and SingingStone8InPlace == 1
+				SingingStonesAllInPlace = 1
+				begin dialogue
+					eject good spirit
+					// "GS: All the stones are in place. Now we just need to activate them all."
+					say HELP_TEXT_SINGING_STONES2_04
+					wait until read
+					send good spirit home
+				end dialogue
+			end if
+
+		end if
+
+
+
+		if LookingForNote == 0
+			// defines which SingingStone is put into the FirstNote variable
+			if SingingStone1 clicked and NotePair1 == 0
+				FirstNote = SingingStone1
+				/// play SingingStone1Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone1]
+			elsif SingingStone2 clicked and NotePair2 == 0
+				FirstNote = SingingStone2
+				/// play SingingStone2Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone2]
+			elsif SingingStone3 clicked and NotePair1 == 0
+				FirstNote = SingingStone3
+				/// play SingingStone3Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone3]
+			elsif SingingStone4 clicked and NotePair3 == 0
+				FirstNote = SingingStone4
+				/// play SingingStone4Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone4]
+			elsif SingingStone5 clicked and NotePair4 == 0
+				FirstNote = SingingStone5
+				/// play SingingStone5Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone5]
+			elsif SingingStone6 clicked and NotePair2 == 0 and SingingStone6InPlace == 1
+				FirstNote = SingingStone6
+				/// play SingingStone6Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone6]
+			elsif SingingStone7 clicked and NotePair3 == 0 and SingingStone7InPlace == 1
+				FirstNote = SingingStone7
+				/// play SingingStone7Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone7]
+			elsif SingingStone8 clicked and NotePair4 == 0 and SingingStone8InPlace == 1
+				FirstNote = SingingStone8
+				/// play SingingStone8Note and wait until it has played
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone8]
+			end if
+
+			if FirstNote != 0
+				LookingForNote = 1
+			end if
+
+		elsif LookingForNote == 1
+			if Sparkle1 == 0
+				FirstNoteEffect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [FirstNote]+[0,10,0] time 999
+				Sparkle1 = 1
+			end if
+
+			// defines which SingingStone is put into the SecondNote variable
+			if SingingStone1 clicked and FirstNote != SingingStone1 and NotePair1 == 0
+				SecondNote = SingingStone1
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone1]
+			elsif SingingStone2 clicked and FirstNote != SingingStone2 and NotePair2 == 0
+				SecondNote = SingingStone2
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone2]
+			elsif SingingStone3 clicked and FirstNote != SingingStone3 and NotePair1 == 0
+				SecondNote = SingingStone3
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone3]
+			elsif SingingStone4 clicked and FirstNote != SingingStone4 and NotePair3 == 0
+				SecondNote = SingingStone4
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone4]
+			elsif SingingStone5 clicked and FirstNote != SingingStone5 and NotePair4 == 0
+				SecondNote = SingingStone5
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone5]
+			elsif SingingStone6 clicked and FirstNote != SingingStone6 and NotePair2 == 0 and SingingStone6InPlace == 1
+				SecondNote = SingingStone6
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone6]
+			elsif SingingStone7 clicked and FirstNote != SingingStone7 and NotePair3 == 0 and SingingStone7InPlace == 1
+				SecondNote = SingingStone7
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone7]
+			elsif SingingStone8 clicked and FirstNote != SingingStone8 and NotePair4 == 0 and SingingStone8InPlace == 1
+				SecondNote = SingingStone8
+				start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [SingingStone8]
+			end if
+
+			if SecondNote != 0
+				LookingForNote = 2
+			end if
+		
+		elsif LookingForNote == 2
+			PermEffectTimer = 0
+			ResetTimer = 0
+			if Sparkle2 == 0
+				SecondNoteEffect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SecondNote]+[0,10,0] time 999
+				Sparkle2 = 1
+			end if
+
+			// Check results of two notes to see if they are a pair
+			if FirstNote == SingingStone1 and SecondNote == SingingStone3 and NotePair1 == 0
+				NotePair1 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone3 and SecondNote == SingingStone1 and NotePair1 == 0
+				NotePair1 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone2 and SecondNote == SingingStone6 and NotePair2 == 0
+				NotePair2 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone6 and SecondNote == SingingStone2 and NotePair2 == 0
+				NotePair2 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone4 and SecondNote == SingingStone7 and NotePair3 == 0
+				NotePair3 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone7 and SecondNote == SingingStone4 and NotePair3 == 0
+				NotePair3 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone5 and SecondNote == SingingStone8 and NotePair4 == 0
+				NotePair4 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			elsif FirstNote == SingingStone8 and SecondNote == SingingStone5 and NotePair4 == 0
+				NotePair4 = 1
+				/// play two notes together? Play big chord?
+				/// wait until the above has played
+				start sound LH_SCRIPT_SAMPLE_BROTHER_HELP AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CentreOfCircle]
+			end if
+
+
+			NotePairTotal = NotePair1 + NotePair2 + NotePair3 + NotePair4
+
+			if NotePairTotal == 1 and Reward1Given == 0
+				// cinema and morality comment
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					enable Villager high gfx detail
+					enable DeadChild high gfx detail
+					move camera position to [2197.477, 19.005, 2897.013] time 3
+					move camera focus to [2219.964, 6.370, 2923.798] time 3
+					wait until camera ready
+					/// Remove the morality speech below if it makes puzzle too obvious
+					eject good spirit
+					// "GS - Aha Same notes but an octave higher."
+					say HELP_TEXT_SINGING_STONES2_05
+					wait until read
+					send good spirit home
+					wait 1 second
+					move camera position to [2192.041, 21.437, 2889.414] time 3
+					move camera focus to [2230.657, 6.276, 2934.681] time 3
+					// cast heal effect at [CentreOfCircle]
+					Spell=cast SPELL_HEAL_LEVEL_2 spell at [CentreOfCircle] from [SingingStone1] radius 0 time 3 curl 0
+					wait 1 second
+					if [DeadChild] near [CentreOfCircle] radius 10
+						Spell=cast SPELL_HEAL_LEVEL_1 spell at [DeadChild] from [SingingStone1] radius 0 time 3 curl 0
+						HEALTH of DeadChild = 1
+						state DeadChild LIVING_IN_SCRIPT
+						DeadChild play ANM_P_CROWD_IMPRESSED_1 loop 1
+						ChildAlive = 1
+						AlignmentTotal = AlignmentTotal + 0.5
+						affect alignment by 0.5
+					else
+						AlignmentTotal = AlignmentTotal - 0.2
+						affect alignment by -0.2
+					end if
+
+					if [Villager] near [CentreOfCircle] radius 10 and VillagerDeath == 1
+						Spell=cast SPELL_HEAL_LEVEL_1 spell at [Villager] from [SingingStone1] radius 0 time 3 curl 0
+						HEALTH of Villager = 1
+						VillagerDeath = 0
+						state Villager LIVING_IN_SCRIPT
+						move Villager position to [CentreOfCircle]+[5,0,0]
+					end if
+
+					snapshot challenge success 0.25 alignment 0.0 HELP_TEXT_TITLE_19 StandardReminder(variable HELP_TEXT_REMINDER_45)
+					wait 2 seconds
+
+					move camera position to [2220.082, 7.191, 2916.504] time 3
+					move camera focus to [2228.844, 6.310, 2922.238] time 3
+
+					if ChildAlive == 1 and VillagerDeath == 0
+						set Villager focus to camera position
+						Villager play ANM_P_PRAY loop 1
+						move camera focus to [Villager] time 2
+						// "Villager: Thank you so much kindly god dude"
+						say HELP_TEXT_SINGING_STONES2_06
+						wait until read
+						wait 1 second
+					elsif ChildAlive == 1 and VillagerDeath == 1
+						// "Child: Gee thanks. Where's mom then EH?"
+						say HELP_TEXT_SINGING_STONES2_07
+						wait until read
+						wait 1 second
+					elsif ChildAlive == 0
+						eject good spirit
+						// "GS - Blimey. That looked like a powerful healing spell. Shame the kid wasn't around to benefit."
+						say HELP_TEXT_SINGING_STONES2_08
+						wait until read
+						send good spirit home
+						wait 1 second
+					end if
+					wait until camera ready
+					move camera position to [BeginPos] time 3
+					move camera focus to [BeginFoc] time 3
+					wait until camera ready
+				end cinema
+
+				wait until Villager played
+				if VillagerDeath == 0
+					SPEED of Villager = 0.3
+					move Villager position to [VillagerHut]
+					FamilyOnWayHome = 1
+				end if
+				if ChildAlive == 1
+					SPEED of DeadChild = 0.3
+					move DeadChild position to [VillagerHut]
+					FamilyOnWayHome = 1
+				end if
+
+				begin dialogue
+					eject good spirit
+					eject evil spirit
+					//  "GS: Those two stones permenantly set now."
+					say HELP_TEXT_SINGING_STONES2_09
+					wait until read
+					//  "ES: Hey I wonder what will happen if we activate them all."
+					say HELP_TEXT_SINGING_STONES2_10
+					wait until read
+					if SingingStonesAllInPlace == 0
+						//  "GS: We need the stones from around this land."
+						say HELP_TEXT_SINGING_STONES2_03
+						wait until read
+					end if
+					send good spirit home
+					send evil spirit home
+				end dialogue
+
+				Reward1Given = 1
+			end if
+
+			if NotePairTotal == 2 and Reward2Given == 0
+				// cinema and morality comment
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					move camera position to [CentreOfCircle]+[15,15,15] time 3
+					move camera focus to [CentreOfCircle] time 2
+					wait until camera ready													  
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[-5,5,0] time 5
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,-5] time 5
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,0] time 5
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[5,5,0] time 5
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,5] time 5					
+
+					FoodReward = reward REWARD_LARGE_FOOD at [CentreOfCircle]+[5,0,0] from sky
+					run background script displayrewardhelp(FoodReward)
+					WoodReward = reward REWARD_LARGE_WOOD at [CentreOfCircle]+[-5,0,0] from sky
+					run background script displayrewardhelp(WoodReward)
+
+					wait 2 seconds
+					move camera position to [CentreOfCircle]+[15,10,15] time 8
+					snapshot challenge success 0.5 alignment AlignmentTotal HELP_TEXT_TITLE_19 StandardReminder(variable HELP_TEXT_REMINDER_46)
+					eject good spirit
+					eject evil spirit
+					wait 1 second
+					say HELP_TEXT_SINGING_STONES2_22
+					wait until read
+					say HELP_TEXT_SINGING_STONES2_14
+					wait until read
+					send good spirit home
+					send evil spirit home
+					wait 2 seconds
+					move camera position to [BeginPos] time 3
+					move camera focus to [BeginFoc] time 3
+					wait until camera ready
+				end cinema
+				Reward2Given = 1
+			end if
+
+			if NotePairTotal == 3 and Reward3Given == 0
+				// cinema and morality comment
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					move camera position to [CentreOfCircle]+[15,15,15] time 3
+					move camera focus to [CentreOfCircle] time 2
+					wait until camera ready
+
+					FearRay1 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+					add FearRay1 target on SingingStone1
+					FearRay2 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+					add FearRay2 target on SingingStone2
+					FearRay3 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+					add FearRay3 target on SingingStone3
+					FearRay4 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+					add FearRay4 target on SingingStone4
+					FearRay5 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+					add FearRay5 target on SingingStone5
+					if SingingStone6InPlace == 1
+						FearRay6 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+						add FearRay6 target on SingingStone6
+					end if
+					if SingingStone7InPlace == 1
+						FearRay7 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+						add FearRay7 target on SingingStone7
+					end if
+					if SingingStone8InPlace == 1
+						FearRay8 = create special effect SPOT_VISUAL_MAGIC_BEAM on CentreOfCircle time 5
+						add FearRay8 target on SingingStone8
+					end if
+					wait 2 seconds
+					/// Make next effect of a different colour
+					FearRayToTown = create special effect SPOT_VISUAL_MAGIC_BEAM on CursedTownPos time 5
+					add FearRayToTown target on CentreOfCircle
+
+					snapshot challenge success 0.75 alignment AlignmentTotal HELP_TEXT_TITLE_19 StandardReminder(variable HELP_TEXT_REMINDER_46)
+					// make nearby town all 12 years old
+					say HELP_TEXT_SINGING_STONES2_23
+					wait until read
+					say HELP_TEXT_SINGING_STONES2_24
+					wait until read
+					move camera position to [BeginPos] time 3
+					move camera focus to [BeginFoc] time 3
+					wait until camera ready
+				end cinema
+				run background script SingingStoneCurseMain
+				Reward3Given = 1
+			end if
+
+			if NotePairTotal == 4
+				
+				LookingForNote = 4
+			else
+				delete FirstNoteEffect
+				delete SecondNoteEffect
+				FirstNote = 0
+				SecondNote = 0
+				LookingForNote = 0
+				Sparkle1 = 0
+				Sparkle2 = 0
+				clear clicked object
+			end if
+		
+		end if
+
+		if EffectsWanted < 4
+			PermEffectTimer++
+			if PermEffectTimer > 5 // presuming 10 ticks == 1 second
+				PermEffectTimer = 0
+				if NotePair1 == 1 and NotePair1EffectOn == 0
+					NotePair1Effect1 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone1]+[0,15,0] time 999999
+					NotePair1Effect2 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone3]+[0,15,0] time 999999
+					NotePair1EffectOn = 1
+				end if
+
+				if NotePair2 == 1 and NotePair2EffectOn == 0
+					NotePair2Effect1 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone2]+[0,15,0] time 999999
+					NotePair2Effect2 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone6]+[0,15,0] time 999999
+					NotePair2EffectOn = 1
+				end if
+
+				if NotePair3 == 1 and NotePair3EffectOn == 0
+					NotePair3Effect1 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone4]+[0,15,0] time 999999
+					NotePair3Effect2 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone7]+[0,15,0] time 999999
+					NotePair3EffectOn = 1
+				end if
+
+				if NotePair4 == 1 and NotePair4EffectOn == 0
+					NotePair4Effect1 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone5]+[0,15,0] time 999999
+					NotePair4Effect2 = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [SingingStone8]+[0,15,0] time 999999
+					NotePair4EffectOn = 1
+				end if
+
+				EffectsWanted = NotePair1EffectOn + NotePair2EffectOn + NotePair3EffectOn + NotePair4EffectOn
+			end if
+		end if
+
+		if LookingForNote == 1
+			ResetTimer++
+		end if
+
+
+		if LookingForNote == 1 and ResetTimer > 100
+			delete FirstNoteEffect
+			clear clicked object
+
+			LookingForNote = 0
+			FirstNote = 0
+			Sparkle1 = 0
+			Sparkle2 = 0
+			SecondNote = 0
+			ResetTimer = 0
+		end if
+
+
+  
+		if HEALTH of Villager <= 0 and VillagerDeath == 0 and VillagerSaved == 0
+			begin dialogue
+				eject evil spirit
+				// "ES: Oh the horror! You've killed the child's mother"
+				say HELP_TEXT_SINGING_STONES2_11
+				wait until read
+				send evil spirit home
+				AlignmentTotal = AlignmentTotal - 0.6
+				affect alignment by -0.6
+			end dialogue
+			VillagerDeath = 1
+		end if
+
+		if HEALTH of DeadChild <= 0 and ChildRedeath == 0 and DeadChildSaved == 0 and ChildAlive == 1
+			begin dialogue
+				eject good spirit
+				// "GS: Oh the horror! You've killed the child after healing him!"
+				say HELP_TEXT_SINGING_STONES2_12
+				wait until read
+				send good spirit home
+				/// reduce alignment lots
+				AlignmentTotal = AlignmentTotal - 0.8
+				affect alignment by -0.8
+			end dialogue
+			ChildRedeath = 1
+		end if
+
+		if FamilyOnWayHome == 1
+			if [Villager] at [VillagerHut]
+				release Villager
+				VillagerSaved = 1
+				AlignmentTotal = AlignmentTotal + 0.1
+				affect alignment by 0.1
+			end if
+
+			if [DeadChild] at [VillagerHut]
+				release DeadChild
+				DeadChildSaved = 1
+				AlignmentTotal = AlignmentTotal + 0.1
+				affect alignment by 0.1
+			end if
+		end if
+
+		if Reward1Given == 0 and DeadChildMoved == 0
+			if [DeadChild] not near [CentreOfCircle] radius 10 and DeadChild is not HELD
+				begin dialogue
+					eject good spirit
+					// "GS: The child's body is no longer inside the stone circle. Move him back if you want him to be healed."
+					say HELP_TEXT_SINGING_STONES2_13
+					wait until read
+					send good spirit home
+				end dialogue
+				DeadChildMoved = 1
+			end if
+		end if
+
+	end while
+
+		if LookingForNote == 4
+				delete NotePair1Effect1
+				delete NotePair1Effect2
+				delete NotePair2Effect1
+				delete NotePair2Effect2
+				delete NotePair3Effect1
+				delete NotePair3Effect2
+				delete NotePair4Effect1
+				delete NotePair4Effect2
+
+// **** SWAP TO CHIMP ****
+			// End cinema, effects, speech and reward - Swap to Chimp
+				begin cinema
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+					move camera position to [CentreOfCircle]+[15,15,15] time 3
+					move camera focus to [CentreOfCircle] time 2
+					// create big creation effect that masks Chimp ping
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[-5,5,0] time 3
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,-5] time 3
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,0] time 3
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[5,5,0] time 3
+					SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [CentreOfCircle]+[0,5,5] time 3
+					wait 1 second
+					/// create Transfer-Stone
+					MyCreature = get player 1 creature		
+					Chimp = create CREATURE CREATURE_TYPE_CHIMP at [CentreOfCircle]
+					set Chimp focus to [CentreOfCircle]+[15,15,15]
+					wait until camera ready
+					// make Chimp wave at camera
+					force Chimp CREATURE_WAVE_AT_PLAYER Chimp
+					wait 1 second
+					snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_19 StandardReminder(variable HELP_TEXT_REMINDER_19)
+					eject good spirit
+					eject evil spirit
+					make good spirit point at [Chimp]
+					say HELP_TEXT_SINGING_STONES2_25
+					wait until read
+					stop good spirit pointing
+					say HELP_TEXT_SINGING_STONES2_26
+					wait until read
+					say HELP_TEXT_SINGING_STONES2_27
+					wait until read
+					send evil spirit home
+					send good spirit home
+					move camera position to [CentreOfCircle]+[25,25,25] time 3
+					wait until camera ready
+				end cinema
+			LookingForNote = 5
+		end if
+
+	run background script SwapCreatures(Chimp)
+
+end script MoreSingingStonesMain

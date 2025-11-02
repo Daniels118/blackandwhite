@@ -1,0 +1,54 @@
+run script TestScrap
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script TestScrap
+/*	LethysGone=0
+	StoragePit=1
+	LethysPoisonTimer = create timer for 20 seconds
+	Count=0
+*/
+
+ArenaPos			= marker at [3722.34, 0.0, 2617.00]
+Point1				= marker at [3700.34, 0.0, 2617.00]
+Lantern				= 0
+LanternPos			= 0
+
+start
+
+	LanternPos	= marker at get target from [Point1] to [ArenaPos] distance 80 angle 0
+	Lantern = create with angle 0 and scale 0 OBJECT MOBILE_STATIC_INFO_STREET_LANTERN at [LanternPos]
+	delete Lantern
+			
+/*	while StoragePit != 0
+		StoragePit++
+	until StoragePit==10
+		say "Sucker"
+		Count++
+	end while
+
+	wait 5 seconds
+
+	while get LethysPoisonTimer time remaining != 0
+		StoragePit++
+		until StoragePit == 0
+			say "Dummy"
+			Count++
+		until LethysGone == 1
+		until StoragePit >30
+			say "Hurrah"
+			Count++
+	end while
+  
+	begin dialogue
+		Count++
+		say single line "Saying End $d" with number Count
+		wait 3 seconds
+		StoragePit=0
+		say single line "Saying End $d" with number Count
+		
+		wait 60*5 seconds
+	end dialogue
+*/
+end script TestScrap
+
+

@@ -1,0 +1,289 @@
+challenge THROW_THROUGH_SHIELD
+
+global NumberOfActiveStones
+global ShieldFinished
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookForNearMisses(Bloke, OriginalPos, BlokeRunAwayPos)
+NearbyObject = 0
+IsStartled = 0
+start
+	NearbyObject = get ROCK_OBJECT flying at [Bloke] radius 40 excluding scripted
+	if NearbyObject exists and NearbyObject is FLYING
+		IsStartled = 1
+	end if
+
+	NearbyObject = get TREE flying at [Bloke] radius 40 excluding scripted
+	if NearbyObject exists and NearbyObject is FLYING
+		IsStartled = 1
+	end if
+
+	NearbyObject = get spell SPELL_FIREBALL_LEVEL_1 at [Bloke] radius 40
+	if NearbyObject exists
+		IsStartled = 1
+	end if
+
+	NearbyObject = get spell SPELL_FIREBALL_LEVEL_2 at [Bloke] radius 40
+	if NearbyObject exists
+		IsStartled = 1 
+	end if
+
+	NearbyObject = get spell SPELL_FIREBALL_LEVEL_3 at [Bloke] radius 40
+	if NearbyObject exists
+		IsStartled = 1 
+	end if
+
+	if IsStartled == 1
+		Bloke play ANM_P_FRIGHT_DUCK loop 1
+		wait until Bloke played
+		move Bloke position to [BlokeRunAwayPos]
+		wait until [Bloke] near [BlokeRunAwayPos] radius 1
+		Bloke play ANM_P_LOOKING_FOR_SOMETHING loop -1
+		wait 45 seconds
+		move Bloke position to [OriginalPos]
+		wait until [Bloke] near [OriginalPos] radius 1
+		Bloke play ANM_P_DANCE_PISS_TAKE_ loop -1		
+	end if 
+end script LookForNearMisses
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterShieldStone(Stone, StonePos, Bloke, ShieldPos, BlokeRunAwayPos, BlokeSample)
+RayActive = 0
+OriginalBlokePosition = marker at [Bloke]
+Ray = 0
+RayIntersectionEffect = 0
+LightningAttack = 0
+CreatureHeight = 0
+start
+	Bloke play ANM_P_DANCE_PISS_TAKE_ loop -1
+	
+			
+	while ShieldFinished == 0
+		if HEALTH of Bloke > 0 and Stone exists	
+			if [Stone] near [StonePos] radius 1 and [Bloke] near [OriginalBlokePosition] radius 1
+				if RayActive == 0
+					//attach chanting sound here
+					attach 3d sound tag constant BlokeSample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX to Bloke
+
+					Ray = create special effect SPOT_VISUAL_MAGIC_BEAM at [StonePos] + [0.0, 5.0, 0.0] time -1
+					add Ray target at [ShieldPos]
+					RayActive = 1
+					NumberOfActiveStones++
+				else
+				end if 
+			else
+				if RayActive == 1
+					//detach chanting sound here
+					detach sound tag constant BlokeSample AUDIO_SFX_BANK_TYPE_SCRIPT_SFX from Bloke
+
+					delete Ray
+					RayActive = 0
+					NumberOfActiveStones--
+				else
+				end if 
+			end if
+			if RayActive == 1
+				RayIntersectionEffect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [StonePos] + [0.0, 5.0, 0.0] time 2
+				MyCreature = get player 1 creature
+				if [MyCreature] near [Stone] radius 100
+					if not MyCreature affected by spell CREATURE_SPELL_INVISIBLE
+						
+						LightningAttack=create special effect SPOT_VISUAL_LIGHTNING_SINGLE_STRIKE at [StonePos] + [0.0, 5.0, 0.0] time 1.0
+						//paul target his head...
+						CreatureHeight=SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+						add LightningAttack target at [MyCreature] + [0.0, CreatureHeight*0.9, 0.0]
+						add LightningAttack target at [MyCreature] + [5.0, CreatureHeight*0.9, 0.0]						
+						add LightningAttack target at [MyCreature] + [-5.0, CreatureHeight*0.9, 0.0]
+
+						//LightningAttack = cast SPELL_LIGHTNING_LEVEL_1 spell at [MyCreature] from [StonePos] + [0.0, 5.0, 0.0] radius 5.0 time 3 curl 1
+						//force MyCreature CREATURE_RUN_AWAY_FROM_POS StonePos
+						wait 3 seconds
+						release MyCreature
+					end if
+				end if 
+			end if 
+			run background script LookForNearMisses(Bloke, OriginalBlokePosition, BlokeRunAwayPos)
+			wait 3 seconds
+		else
+			if RayActive == 1
+				delete Ray
+				RayActive = 0
+				NumberOfActiveStones--
+				if Bloke exists
+					release Bloke
+				end if
+			end if
+		end if 
+	end while
+end script LookAfterShieldStone
+				
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ThrowThroughShield
+ShieldCentre = marker at [1655.9833, 70, 2331.1040]
+ShieldTown = get TOWN at [ShieldCentre] radius 100
+
+Prayer1 = 0
+Stone1Pos = marker at [2092.572, 128.839, 2070.963]  
+Stone1 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_1 at [Stone1Pos]
+
+Prayer2 = 0
+Stone2Pos = marker at [1571.990, 93.062, 2105.337]  
+Stone2 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_1 at [Stone2Pos]
+
+Prayer3 = 0
+Stone3Pos = marker at [1396.386, 23.303, 3000.660]
+Stone3 = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_1 at [Stone3Pos]
+
+TopShieldPos = marker at [ShieldCentre] + [0.0, 80.0, 0.0]
+
+ShieldState = 0
+Shield = 0
+
+VerticalRay = 0
+RayIntersectionEffect = 0
+CentreStone = create OBJECT MOBILE_STATIC_INFO_SINGING_STONE_1 at [ShieldCentre]
+//LightningAttack = 0
+//CreatureHeight = 0
+start
+	MyCreature = get player 1 creature
+	wait until (get ShieldTown belief for player 1 > 0.0) or ([MyCreature] near [ShieldCentre] radius 300) 
+	enable Stone1 indestructible
+	enable Stone2 indestructible
+	enable Stone3 indestructible
+
+
+	if PLAYER of ShieldTown != 1 and ([Stone1] near [Stone1Pos] radius 1 or [Stone2] near [Stone2Pos] radius 1 or [Stone3] near [Stone3Pos] radius 1)
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_04
+			move camera focus to [ShieldTown] time 4	
+			eject evil spirit
+			make evil spirit point at [ShieldTown]
+			say HELP_TEXT_NEW_L5_VILLAGE3_01
+			wait until read
+			send evil spirit home
+			wait until camera ready
+			Prayer1 = create VILLAGER VILLAGER_INFO_EGYPTIAN_FORESTER_MALE at [2089.572, 128.839, 2068.963] 
+			Prayer2 = create VILLAGER VILLAGER_INFO_EGYPTIAN_TRADER_MALE at [1568.990, 93.062, 2103.337]  
+			Prayer3 = create VILLAGER VILLAGER_INFO_EGYPTIAN_HOUSEWIFE_FEMALE at [1393.386, 23.303, 2998.660]
+			//enable Prayer1 indestructible
+			//enable Prayer2 indestructible
+			//enable Prayer3 indestructible
+
+			set Prayer1 focus to [Stone1Pos]
+			set Prayer2 focus to [Stone2Pos]
+			set Prayer3 focus to [Stone3Pos]
+
+			ShieldFinished = 0
+
+			if [Stone1] near [Stone1Pos] radius 1
+				run background script LookAfterShieldStone(Stone1, Stone1Pos, Prayer1, TopShieldPos, marker at [2101.469, 129.436, 2059.728], variable LH_SCRIPT_SAMPLE_TIBETANCHANTER_01)
+				set camera position to [2103.836, 135.896, 2047.649] 
+				set camera focus to [1883.855, 73.047, 2320.000] 
+				move camera position to [2097.615, 134.119, 2055.350] time 10
+				move camera focus to [1877.634, 71.270, 2327.702] time 10
+				say HELP_TEXT_NEW_L5_VILLAGE3_02
+				wait until read
+			end if 
+
+			if [Stone2] near [Stone2Pos] radius 1
+				run background script LookAfterShieldStone(Stone2, Stone2Pos, Prayer2, TopShieldPos, marker at [1561.341, 86.650, 2098.851], variable LH_SCRIPT_SAMPLE_TIBETANCHANTER_02)
+				set camera position to [1545.590, 95.620, 2066.672] 
+				set camera focus to [1668.494, 86.805, 2299.195] 
+				move camera position to [1556.518, 94.836, 2087.346] time 10
+				move camera focus to [1678.795, 70.789, 2318.682] time 10
+				say HELP_TEXT_NEW_L5_VILLAGE3_03
+				wait until read
+			end if 
+
+			if [Stone3] near [Stone3Pos] radius 1
+				run background script LookAfterShieldStone(Stone3, Stone3Pos, Prayer3, TopShieldPos, marker at [1381.192, 20.019, 3001.219], variable LH_SCRIPT_SAMPLE_TIBETANCHANTER_03)
+				set camera position to [1366.687, 31.749, 3044.992] 
+				set camera focus to [1416.386, 20.290, 2960.101] 
+				move camera position to [1363.983, 30.213, 3009.027] time 10
+				move camera focus to [1454.199, 16.204, 2979.062] time 10
+				//say HELP_TEXT_NEW_L5_VILLAGE3_04 WE CANNOT USE THIS ENUM->BAD SAMPLE
+				say HELP_TEXT_NEW_L5_VILLAGE3_02
+				wait until read			   
+			end if 
+			
+			move camera position to [1711.284, 289.679, 2026.875] time 10
+			move camera focus to [1654.253, 75.430, 2377.271] time 10
+			wait until camera ready
+			
+			VerticalRay = create special effect SPOT_VISUAL_MAGIC_BEAM at [TopShieldPos] time -1 // vertical beam
+			add VerticalRay target at [ShieldCentre]
+			RayIntersectionEffect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [TopShieldPos] time 2
+			wait 1 seconds
+			RayIntersectionEffect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [TopShieldPos] time 2
+			Shield = cast SPELL_SHIELD spell at [ShieldCentre] from camera position radius NumberOfActiveStones*35 time -1 curl 0
+			wait 3 seconds
+			RayIntersectionEffect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [TopShieldPos] time 2
+
+			eject good spirit
+			eject evil spirit
+
+			say HELP_TEXT_NEW_L5_VILLAGE3_05
+			wait until read
+
+			say HELP_TEXT_NEW_L5_VILLAGE3_06
+			wait until read
+
+			say HELP_TEXT_NEW_L5_VILLAGE3_07
+			wait until read
+
+			say HELP_TEXT_NEW_L5_VILLAGE3_08
+			wait until read
+					
+			say HELP_TEXT_NEW_L5_VILLAGE3_09
+			wait until read
+
+			send good spirit home
+			send evil spirit home
+			stop music
+		end cinema
+
+		while NumberOfActiveStones != 0
+			if ShieldState != NumberOfActiveStones
+				ShieldState = NumberOfActiveStones
+				set Shield radius ShieldState*35
+			end if
+			RayIntersectionEffect = create special effect SPOT_VISUAL_OBJECT_APPEAR at [TopShieldPos] time 2
+			if [MyCreature] near [CentreStone] radius 200
+				if PLAYER of ShieldTown != 1
+					if not MyCreature affected by spell CREATURE_SPELL_INVISIBLE
+						//force MyCreature CREATURE_RUN_AWAY_FROM_POS CentreStone
+					end if 
+				end if
+			end if
+		end while 
+
+		delete Shield
+		delete VerticalRay
+
+		ShieldFinished = 1
+
+		if Prayer1 exists and Prayer2 exists and Prayer3 exists
+			begin dialogue
+				eject good spirit
+				say single line HELP_TEXT_NEW_L5_VILLAGE3_24
+				wait until read
+				send good spirit home
+			end dialogue
+		else
+			begin dialogue
+				eject evil spirit
+				say single line HELP_TEXT_NEW_L5_VILLAGE3_25
+				wait until read
+				send evil spirit home
+			end dialogue
+		end if 
+	end if 
+end script ThrowThroughShield
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+

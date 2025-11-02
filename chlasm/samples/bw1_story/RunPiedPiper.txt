@@ -1,0 +1,13 @@
+challenge RunPiedPiper
+
+run script RunPiedPiper
+
+begin script RunPiedPiper
+			
+start
+	MyCreature=get player 1 creature
+	run script SetupLand1	
+	run script PiedPiper
+	
+
+end script RunPiedPiper

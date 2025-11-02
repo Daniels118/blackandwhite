@@ -1,0 +1,14 @@
+challenge RunSacrifice
+
+run script RunSacrifice
+
+begin script RunSacrifice
+	Town2 = get town with id 11				
+	Altar=marker at [3343.1909, 77.7200, 3220.2014]
+	Worship=0
+				
+start
+	Worship = get WORSHIP at [Altar] radius 50
+	run script Sacrifice(Town2, Altar)	
+
+end script RunSacrifice

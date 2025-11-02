@@ -1,0 +1,12 @@
+challenge RunTakeOverAztecVillage
+
+run script RunTakeOverAztecVillage
+
+begin script RunTakeOverAztecVillage
+	
+start
+	
+	run script TakeOverAztecVillage
+	
+
+end script RunTakeOverAztecVillage

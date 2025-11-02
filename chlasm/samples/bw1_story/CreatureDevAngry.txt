@@ -1,0 +1,116 @@
+challenge CREATURE_DEV_ANGRY
+
+ run script CreatureDevAngry
+
+
+begin script CreatureDevAngry
+
+CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+Trainer = 0
+CitadelPos = marker at [1915.0500, 18.0900, 2508.8899]
+
+CamPosStart = marker at [1895.2290, 35.7275, 2497.7000]
+CamPos1 = marker at [1894.2354, 28.8333, 2508.1797]
+CamPos2 = marker at [1895.1014, 25.0483, 2514.3584]
+HighCam = marker at [1883.5487, 48.5542, 2519.3435]
+
+DanceFlock = 0
+DanceSize = 0
+DanceDependant = 0
+Villager = 0
+Town = get TOWN at [1815.4800, 32.4107, 2649.9099] radius 150
+CrowdPosition = marker at [1885.6296, 18.0900, 2527.8982]
+OldMagnitude = 0
+CurrentMagnitude = 0
+
+BodgeTimer = 0
+
+start
+		DanceDependant = get VILLAGER in Town excluding scripted
+		move DanceDependant position to [CrowdPosition]
+		DanceFlock = make DanceDependant dance DANCE_INFO_DANCE_AROUND_PERSON around [CrowdPosition] time 120
+
+		while DanceSize < 8
+			Villager = get VILLAGER in Town excluding scripted
+			move Villager position to [CrowdPosition]+[number from -10 to 10, number from -10 to 10]
+			attach Villager to DanceFlock
+			DanceSize++
+		end while
+		Villager = 0
+		while Villager not exists
+			wait 2 seconds
+			Villager = get VILLAGER at [CrowdPosition] radius 10
+		end while
+
+		Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+		disable Trainer moveable
+		disable Trainer pickup
+
+	begin cinema
+		OldMagnitude = get MyCreature interaction magnitude
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		set MyCreature position to [MyCreaturePos]
+		move Trainer position to [TrainerPos]
+		move camera position to [CamPos1] time 8
+		set MyCreature focus to [CrowdPosition]
+		MyCreature play C_INDIVIDUAL_TAUNT
+		wait until [Trainer] near [TrainerPos] radius 2
+		wait 2 seconds
+		set Trainer focus to [CamPos1]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_01
+		wait 2 seconds
+		move camera focus to [MyCreature] time 4
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_02
+		move camera position to [CamPos2] time 8
+		wait until read
+		wait 4 seconds
+		MyCreature play C_INDIVIDUAL_ANGRY
+		wait 1 second
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_03
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_04
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_05
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_06
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_07
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_08
+		wait until read
+	end cinema
+
+	CurrentMagnitude = get MyCreature interaction magnitude
+	BodgeTimer = create timer for 60 seconds
+	while CurrentMagnitude == OldMagnitude and get BodgeTimer time remaining > 0
+		wait 2 seconds
+		CurrentMagnitude = get MyCreature interaction magnitude
+	end while
+
+	if CurrentMagnitude > 0
+		// Slapped Creature
+		begin dialogue
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_09
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_11
+			wait until read
+		end dialogue
+	end if
+
+	if CurrentMagnitude < 0
+		// Stroked Creature
+		begin dialogue
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_10
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_ANGRY_11
+			wait until read
+		end dialogue
+	end if
+
+end script CreatureDevAngry

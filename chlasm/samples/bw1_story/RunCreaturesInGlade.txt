@@ -1,0 +1,13 @@
+challenge RunCreaturesInGlade
+
+run script RunCreaturesInGlade
+
+begin script RunCreaturesInGlade
+
+start
+	run script SetupLand1
+	// ProtectGateKeysFlag = 1
+	// run background script ProtectGateKeys
+	run script CreaturesInGlade
+	// set fade in time 5
+end script RunCreaturesInGlade

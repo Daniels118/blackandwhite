@@ -1,0 +1,13 @@
+
+
+//------------------------------------------------------------------------------------------------------------------------
+run script RunFinalGoldScroll
+
+begin script RunFinalGoldScroll
+	
+start
+	
+	run script Land2FinalScroll
+	
+
+end script RunFinalGoldScroll

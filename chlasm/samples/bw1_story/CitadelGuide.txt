@@ -1,0 +1,230 @@
+challenge CITADEL_GUIDE
+
+//run script CitadelGuide
+
+//------------------------------------------------------------------------------------------------------------------------
+// The Citadel guide cinema code
+//------------------------------------------------------------------------------------------------------------------------
+
+begin temple special script CitadelGuideCinema
+
+	CitadelPos = marker at [1920.9600, 22.1100, 2524.0000]
+	EntrancePos = marker at [1909.0479, 22.1100, 2530.2783]
+	OrbPos = marker at [1898.7241, 31.0000, 2538.8386]
+
+	CamPos1 = marker at [1910.0275, 66.0249, 2590.1794]
+	CamFoc1 = marker at [1919.9003, 22.7244, 2535.5547]
+	CamPos2 = marker at [1891.1946, 45.7109, 2532.0828] // On ground in front of citadel looking up at it
+	CamFoc2 = marker at [1909.2096, 22.8945, 2532.9956]
+	CamPos3 = marker at [1899.0366, 34.6313, 2546.1467] // looking down on Orb
+	CamFoc3 = marker at [1899.1843, 22.6310, 2521.6150]
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+	ClickDoorTimer = create timer for 0 seconds
+	ClickedOnDoor = 0
+	BodgeHighlight = 0
+	BodgeHighlightPos = marker at [1779.626, 32.270, 2805.829]
+	DoorPos = marker at [1902.9706, 29.4800, 2516.4956]
+
+start
+
+	begin cinema
+
+		start music MUSIC_TYPE_SCRIPT_EPIC_01 
+
+		move camera position to [1882.276, 59.729, 2529.498] time 6				// Move cam to citadel
+		move camera focus to [1993.567, 38.083, 2462.608] time 6
+
+		wait 6 seconds
+
+		move camera position to [1882.276, 35.729, 2529.498] time 23			// Move down on citadel citadel
+
+		wait 23 seconds
+
+		eject evil spirit
+		eject good spirit
+
+		// "EA: At last the Citadel has been built"
+		say HELP_TEXT_CITADEL_GUIDE_01
+		wait until read
+
+		// "GA: Wow. Nice."
+/*		say HELP_TEXT_CITADEL_GUIDE_02
+		wait until read
+*/
+		move camera position to [1895.131, 36.532, 2521.745] time 4				// Move cam to entrance
+		move camera focus to [1998.835, -24.839, 2459.214] time 4
+
+		wait 2 second
+
+		// Camera is passing Entance											// Explain entrance
+		// "EA: This is the entrance. LMB on it to enter."
+		say HELP_TEXT_CITADEL_GUIDE_03
+		wait until read
+
+		stop evil spirit pointing
+		wait until camera ready
+	end cinema
+
+	enable temple
+
+	set ClickDoorTimer time to 20 seconds
+	while ClickedOnDoor == 0
+		if get ClickDoorTimer time remaining <= 0
+			begin dialogue
+				eject evil spirit
+				// "EA: This is the entrance. LMB on it to enter."
+				say single line HELP_TEXT_CITADEL_GUIDE_03
+				wait until read
+				stop evil spirit pointing
+			end dialogue
+			set ClickDoorTimer time to 20 seconds
+		end if
+
+		if inside temple
+			ClickedOnDoor = 1
+		elsif camera position not near [DoorPos] radius 100 or [DoorPos] not viewed
+			begin camera
+				move camera position to [1895.131, 36.532, 2521.745] time 3
+				move camera focus to [1998.835, -24.839, 2459.214] time 3
+				//"No, no, click on the door."
+				say single line HELP_TEXT_LOST_BROTHER_53
+				wait until read
+				wait until camera ready
+			end camera
+		end if
+	end while
+
+	//------------------------------------------------------------------------------------------------------------------------
+	//Enter temple
+	//------------------------------------------------------------------------------------------------------------------------
+
+	wait 5 seconds
+		set ClickDoorTimer time to 60 seconds
+		while inside temple
+			if get ClickDoorTimer time remaining <= 0
+				begin dialogue
+					say single line HELP_TEXT_CITADEL_GUIDE_13
+					wait until read
+				end dialogue
+				set ClickDoorTimer time to 30 seconds
+			end if
+		end while
+
+	//------------------------------------------------------------------------------------------------------------------------
+	//exit temple
+	//------------------------------------------------------------------------------------------------------------------------
+	wait until dialogue ready and not inside temple
+	begin cinema
+		start music MUSIC_TYPE_GENERIC_NEUTRAL
+		set camera position to [1895.131, 36.532, 2521.745] 					// Cam to entrance
+		set camera focus to [1998.835, -24.839, 2459.214] 
+
+		move camera position to [1882.276, 29.729, 2529.498] time 3				// Pull back from entrance
+		move camera focus to [1993.567, 41.083, 2462.608] time 3
+
+		wait 2 seconds
+
+		move camera position to [1882.276, 49.729, 2529.498] time 8				// Move cam up on citadel
+		
+		wait 2 second
+		
+		wait until camera ready
+
+		move camera position to [1910.524, 58.246, 2493.760] time 5				// Cam looking at town
+		move camera focus to [1897.422, 49.055, 2532.343] time 4
+
+		wait until camera ready
+
+		move camera position to [1810.5068, 48.1730, 2656.7932] time 7				// Cam looking over town
+		move camera focus to [1777.9651, 29.1653, 2699.3735] time 7
+
+		make good spirit appear
+		//"let's explore I wanna know what these sign posts are.
+		say single line HELP_TEXT_FINAL_BEGINNING_36 with interaction
+		wait 2 seconds
+		make good spirit point at [1783.5693, 28.5718, 2698.6365] 
+		wait until read
+		make good spirit disappear
+
+		enable highlight draw
+
+		BodgeHighlight = create highlight HIGHLIGHT_QUEST at [BodgeHighlightPos]
+		ALTITUDE of BodgeHighlight = 14
+
+		move camera position to [1768.8414, 44.6093, 2668.0195] time 8				// Cam in town
+		move camera focus to [1773.7719, 29.6373, 2701.5818] time 8
+
+
+//		"No. There's so much we gotta do. I say we hunt out the Golden Scrolls."
+		make evil spirit appear
+		say HELP_TEXT_FINAL_BEGINNING_37
+		wait until read
+
+		move camera position to [1758.435, 43.242, 2784.452] time 8				// Cam look at scroll
+		move camera focus to [1805.854, 46.734, 2832.431] time 8
+
+//		sy "Golden scrolls are the key to progressing through the story"
+		say HELP_TEXT_FINAL_BEGINNING_18 with interaction
+		wait until read
+
+//		move camera position to[1780.997,48.4373,2801.28] time 1.5				// Cam lok at golden scroll
+//		move camera focus to [1772.36,35.2065,2826.06] time 0.5 
+
+		move camera position to [1782.760, 40.768, 2791.150] time 14			// Cam pan on scroll
+		move camera focus to [1774.078, 63.675, 2834.635] time 14
+
+//		sy "Like this one"
+		
+		say HELP_TEXT_FINAL_BEGINNING_29 with interaction
+		make evil spirit point at [BodgeHighlightPos] + [0,14,0]
+		wait until read
+		make evil spirit disappear
+
+		eject good spirit
+		make good spirit point at [BodgeHighlightPos] + [0,14,0]
+//		sy "Clicking on these scrolls with the action button will progress you through the game" with interaction
+		say HELP_TEXT_FINAL_BEGINNING_30
+		wait until read
+
+//		move camera position to [1910.524, 58.246, 2493.760] time 1.5			// Camera back at town from citadel
+//		move camera focus to [1772.36,30.2065,2826.06] time 1 
+
+		move camera position to [1733.6703, 50.1946, 2682.0164] time 6				// Cam ready to explore
+		move camera focus to [1792.1799, 33.5009, 2741.1609] time 6
+
+		eject evil spirit
+		stop good spirit pointing
+		//make evil spirit point at [BodgeHighlightPos] + [0,14,0]
+		//make good spirit point at [1783.5693, 28.5718, 2698.6365]		 
+		// "EA & GA say Its up to you Activate the scroll or Explore."	with interaction
+		say HELP_TEXT_FINAL_BEGINNING_64 with interaction
+		wait until read
+
+		send evil spirit home
+		send good spirit home
+
+		wait until camera ready
+		stop music
+	end cinema
+	
+	delete BodgeHighlight
+
+
+end script CitadelGuideCinema
+
+//------------------------------------------------------------------------------------------------------------------------
+// Anvance Did you know script
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CitadelGuide
+	dyk18 = marker at [1924.0012, 30.0401, 2621.2017]				// zoom, rotate and dbl click
+	dyk22 = marker at [1890.6465, 29.4800, 2505.0425]				// shortcut to outside temple
+//	dyk22 = marker at [1890.6750, 28.8100, 2533.2220]				// OLD POS shortcut to outside temple
+
+start
+	run background script DidYouKnow(dyk18, variable HELP_TEXT_DYK_18, variable DYK_NAVIGATION)			// zoom, rotate and dbl click
+	run background script DidYouKnow(dyk22, variable HELP_TEXT_DYK_22, variable DYK_NAVIGATION)			// shortcut to outside temple
+	run script CitadelGuideCinema
+
+end script CitadelGuide

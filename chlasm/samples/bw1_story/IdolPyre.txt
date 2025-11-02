@@ -1,0 +1,454 @@
+challenge IDOL_PYRE
+
+global IdolAlive
+
+//run script IdolPyreMain
+
+begin script IdolPyreMain
+
+	Builder = 0
+	BuilderPos = marker at [2698.915, 37.551, 3650.481]    
+	BuilderHutPos = marker at [2882.0701, 24.7900, 3540.1001]
+	BuilderHut = get HOUSE at [BuilderHutPos]
+	IdolPos = marker at [2695.730, 38.190, 3662.400]  
+	IdolFoc = marker at [2940.060, 75.707, 2010.084]  
+	Idol = 0
+	BeginPos = 0
+	BeginFoc = 0
+	FireTimer = 0
+	FireTicks = 0
+	BuilderDeadSpeech = 0
+
+	AdditionalWorshippers = 0
+	WorshippersKilledTotal = 0
+	WorshippersKilledNow = 0
+	AdditionalWorshippersLast = 0
+	WorshipperTick = 0
+	WorshipperDude = 0
+	WorshipperDudeTwo = 0
+	WorshipperDudeKilled = 0
+	WorshipperDudeTwoKilled = 0
+	WorshipperRandomPos = 0
+	WorshipperTwoRandomPos = 0
+	FirstWorshippers = 0
+	IdolTownCentre = marker at [2880.9600, 24.7900, 3494.2800]
+	IdolTown = 0
+	FirstAddWorshipDeathSpeech = 0
+	FifthWorshipperKilledSpeech = 0
+	AlignmentTotal = 0
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [IdolPos]
+
+	PFXFlash=0
+	PFXExplosion=0
+
+	IdolHitSpeech = 0
+	IdolHitCount = 0
+
+	//IdolAntiInfluence = 0
+
+start
+	// create the Idol.
+	Idol = create OBJECT IDOL at [IdolPos]
+	//IdolAntiInfluence = create anti influence on Idol radius 50
+	SCALE of Idol = SCALE of Idol * 4
+	
+	set Idol focus to [IdolFoc]
+	disable Idol moveable
+	disable Idol pickup
+
+//gj temp... 
+	
+/*
+	wait 4.0 seconds 
+	PFXExplosion = create special effect SPOT_VISUAL_BANG at [Idol] time 6	
+
+	wait 0.3 seconds 
+	PFXFlash = create special effect SPOT_VISUAL_FLASH at [Idol]+[0,3,0] time 6
+	
+	wait 0.2 seconds
+	delete Idol	// with fade // with explosion
+
+	wait 1.0 seconds
+	PFXFlash = create special effect SPOT_VISUAL_FLASH at [Idol]+[0,3,0] time 6
+
+	wait 0.6 seconds
+	PFXExplosion = create special effect SPOT_VISUAL_BANG at [Idol] time 6		
+*/	
+//..gj temp
+		
+
+	run script ChallengeHighlightNotify(Highlight,IdolPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GREGORIAN
+
+		set fade red 0 green 0 blue 0 time 2
+		wait 3 seconds
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+
+		Builder = create SCRIPT_OBJECT_TYPE_VILLAGER INDIAN_TRADER at [BuilderPos]
+		set Builder focus to [IdolPos]
+		Builder play ANM_P_PRAY loop 23
+
+
+		set camera lens  80
+		set camera position to [2689.379, 38.970, 3654.681] 
+		set camera focus to [2718.051, 61.372, 3684.033]
+		set camera lens  87 time 7
+		set fade in time 3
+		wait 4 seconds
+
+		set camera lens 70 time 9
+
+		move camera position to [2685.311, 52.485, 3663.710] time 7
+		move camera focus to [2700.948, 38.512, 3656.368] time 4
+
+//		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_12 StandardReminder(variable HELP_TEXT_REMINDER_13)
+
+		eject evil spirit
+		eject good spirit
+
+
+		// "GA: Wassup?"
+		say HELP_TEXT_FIRE_IDOL_01
+		wait until read
+
+			// "ES: BuiltIdol"
+		say HELP_TEXT_FIRE_IDOL_02
+		wait until read
+		wait 2 seconds
+
+		move camera position to [2695.082, 39.769, 3653.205] time 7
+		move camera focus to [2716.979, 30.701, 3638.688] time 11
+
+
+
+			//"GS:Burn Idol"
+		say HELP_TEXT_FIRE_IDOL_03
+		wait until read
+
+			//"ES:Lotsa fire"
+		say HELP_TEXT_FIRE_IDOL_04
+		wait until read
+		wait 2 seconds
+
+		move camera position to [2689.3564, 48.5068, 3639.9231] time 7
+		move camera focus to [2703.0881, 38.4177, 3667.7935] time 6
+
+		send evil spirit home
+		send good spirit home
+		close dialogue
+
+//		move camera position to [2681.262, 52.319, 3627.739] time 7
+//		move camera focus to [2703.654, 38.220, 3667.193] time 6
+
+/*
+		//"ES: Kill him"
+		say HELP_TEXT_FIRE_IDOL_05
+		wait until read
+		// "ES: Kill him and Idol"
+		say HELP_TEXT_FIRE_IDOL_06
+		wait until read
+		send good spirit home
+		send evil spirit home
+*/
+		wait until camera ready
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_12 StandardReminder(variable HELP_TEXT_REMINDER_13)
+		stop music
+	end cinema
+
+	attach music MUSIC_TYPE_SCRIPT_GREGORIAN_3D to Idol
+
+	IdolTown = get TOWN at [IdolTownCentre] radius 150
+	AdditionalWorshippers = flock at [BuilderPos]
+	set AdditionalWorshippers properties inner 5 outer 20
+
+	clear hit object
+
+	begin loop
+		FireTimer++
+
+		if FireTimer > 20
+			FireTimer = 0
+			if fire near [IdolPos] radius 30
+				FireTicks++
+			elsif FireTicks > 1
+				FireTicks = 0
+				begin dialogue
+					eject evil spirit
+					// "EA: Fire didn't last long enough"
+					say single line HELP_TEXT_FIRE_IDOL_19
+					wait until read
+					send evil spirit home
+				end dialogue
+			else
+				FireTicks = 0
+				if Idol hit and IdolHitSpeech == 0
+					clear hit object
+					IdolHitCount++
+					if IdolHitCount > 2
+						begin dialogue
+							eject good spirit
+							// "Battering the Idol doesn't appear to be working."
+							say single line HELP_TEXT_FIRE_IDOL_20
+							wait until read
+							send good spirit home
+						end dialogue
+						IdolHitSpeech = 1
+					end if
+				end if
+			end if
+		end if
+
+		if FireTicks > 15
+			IdolAlive = 1
+			wait 1 seconds
+		end if
+
+		if HEALTH of Idol < 1 and IdolAlive == 0
+			HEALTH of Idol = 1
+		end if
+
+		if HEALTH of Builder <= 0 and BuilderDeadSpeech == 0
+			begin dialogue
+				eject good spirit
+				eject evil spirit
+				// "GS: You've killed the Idol Builder."
+				say HELP_TEXT_FIRE_IDOL_09
+				wait until read
+				//EA: Gotta get rid of the idol still!
+				say HELP_TEXT_FIRE_IDOL_06
+				wait until read
+			end dialogue
+			AlignmentTotal = AlignmentTotal - 0.6
+			update snapshot success 0.5 alignment AlignmentTotal HELP_TEXT_TITLE_12 StandardReminder(variable HELP_TEXT_REMINDER_13)
+			BuilderDeadSpeech = 1
+		end if
+
+		if WorshipperDude exists 
+			if HEALTH of WorshipperDude <= 0
+				WorshipperDude = 0
+				WorshipperDudeKilled = 1
+			end if
+		end if
+
+		if WorshipperDudeTwo != 2
+			if WorshipperDudeTwo exists and HEALTH of WorshipperDudeTwo <= 0
+				WorshipperDudeTwo = 0
+				WorshipperDudeTwoKilled = 1
+			end if
+		end if
+
+		if size of AdditionalWorshippers < AdditionalWorshippersLast or WorshipperDudeTwoKilled == 1 or WorshipperDudeKilled == 1
+			// Worshippers killed
+			WorshippersKilledNow = AdditionalWorshippersLast - size of AdditionalWorshippers
+			if WorshipperDudeKilled == 1
+				WorshippersKilledNow++
+				WorshipperDudeKilled = 0
+			end if
+			if WorshipperDudeTwoKilled == 1
+				WorshippersKilledNow++
+				WorshipperDudeTwoKilled = 2
+			end if
+			WorshippersKilledTotal += WorshippersKilledNow
+			while WorshippersKilledNow > 0
+				// comment on first Worshipper death?
+				if FirstAddWorshipDeathSpeech == 0
+					begin dialogue
+						eject good spirit
+						//"You killed a worshipper."
+						say single line HELP_TEXT_FIRE_IDOL_17
+						wait until read
+						send good spirit home
+					end dialogue
+					FirstAddWorshipDeathSpeech = 1
+				end if
+				if FifthWorshipperKilledSpeech == 0 and WorshippersKilledTotal >= 5
+					begin dialogue
+					eject good spirit
+					// "GA: You killed loads of worshippers too."
+					say single line HELP_TEXT_FIRE_IDOL_18
+					wait until read
+					send good spirit home
+					end dialogue
+					FifthWorshipperKilledSpeech = 1
+					AlignmentTotal = AlignmentTotal - 0.4
+				end if
+				WorshippersKilledNow--
+			end while
+		end if
+		AdditionalWorshippersLast = size of AdditionalWorshippers
+
+		WorshipperTick++
+		if WorshipperTick > 1800 and size of AdditionalWorshippers < 8 and WorshippersKilledTotal < 5
+
+			if FirstWorshippers == 1
+				WorshipperDude = get VILLAGER in IdolTown excluding scripted
+				WorshipperRandomPos = marker at [BuilderPos]+[number from -8 to 8, number from -8 to 8]
+				SPEED of WorshipperDude = 0.5
+				move WorshipperDude position to [WorshipperRandomPos]
+			else
+				// send two initially
+				WorshipperDude = get VILLAGER in IdolTown excluding scripted
+				WorshipperRandomPos = marker at [BuilderPos]+[number from -8 to 8, number from -8 to 8]
+				SPEED of WorshipperDude = 0.5
+				move WorshipperDude position to [WorshipperRandomPos]
+				WorshipperDudeTwo = get VILLAGER in IdolTown excluding scripted
+				WorshipperTwoRandomPos = marker at [BuilderPos]+[number from -8 to 8, number from -8 to 8]
+				SPEED of WorshipperDudeTwo = 0.5
+				move WorshipperDudeTwo position to [WorshipperTwoRandomPos]
+				FirstWorshippers = 1
+			end if
+			WorshipperTick = 0
+		end if
+		
+		when WorshipperDude exists and [WorshipperDude] at [WorshipperRandomPos]
+			// move random position nearby
+			attach WorshipperDude to AdditionalWorshippers
+			set WorshipperDude focus to [IdolPos]
+			WorshipperDude play ANM_P_PRAY loop 1
+			WorshipperDude = 0
+
+		when WorshipperDudeTwo exists and [WorshipperDudeTwo] at [WorshipperTwoRandomPos]
+			// move random position nearby
+			attach WorshipperDudeTwo to AdditionalWorshippers
+			set WorshipperDudeTwo focus to [IdolPos]
+			WorshipperDudeTwo play ANM_P_PRAY loop 1
+			WorshipperDudeTwo = 0
+
+	until IdolAlive == 1
+	end loop
+
+	// set permanent fire state on Idol until next line triggered
+	enable Idol on fire 1
+	wait until [IdolPos] viewed and camera position near [IdolPos] radius 150
+
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GREGORIAN
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [2707.543, 41.478, 3649.520] time 4
+		move camera focus to [2671.805, 46.773, 3675.310] time 3
+		wait until camera ready
+		AlignmentTotal = AlignmentTotal + 0.2
+		snapshot challenge success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_12 StandardReminder(variable HELP_TEXT_REMINDER_13)
+		move camera position to [2715.892, 38.856, 3633.211] time 20
+		eject good spirit
+		//"At last the idol is on fire
+		say single line HELP_TEXT_FIRE_IDOL_11
+		wait until read
+		close dialogue 
+		send good spirit home
+		
+		move camera position to [2721.5774, 37.9386, 3636.2319] time 3
+		move camera focus to [2715.6140, 41.6248, 3641.8755] time 3 
+
+		wait 3.0 seconds
+		
+		PFXExplosion = create special effect SPOT_VISUAL_BANG at [Idol] time 6	
+
+		wait 0.3 seconds 
+		PFXFlash = create special effect SPOT_VISUAL_FLASH at [Idol]+[0,3,0] time 6
+		
+		wait 0.2 seconds
+		delete Idol	// with fade // with explosion
+
+		wait 1.0 seconds
+		PFXFlash = create special effect SPOT_VISUAL_FLASH at [Idol]+[0,3,0] time 6
+		start sound LH_SCRIPT_SAMPLE_GUARDIANSTONEEXPLODE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+
+		wait 0.6 seconds
+		PFXExplosion = create special effect SPOT_VISUAL_BANG at [Idol] time 6		
+
+		wait 0.25 seconds
+		PFXExplosion = create special effect SPOT_VISUAL_BANG at [Idol] time 6				
+		
+		//delete IdolAntiInfluence
+		Idol = 0
+		wait 3 seconds
+		if HEALTH of Builder > 0
+			move camera position to [Builder]+[14,10,14] time 4
+			move camera focus to [Builder] time 3
+			wait until camera ready
+			set Builder focus to camera position
+			Builder play ANM_P_PRAY loop 1
+			if size of AdditionalWorshippers <= 0
+				// "Idol Maker: Argh. Please don't kill me. I worship you now!"
+				say single line HELP_TEXT_FIRE_IDOL_12
+				wait until Builder played
+				move camera position to [2715.892, 38.856, 3633.211] time 20
+				wait until read
+			elsif size of AdditionalWorshippers > 0
+				set AdditionalWorshippers focus to camera position
+				AdditionalWorshippers play ANM_P_PRAY loop 1
+				// "Idol Maker: Please don't kill us. We'll worship you from now on!"
+				say single line HELP_TEXT_FIRE_IDOL_13
+				move camera position to [2715.892, 38.856, 3633.211] time 20
+				wait until read
+			end if
+			close dialogue
+			wait 2 seconds
+		else
+			set AdditionalWorshippers focus to camera position
+			AdditionalWorshippers play ANM_P_PRAY loop 1
+
+		end if
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 2
+		wait until camera ready
+
+		if size of AdditionalWorshippers > 0
+			release AdditionalWorshippers
+		end if
+
+		delete Highlight
+
+		if HEALTH of Builder > 0
+		move Builder position to [BuilderHut]
+				eject evil spirit
+				// "GS: Nice one, you let the idol maker live."
+				say single line HELP_TEXT_FIRE_IDOL_10
+				wait until read
+				send evil spirit home
+		elsif HEALTH of Builder <= 0
+				eject good spirit
+				// "GS: You killed the Idol maker too. Ideal."
+				/// Is this dialogue wanted? The snapshot challenge probably is.
+				say single line HELP_TEXT_FIRE_IDOL_09
+				wait until read
+				send good spirit home
+				AlignmentTotal = AlignmentTotal - 0.6
+				update snapshot success 1.0 alignment AlignmentTotal HELP_TEXT_TITLE_12 StandardReminder(variable HELP_TEXT_REMINDER_13)
+		end if
+		close dialogue
+
+		move camera position to [2891.0994, 51.2374, 3458.2837] time 8
+		move camera focus to [2867.3267, 34.5751, 3452.8718] time 8
+
+		wait until camera ready
+
+		enable spell SPELL_FIREBALL_LEVEL_1 in IdolTown
+		enable spell SPELL_FIREBALL_LEVEL_2 in IdolTown
+
+		eject good spirit
+
+		//"Oh marvellous.. by destroying the idol, we've received a powered up fireball miracle."
+		say HELP_TEXT_PICKUP_IDOLPYRE_01
+		wait until read
+
+		eject evil spirit
+
+		//"These fireball miracles are even more powerful than those puny standard ones.."
+		say HELP_TEXT_PICKUP_IDOLPYRE_02
+		wait until read
+
+	end cinema
+
+end script IdolPyreMain

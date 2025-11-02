@@ -1,0 +1,129 @@
+challenge GEORGE_TEST
+
+
+// JUST FOR TESTING
+
+run script george_test
+
+
+
+
+begin script george_test
+// variables
+storm = 0
+birds = 0
+sfx1   = 0		 
+storm2 = 0
+sfx2 = 0
+start
+// actual script
+
+//birds = create ANIMAL BOVINE at [1957.143, 0.000, 2557.958] 
+	birds = flock at [1957.143, 0.000, 2557.958] 
+	set birds properties inner 20 outer 40
+	populate birds with 15 ANIMAL BOVINE
+
+	begin cinema 
+
+		set fade red 0 green 0 blue 0 time 0
+		set game time 22.00 
+		wait until widescreen ready
+			storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [1962.872, 2.527, 2542.180]
+				set storm properties time 50 fade 1
+				set storm properties degrees 10  rainfall 1 snowfall 2 overcast 0.6 fallspeed 6
+				set storm properties clouds 15 shade 1 height 100
+				set storm properties inner 700 outer 800 
+
+		move camera position [1818.576, 473.724, 3936.395] focus [-563.927, 0.185, 4937.865] lens 70.000 time 1
+		wait until camera ready
+		set fade in time 5
+		move camera position [1568.511, 421.648, 4813.558] focus [588.363, 0.295, 3931.013] lens 70.000  time 5
+		wait 3 seconds
+		move camera position [1304.543, 241.517, 4205.623] focus [1592.400, 0.262, 3350.288] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1656.739, 56.053, 3159.118] focus [1723.308, 0.259, 2961.310] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1795.558, 12.691, 2700.466] focus [1829.341, 0.258, 2668.506] lens 70.000  time 5
+		wait 3 seconds
+		move camera position [1935.254, 12.691, 2568.307] focus [1962.872, 2.527, 2542.180] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2005.804, 84.311, 2501.563] focus [2074.117, 22.540, 2436.942] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1982.211, 84.311, 2456.466] focus [2073.231, 23.418, 2438.906] lens 70.000 time 5
+		wait 3 seconds	
+		move camera position [2059.034, 30.245, 2397.381] focus [2135.789, 19.167, 2413.235] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2184.145, 22.925, 2424.001] focus [2238.154, 26.545, 2435.115] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2213.854, 28.934, 2442.715] focus [2244.949, 24.381, 2393.477] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2245.957, 28.934, 2391.884] focus [2256.840, 27.341, 2374.650] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2261.776, 31.493, 2373.242] focus [2266.887, 29.935, 2369.772] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2307.318, 40.146, 2327.308] focus [2347.264, 27.445, 2300.820] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2394.368, 41.800, 2244.518] focus [2448.297, 24.652, 2208.757] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2627.700, 41.800, 2190.854] focus [2624.237, 16.115, 2093.993] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2651.443, 43.063, 2032.710] focus [2649.016, 25.071, 1964.862] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2660.052, 43.063, 1990.199] focus [2624.432, 30.694, 1960.042] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2718.171, 77.363, 1964.974] focus [2613.696, 33.717, 1955.553] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2635.028, 91.946, 1940.592] focus [2550.149, 64.150, 1971.718] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2558.386, 132.178, 1969.035] focus [2511.899, 109.648, 2001.248] lens 70.000 time 5
+			storm2 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [2286.226, 191.467, 2179.753]
+				set storm2 properties time 50 fade 1
+				set storm2 properties degrees -10  rainfall 1 snowfall 0.5 overcast 1.0 fallspeed 6
+				set storm2 properties clouds 5 shade 1 height 100
+				set storm2 properties inner 500 outer 600 
+		wait 3 seconds
+		move camera position [2409.499, 132.178, 2069.135] focus [2150.044, 6.435, 2248.919] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2320.416, 54.207, 2134.367] focus [2141.905, 55.448, 2258.063] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2286.226, 61.467, 2179.753] focus [2134.837, 27.312, 2215.036] lens 70.000 time 5
+															  
+		sfx1 = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [2241.890, 43.665, 2196.050]  time 10
+		sfx2 = create special effect SPOT_VISUAL_STEAM at 	[2241.890, 43.665, 2196.050]
+		wait 3 seconds
+		move camera position [2273.863, 61.467, 2222.362] focus [2220.650, 42.940, 2156.952] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2215.845, 142.418, 2185.403] focus [2131.430, 1.937, 2081.637] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2216.020, 142.128, 2185.610] focus [2131.970, 114.034, 2082.300] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2218.976, 142.128, 2014.702] focus [1580.831, 0.203, 1801.563] lens 70.000  time 5
+		wait 3 seconds
+		move camera position [2196.385, 142.128, 1828.168] focus [1910.250, 70.367, 2012.151] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1978.185, 142.128, 1968.469] focus [1900.732, 122.704, 2018.271] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1959.490, 215.137, 1980.490] focus [1897.192, 135.894, 2020.545] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1861.876, 215.137, 2051.128] focus [1807.618, 146.122, 2086.013] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1796.356, 190.804, 2002.535] focus [1807.425, 145.870, 2084.204] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [1770.566, 190.804, 2010.526] focus [1807.494, 145.869, 2084.209] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2046.701, 178.584, 2425.278] focus [2182.645, 44.642, 2695.491] lens 70.000  time 5
+		wait 3 seconds
+		move camera position [2262.930, 57.382, 2855.071] focus [2280.550, 40.021, 2890.094] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2316.898, 52.786, 2969.438] focus [2337.055, 37.879, 3009.505] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2345.701, 123.364, 2990.861] focus [2372.897, 80.446, 3044.921] lens 70.000  time 5
+		wait 3 seconds
+		move camera position [2319.518, 158.154, 3082.389] focus [2382.547, 132.975, 3098.813] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2373.461, 154.247, 3096.445] focus [2390.670, 147.372, 3100.930] lens 70.000 time 5
+		wait 3 seconds
+		move camera position [2393.995, 169.859, 3099.700] focus [2415.002, 148.511, 3105.172] lens 70.000 time 5
+		wait 3 seconds
+	end cinema
+end script george_test

@@ -1,0 +1,14 @@
+challenge RunFanaticAttack
+
+run script RunFanaticAttack
+
+begin script RunFanaticAttack
+	
+start
+
+	run script SetupLand3	
+	MonkHasReachedEnd = 1
+	run script FanaticAttack(1)
+	
+
+end script RunFanaticAttack

@@ -1,0 +1,12 @@
+challenge RunLearnInfluence
+
+run script RunLearnInfluence
+
+begin script RunLearnInfluence
+	
+start
+	
+	run script LearnInfluence
+	
+
+end script RunLearnInfluence

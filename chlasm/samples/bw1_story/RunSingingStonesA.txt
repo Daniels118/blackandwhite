@@ -1,0 +1,13 @@
+challenge RunSingingStonesA
+
+run script RunSingingStonesA
+
+begin script RunSingingStonesA
+	
+start
+	
+    disable player 1 virtual influence 	
+	run script SingingStonesA
+	
+
+end script RunSingingStonesA

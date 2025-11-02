@@ -1,0 +1,25 @@
+run script PuzzleLionSheep
+
+begin script PuzzleLionSheep
+
+Game = 0
+
+
+start
+	begin dialogue
+		say "Starting Immersion Mushroom Puzzle #1."
+		wait 1 second
+		say "Starting Immersion Mushroom Puzzle #1.."
+		wait 1 second
+		say "Starting Immersion Mushroom Puzzle #1..."
+		wait 1 second
+		say "Starting Immersion Mushroom Puzzle #1...."
+		wait 1 second
+		say "Starting Immersion Mushroom Puzzle #1....."
+		wait 1 second
+
+		Game = create SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_IMMERSION at hand position
+
+	end dialogue
+
+end script PuzzleLionSheep

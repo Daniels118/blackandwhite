@@ -1,0 +1,12 @@
+challenge RunFishPuzzle
+
+run script RunFishPuzzle
+
+begin script RunFishPuzzle
+	
+start
+	
+	run script FishPuzzle
+	
+
+end script RunFishPuzzle

@@ -1,0 +1,202 @@
+challenge CREATURE_MIRROR_FIGHT
+
+//run script CreatureMirrorFight
+
+begin script CreatureMirrorFight
+	MirrorPosition = marker at hand position
+	CreatureType = 0
+	MirrorCreature = 0 
+	CreatureHeight = 0
+	MirrorCreatureHeight = 0
+	NemesisOriginalPos = 0
+	Actionpos = 0
+start
+
+	MyCreature = get player 1 creature
+	CreatureType = variable get MyCreature sub type
+
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	MirrorCreatureHeight  = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MirrorCreature
+
+
+	NemesisOriginalPos = marker at computer player 2 position
+
+	
+
+
+ //-------------------------------------------------------------------------------------------------------------------
+
+
+
+	begin cinema
+		
+		set computer player 2 position to [3260.977, 22.788, 2528.178] //place CP in scene 
+		wait 0.2 seconds
+				
+		Actionpos = marker at [MyCreature] + [15, CreatureHeight *1.1,15]
+		move computer player 2 to [Actionpos] speed 100 // move CP infront of MY
+		wait 2 seconds
+
+		move camera position to [MyCreature] + [20, CreatureHeight *1.2, 25] time 3	// initial camera angle of creature
+		move camera focus to [MyCreature] + [10, CreatureHeight *0.7,0] time 3	// initial focus angle of creature
+
+	
+		set MyCreature focus to [Actionpos] + [0, CreatureHeight *0.6, 0] //MY looks at action area Needs fixing by Richard (no vertical offset and not continous)
+		wait 1 second
+
+		
+		move computer player 2 to [MyCreature] + [8, CreatureHeight, -8] speed 70 //CP behind of MY
+		wait until computer player 2 ready
+		
+		move computer player 2 to [MyCreature] + [2, CreatureHeight, -2] speed 70 //CP behind of MY
+		wait until computer player 2 ready
+
+		move camera position to [MyCreature] + [10, CreatureHeight, 20] time 3	// initial camera angle of creature
+
+		
+		say single line HELP_TEXT_CREATURE_MIRROR_FIGHT_01 // "Your creature has prooved itself many times"
+		wait until read
+		
+		set MyCreature focus to [Actionpos] + [0, MirrorCreatureHeight *1.5, 0] //MY looks up at action area
+		wait 1 second
+
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature //Needs fixing by Richard (no vertical offset and not continous)
+		
+		MyCreature play C_INDIVIDUAL_SAD loop 1 //MY sad
+		wait 0.5 seconds
+
+
+
+//-----------------------------------------------------		
+// Create Mirror Creature (MC)
+
+		MirrorCreature = create_creature_from_creature MyCreature 1 at [MyCreature] + [20,20] constant CreatureType
+		ALIGNMENT of MirrorCreature = - ALIGNMENT of MyCreature
+		set MirrorCreature all desires SCRIPT_FALSE
+		set MirrorCreature desire ANGER SCRIPT_TRUE
+		set MirrorCreature desire ANGER to 0.5
+		set MirrorCreature DEVELOPMENT_PHASE_FULLY_MATURE development
+		
+		MirrorCreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MirrorCreature
+
+
+ //-----------------------------------------------------
+
+		move computer player 2 to [MirrorCreature] + [8, MirrorCreatureHeight *1.2,16] speed 50 //CP behind of MC
+
+		
+		move camera position to [MirrorCreature] + [-10, MirrorCreatureHeight *0.9, -12] time 3 	// camera looks into MC eyes	
+		move camera focus to [MirrorCreature] + [-0, MirrorCreatureHeight * 0.85, 0] time 2//camera focusses on MC eyes
+		wait 2 second
+
+		
+		say single line HELP_TEXT_CREATURE_MIRROR_FIGHT_02 // "the god it could have been"
+		wait until read
+	   
+		
+		force MirrorCreature CREATURE_LOOK_FOREVER MyCreature
+
+
+		move camera focus to [MirrorCreature] + [-4, MirrorCreatureHeight * 0.8, 4] time 2//camera focusses on MC eyes
+		
+		
+		move camera position to [MirrorCreature] + [-10, MirrorCreatureHeight, -35] time 3	//intermediate camera position between eyeshots
+		wait 0.5 second
+	
+		force MyCreature CREATURE_LOOK_FOREVER MirrorCreature
+
+			
+		make evil spirit cling across 0 down 0.5 //evil pokes head in
+		make good spirit cling across 1 down 0.5 //good pokes head in
+
+
+		MirrorCreature play C_FACE_GROWL loop 1// mirror creature looks angry
+		wait 0.5 seconds
+
+		say single line HELP_TEXT_CREATURE_MIRROR_FIGHT_03 //"superior intellect"
+		wait until read
+
+
+
+		MirrorCreature play C_INDIVIDUAL_ANGRY loop 1 //MC angry
+		wait 1 seconds		
+		
+		set MirrorCreature focus to [MyCreature]//mirror creature looks at my creature
+
+
+		MirrorCreature play C_INDIVIDUAL_TAUNT loop 1 //MC taunt
+		wait 0.5 seconds
+
+		MyCreature play C_INDIVIDUAL_TAUNT loop 1 //MY taunt
+		wait 2 seconds
+
+
+
+		move computer player 2 to [MirrorCreature] + [8, MirrorCreatureHeight *1.5, 8] speed 10 //CP moves up and between MY and MC
+		wait 1 seconds
+
+		
+//-------------------------------------------------------------------------------------------------------------------		
+		
+		
+		
+		
+		eject evil spirit
+		say HELP_TEXT_CREATURE_MIRROR_FIGHT_04
+		wait until read
+			 		
+		move camera position to [MyCreature] + [-60, 46, -30] time 3 //camera pos looks down at MC
+		move camera focus to [MyCreature] + [0, MirrorCreatureHeight *0.75, 0] time 3 //camera focus looks down at MC
+
+		eject good spirit
+		say HELP_TEXT_CREATURE_MIRROR_FIGHT_05
+		wait until read
+	end cinema
+
+
+	
+	
+//-------------------------------------------------------------------------------------------------------------------		
+	
+	
+	
+	
+	
+move computer player 2 to [NemesisOriginalPos] + [0.0,5.0,0.0] speed 400
+
+wait until [MyCreature] near [MirrorCreature] radius 50
+
+		force MyCreature CREATURE_FIGHT MirrorCreature
+		// NO LONGER NEED TO MAKE BOTH CREATURES FIGHT!!! force MirrorCreature CREATURE_FIGHT MyCreature
+
+wait until HEALTH of MirrorCreature <=0 or HEALTH of MyCreature <= 0
+
+
+if HEALTH of MirrorCreature <=0 //we win
+
+	begin cinema
+		// Freeze mirror creature then explode him.
+		eject evil spirit
+		say single line HELP_TEXT_CREATURE_MIRROR_FIGHT_08
+		wait until read
+		delete MirrorCreature
+	end cinema
+
+end if
+
+if HEALTH of MyCreature <=0	//we lose
+	
+	begin cinema
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_CREATURE_MIRROR_FIGHT_06
+		wait until read
+		say HELP_TEXT_CREATURE_MIRROR_FIGHT_07
+		wait until read
+	end cinema
+
+end if
+
+
+
+end script CreatureMirrorFight

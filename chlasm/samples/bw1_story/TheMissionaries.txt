@@ -1,0 +1,1681 @@
+challenge THE_MISSIONARIES
+
+//------------------------------------------------------------------------------------------------------------------------
+global TheMissionaries
+global ArkIncrement
+global GSailor1Dead
+global GSailor2Dead
+global GSailor3Dead
+global GSailor1
+global GSailor2
+global GSailor3
+global SailorDeadCount
+global MaleHelperCount
+global FemaleHelperCount
+global InVerseSection
+global VerseLine
+global SailorWithMusic
+global GotWood
+global GotGrain
+global GotMeat
+global GSoapBox1
+global GSoapBox2
+global GSoapBox3
+global GArk
+global GCampfirePos
+global KilledAllSailors
+
+//------------------------------------------------------------------------------------------------------------------------
+define script TheMissionariesVerseOne
+define script TheMissionariesVerseTwo
+define script TheMissionariesVerseThree
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PointOutScroll(Highlight)
+	DelayTimer = create timer for 0 seconds
+	TriggerCentre = marker at [1755.047, 28.810, 2691.962]
+
+start
+	while MissionariesInitiated == 0
+		if camera position near [TriggerCentre] radius 100 and Highlight not clicked and get DelayTimer time remaining <= 0
+			begin dialogue
+				eject good spirit
+				make good spirit point at [Highlight]
+				// "There's a silver scroll over there on the beach behind those huge gates."
+				say single line HELP_TEXT_NEW_ENUM_05
+				wait until read
+				stop good spirit pointing
+			end dialogue
+			set DelayTimer time to 250 seconds
+		end if
+	end while
+
+end script PointOutScroll
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CalculateReminder
+
+start
+
+	if GSailor1Dead == 1 or GSailor2Dead == 1 or GSailor3Dead == 1
+
+		update snapshot success (SailorDeadCount/3) alignment 0 HELP_TEXT_TITLE_35 StandardReminder(variable HELP_TEXT_MISSIONARIES_54)
+
+	else
+	
+		if GotWood == 0 
+
+			update snapshot success 0.2 alignment 0.2 HELP_TEXT_TITLE_35 TheMissionariesVerseOne
+
+		elsif GotWood == 1 and GotGrain == 0	
+
+			update snapshot success 0.4 alignment 0.2 HELP_TEXT_TITLE_35 TheMissionariesVerseTwo
+
+		elsif GotGrain == 1 and GotMeat == 0	
+
+			update snapshot success 0.6 alignment 0.2 HELP_TEXT_TITLE_35 TheMissionariesVerseThree
+
+		end if
+
+	end if
+		
+
+end script CalculateReminder
+
+//------------------------------------------------------------------------------------------------------------------------
+// All the sailors have been killed
+//------------------------------------------------------------------------------------------------------------------------
+begin script SailorsDead
+start
+	begin dialogue
+		eject evil spirit
+		// "Hmm.. you killed them all.. "
+		say HELP_TEXT_MISSIONARIES_43
+		wait until read
+		// "but I still wont be able to get their tune out of my head."
+		say HELP_TEXT_MISSIONARIES_44
+		wait until read
+	end dialogue
+	update snapshot details success 1.0 alignment -1.0 HELP_TEXT_TITLE_35
+	//stop scripts in files "TheMissionaries.txt" excluding "SailorsDead"
+	KilledAllSailors = 1
+end script SailorsDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// Sailors wander around the campfire - need to change this	so they look better	 
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesSearch(person, location)
+
+	Random = 0
+	RandomAnim = 0
+
+start
+	
+	begin loop
+		Random = number from 1 to 4
+		RandomAnim = number from 1 to 5
+
+		if RandomAnim == 1
+			move person position to [1857.605, 4.711, 3160.063] 
+			wait until [person] near [1857.605, 4.711, 3160.063] radius 0.5
+			set person focus to [1857.119, 4.585, 3160.788] 
+			person play ANM_P_PROD_CAMPFIRE loop Random
+			wait until person played
+			person play ANM_P_TURN_180 loop 1
+			wait until person played
+			move person position to [location]
+			wait until [person] near [location] radius 0.5
+			person play ANM_P_TURN_180 loop 1
+			wait until person played
+			set person focus to [1857.119, 4.585, 3160.788] 
+		elsif RandomAnim == 2
+			person play ANM_P_WHITTLING_AT_STICK loop Random
+			wait until person played
+		elsif RandomAnim == 3
+			person play ANM_P_SHRUG_SHOULDERS loop 1
+			wait until person played
+		elsif RandomAnim == 4
+			person play ANM_P_PUZZLED loop Random
+			wait until person played
+		elsif RandomAnim == 5
+			person play ANM_P_STAND_DESPAIR_2 loop Random
+			wait until person played
+		end if	
+
+		person play ANM_P_SITTING_DOWN1_INTO loop 1
+		wait until person played
+		Random = number from 4 to 8
+		person play constant from ANM_P_SITTING_DOWN_DANCE_SAILING1 to ANM_P_SITTING_DOWN_DANCE_SAILING3 loop Random
+		wait until person played 
+		person play ANM_P_SITTING_DOWN1_OUT_OF loop 1
+		wait until person played
+	until person not exists or HEALTH of person <= 0
+	end loop
+
+end script TheMissionariesSearch
+
+//------------------------------------------------------------------------------------------------------------------------
+// Check Script Time Out and Sailor Health
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckSailors(DoorPos)
+
+start
+	//Did we time out:?
+	if get TheMissionariesTimeOutDetected time remaining <= 0
+		if GSailor1 exists
+			move GSailor1 position to [DoorPos]
+		end if
+		if GSailor2 exists
+			move GSailor2 position to [DoorPos]
+		end if
+		if GSailor3 exists
+			move GSailor3 position to [DoorPos]
+		end if
+
+		update snapshot details success 1.0 alignment -0.6 HELP_TEXT_TITLE_35
+
+		begin dialogue
+			say single line HELP_TEXT_MISSIONARIES_38 with interaction // "The missionaries have given up waiting for you."
+			wait until read
+		end dialogue
+
+		delete GSailor1 with fade
+		delete GSailor2 with fade
+		delete GSailor3 with fade
+
+		stop scripts in files "TheMissionaries.txt" excluding "CheckSailors"
+	else
+		//Check Sailor 1
+		if GSailor1Dead == 0
+			if GSailor1 not exists or HEALTH of GSailor1 <= 0
+				release GSailor1
+				GSailor1Dead = 1
+				SailorDeadCount++
+
+				if SailorDeadCount != 3
+
+					begin dialogue
+						say single line HELP_TEXT_MISSIONARIES_15 
+						wait until read
+					end dialogue
+
+				update snapshot details success (SailorDeadCount/3) alignment -0.2 HELP_TEXT_TITLE_35
+
+				end if
+
+				
+
+				if SailorWithMusic == 1
+					detach music from GSailor1
+				end if
+
+				if GSailor2Dead == 0 
+					update snapshot details success 0.3 alignment -0.4 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 1
+						// Delete Sailor2 and replace with accordian mesh
+						delete GSailor2
+						GSailor2 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox2]
+						set GSailor2 focus to [GCampfirePos]
+						GSailor2 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor2
+						SailorWithMusic = 2
+					end if
+				elsif GSailor3Dead == 0
+					update snapshot details success 0.3 alignment -0.6 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 1
+						// Delete Sailor3 and replace with accordian mesh
+						delete GSailor3
+						GSailor3 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox3]
+						set GSailor3 focus to [GCampfirePos]
+						GSailor3 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+						SailorWithMusic = 3
+					end if
+				else 
+					run script SailorsDead
+				end if
+
+				run script CalculateReminder
+
+			end if
+		elsif MaleHelperCount > 0
+			GSailor1 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [DoorPos]
+			MaleHelperCount--
+			SailorDeadCount--
+			move GSailor1 position to [GSoapBox1]
+			GSailor1Dead = 0
+			run script CalculateReminder
+			wait until [GSailor1] near [GSoapBox1] radius 0.2	
+			run background script TheMissionariesSearch(GSailor1,GSoapBox1)
+		end if
+
+		//Check Sailor 2
+		if GSailor2Dead == 0
+			if GSailor2 not exists or HEALTH of GSailor2 <= 0
+				release GSailor2
+				GSailor2Dead = 1
+				SailorDeadCount++
+
+				if SailorDeadCount != 3
+
+					begin dialogue
+						say single line HELP_TEXT_MISSIONARIES_42 
+						wait until read
+					end dialogue
+
+				update snapshot details success (SailorDeadCount/3) alignment -0.2 HELP_TEXT_TITLE_35
+
+				end if
+
+				if SailorWithMusic == 2
+					detach music from GSailor2
+				end if
+
+				if GSailor1Dead == 0 
+					update snapshot details success 0.3 alignment -0.4 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 2
+						// Delete Sailor1 and replace with accordian mesh
+						delete GSailor1
+						GSailor1 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox1]
+						set GSailor1 focus to [GCampfirePos]
+						GSailor1 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor1
+						SailorWithMusic = 1
+					end if
+				elsif GSailor3Dead == 0
+					update snapshot details success 0.3 alignment -0.6 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 2
+						// Delete Sailor3 and replace with accordian mesh
+						delete GSailor3
+						GSailor3 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox3]
+						set GSailor3 focus to [GCampfirePos]
+						GSailor3 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+						SailorWithMusic = 3
+					end if
+				else 
+					run script SailorsDead
+				end if
+
+				run script CalculateReminder
+
+			end if
+		elsif MaleHelperCount > 0
+			GSailor2 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [DoorPos]
+			MaleHelperCount--
+			SailorDeadCount--
+			move GSailor2 position to [GSoapBox2]
+			GSailor2Dead = 0
+			run script CalculateReminder
+			wait until [GSailor2] near [GSoapBox2] radius 0.2	
+			run background script TheMissionariesSearch(GSailor2,GSoapBox2)
+		end if
+
+		//Check Sailor 3
+		if GSailor3Dead == 0
+			if GSailor3 not exists or HEALTH of GSailor3 <= 0
+				release GSailor3
+				GSailor3Dead = 1
+				SailorDeadCount++
+
+				if SailorDeadCount != 3
+
+					begin dialogue
+						// "You killed me ship mate!" with interaction
+						say single line HELP_TEXT_MISSIONARIES_42 
+						wait until read
+					end dialogue
+
+				update snapshot details success (SailorDeadCount/3) alignment -0.2 HELP_TEXT_TITLE_35
+
+				end if
+
+				if SailorWithMusic == 3
+					detach music from GSailor3
+				end if
+				
+				if GSailor1Dead == 0 
+					update snapshot details success 0.3 alignment -0.4 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 3
+						// Delete Sailor1 and replace with accordian mesh
+						delete GSailor1
+						GSailor1 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox1]
+						set GSailor1 focus to [GCampfirePos]
+						GSailor1 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor1
+						SailorWithMusic = 1
+					end if
+				elsif GSailor2Dead == 0
+					update snapshot details success 0.3 alignment -0.6 HELP_TEXT_TITLE_35
+					if SailorWithMusic == 3
+						// Delete Sailor2 and replace with accordian mesh
+						delete GSailor2
+						GSailor2 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [GSoapBox2]
+						set GSailor2 focus to [GCampfirePos]
+						GSailor2 play ANM_P_PLAY_ACCORDIAN loop -1
+						attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor2
+						SailorWithMusic = 2
+					end if
+				else 
+					run script SailorsDead
+				end if
+
+				run script CalculateReminder
+
+			end if
+		elsif MaleHelperCount > 0
+			GSailor3 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [DoorPos]
+			MaleHelperCount--
+			SailorDeadCount--
+			move GSailor3 position to [GSoapBox3]
+			GSailor3Dead = 0
+			run script CalculateReminder
+			wait until [GSailor3] near [GSoapBox3] radius 0.2	
+			run background script TheMissionariesSearch(GSailor3,GSoapBox3)
+		end if
+	end if
+
+end script CheckSailors
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Working Sailors
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesWorking(Sailor, Position)
+	
+	RandomAnim = 0
+	Random = 0
+	RandomSex = 0
+
+start
+
+	if Sailor exists
+		SPEED of Sailor = 0.4
+		move Sailor position to [Position]  
+
+		wait until [Sailor] near [Position] radius 0.2
+
+		while BUILT of GArk != 1
+			
+			Random = number from 1 to 5
+
+			RandomSex = number from 4 to 10
+
+			RandomAnim = number from 1 to 5
+
+			if RandomAnim == 1
+				Sailor play ANM_P_HAMMERING loop Random
+			elsif RandomAnim == 2
+				Sailor play ANM_P_OVERWORKED1 loop Random
+			elsif RandomAnim == 3
+				Sailor play ANM_P_SAW_WOOD loop Random
+			elsif RandomAnim == 4
+				Sailor play ANM_P_SCULPTOR loop Random
+			elsif RandomAnim == 5
+				Sailor play ANM_P_SLEDGEHAMMER loop Random
+			end if
+
+			wait until RandomSex seconds
+		until Sailor not exists
+		end while
+	end if
+
+end script TheMissionariesWorking
+
+//------------------------------------------------------------------------------------------------------------------------
+// Here the Sailors will build the boat when you drop wood next to them.
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesBuildingBoat(AmountOfWood)
+
+	WorkFinished = 0
+	Position1 = marker at [1878.844, 7.684, 3154.131]
+	Position2 = marker at [1879.908, 7.268, 3148.717]
+	Position3 = marker at [1880.212, 7.064, 3144.861]
+
+start
+	stop script "TheMissionariesSearch"
+
+	begin cinema
+
+		wait 0.1 seconds
+
+		run background script TheMissionariesWorking(GSailor1, Position1)  
+		run background script TheMissionariesWorking(GSailor2, Position2)
+		run background script TheMissionariesWorking(GSailor3, Position3)
+
+		say single line HELP_TEXT_MISSIONARIES_26
+
+		AmountOfWood = AmountOfWood / 1500
+
+		ArkIncrement += AmountOfWood
+
+		if ArkIncrement > 1 
+			ArkIncrement = 1
+		end if
+
+		move camera position to [1874.850, 8.258, 3135.646] time 6
+		move camera focus to [1875.994, 7.911, 3142.205] time 6
+
+		wait until camera ready
+
+		wait until 2 seconds
+
+		set camera position to [1871.683, 15.064, 3139.803] 
+		set camera focus to [1885.384, 9.751, 3159.684]
+
+		wait until 1 seconds
+
+		move camera position to [1852.123, 30.301, 3124.110] time 8
+		move camera focus to [1886.187, 9.806, 3156.038] time 8 
+		
+		while WorkFinished == 0
+
+			if BUILT of GArk >= ArkIncrement
+				WorkFinished = 1
+			end if
+
+			wait 0.5 seconds
+			start sound constant from LH_SAMPLE_G_PILEWOODSMALL_01 to LH_SAMPLE_G_PILEWOODSMALL_06
+			BUILT of GArk += 0.03
+	
+		end while
+
+		if BUILT of GArk < 1
+			say single line HELP_TEXT_MISSIONARIES_22 with interaction
+		end if
+
+		wait until camera ready
+					 
+	end cinema
+
+end script TheMissionariesBuildingBoat
+
+//------------------------------------------------------------------------------------------------------------------------
+// Verse One Text
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseOneText
+
+start
+	InVerseSection=1
+	VerseLine=0
+	begin known dialogue
+		wait until music line 1 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_01	without interaction
+
+		wait until music line 2 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_02	without interaction	
+
+		wait until music line 3 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_03	without interaction	
+
+		wait until music line 4 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_04	without interaction	
+
+		wait until music line 5 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_05	without interaction	
+
+		wait until music line 6 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_06	without interaction	
+
+		wait until music line 7 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_07	without interaction	
+
+		wait until music line 8 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_08	without interaction
+
+		wait until music line 9 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_09	without interaction
+
+		wait until music line 10 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_10	without interaction
+
+		wait until music line 11 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_11	without interaction
+
+		wait until music line 12 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE1_12	without interaction
+		wait until read
+	end known dialogue
+	InVerseSection=0
+
+end script TheMissionariesVerseOneText
+
+//------------------------------------------------------------------------------------------------------------------------
+// Verse Two Text
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseTwoText
+
+start
+	InVerseSection=1
+	VerseLine=0
+	begin known dialogue
+		wait until music line 1 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_01	without interaction	
+
+		wait until music line 2 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_02	without interaction	
+
+		wait until music line 3 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_03	without interaction	
+
+		wait until music line 4	or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_04	without interaction
+
+		wait until music line 5	or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_05	without interaction	
+
+		wait until music line 6	or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_06	without interaction	
+
+		wait until music line 7 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_07	without interaction	
+
+		wait until music line 8 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_08	without interaction
+
+		wait until music line 9 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_09	without interaction
+
+		wait until music line 10 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_10	without interaction
+
+		wait until music line 11 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_11	without interaction
+
+		wait until music line 12 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE2_12	without interaction
+		wait until read
+
+	end known dialogue
+	InVerseSection=0
+
+end script TheMissionariesVerseTwoText
+
+//------------------------------------------------------------------------------------------------------------------------
+// Verse Two Text
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseThreeText
+
+start
+	InVerseSection=1
+	VerseLine=0
+ 	begin known dialogue
+		wait until music line 1 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_01	without interaction	
+
+		wait until music line 2 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_02	without interaction	
+
+		wait until music line 3 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_03	without interaction	
+
+		wait until music line 4 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_04	without interaction	
+
+		wait until music line 5 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_05	without interaction	
+
+		wait until music line 6 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_06	without interaction	
+
+		wait until music line 7 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_07	without interaction	
+
+		wait until music line 8 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_08	without interaction
+
+		wait until music line 9 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_09	without interaction
+
+		wait until music line 10 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_10	without interaction
+
+		wait until music line 11 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_11	without interaction
+
+		wait until music line 12 or 10 seconds
+		VerseLine++
+		say HELP_TEXT_MISSIONARY_SONG_VERSE3_12	without interaction
+		wait until read
+
+	end known dialogue
+	InVerseSection=0
+
+end script TheMissionariesVerseThreeText
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// VERSE ONE
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseOne
+	BeginPos = 0
+	BeginFoc = 0
+	HandThing = 0
+
+start
+	HandThing=get object held
+
+	if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and
+		GSailor1 not in MyCreature hand and
+		GSailor2 not in MyCreature hand and
+		GSailor3 not in MyCreature hand
+
+		stop script "TheMissionariesWorking, TheMissionariesSearch"
+
+		SPEED of GSailor1 = 0.4
+		SPEED of GSailor2 = 0.4
+		SPEED of GSailor3 = 0.4
+
+		begin cinema
+
+			if HEALTH of GSailor1 > 0 and ([GSailor1] not near [GSoapBox1] radius 15 or GSailor1 is FLYING)
+
+				if GSailor1 is FLYING
+					wait until GSailor1 is not FLYING
+				else
+					set GSailor1 position to [GSoapBox1]
+				end if
+
+			else
+				move GSailor1 position to [GSoapBox1]
+			end if
+
+			if HEALTH of GSailor2 > 0 and ([GSailor2] not near [GSoapBox2] radius 15 or GSailor2 is FLYING) 
+
+				if GSailor2 is FLYING
+					wait until GSailor2 is not FLYING
+				else
+					set GSailor2 position to [GSoapBox2]
+				end if
+
+			else
+				move GSailor2 position to [GSoapBox2]
+			end if
+
+			if HEALTH of GSailor3 > 0 and ([GSailor3] not near [GSoapBox3] radius 15 or GSailor3 is FLYING)
+
+				if GSailor3 is FLYING
+					wait until GSailor3 is not FLYING
+				else
+					set GSailor3 position to [GSoapBox3]
+				end if
+
+			else
+				move GSailor3 position to [GSoapBox3]
+			end if
+
+			enable GSailor1 high gfx detail
+			enable GSailor2 high gfx detail
+			enable GSailor3 high gfx detail
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			move camera position to [1840.4901, 35.3339, 3118.8494] time 4
+			move camera focus to [1888.4702, 9.8458, 3162.0786] time 3
+
+			start music MUSIC_TYPE_SCRIPT_MISSIONARIES_VERSE_1
+
+			run background script TheMissionariesVerseOneText
+
+			wait until camera ready
+
+			move camera position to [1851.183, 5.014, 3161.980] time 4
+			move camera focus to [1860.662, 5.650, 3161.059] time 4
+
+			if GSailor1 exists and HEALTH of GSailor1 > 0
+				wait until [GSailor1] near [GSoapBox1] radius 0.5
+				set GSailor1 focus to [GCampfirePos]
+			end if
+
+			if GSailor2 exists and HEALTH of GSailor1 > 0
+				wait until [GSailor2] near [GSoapBox2] radius 0.5
+				set GSailor2 focus to [GCampfirePos]
+			end if
+
+			if GSailor3 exists and HEALTH of GSailor3 > 0
+				wait until [GSailor3] near [GSoapBox3] radius 0.5
+				set GSailor3 focus to [GCampfirePos]
+			end if
+
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_35 TheMissionariesVerseOne
+
+			SPEED of GSailor1 = 0.2
+			SPEED of GSailor2 = 0.2
+			SPEED of GSailor3 = 0.2
+
+			if SailorWithMusic == 1
+				detach music from GSailor1
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			elsif SailorWithMusic == 2
+				detach music from GSailor2
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			end if
+
+			SailorWithMusic = 3
+
+			GSailor2 play ANM_P_SITTING_DOWN2_INTO loop 1
+			GSailor1 play ANM_P_BECKON loop 1
+			GSailor3 play ANM_P_PLAY_ACCORDIAN loop -1
+
+			if GSailor2 exists
+				wait until GSailor2 played
+			end if
+
+			GSailor2 play ANM_P_SITTING_DOWN_DANCE_SAILING1 loop -1
+
+			GSailor1 play ANM_P_CROWD_LOST loop 1
+
+			if GSailor3 exists
+				wait until GSailor1 played
+			end if
+
+			wait until camera ready
+
+			if GSailor1 exists
+				GSailor1 play ANM_P_GOSSIP_MAN loop -1
+			end if
+
+			move camera position to [1857.077, 6, 3163.818] time 5
+			move camera focus to [1858.974, 5.491, 3161.313] time 5
+			wait until camera ready
+
+			set camera position to [1857.607, 6.165, 3160.798] 
+			set camera focus to [1860.487, 5.5, 3164.376] 
+			wait until 3 seconds
+
+			set camera position to [1854.966, 5.416, 3157.552] 
+			set camera focus to [1858.049, 5.655, 3160.627] 
+			wait until 3 seconds
+
+			set camera position to [1854.623, 5.654, 3160.037] 
+			set camera focus to [1857.594, 5.654, 3160.405]
+			wait until 3 seconds
+
+			move camera position to [1851.774, 6.517, 3164.247] time 4
+			move camera focus to [1857.960, 5.218, 3160.612] time 4
+			wait until camera ready
+
+			if GSailor2 exists
+				GSailor2 play ANM_P_SITTING_DOWN2_OUT_OF loop 1
+				wait until GSailor2 played
+				GSailor2 play ANM_P_STAND_DESPAIR_2 loop -1
+			end if
+
+			set camera position to [1899.058, 34.621, 3117.870] 
+			set camera focus to [1876.181, 8.570, 3169.410] 
+
+			move camera position to [1863.480, 23.210, 3113.559] time 5
+			move camera focus to [1892.627, 10.625, 3179.052] time 5
+			wait 3 seconds
+
+			move camera position to [1853.0441, 7.6488, 3157.2024] time 5
+			move camera focus to [1858.7689, 5.5336, 3161.0828] time 5
+
+			disable GSailor1 high gfx detail
+			disable GSailor2 high gfx detail
+			disable GSailor3 high gfx detail
+
+			wait until camera ready
+			wait until InVerseSection == 0
+
+		end cinema
+		run background script TheMissionariesSearch(GSailor1,GSoapBox1)
+		run background script TheMissionariesSearch(GSailor2,GSoapBox2)
+	end if
+
+end script TheMissionariesVerseOne
+
+//------------------------------------------------------------------------------------------------------------------------
+// VERSE TWO - You've built the boat and now they want grain
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseTwo
+	HandThing=0
+start
+	HandThing=get object held
+
+	if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and
+		GSailor1 not in MyCreature hand and
+		GSailor2 not in MyCreature hand and
+		GSailor3 not in MyCreature hand
+
+		stop script "TheMissionariesWorking, TheMissionariesSearch"
+		
+		begin cinema
+
+			if GSailor1 is FLYING
+				wait until GSailor1 is not FLYING
+			end if
+
+
+			if [GSailor1] not at [GSoapBox1] 
+
+				set GSailor1 position to [GSoapBox1]
+			
+			end if
+
+			if GSailor2 is FLYING
+				wait until GSailor2 is not FLYING
+			end if
+
+			if [GSailor2] not at [GSoapBox2] 
+
+				set GSailor2 position to [GSoapBox2]
+
+			end if
+
+			if GSailor3 is FLYING
+				wait until GSailor3 is not FLYING
+			end if
+
+			if [GSailor3] not at [GSoapBox3]
+
+				set GSailor3 position to [GSoapBox3]
+				
+			end if
+
+			enable GSailor1 high gfx detail
+			enable GSailor2 high gfx detail
+			enable GSailor3 high gfx detail
+
+			move camera to T00_000 time 2
+
+			start music MUSIC_TYPE_SCRIPT_MISSIONARIES_VERSE_2
+
+			camera path TRACK00	 
+
+			run background script TheMissionariesVerseTwoText
+
+			if GSailor1 exists and HEALTH of GSailor1 > 0
+				wait until [GSailor1] near [GSoapBox1] radius 0.5
+				set GSailor1 focus to [GCampfirePos]
+			end if
+
+			if GSailor3 exists and HEALTH of GSailor3 > 0
+				wait until [GSailor3] near [GSoapBox3] radius 0.5
+				set GSailor3 focus to [GCampfirePos]
+			end if
+
+			SPEED of GSailor1 = 0.2
+			SPEED of GSailor2 = 0.4
+			SPEED of GSailor3 = 0.2
+
+			if SailorWithMusic == 1
+				detach music from GSailor1
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			elsif SailorWithMusic == 2
+				detach music from GSailor2
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			end if
+
+			SailorWithMusic = 3
+
+			GSailor1 play ANM_P_SITTING_DOWN2_INTO loop 1
+			GSailor3 play ANM_P_PLAY_ACCORDIAN loop -1
+
+			if GSailor1 exists
+				wait until GSailor1 played
+			end if
+
+			GSailor1 play ANM_P_SITTING_DOWN_DANCE_SAILING1 loop -1
+
+			wait until VerseLine >= 4
+
+			if GSailor2 exists and HEALTH of GSailor2 > 0
+				SPEED of GSailor2 = 0.2
+				set GSailor2 position to [1884.911, 9.364, 3162.555] 
+				ALTITUDE of GSailor2 = 9.6
+				move GSailor2 position to [1885, 9.493, 3158.657]
+				wait until [GSailor2] near [1885, 9.493, 3158.657] radius 0.2
+				set GSailor2 focus to camera position
+				GSailor2 play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+				
+			end if
+
+			wait until camera ready
+
+			if GSailor2 exists and HEALTH of GSailor2 > 0
+				SPEED of GSailor2 = 0.4
+				set GSailor2 position to [GArk]
+				move GSailor2 position to [GSoapBox2]
+			end if
+
+			snapshot challenge success 0.4 alignment 0.2 HELP_TEXT_TITLE_35 TheMissionariesVerseTwo
+
+			set camera position to [1855.707, 7.390, 3157.255] 
+			set camera focus to [1858.868, 5.582, 3160.765] 
+
+			move camera position to [1854.570, 7.215, 3162.895] time 6
+			move camera focus to [1858.843, 5.604, 3160.949] time 6
+
+			if GSailor2 exists and HEALTH of GSailor2 > 0
+				wait until [GSailor2] near [GSoapBox2] radius 0.2
+				set GSailor2 focus to [GCampfirePos]
+				GSailor2 play ANM_P_GOSSIP_MAN loop -1
+			end if
+
+			SPEED of GSailor2 = 0.2
+
+			move camera position to [1857.077, 6, 3163.818] time 5
+			move camera focus to [1858.974, 5.491, 3161.313] time 5
+			wait until camera ready
+
+			set camera position to [1857.607, 6.165, 3160.798] 
+			set camera focus to [1860.487, 5.5, 3164.376] 
+			wait until 3 seconds
+
+			set camera position to [1854.966, 5.416, 3157.552] 
+			set camera focus to [1858.049, 5.655, 3160.627] 
+			wait until 3 seconds
+
+			wait until InVerseSection == 0
+
+			if HEALTH of GSailor1 > 0
+				run background script TheMissionariesSearch(GSailor1,GSoapBox1)
+			end if
+
+			if HEALTH of GSailor2 > 0
+				run background script TheMissionariesSearch(GSailor2,GSoapBox2)
+			end if
+		end cinema
+	end if
+
+end script TheMissionariesVerseTwo
+
+//------------------------------------------------------------------------------------------------------------------------
+// VERSE THREE - You've given them grain, and now they want meat.
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesVerseThree
+	HandThing=0
+start
+	HandThing=get object held
+
+	if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and
+		GSailor1 not in MyCreature hand and
+		GSailor2 not in MyCreature hand and
+		GSailor3 not in MyCreature hand
+
+		stop script "TheMissionariesWorking, TheMissionariesSearch"
+		
+		begin cinema
+
+			if HEALTH of GSailor1 > 0 and ([GSailor1] not near [GSoapBox1] radius 15 or GSailor1 is FLYING)
+
+				if GSailor1 is FLYING
+					wait until GSailor1 is not FLYING
+				else
+					set GSailor1 position to [GSoapBox1]
+				end if
+
+			else
+				move GSailor1 position to [GSoapBox1]
+			end if
+
+			if HEALTH of GSailor2 > 0 and ([GSailor2] not near [GSoapBox2] radius 15 or GSailor2 is FLYING) 
+
+				if GSailor2 is FLYING
+					wait until GSailor2 is not FLYING
+				else
+					set GSailor2 position to [GSoapBox2]
+				end if
+
+			else
+				move GSailor2 position to [GSoapBox2]
+			end if
+
+			if HEALTH of GSailor3 > 0 and ([GSailor3] not near [GSoapBox3] radius 15 or GSailor3 is FLYING)
+
+				if GSailor3 is FLYING
+					wait until GSailor3 is not FLYING
+				else
+					set GSailor3 position to [GSoapBox3]
+				end if
+
+			else
+				move GSailor3 position to [GSoapBox3]
+			end if
+
+			start music MUSIC_TYPE_SCRIPT_MISSIONARIES_VERSE_3
+			run background script TheMissionariesVerseThreeText
+
+			if GSailor1 exists and HEALTH of GSailor1 > 0
+				wait until [GSailor1] near [GSoapBox1] radius 0.5
+			end if
+
+			if GSailor2 exists and HEALTH of GSailor2 > 0
+				wait until [GSailor2] near [GSoapBox2] radius 0.5
+			end if
+
+			if GSailor3 exists and HEALTH of GSailor3 > 0
+				wait until [GSailor3] near [GSoapBox3] radius 0.5
+			end if
+
+			set GSailor1 focus to [GCampfirePos]
+			set GSailor2 focus to [GCampfirePos]
+			set GSailor3 focus to [GCampfirePos]
+
+			SPEED of GSailor1 = 0.2
+			SPEED of GSailor2 = 0.2
+			SPEED of GSailor3 = 0.2
+
+			if SailorWithMusic == 1
+				detach music from GSailor1
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			elsif SailorWithMusic == 2
+				detach music from GSailor2
+				attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+			end if
+
+			SailorWithMusic = 3
+
+			GSailor1 play ANM_P_SITTING_DOWN2_INTO loop 1
+			GSailor3 play ANM_P_PLAY_ACCORDIAN loop -1
+			GSailor2 play ANM_P_GOSSIP_MAN loop -1
+
+			if GSailor1 exists
+				wait until GSailor1 played
+				GSailor1 play ANM_P_SITTING_DOWN_DANCE_SAILING1 loop -1
+			end if
+
+			update snapshot success 0.5 alignment 0.1 HELP_TEXT_TITLE_35 TheMissionariesVerseThree
+
+			move camera position to [1855.707, 7.390, 3157.255] time 3 
+			move camera focus to [1858.868, 5.582, 3160.765] time 3
+			wait until camera ready
+
+			move camera position to [1854.570, 7.215, 3162.895] time 8
+			move camera focus to [1858.843, 5.604, 3160.949] time 8
+
+			move camera position to [1857.077, 6, 3163.818] time 5
+			move camera focus to [1858.974, 5.491, 3161.313] time 5
+			wait until camera ready
+
+			set camera position to [1857.607, 6.165, 3160.798] 
+			set camera focus to [1860.487, 5.5, 3164.376] 
+			wait until 3 seconds
+
+			set camera position to [1854.966, 5.416, 3157.552] 
+			set camera focus to [1858.049, 5.655, 3160.627] 
+			wait until 3 seconds
+
+			wait until VerseLine >= 7
+			
+			set camera position to [1854.291, 5.411, 3161.121] 
+			set camera focus to [1857.240, 5.345, 3160.946] 
+
+			wait until VerseLine >= 9
+
+			set camera position to [1854.077, 6.598, 3159.012] 
+			set camera focus to [1858.402, 5.430, 3160.324]
+
+			wait until VerseLine >= 10
+			
+			move camera position to [1849.521, 7.515, 3160.375] time 2
+			move camera focus to [1858.475, 5.437, 3160.130] time 2
+
+			wait until 1 second
+
+			move camera position to [1855.412, 5.596, 3163.603] time 1.5
+			move camera focus to [1858.347, 5.700, 3161.216] time 1.5
+
+			wait until InVerseSection == 0
+
+			run background script TheMissionariesSearch(GSailor1,GSoapBox1)
+			run background script TheMissionariesSearch(GSailor2,GSoapBox2)	
+		end cinema
+	end if
+
+end script TheMissionariesVerseThree
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// End Sequence
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionariesReadyToGo(ModifAl)
+
+RewardPos = marker at [1859.3531, 4.9386, 3156.3843]
+	
+start
+
+	delete GSailor1
+	delete GSailor2
+	delete GSailor3
+	GSailor1=0
+	GSailor2=0
+	GSailor3=0
+	delete GArk
+
+	start jc special SJC_IL_ETAIT_UN_PETIT_NAVIRE
+
+	begin cinema
+		start sound LH_SCRIPT_SAMPLE_MISSIONARIESHEAVE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+				  
+		set camera position to [1892.353, 14.025, 3175.859] 
+		set camera focus to [1883.257, 9.367, 3164.080] 
+
+		move camera position to [1895.334, 13.456, 3164.433] time 10
+		move camera focus to [1866.405, 6.327, 3161.517] time 10
+
+		wait 3.5 seconds
+		start sound LH_SCRIPT_SAMPLE_MISSIONARIESCHEER AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait 3.5 seconds
+		
+		start sound LH_SCRIPT_SAMPLE_MISSIONARIESCHEER AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait until camera ready
+
+		move camera position to [1850.474, 13.456, 3157.496] time 6
+		move camera focus to [1796.834, 0.237, 3152.088] time 6
+
+		say single line HELP_TEXT_MISSIONARIES_16
+
+		start music MUSIC_TYPE_SCRIPT_EPIC_03
+
+		wait until camera ready
+
+		close dialogue
+
+		set camera position to [1877.999, 11.982, 3174.773] 
+		set camera focus to [1893.464, 6.836, 3151.935] 
+
+		start sound LH_SCRIPT_SAMPLE_MISSIONARIESCHEER AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		move camera position to [1881.260, 12.445, 3177.396] time 3
+		move camera focus to [1884.619, 9.582, 3165.073] time 3
+		
+		wait until 3 seconds
+
+		set camera position to [1351.070, 17.244, 3220.976] 
+		set camera focus to [1341.258, 0.299, 3167.758]
+		
+		move camera position to [1390.564, 12.956, 3214.002] time 8
+		move camera focus to [1349.798, 0.217, 3174.007] time 8
+
+		wait until 7 seconds
+
+		set camera position to [1321.690, 11.368, 3145.735] 
+		set camera focus to [1362.789, 0.238, 3164.990] 
+		
+		wait until 5 seconds
+
+		update snapshot details success 1 alignment ModifAl HELP_TEXT_TITLE_35 taking picture
+
+		move camera position to [1319.754, 14.249, 3153.582] time 8
+		move camera focus to [1360.319, 0.319, 3161.911] time 8
+
+		wait until camera ready
+
+		set camera position to [1887.383, 16.915, 3206.878] 
+		set camera focus to [1797.856, 0.162, 3158.931] 
+
+		eject good spirit
+		say HELP_TEXT_MISSIONARIES_17
+		wait until read
+
+		eject evil spirit
+		say HELP_TEXT_MISSIONARIES_18
+		wait until read
+
+	end cinema
+
+//	reward
+//	run script rewardfromsky(variable REWARD_STORM, RewardPos, 0, 1)
+	run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_WATER, 0.0, 0, 0)
+
+			 
+	ArkSailed = 1
+
+end script TheMissionariesReadyToGo
+
+//------------------------------------------------------------------------------------------------------------------------
+// Main Script
+//------------------------------------------------------------------------------------------------------------------------
+begin script TheMissionaries
+
+	Cow = 0
+	Pig = 0
+	Sheep = 0
+	Horse = 0
+	Wood = 0
+	Grain = 0
+	GrainAmount = 0
+	AmountOfWood = 0
+	AmountOfGrain = 0
+	ReadyToGo = 0
+	GalleyBoy = 0
+	GotTheSheep = 0
+	MeatAmount = 0
+	Child = 0
+	Age = 0
+	Count = time-61
+	MyTimer1 = create timer for 0 seconds
+	TreeTimer = create timer for 0 seconds
+	ChildTimer = create timer for 0 seconds
+	HelperTimer = create timer for 0 seconds
+	Highlight=0
+	Influence=0
+	TreeGift = 0
+	TreeGiftSpeech = 0
+	Campfire = 0
+	DoorPos = marker at [1871.600, 7.095, 3161.238]
+	BeginPos = 0
+	BeginFoc = 0
+	Type=0
+	Helper=0
+	LastHelper=0
+	Female=1
+	NoNeed = 0
+	HandThing = 0
+
+start
+
+	GCampfirePos = marker at [1857.103, 4.575, 3160.924]
+
+	GArk = create FEATURE FEATURE_INFO_ARK_DRY_DOCK at [1881.0833, 8.1316, 3154.1094]
+
+	enable GArk indestructible
+	disable GArk hurt by fire
+	disable GArk set on fire
+
+	GSoapBox1 = marker at [1859.690, 5.276, 3160.888]
+	GSoapBox2 = marker at [1859.023, 5.020, 3158.850] 
+	GSoapBox3 = marker at [1859.028, 5.098, 3162.474]
+	
+	ArkIncrement = 0.2
+
+	Influence=create influence at [1881.0833, 8.1316, 3154.1094] radius 150
+
+	BUILT of GArk = 0.2
+
+	wait until ChooseYourCreatureFinished == 1
+
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [GCampfirePos]
+
+	disable Campfire moveable
+	disable Campfire pickup
+
+	enable Campfire on fire	1.0
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [GArk]
+
+	ALTITUDE of Highlight = 16
+	run background script PointOutScroll (Highlight)
+	run script ChallengeHighlightNotify(Highlight, GArk, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_07)
+
+	MissionariesInitiated = 1
+
+	GSailor1 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [DoorPos]
+	GSailor2 = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [DoorPos]
+	GSailor3 = create VILLAGER VILLAGER_INFO_SAILOR_ACCORDIAN at [DoorPos] // Accordianist
+	attach music MUSIC_TYPE_SCRIPT_MISSIONARIES_BACKGROUND to GSailor3
+	SailorWithMusic = 3
+
+	//Three and a half hours should be enough...
+	TheMissionariesTimeOutDetected = create timer for (60*60*3.5) seconds
+	
+	run script TheMissionariesVerseOne
+
+	begin dialogue
+		eject evil spirit
+		eject good spirit
+			say HELP_TEXT_MISSIONARIES_05 // how dare they leave, after all we've done for them
+			wait until read
+			say HELP_TEXT_MISSIONARIES_06 // what have we done.. perhaps we should help
+			wait until read
+	end dialogue
+
+	while ArkSailed == 0 and get TheMissionariesTimeOutDetected time remaining > 0	and KilledAllSailors == 0
+
+		//Look for hired help
+		if get HelperTimer time remaining <= 0 and GArk viewed and camera position near [GArk] radius 200
+			Helper = get VILLAGER at [GArk] radius 40 excluding scripted
+			set HelperTimer time to 3.3 seconds
+		
+			if Helper exists and HEALTH of Helper > 0
+				LastHelper = Helper
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+
+				if Helper is male
+					Female = 0	
+				else 
+					Female = 1
+				end if
+
+				//Get helper
+				begin cinema
+					if SailorDeadCount > 0
+						if Female == 1
+							// "If we had more hands you would be welcome, but we need another fella to guide this boat!"
+							say single line HELP_TEXT_MISSIONARIES_45
+							wait until read
+							NoNeed = 1
+						else 
+							//state of Helper 
+							state Helper LIVING_IN_SCRIPT
+							SPEED of Helper = 0.4
+							// "Hurrah, another ship mate - thank goodness our mission can continue..."
+							say HELP_TEXT_MISSIONARIES_46
+							wait until read
+							// "go on inside and you'll find some clothes"
+							say HELP_TEXT_MISSIONARIES_47
+							move Helper position to [DoorPos]
+							wait until read
+							wait until [Helper] near [DoorPos] radius 0.2
+							MaleHelperCount++
+							delete Helper
+							Helper=0
+						end if
+					else
+						if GotWood == 0
+							// "Some more company would be nice, but we need to build this boat to make more room!"
+							say single line HELP_TEXT_MISSIONARIES_48
+							wait until read
+							NoNeed = 1
+						else
+							SPEED of Helper = 0.4
+							state Helper LIVING_IN_SCRIPT
+							if Female == 1
+								state Helper LIVING_IN_SCRIPT
+								// "A fine woman to help with our travels, this will be a fun trip"
+								say HELP_TEXT_MISSIONARIES_49
+								wait until read
+								// "Head along inside, Brian will show you what to do"
+								say HELP_TEXT_MISSIONARIES_50
+								move Helper position to [DoorPos]
+								wait until read
+								wait until [Helper] near [DoorPos] radius 0.2
+								FemaleHelperCount++
+							else
+								state Helper LIVING_IN_SCRIPT
+								// "Hurrah! More help, the more the merrier! Head along inside"
+								say single line HELP_TEXT_MISSIONARIES_51
+								move Helper position to [DoorPos]
+								wait until read
+								wait until [Helper] near [DoorPos] radius 0.2
+								MaleHelperCount++
+							end if
+							delete Helper
+							Helper=0
+						end if
+					end if
+				end cinema
+
+				if NoNeed == 1
+					wait until [Helper] not near [GArk] radius 40 or 20 seconds
+				end if
+
+				NoNeed = 0
+
+			end if
+		end if
+
+		//Look for wood
+		if SailorDeadCount == 0
+			if GotWood == 0
+				//Look for a tree
+				if TreeGiftSpeech == 0
+					if get TreeTimer time remaining <= 0
+						TreeGift = get SCRIPT_OBJECT_TYPE_DEAD_TREE at [GArk] radius 40
+						set TreeTimer time to 3.4 seconds
+						if TreeGift exists
+							begin dialogue
+								make good spirit appear
+								say single line HELP_TEXT_MISSIONARIES_37 with interaction // "A tree is of no use to these people. They need prepared wood."
+								wait until read
+								make good spirit disappear
+							end dialogue
+							TreeGiftSpeech = 1
+						end if
+					end if
+				end if
+
+				//Look for correct wood type
+				if get MyTimer1 time remaining <= 0
+					set MyTimer1 time to 3 seconds
+					Wood = get STORE WOODSTORE at [GArk] radius 40
+					if Wood exists
+						//Check for sailors in Hand
+						HandThing=get object held
+
+						if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and
+							GSailor1 not in MyCreature hand and
+							GSailor2 not in MyCreature hand and
+							GSailor3 not in MyCreature hand
+
+							AmountOfWood = get resource WOOD in Wood
+							delete Wood with fade
+
+							run script TheMissionariesBuildingBoat(AmountOfWood)
+
+							if BUILT of GArk == 1
+								run script TheMissionariesVerseTwo
+								GotWood = 1
+							end if
+						end if
+					end if
+				end if
+			else //We got wood...
+				//Look for children
+				if GalleyBoy == 0
+					if get ChildTimer time remaining <= 0
+						Child  = get CHILD at [GArk] radius 40
+						set ChildTimer time to 3.1 seconds
+					
+						if Child exists 
+							BeginPos = marker at camera position
+							BeginFoc = marker at camera focus
+
+							begin cinema
+								say single line HELP_TEXT_MISSIONARIES_13
+								set camera position to [1883.284, 20.885, 3156.086]  
+								set camera focus to [1893.854, 15.434, 3169.312] 
+
+								set Child position to [1886.554, 9.493, 3158.657] 
+								ALTITUDE of Child = 9.6
+								set Child focus to camera position
+
+								Child play ANM_P_SCRUBBS loop -1
+
+								wait until 1.5 seconds
+
+								move camera position to [1856.464, 28.811, 3122.521]  time 6
+								move camera focus to [1867.034, 23.359, 3135.747]  time 6
+								
+								set camera lens 100 time 6
+
+								wait until read
+								wait until camera ready
+
+								reset camera lens
+								set camera position to [BeginPos]
+								set camera focus to [BeginFoc]
+							end cinema
+							
+							GalleyBoy = 1
+						end if
+					end if
+				end if
+
+				if GotGrain == 0
+					if get MyTimer1 time remaining <= 0
+						Grain = get STORE FOODSTORE at [GArk] radius 40
+						set MyTimer1 time to 3 seconds
+						if Grain exists
+							//Check for sailors in Hand
+							HandThing=get object held
+
+							if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and
+								GSailor1 not in MyCreature hand and
+								GSailor2 not in MyCreature hand and
+								GSailor3 not in MyCreature hand
+								AmountOfGrain = get resource FOOD in Grain
+								delete Grain with fade
+
+								GrainAmount+=AmountOfGrain
+
+								set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_MOVE
+								begin dialogue
+									if GrainAmount >= 300
+										say single line HELP_TEXT_MISSIONARIES_27 // We're grateful for the grain, holy one.
+									else
+										say single line HELP_TEXT_MISSIONARIES_24 with interaction // That's good grain. Please can we have more?
+									end if
+									wait until read
+								end dialogue
+
+								if GrainAmount >= 300
+									run script TheMissionariesVerseThree
+									GotGrain = 1
+								end if
+								set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+							end if
+						end if
+					end if
+				elsif GotMeat == 0
+					if get MyTimer1 time remaining <= 0
+						Cow  = get ANIMAL BOVINE at [GArk] radius 40	//Look for Cow
+						Sheep  = get ANIMAL SHEEP at [GArk] radius 40 // Look for Sheep
+						Pig = get ANIMAL ANIMAL_INFO_PIG at [GArk] radius 40	// Look for Pig
+						Horse = get ANIMAL ANIMAL_INFO_HORSE at [GArk] radius 40	// Look for Horse (not my idea...)
+						set MyTimer1 time to 3 seconds
+						//Check for sailors in Hand
+						HandThing=get object held
+
+						if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and 
+							GSailor1 not in MyCreature hand and
+							GSailor2 not in MyCreature hand and
+							GSailor3 not in MyCreature hand
+
+							set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_MOVE
+
+							if Cow exists 
+								begin dialogue
+									say single line HELP_TEXT_MISSIONARIES_11
+									delete Cow with fade
+									wait until read
+									MeatAmount ++
+									if MeatAmount < 2
+										say single line HELP_TEXT_MISSIONARIES_53 with interaction
+										wait until read
+									end if
+								end dialogue
+							elsif Sheep exists 
+								begin dialogue
+									say single line HELP_TEXT_MISSIONARIES_12
+									delete Sheep with fade
+									wait until read
+									MeatAmount ++
+									if MeatAmount < 2
+										say single line HELP_TEXT_MISSIONARIES_53 with interaction
+										wait until read
+									end if
+								end dialogue
+							elsif Horse exists 
+								begin dialogue
+									delete Horse with fade
+									wait until read
+									MeatAmount ++
+									if MeatAmount < 2
+										say single line HELP_TEXT_MISSIONARIES_21
+										wait until read
+										say HELP_TEXT_MISSIONARIES_53 with interaction
+										wait until read
+									end if
+								end dialogue
+							elsif Pig exists 
+								begin dialogue
+									say single line HELP_TEXT_MISSIONARIES_52
+									delete Pig with fade
+									wait until read
+									MeatAmount ++
+									if MeatAmount < 2
+										say single line HELP_TEXT_MISSIONARIES_53 with interaction
+										wait until read
+									end if
+								end dialogue
+							end if
+							set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+						end if
+
+						//Have we got all our meat?
+						if MeatAmount >= 2
+							delete Highlight
+							begin dialogue
+								say single line HELP_TEXT_MISSIONARIES_21
+								wait until read
+							end dialogue
+							GotMeat = 1
+						end if
+					end if
+				end if
+			end if
+		end if
+				
+		//Check the sailors.
+		run script CheckSailors(DoorPos)
+
+		//Are we ready to go - must be last check?
+		if InVerseSection != 1
+			if GotWood == 1 and GotGrain == 1 and GotMeat == 1 and SailorDeadCount == 0
+				//Check for sailors in Hand
+				HandThing=get object held
+
+				if HandThing != GSailor1 and HandThing != GSailor2 and HandThing != GSailor3 and 
+					GSailor1 not in MyCreature hand and
+					GSailor2 not in MyCreature hand and
+					GSailor3 not in MyCreature hand
+
+					delete Campfire
+					if Child exists
+						delete Child
+					end if
+					run script TheMissionariesReadyToGo(0.2)
+				end if
+			end if
+		end if
+	end while
+
+	MissionariesCompletedNow = 1
+
+end script TheMissionaries
+
+ 
+

@@ -1,0 +1,63 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global CreatureFreed
+global HomeTownL3			
+global JapTownL3			
+global IndianTownL3		
+global EgyptTownL3
+global GlobalDebug
+global FinishedLand3
+
+define script DisableLocalWeather
+
+begin script SetupLand3
+
+LethysCreaturePos	= marker at [2039.3597, 82.9753, 2282.8311]
+HomeTownPos			= marker at [3108.09, 3116.82]
+JapTownPos			= marker at [2829.1299, 41.7034, 2822.8000]
+IndianTownPos		= marker at [2831.9900, 24.3933, 2547.2000]
+EgyptTownPos		= marker at [2250.2200, 33.4226, 2188.6299]
+
+start
+	LandNumber	= 3
+    enable player 1 virtual influence
+	set player 1 ally with player 2 percentage 0
+	
+	load my_creature at [2031.8361, 85.7705, 2238.0178]
+	MyCreature=get player 1 creature
+
+	disable creature in temple
+
+	HomeTownL3		= get TOWN at [HomeTownPos]
+	JapTownL3		= get TOWN at [JapTownPos]
+	IndianTownL3	= get TOWN at [IndianTownPos]
+	EgyptTownL3		= get TOWN at [EgyptTownPos]
+
+	run background script DisableLocalWeather
+
+	/***********	SETUP COMPUTER PLAYERS CREATURES FOR LAND 3		***********/
+
+	// Parameters are: (Player number, Position to place creature, Creatures size)
+	run background script SetupLethysCreature(2, LethysCreaturePos, 1.5)
+	set computer player 2 personality "ReactToAggressiveCreature" 0 
+	set computer player 2 personality "ExpandInfluence" 0.0
+	/***********	SETUP COMPUTER PLAYERS CREATURES - FINISHED		***********/
+
+end script SetupLand3
+
+//------------------------------------------------------------------------------------------------------------------------
+//	Disable all weather on HomeTown for 10 minutes to give the player a chance to build up
+//------------------------------------------------------------------------------------------------------------------------
+begin script DisableLocalWeather
+
+start
+	disable climate weather
+	delete all weather at [HomeTownL3] radius 220
+	wait 10*60 seconds 
+	enable climate weather
+
+end script DisableLocalWeather
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

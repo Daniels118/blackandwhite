@@ -1,0 +1,72 @@
+challenge NEMESIS_SPEAKS_2
+
+begin script NemesisSpeaks2
+
+	BeginPos = 0
+	BeginFoc = 0
+
+	StormPos = marker at [3800.943, 103.897, 2289.462]   
+
+	Storm = 0
+
+	CurrentTime = 0
+
+	NemesisOriginalPos = 0
+		
+		
+start
+		CurrentTime = get game time
+		
+		begin cinema
+
+			pause computer player 2
+
+			NemesisOriginalPos = marker at computer player 2 position
+
+			set computer player 2 position to [2615.565, 84.080, 2920.138]
+
+			wait until 0.2 seconds
+
+			set game time 16.30 
+
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [StormPos] 
+			set Storm properties time 25 fade 0
+			set Storm properties degrees 25 rainfall 1 snowfall 0 overcast 1 fallspeed 1
+			set Storm properties clouds 10 shade 1 height 350
+			set Storm properties sheetmin 2 sheetmax 7 forkmin 1 forkmax 7
+			set Storm properties inner 300 outer 1500
+			disable Storm affected by wind
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			set camera position to [2615.565, 84.080, 2920.138] 
+			set camera focus to [3066.943, 11.901, 2670.653] 
+
+			move camera position to [3318.109, 84.080, 2531.830] time 30
+			move camera focus to [3599.051, 39.155, 2376.548] time 30 
+
+			move computer player 2 to [3318.109, 84.080, 2531.830]	speed 45
+
+			say HELP_TEXT_NEMESIS_SPEAKS2_01
+			wait until read
+			say HELP_TEXT_NEMESIS_SPEAKS2_02
+			wait until read
+			say HELP_TEXT_NEMESIS_SPEAKS2_03
+			wait until read
+			say HELP_TEXT_NEMESIS_SPEAKS2_04
+			wait until read
+
+			wait until 4 seconds
+
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+
+			set game time CurrentTime
+
+			unpause computer player 2
+				
+		end cinema
+				
+end script NemesisSpeaks2
+

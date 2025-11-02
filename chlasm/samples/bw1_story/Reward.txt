@@ -1,0 +1,327 @@
+challenge DID_YOU_KNOW
+
+global	RewardCount
+global	DispenserRewardCount
+
+define script FirstReward(reward1)
+
+//*****************************************************************************
+//	Display text about what reward the player has been given
+//*****************************************************************************
+begin script displayrewardhelp(reward1)
+
+helptextenum = 0
+
+start
+	RewardCount++
+
+	if RewardCount == 1
+		run background script FirstReward(reward1)
+	else
+		wait until reward1 clicked
+			
+		helptextenum = get reward1 help
+
+		if dialogue ready
+		
+			begin dialogue
+				wait 1 second
+				say single line constant helptextenum
+				wait until read
+			end dialogue
+		end if
+	end if
+end script displayrewardhelp
+
+//*****************************************************************************
+//	Give the Player a reward at Pos
+//*****************************************************************************
+begin script rewardnosky(rewardtype, pos, p_town)
+
+helptextenum = 0
+reward1 = 0
+
+start
+
+	if p_town not exists
+		reward1 = reward constant rewardtype at [pos]
+	else
+		reward1 = reward constant rewardtype in p_town at [pos]
+	end if
+
+	run background script displayrewardhelp(reward1)
+
+end script rewardnosky
+
+//*****************************************************************************
+//	Give the Player a reward. Make it fall from the sky to Pos
+//*****************************************************************************
+begin script rewardfromsky(rewardtype, pos, p_town, cinemacontrol)
+
+reward1 = 0
+mist1 = 0
+num = 0
+
+start
+
+	if cinemacontrol == 0
+
+			if p_town not exists
+				reward1 = reward constant rewardtype at [pos] from sky
+			else
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+			end if
+	else
+		begin cinema	
+			num = number from 0 to 1
+			if num == 0
+				move camera position to [pos]+[0,80,60] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+			else
+				move camera position to [pos]+[0,15,15] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+			end if
+
+			if p_town not exists
+				reward1 = reward constant rewardtype at [pos] from sky
+			else
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+			end if
+
+//			set camera focus to [reward1]
+			//set camera focus follow reward1
+			move camera focus to [pos] time 4
+//			wait 3 seconds
+			wait until camera ready
+
+			move camera position to [pos]+[0,25,30] time 4
+			//move camera focus to [pos] time 3
+			set camera focus follow reward1
+			wait until camera ready
+/*
+			move camera position to [pos]+[50,250,0] time 4
+			move camera focus to [pos]+[0,300,0] time 7
+			wait until camera ready
+
+			//set fade red 255 green 255 blue 255 time 1
+			//wait until fade ready 
+
+			
+//			create mist at [pos]+[50,250,0] scale 1 red 255 green 255 blue 255 transparency 0.5 height ratio 0.5
+			//mist1 = create mist at [pos] scale 1 red 255 green 255 blue 255 transparency 0.5 height ratio 0.5
+			//wait 5 seconds
+
+			if p_town not exists
+
+				reward1 = reward constant rewardtype at [pos] from sky
+
+			else
+
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+
+			end if
+
+//			set camera position to [reward1]+[50,200,0]
+//			set camera focus to [reward1]
+
+			wait 2 seconds
+		
+			move camera position to [pos]+[10,20,0] time 5
+			move camera focus to [pos] time 1
+
+//			set camera follow reward1 distance 50
+//			wait until 3 seconds
+
+//			move camera position to [reward1]+[50,200,0] time 1
+//			move camera focus to [reward1] time 1
+
+//			set camera focus to [reward1]
+//			set camera focus follow reward1
+			wait 5 seconds
+*/
+
+		end cinema
+
+	end if
+
+	run background script displayrewardhelp(reward1)
+
+end script rewardfromsky
+
+//*****************************************************************************
+//	First reward given to player - special text
+//*****************************************************************************
+begin script FirstReward(reward1)
+
+helptextenum = 0
+
+start
+
+	begin dialogue
+
+		say	HELP_TEXT_FIRST_REWARD_01				//Wow. We've been given a chest. I wonder if there's anything in it?
+		wait until read
+
+		say	HELP_TEXT_FIRST_REWARD_02				//Yeah, click the Action Button on it to open it. $m2
+		wait until read
+
+	end dialogue
+
+
+	wait until reward1 clicked
+			
+	begin dialogue
+
+		helptextenum = get reward1 help
+		say constant helptextenum
+		wait until read
+
+		say	HELP_TEXT_FIRST_REWARD_03				//Now click on the contents to activate them. $m2
+		wait until read
+
+	end dialogue
+
+end script FirstReward
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GiveSpellDispenserReward(pos, magic_type, tangle, dont_tell, every_nseconds)
+	spell_dispenser = 0
+	signpost = 0
+	firsthelptextenum = 0
+	lasthelptextenum = 0
+	DidYouKnowPos = marker at [pos]+[0,0,-5]
+start
+	spell_dispenser = create with angle tangle and scale 1.0 SCRIPT_OBJECT_TYPE_SPELL_DISPENSER ABODE_INFO_NORSE_SPELL_DISPENSER at [pos]
+	set spell_dispenser magic properties constant magic_type
+	enable spell_dispenser active
+	if(time > 0)
+		set spell_dispenser time to every_nseconds seconds
+	end if
+
+
+
+	if dont_tell == 0
+		DispenserRewardCount++
+		begin cinema
+			start sound LH_SAMPLE_G_REWARDSTING
+			move camera focus to [spell_dispenser] time 4
+			move camera position to [spell_dispenser]+[21.5, 14.0 ,0] time 4
+			wait until camera ready
+
+			eject evil spirit
+			if DispenserRewardCount == 1
+			
+				run background script DidYouKnow(DidYouKnowPos, variable HELP_TEXT_DYK_11, variable DYK_MIRACLES)			// miracles everywhere
+
+				signpost = create highlight HIGHLIGHT_TIPS at [spell_dispenser]+[0,0,5]
+				set signpost text property text HELP_TEXT_DYK_90 category DYK_MIRACLES
+				ALTITUDE of signpost = 0
+
+				make evil spirit point at [spell_dispenser]
+				// "Ahh Great! a miracle dispenser, this generates miracule one shots"
+				say HELP_TEXT_SPELL_DISPENSER_01
+				wait until read
+				stop evil spirit pointing
+				// "Click on the signpost to find out more" with interaction
+				say HELP_TEXT_SPELL_DISPENSER_02 with interaction
+				wait 1 second
+				make evil spirit point at [signpost]+[0,1,0]
+				wait until read
+				release signpost
+			else
+				make evil spirit point at [spell_dispenser]
+				// "Nice! an other of those cool miracle dispensers"
+				say single line HELP_TEXT_SPELL_DISPENSER_03
+				wait until read
+			end if
+
+			make evil spirit point at [spell_dispenser]+[0, 1.2, 0]
+			//sy "This miracle is"
+			//wait until read
+			// The above two lines were commented out by Ken and James.
+		end cinema
+
+		firsthelptextenum = get spell_dispenser first help
+		lasthelptextenum = get spell_dispenser last help
+		run script HelpJustTalkMaybeWithSpirits(firsthelptextenum, lasthelptextenum)
+	end if
+
+end script GiveSpellDispenserReward
+
+//********************************************************************************
+//	Give a reward but waits for a click before continuing, so there can be
+//	a flyby after calling this.
+//	=========================================================================
+//	!!!WARNING!!!WARNING!!!WARNING!!!WARNING!!!WARNING!!!WARNING!!!WARNING!!!
+//	=========================================================================
+//	This script CANNOT be used in WIDESCREEN or DIALOGUE, or a lock up will occur.
+//	Also CANNOT be used if there is a chance it is the first reward (ie. Land 1)
+//********************************************************************************
+begin script RewardOutsideWidescreenOrDialogue(rewardtype, pos, p_town, cinemacontrol, fromsky)
+
+reward1 = 0
+mist1 = 0
+num = 0
+
+start
+	RewardCount++
+
+	if cinemacontrol == 0
+		if fromsky == 1
+			if p_town not exists
+				reward1 = reward constant rewardtype at [pos] from sky
+			else
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+			end if
+		else
+			if p_town not exists
+				reward1 = reward constant rewardtype at [pos]
+			else
+				reward1 = reward constant rewardtype in p_town at [pos]
+			end if
+		end if
+	else
+		begin cinema	
+			num = number from 0 to 1
+			if num == 0
+				move camera position to [pos]+[0,80,60] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+			else
+				move camera position to [pos]+[0,15,15] time 4
+				move camera focus to [pos] time 3
+				wait until camera ready
+				move camera focus to [pos]+[0,150,0] time 1
+				wait until camera ready
+			end if
+
+			if p_town not exists
+				reward1 = reward constant rewardtype at [pos] from sky
+			else
+				reward1 = reward constant rewardtype in p_town at [pos] from sky
+			end if
+
+			move camera focus to [pos] time 4
+			wait until camera ready
+
+			move camera position to [pos]+[0,25,30] time 4
+			set camera focus follow reward1
+			wait until camera ready
+
+		end cinema
+
+	end if
+
+	run script displayrewardhelp(reward1)
+
+end script RewardOutsideWidescreenOrDialogue

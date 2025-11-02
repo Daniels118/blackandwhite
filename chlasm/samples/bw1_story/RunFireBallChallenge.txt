@@ -1,0 +1,12 @@
+challenge RunFireBallChallenge
+
+run script RunFireBallChallenge
+
+begin script RunFireBallChallenge
+	
+start
+	
+	run script FireBallChallenge
+	
+
+end script RunFireBallChallenge

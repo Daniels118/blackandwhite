@@ -1,0 +1,10 @@
+run script RunCreatureDevelopment
+
+begin script RunCreatureDevelopment
+
+start
+	//run background script MoveTheGuideAround
+	run script CreatureDevelopmentSet
+	
+end script RunCreatureDevelopment
+                                                  

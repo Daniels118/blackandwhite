@@ -1,0 +1,278 @@
+challenge CREATURE_RUNS_AMOK
+
+begin script CreatureRunsAmok
+
+	NearestTown = get TOWN at [2307.651, 22.123, 3356.615] //town centre
+	StoragePit = get HOUSE at [2334.725, 12.730, 3403.021]  //store
+	House = get HOUSE at [2361.930, 7.655, 3389.518] //houses
+	House2 = get HOUSE at [2332.623, 17.915, 3442.623] 	// more houses
+	BeginPos = 0	
+	BeginFoc = 0
+	StrengthSpell = 0
+	AlignmentOfCreature = 0
+	SFX = 0
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+
+
+start
+
+	MyCreature = get player 1 creature
+	//NearestTown = get nearest town at [MyCreature] for player 1 radius 3000
+	//StoragePit = get STORE in NearestTown
+
+	disable leash on MyCreature
+//	move MyCreature position to [NearestTown]
+//	wait until [MyCreature] near [NearestTown] radius 50
+
+	move MyCreature position to [2272.184, 30.825, 3406.544] 
+	wait until [MyCreature] near [2272.184, 30.825, 3406.544] radius 150
+//	force MyCreature CREATURE_LOOK_FOREVER StoragePit
+
+	snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_05 StandardReminder(variable HELP_TEXT_REMINDER_07)
+	
+//	while StoragePit not exists
+//		NearestTown = get nearest town at [MyCreature] for player 1 radius 3000
+//		if NearestTown exists
+//			StoragePit = get STORE in NearestTown
+//		end if
+//	end while
+
+//	force MyCreature CREATURE_EXAMINE_BY_LOOKING StoragePit
+//	wait until [MyCreature] near [StoragePit] radius 100
+
+	StrengthSpell = cast CREATURE_SPELL_STRONG spell on MyCreature from [MyCreature] radius 0 time -1 curl 0
+	teach MyCreature everything
+//	set MyCreature only desire CREATURE_DESIRE_ANGER
+//	enable MyCreature attack own town 
+
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+
+	begin cinema
+
+
+		set game time 18.50
+		disable game time
+
+
+		set camera focus to [MyCreature]  
+		set camera focus follow MyCreature	
+		set camera lens  35  time 8
+		wait until camera ready
+//		move  camera follow MyCreature	distance 15 
+		  
+
+		say HELP_TEXT_CREATURE_RUNS_AMOK_12
+		wait until read
+
+		say HELP_TEXT_CREATURE_RUNS_AMOK_13
+		wait until read
+		set camera lens  70  time 3
+		move camera position to [2424.474, 49.863, 3330.029]   time 5
+	//	move camera focus to [MyCreature] + [0,15,0]  time 3
+		move camera focus to [MyCreature] + [0, CreatureHeight * 0.8,0] time 3
+		set camera focus follow MyCreature 
+		wait until camera ready
+
+		set camera lens 60 time 6
+		move camera position to [2424.474, 69.863, 3330.029]   time 9
+
+		say HELP_TEXT_CREATURE_RUNS_AMOK_01
+		wait until read
+
+		wait until [MyCreature] near [2272.184, 30.825, 3406.544] radius 5
+
+		say HELP_TEXT_CREATURE_RUNS_AMOK_02
+		wait until read
+
+	
+
+		force MyCreature CREATURE_LOOK_AT_CAMERA  MyCreature
+		wait 2 seconds
+		wait until camera ready
+
+
+		set	 camera position to [2348.039, 16.003, 3398.865] 
+//		move camera position to [2348.039, 16.003, 3398.865]  time 7
+//		set camera focus to [MyCreature] + [0,15,0]
+        set camera focus to [MyCreature] + [0, CreatureHeight * 0.8,0] 
+		set camera lens 35 time 8
+
+		
+		move camera position to [2348.039, 26.003, 3398.865]  time 9
+		
+
+		SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [MyCreature] time 30
+//		wait 1 second 
+
+		
+
+		 set MyCreature only desire CREATURE_DESIRE_ANGER
+		MyCreature play C_INDIVIDUAL_ANGRY
+
+		
+
+
+		shake camera at [MyCreature] radius 200 amplitude 0.5 time 2
+		wait 2 seconds
+
+		MyCreature play C_INDIVIDUAL_ANGRY
+
+		AlignmentOfCreature	= get ALIGNMENT of MyCreature
+		AlignmentOfCreature *= -1
+		if AlignmentOfCreature > 0
+			while get ALIGNMENT of MyCreature < AlignmentOfCreature
+				ALIGNMENT of MyCreature += 0.025
+			end while
+		else
+			while get ALIGNMENT of MyCreature > AlignmentOfCreature
+				ALIGNMENT of MyCreature -= 0.025
+			end while
+		end if 
+		
+		wait until camera ready
+
+//		MyCreature play C_FACE_GRIMACE	loop 1
+//		wait until MyCreature played
+		
+		set camera lens 75
+		set	camera position to [2338.989, 26.917, 3452.557] 
+		set camera focus to [2297.091, 30.848, 3384.332] 
+
+	
+
+
+		enable MyCreature attack own town 
+		force MyCreature CREATURE_EXAMINE_BY_LOOKING StoragePit
+//		wait until [MyCreature] near [StoragePit] radius 100
+
+	
+
+		// TODO cut to creature being horrible to town.
+
+			MyCreature play C_INDIVIDUAL_ANGRY
+			wait until MyCreature played
+
+			ENERGY of MyCreature = 1
+			force MyCreature CREATURE_CAST_FIREBALL StoragePit
+			wait until MyCreature played
+	//		wait 2.5 seconds
+
+			MyCreature play C_INDIVIDUAL_ANGRY
+
+		
+			wait 1.5 seconds
+			set camera lens 65	 time 5
+			move camera position to [2233.074, 71.975, 3440.856] time 6
+			move camera focus to [2334.675, 13.199, 3396.743]  time 3
+
+			eject good spirit
+			eject evil spirit
+
+			say HELP_TEXT_CREATURE_RUNS_AMOK_03
+			wait until read
+
+			say HELP_TEXT_CREATURE_RUNS_AMOK_04
+//			wait until read
+
+//			force MyCreature CREATURE_EXAMINE_BY_LOOKING StoragePit
+//			wait until MyCreature played
+			wait 1 second
+
+			move MyCreature position to [2290.261, 23.597, 3373.127] 
+//			wait until [MyCreature] near [2290.261, 23.597, 3373.127] radius 5
+		set camera lens 70  time 3
+		move camera position to [2241.769, 78.833, 3357.357] time 6
+		move camera focus to [2335.278, 13.259, 3405.321] time 2
+
+			
+
+			say HELP_TEXT_CREATURE_RUNS_AMOK_05
+			wait until read
+
+			ENERGY of MyCreature = 1
+			force MyCreature CREATURE_EXAMINE_BY_LOOKING House
+			force MyCreature CREATURE_CAST_FIREBALL House
+			wait until MyCreature played
+
+//			wait 2.5 seconds
+
+			wait until camera ready 
+
+			end cinema with dialogue
+
+			MyCreature play C_INDIVIDUAL_ANGRY
+
+
+			say HELP_TEXT_CREATURE_RUNS_AMOK_06
+			wait until read
+
+			ENERGY of MyCreature = 1
+			force MyCreature CREATURE_EXAMINE_BY_LOOKING House2
+			force MyCreature CREATURE_CAST_FIREBALL House2
+			wait until MyCreature played
+
+	//		wait 1 seconds
+
+			say HELP_TEXT_CREATURE_RUNS_AMOK_07
+			wait until read
+
+			send evil spirit home
+			send good spirit home
+
+		end dialogue
+
+			
+			 
+
+	release MyCreature
+	set MyCreature only desire CREATURE_DESIRE_ANGER
+	enable MyCreature confined to [House] radius 90
+	wait 90 seconds
+	
+	enable leash on MyCreature
+	delete StrengthSpell
+	disable MyCreature confined to [House] radius 90
+	disable MyCreature attack own town
+
+	begin dialogue
+
+
+		eject good spirit
+
+		say HELP_TEXT_CREATURE_RUNS_AMOK_08
+		wait until read
+
+
+	release MyCreature
+
+
+		eject evil spirit
+		
+		say HELP_TEXT_CREATURE_RUNS_AMOK_09
+		wait until read
+		say HELP_TEXT_CREATURE_RUNS_AMOK_10
+		wait until read
+		say HELP_TEXT_CREATURE_RUNS_AMOK_11
+		wait until read
+
+	end dialogue
+
+	snapshot quest success 1.0 alignment 0.0 HELP_TEXT_TITLE_05  StandardReminder(variable HELP_TEXT_REMINDER_07)
+
+	SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [MyCreature] time 30
+	AlignmentOfCreature *= -1
+	if AlignmentOfCreature > 0
+		while get ALIGNMENT of MyCreature < AlignmentOfCreature
+			ALIGNMENT of MyCreature += 0.025
+		end while
+	else
+		while get ALIGNMENT of MyCreature > AlignmentOfCreature
+			ALIGNMENT of MyCreature -= 0.025
+		end while
+	end if 
+		
+
+	  enable game time
+
+end script CreatureRunsAmok

@@ -1,0 +1,19 @@
+challenge CREATURE_DEV_ANGRY
+run script CreatureTestAnim
+begin script CreatureTestAnim
+Guide = 0
+start
+	say "starting test script.."
+	wait until read
+	begin cinema		
+		Guide = create CREATURE CREATURE_TYPE_COW at [2126.7410, 40.8700, 2653.0215]
+		set camera position to [Guide]+[10,0,10]
+		set camera focus follow Guide
+		Guide play C_INDIVIDUAL_ANGRY
+		say "waiting for anim to finish"
+		wait until read
+		wait until Guide played
+		Guide play C_INDIVIDUAL_LOOK_AT_ME
+		wait until Guide played
+	end cinema
+end script CreatureTestAnim

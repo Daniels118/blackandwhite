@@ -1,0 +1,17 @@
+challenge RunTheMissionaries
+
+run script RunTheMissionaries
+
+begin script RunTheMissionaries
+
+ Ark = 0
+	
+start
+
+	//Ark = create FEATURE FEATURE_INFO_ARK_DRY_DOCK at [1881.0833, 8.1316, 3154.1094]	
+    disable player 1 virtual influence 	
+	ChooseYourCreatureFinished = 1
+	run script TheMissionaries
+	
+
+end script RunTheMissionaries

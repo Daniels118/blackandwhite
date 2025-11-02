@@ -1,0 +1,595 @@
+challenge GREEDY_FARMER
+
+//------------------------------------------------------------------------------------------------------------------------
+global GreedyFarmerFinished
+global GreedyFarmerCowKilled
+global GreedyFarmerAlignmentTotal
+global FirstCowSaved
+global FarmerShowScared
+global FarmerDeadChild
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** RESOLUTIONS ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script GreedyFarmerDead
+start
+	begin dialogue
+		eject good spirit
+		// "Gutted you killed the farmer"
+		say single line HELP_TEXT_GREEDYFARMER_07
+		wait until read
+		send good spirit home
+	end dialogue
+	
+	// snapshot challenge and alignment
+	GreedyFarmerAlignmentTotal -= 0.6
+	
+	update snapshot success 1.0 alignment GreedyFarmerAlignmentTotal HELP_TEXT_TITLE_11 StandardReminder(variable HELP_TEXT_REMINDER_12)
+end script GreedyFarmerDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// All the cattle have been killed
+// Should make the Farmer request you to click
+//------------------------------------------------------------------------------------------------------------------------
+begin script GreedyFarmerCattleDead(Farmer, SoapBox, SoapCamPos)
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+	move Farmer position to [SoapBox]
+	wait until [Farmer] near [SoapBox] radius 3
+	wait until camera position near [SoapBox] radius 100 and [SoapBox] viewed
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [SoapCamPos] time 3
+		move camera focus to [SoapBox] time 3
+		wait until camera ready
+		update snapshot success 1.0 alignment GreedyFarmerAlignmentTotal HELP_TEXT_TITLE_11 StandardReminder(variable HELP_TEXT_REMINDER_12)
+		// "Farmer:The cows are all gone, dispute solved!"
+		say single line HELP_TEXT_GREEDYFARMER_13
+		wait until read
+		wait 1 second
+		move camera position to [BeginPos] time 2
+		move camera focus to [BeginFoc] time 2
+		wait until camera ready
+	end cinema
+end script GreedyFarmerCattleDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// You killed all the kids!
+//------------------------------------------------------------------------------------------------------------------------
+begin script GreedyFarmerChildrenDead(SoapBox, SoapCamPos, Farmer)
+	BeginPos = 0
+	BeginFoc = 0
+start
+	wait until camera position near [SoapBox] radius 100 and [SoapBox] viewed
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [SoapCamPos]
+		set camera focus to [SoapBox]
+		move Farmer position to [SoapBox]
+		eject evil spirit
+		// "The children are gone! Problem solved."
+		say HELP_TEXT_GREEDYFARMER_11
+		wait until read
+		send evil spirit home
+		wait until [Farmer] near [SoapBox] radius 2
+		wait 1 second
+		//"You stoopid fugger. I wanted you to stop them stealing the cows, not kill them!!"
+		say HELP_TEXT_GREEDYFARMER_16
+		wait until read
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+	end cinema
+	// snapshot challenge and alignment
+	GreedyFarmerAlignmentTotal -= 1.0
+	update snapshot success 1.0 alignment GreedyFarmerAlignmentTotal HELP_TEXT_TITLE_11 StandardReminder(variable HELP_TEXT_REMINDER_12)
+end script GreedyFarmerChildrenDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** STEAL COW ****
+//	The StealCow script makes the gang of children steal a cow and take it back to their hideout,
+//	at which stage the cow disappears.
+//------------------------------------------------------------------------------------------------------------------------
+begin script StealCow(Children, Cattle, HideOutPos)
+	Cow=0
+	Child=0
+	CattlePos=0
+	Exit = 0
+start
+
+	begin loop
+		SPEED of Children = 0.4
+		CattlePos=marker at [Cattle]
+
+		move Children position to [CattlePos]
+		wait until [Children] near [CattlePos] radius 5
+
+		Cow = detach from Cattle
+		Child = get SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE in Children
+
+		if Cow exists and Child exists
+			Exit = 0
+			while Exit == 0
+				SPEED of Cow = 0.4
+				move Cow position to [Cow]
+				move Child position to [Cow]
+				wait until [Child] near [Cow] radius 5
+				
+				attach Cow to Children as leader
+				SPEED of Cow = 0.4
+				move Cow position to [Children]
+				move Child position to [Children]
+				wait until [Cow] near [Children] radius 10 and [Child] near [Children] radius 10
+				
+				SPEED of Cow = 0.4
+				move Cow position to [HideOutPos]
+				
+				state Cow LIVING_MOVE_IN_FLOCK
+				state Child LIVING_MOVE_IN_FLOCK
+
+				move Children position to [HideOutPos]
+				wait until [Children] near [HideOutPos] radius 10
+
+				wait until [Cow] near [HideOutPos] radius 1
+				start sound LH_SCRIPT_SAMPLE_A_COWSLAUGHTER_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Cow]
+				detach Cow from Children
+				delete Cow with fade
+
+				GreedyFarmerCowKilled++
+				Exit = 1
+
+			until Cow not exists
+			until Child not exists
+			until Cow is HELD or Cow in MyCreature hand
+			end while
+		end if
+	until GreedyFarmerFinished != 0
+	end loop
+
+end script StealCow
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MOVE FLOCK ****
+//		The MoveFlock script basically makes the flock graze the field.
+//------------------------------------------------------------------------------------------------------------------------
+begin script MoveFlock(Cattle)
+	CattlePos = marker at [Cattle]
+	NewPos = 0
+start
+	begin loop
+		begin loop
+			NewPos = 0
+			NewPos = marker at [CattlePos]+[number from -20 to 20,number from -20 to 20]
+		until [Cattle] not near [NewPos] radius 20
+		end loop
+
+		move Cattle position to [NewPos]
+		wait until 300+number from 0 to 300 seconds 
+	end loop
+until size of Cattle==0
+until GreedyFarmerFinished!=0
+end script MoveFlock
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MOVE COW ****
+//		The MoveCow script simply makes the cow try to move back to its flock if it is removed.  For
+//		example, if the Hand removes a cow and drops it somewhere else, the Cow will do its best to return.
+//------------------------------------------------------------------------------------------------------------------------
+begin script MoveCow(Cow, Cattle, Children)
+	Stolen=0
+start
+	begin loop
+	when Cow is HELD or Cow in MyCreature hand
+		wait until Cow is not HELD and not Cow in MyCreature hand
+		attach Cow to Cattle
+		SPEED of Cow = 0.4
+	when Cow in Children and Stolen==0
+		Stolen=1
+	when Cow in Cattle and Stolen==1/* and [Cow] not near [Children] radius 50*/
+		begin dialogue
+			eject good spirit
+			// "You saved a cow!"
+			say single line HELP_TEXT_GREEDYFARMER_12
+			wait until read
+			send good spirit home
+			if FirstCowSaved == 0
+				GreedyFarmerAlignmentTotal += 0.4
+				FirstCowSaved = 1
+			end if
+		end dialogue
+		Stolen=0
+	end loop
+until HEALTH of Cow <= 0
+until GreedyFarmerFinished!=0
+end script MoveCow
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** ANGRY FARMER ****
+//		This script makes the farmer abuse the children if they wander by him.
+//------------------------------------------------------------------------------------------------------------------------
+begin script AngryFarmer(Farmer,Position,Children,Cattle)
+	Abuse=0
+start
+	begin loop
+	when [Farmer] near [Children] radius 40 and Abuse==0
+		Abuse=1
+
+		if camera position near [Farmer] radius 100 and [Farmer] viewed
+			if widescreen ready
+				begin dialogue
+					// "Oi!  Stop nicking me cows you little rascals!"
+					say single line constant from HELP_TEXT_GREEDYFARMER_08 to HELP_TEXT_GREEDYFARMER_09
+					wait until read
+				end dialogue
+			end if
+		end if
+
+		move Farmer position to [Children]
+		wait until [Farmer] not near [Position] radius 20 or [Farmer] near [Children] radius 10
+
+		if camera position near [Farmer] radius 100 and [Farmer] viewed
+			if widescreen ready
+				begin dialogue
+					// "I'm too old for this shit!"
+					say single line HELP_TEXT_GREEDYFARMER_10
+					wait until read
+				end  dialogue
+			end if
+		end if
+
+		move Farmer position to [Position]
+		wait until [Farmer] near [Position] radius 10
+
+	when [Farmer] not near [Children] radius 40 and Abuse!=0
+		Abuse=0
+	until HEALTH of Farmer <= 0
+	until GreedyFarmerFinished!=0
+	until size of Cattle <= 0
+	end loop
+
+end script AngryFarmer
+
+//------------------------------------------------------------------------------------------------------------------------
+//  **** SCARED CHILDREN ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script ScaredThem(Child1, Child2, Child3, Child4, Child5, Children)
+
+	Child = get SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE in Children
+start
+
+	begin cinema
+		if FarmerDeadChild exists
+ 			if FarmerDeadChild != Child1
+				if Child1 exists
+					move Child1 position to [FarmerDeadChild] + [0,0,2]
+				end if
+			end if
+
+			if FarmerDeadChild != Child2
+				if Child2 exists
+					move Child2 position to [FarmerDeadChild] + [0,0,-2]
+				end if
+			end if
+
+			if FarmerDeadChild != Child3
+				if Child3 exists
+					move Child3 position to [FarmerDeadChild] + [2,0,0]
+				end if
+			end if
+
+			if FarmerDeadChild != Child4
+				if Child4 exists
+					move Child4 position to [FarmerDeadChild] + [-2,0,0]
+				end if
+			end if
+
+			if FarmerDeadChild != Child5
+				if Child5 exists
+					move Child5 position to [FarmerDeadChild] + [-2,0,-2]
+				end if
+			end if
+		end if
+
+		move camera position to [Child] + [10,10,10] time 6
+		move camera focus to [Child] time 6
+		
+		wait until camera ready
+
+		if FarmerDeadChild exists
+			set Children focus to [FarmerDeadChild]
+		end if
+
+		move camera position to [Child] + [8,5,8] time 6
+		move camera focus to [Child] + [0,1,0] time 6
+
+		//"CHILD: I'm scared... I dont think I wanna do this anymore."
+		say HELP_TEXT_GREEDYFARMER_21
+		wait until read
+
+		//"CHILD: Me neither.. I'm off !"
+		say HELP_TEXT_PICKUP_GREEDYFARMER_02
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+		snapshot challenge success 1.0 alignment GreedyFarmerAlignmentTotal HELP_TEXT_TITLE_11 StandardReminder(variable HELP_TEXT_REMINDER_12)
+	end cinema
+
+	disband Children
+	FarmerDeadChild=0
+
+end script ScaredThem
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckScared(Child1, Children)
+start
+	while FarmerShowScared <= 0 and GreedyFarmerFinished == 0
+		wait 1.1 seconds
+		if Child1 exists
+			if HEALTH of Child1 <= 0
+				if Child1 in Children
+					detach Child1 from Children
+				end if
+				if Child1 is not FLYING
+					if [Child1] near [Children] radius 10
+						FarmerShowScared =1 
+						FarmerDeadChild=Child1
+					end if 
+				end if
+			end if
+		end if
+	end while
+end script CheckScared
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** GREEDY FARMER MAIN ****
+//		This script introduces the challenge, and checks to see if it has been completed.
+//------------------------------------------------------------------------------------------------------------------------
+begin script GreedyFarmer
+	HideOutPos = marker at [1840.4478, 4.9700, 3165.9094]
+	HideOut = get HOUSE at [HideOutPos]
+	
+	StoragePit = get HOUSE at [1750.1000, 46.9000, 3035.5801] radius 5
+	StoragePitFood = 0
+	House = get HOUSE at [1741.6400, 54.2700, 3011.2100] radius 5
+	Field = marker at [1722,3082]
+	SoapBox = marker at [1749.5812, 54.2700, 3009.0759]
+	SoapCamPos = marker at [1758.9822, 59.4445, 3005.4580]
+	Farmer=0
+	Children=0
+	Child1 = 0
+	Child2 = 0
+	Child3 = 0
+	Child4 = 0
+	Child5 = 0
+	Cattle=0
+	Cow=0
+	BeginPos = 0
+	BeginFoc = 0
+	StarvingCount = 0
+	AlignmentTotal = 0
+
+	Highlight = 0
+	LocalTown = get TOWN at [1800.4399, 51.5126, 3024.3201] radius 100
+	CowLastMemberOfFlock = 0
+	CowInfiltrator = 0
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [1841.4539, 4.4545, 3162.2764]
+
+	OneChildKilled =0
+	CowInFlock=0
+
+	GiveReward = 0
+//	DebugSize=0
+	
+start
+
+
+	GreedyFarmerFinished=0
+	GreedyFarmerCowKilled=0
+	
+	 //		At the beginning of the challenge we wait until the field isn't being viewed by the player,
+	 // 	and then we create the cattle in the field, and make them graze.
+
+	Children = flock at [HideOutPos]
+	set Children properties inner 3 outer 5
+	Cattle = flock at [Field]
+	set Cattle properties inner 5 outer 30
+
+	while size of Cattle < 10
+		wait until [Field] not viewed
+		Cow = create ANIMAL BOVINE at [Field]+[number from -2 to 2,number from -2 to 2]
+		attach Cow to Cattle
+		run background script MoveCow(Cow, Cattle, Children)
+	end while
+	state Cattle LIVING_MOVE_IN_FLOCK
+	wait 2 seconds
+	run background script MoveFlock(Cattle)
+
+	//		Once the level of the storage pit in the village falls alarmingly, and the field is not
+	// 	being viewed by the player, we create the gang of children and make them start stealing cows.
+	 
+	wait until [HideOutPos] not viewed
+	Child1 = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE at [HideOutPos]
+	Child2 = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE at [HideOutPos]
+	Child3 = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE at [HideOutPos]
+	Child4 = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE at [HideOutPos]
+	Child5 = create SCRIPT_OBJECT_TYPE_VILLAGER_CHILD VILLAGER_INFO_CELTIC_FARMER_MALE at [HideOutPos]
+	AGE of Child1 = 10
+	AGE of Child2 = 10
+	AGE of Child3 = 10
+	AGE of Child4 = 10
+	AGE of Child5 = 10
+	///state Child VILLAGER_STATE_SCRIPT_WANDER_AROUND_POSITION
+	attach Child1 to Children
+	attach Child2 to Children
+	attach Child3 to Children
+	attach Child4 to Children
+	attach Child5 to Children
+
+	run background script StealCow(Children,Cattle,HideOutPos)
+
+	
+	 //		We notify the user that the challenge has been initiated whenever they get close to the farmer's house, and the
+	 //		children have successfully stolen at least one cow.
+	 
+	//wait until GreedyFarmerCowKilled>0
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [House]
+	run script ChallengeHighlightNotify(Highlight, House, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
+
+	 //		Once they click on the house, we run a little cinema which introduces the challenge
+	 
+	Farmer = create VILLAGER VILLAGER_INFO_CELTIC_FARMER_MALE at [House]
+	
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_02
+		
+		enable Farmer high gfx detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move Farmer position to [SoapBox]
+		move camera position to [1753.507, 56.016, 3007.797] time 3
+		move camera focus to [1744.957, 54.201, 3011.962] time 3
+		wait until [Farmer] near [SoapBox] radius 3 and camera ready
+		set Farmer focus to [SoapCamPos]
+		Farmer play ANM_P_AMBIENT1 loop -11
+		wait 1 second
+
+		move camera position to [1751.416, 55.781, 3005.992] time 5
+		move camera focus to [1745.711, 54.507, 3013.582] time 5
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_11 StandardReminder(variable HELP_TEXT_REMINDER_12)
+		// "Oh great one, please hear my cry for help!"
+		say HELP_TEXT_GREEDYFARMER_01
+		wait until read
+		// "Children from the village are stealing my cows."
+		say HELP_TEXT_GREEDYFARMER_02
+		Farmer play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+		wait 2 second
+		set camera focus to [Children]
+		set camera position to [Children]+[13,9,13]
+		set camera focus follow Children
+		wait until read
+		// "The little bastards!"
+		say HELP_TEXT_GREEDYFARMER_09
+		wait until 3 seconds
+		set camera position to [1751.416, 55.781, 3005.992]
+		set camera focus to [1745.711, 54.507, 3013.582]  
+		wait until read
+		Farmer play ANM_P_AMBIENT1 loop -1
+		// "Please do something to stop them!"
+		say HELP_TEXT_GREEDYFARMER_03 with interaction
+		wait until read
+		wait until camera ready
+		move camera position to [BeginPos] time 2
+		move camera focus to [BeginFoc] time 2
+		wait until camera ready
+		state Farmer WANDER_AROUND position [SoapBox]
+			float 6
+			ulong 4, 20
+		disable Farmer high gfx detail
+		stop music
+	end cinema with dialogue
+		//The spirits advise you on the best course of action.
+		eject good spirit
+		eject evil spirit
+		clear dialogue
+		// "ES Kill someone"
+		say HELP_TEXT_GREEDYFARMER_04
+		wait until read
+		// "Think of the starving villagers!"
+		say HELP_TEXT_GREEDYFARMER_05
+		wait until read
+		// "I am!"
+		say HELP_TEXT_GREEDYFARMER_06
+		wait until read
+	end dialogue
+	
+	//After the opening cinema, the farmer will basically wander around in a rage,
+	//abusing the children if they come too close.
+	 
+	run background script AngryFarmer(Farmer,SoapBox,Children,Cattle)
+	
+	run background script CheckScared(Child1, Children)
+	run background script CheckScared(Child2, Children)
+	run background script CheckScared(Child3, Children)
+	run background script CheckScared(Child4, Children)
+	run background script CheckScared(Child5, Children)
+
+	//And, finally, we monitor the possible challenge completion conditions.
+	while GreedyFarmerFinished==0
+		wait 1.1 second
+//		DebugSize=size of Children
+
+		//Check for flock just being a cow.
+		CowInfiltrator = get ANIMAL BOVINE in Children
+		if CowInfiltrator exists
+			CowInFlock = 1
+			if size of Children == 1
+				CowLastMemberOfFlock = 1
+			end if
+		else 
+			CowInFlock = 0
+		end if
+
+		//Just say killing children once
+		if OneChildKilled == 0
+			if size of Children < (5+CowInFlock)
+	  			begin dialogue
+					eject evil spirit
+					// "EA: Nice bit of killing"
+					say single line HELP_TEXT_GREEDYFARMER_14
+					wait until read
+					wait 2 seconds
+					send evil spirit home
+				end dialogue
+
+				OneChildKilled = 1
+			end if
+		end if
+
+	until HEALTH of Farmer <= 0
+		run script GreedyFarmerDead
+		GreedyFarmerFinished=1
+		GiveReward = 1
+	until size of Cattle <= 0
+		run script GreedyFarmerCattleDead (Farmer, SoapBox, SoapCamPos)
+		GreedyFarmerFinished=1
+	until size of Children <= 0 or CowLastMemberOfFlock == 1
+		run script GreedyFarmerChildrenDead (SoapBox, SoapCamPos, Farmer)
+		GreedyFarmerFinished=1
+		GiveReward = 1
+	until FarmerShowScared == 1 
+		run script ScaredThem(Child1, Child2, Child3, Child4, Child5, Children)
+		GreedyFarmerFinished=1
+		GiveReward = 1
+	end while
+
+	if size of Cattle > 0
+		attach Cattle to LocalTown
+	end if
+
+	// Give a reward if the player has made some sort of action. A ligtning bolt PU 1 for the LocalTown.
+	if GiveReward == 1
+		enable spell SPELL_LIGHTNING_LEVEL_1 in LocalTown
+		enable spell SPELL_LIGHTNING_LEVEL_2 in LocalTown
+		
+		begin cinema
+			// Do flyby to the town centre to see the reward
+			move camera position to [1769.3789, 67.1658, 3026.8521] time 3
+			move camera focus to [1795.4517, 54.4811, 3028.6423] time 3
+			wait until camera ready
+		end cinema with dialogue
+			eject evil spirit
+			say HELP_TEXT_NEW_REWARD_02
+			wait until read
+		end dialogue
+	end if
+
+end script GreedyFarmer
+
+

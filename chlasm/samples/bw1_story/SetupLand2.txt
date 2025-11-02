@@ -1,0 +1,57 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+global LeavingLandTwo
+global SacrificeCompleted
+global LearnGesturesCompleted
+global LearnWorshipCompleted
+global KhazarInScript
+global LethysInScript
+global KhazarGone
+global LethysGone
+global TriggeredGestures
+global DidLearnGesturesBeforeOwningTown
+global DoneExitLethysVortex=0
+
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CheckForKhazarChallengeHighlightNotify(Highlight, Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+start
+	begin loop
+		if camera position near [Highlight] radius NotifyDistance and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				if widescreen ready
+					begin dialogue
+						if AdvisorType == variable GOOD_ADVISOR
+							eject good spirit
+							make good spirit point at [Highlight] in world
+						elsif AdvisorType == variable EVIL_ADVISOR
+							eject evil spirit
+							make evil spirit point at [Highlight] in world
+						end if
+						say single line constant AdvisorSpeakEnum
+						wait until read
+					end dialogue
+				end if
+				Count=time
+			end if
+		end if
+		
+	until Highlight clicked or Location clicked or KhazarGone == 1
+	end loop
+	enable Highlight active
+end script CheckForKhazarChallengeHighlightNotify
+
+
+//*****************************************************************************
+//	General Setup for Land 2
+//*****************************************************************************
+begin script SetupLand2
+
+start
+	LandNumber	= 2
+    enable player 1 virtual influence
+
+
+end script SetupLand2
+
+

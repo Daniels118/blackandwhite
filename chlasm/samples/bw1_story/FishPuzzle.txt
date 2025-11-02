@@ -1,0 +1,175 @@
+challenge FISH_PUZZLE
+
+begin script FishPuzzle
+
+PuzzlePos = marker at [2497.891, 0.000, 3628.350]
+Puzzle = 0
+Fisherman = 0
+FishermanPos = marker at [2427.000, 2.680, 3612.758]
+PuzzlePlayed = 0
+FishermanDead = 0
+Highlight = 0
+JapTownPos = marker at [2603.8486, 14.4338, 3224.9727]
+TurtleFlock = 0
+Turtle = 0
+TurtlePos = marker at [2413.198, 2.680, 3630.057]
+ScrollPos = marker at [2436.942, 2.680, 3598.528]
+PuzzleContinue = 0
+SaidCorpseLine = 0
+
+start
+
+	Fisherman = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [FishermanPos]+[-5,-5]
+	move Fisherman position to [FishermanPos]
+	AGE of Fisherman = 11
+
+	TurtleFlock = flock at [Fisherman] + [-2, -3]
+	set TurtleFlock properties inner 5 outer 10
+	populate TurtleFlock with 5 ANIMAL TORTOISE
+
+	// Challenge Notify
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [ScrollPos]
+	run background script ChallengeHighlightNotify(Highlight, ScrollPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+	
+	while PuzzleContinue == 0
+		if Highlight clicked
+			PuzzleContinue = 1
+		end if 
+
+		if HEALTH of Fisherman <= 0
+			PuzzleContinue = 2
+		end if
+	end while
+
+	if PuzzleContinue == 1
+
+		begin cinema
+			move camera position to [FishermanPos] + [15,10,15] time 4
+			move camera focus to [FishermanPos] time 3
+			wait until camera ready
+//			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_103 StandardReminder(variable HELP_TEXT_REMINDER_49)
+			set Fisherman focus to camera position
+			// "I am trying to catch some fish but the're being elusive."
+			say HELP_TEXT_FISHING_PUZZLE_01
+			wait until read
+			Puzzle = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_FISHES1 at [PuzzlePos]
+			// "My dad said I'd never be a good fisherman. Perhaps he was right."
+			say HELP_TEXT_FISHING_PUZZLE_02
+			wait until read
+			set camera position to [PuzzlePos]+[25,20,25]
+			set camera focus to [PuzzlePos]
+//			eject good spirit
+			// "Tap the water surface and the fish will swim away from your hand."
+			say HELP_TEXT_FISHING_PUZZLE_03	// WRONG - Needs to be spoken by the boy
+			wait until read
+			// "Try and get them all in the net at once."
+			say HELP_TEXT_FISHING_PUZZLE_04	// WRONG - Needs to be spoken by the boy
+			wait until read
+//			send good spirit home
+			close dialogue
+			wait 0.1 seconds
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_103 StandardReminder(variable HELP_TEXT_REMINDER_49)
+		end cinema
+
+		while PuzzlePlayed == 0
+			if Puzzle played
+				PuzzlePlayed = 1
+			end if
+
+			if HEALTH of Fisherman <= 0 and FishermanDead == 0
+				FishermanDead = 1
+				begin dialogue
+					eject good spirit
+					// "Oh my! You've killed the Fisherman."
+					say single line HELP_TEXT_FISHING_PUZZLE_05
+					wait until read
+					send good spirit home
+				end dialogue
+			end if
+		end while
+
+		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_103 StandardReminder(variable HELP_TEXT_REMINDER_49)
+
+		if HEALTH of Fisherman > 0
+			begin cinema
+				start sound LH_SAMPLE_G_REWARDSTING
+				
+				move camera position to [Fisherman]+[10,5,10] time 4
+				move camera focus to [Fisherman] time 3
+				wait until camera ready
+				set Fisherman focus to camera position
+				/// snapshot align 0.5
+				// "Woohoo! I've caught the lot! People are going to be so impressed with me."
+				say HELP_TEXT_FISHING_PUZZLE_06
+				wait until read
+				Turtle = create CREATURE CREATURE_TYPE_TORTOISE at [TurtlePos]
+				force Turtle CREATURE_IDLE Turtle
+				set Turtle focus to camera position
+				// "Here, have my favourite Turtle as thanks for your help."
+				say HELP_TEXT_FISHING_PUZZLE_14
+				set Fisherman focus to [TurtlePos]
+				move camera focus to [TurtlePos] time 3
+				wait until read
+				wait 1 second
+				move Fisherman position to [JapTownPos]
+				SPEED of Fisherman = 0.6
+			end cinema
+			run background script SwapCreatures(Turtle)
+			begin dialogue
+				eject evil spirit
+				// "Oi! You're the great fisherman, Boss, not that upstart!"
+				say HELP_TEXT_FISHING_PUZZLE_07
+				wait 1 second
+				make evil spirit point at [Fisherman]
+				wait until read
+				stop evil spirit pointing
+				eject good spirit
+				// "He's happy and that's all that counts."
+				say HELP_TEXT_FISHING_PUZZLE_08
+				wait until read
+				// "We don't need recognision for our fishing skills."
+				say HELP_TEXT_FISHING_PUZZLE_09
+				wait until read
+				send good spirit home
+			end dialogue
+
+			delete Highlight
+
+			while [Fisherman] not near [JapTownPos] radius 20 and SaidCorpseLine == 0
+				if HEALTH of Fisherman <= 0
+					SaidCorpseLine = 1
+					PuzzleContinue = 0
+					begin dialogue
+						eject evil spirit
+						// "Heh. Not such an impressive fisherman now, is he?"
+						say single line HELP_TEXT_FISHING_PUZZLE_10
+						wait until read
+						/// update snapshot align -1.0
+						send evil spirit home
+					end dialogue
+				end if
+			end while
+		else
+			delete Highlight
+			begin dialogue
+				eject evil spirit
+				// "Yeehah! You've caught them all!"
+				say HELP_TEXT_FISHING_PUZZLE_11
+				wait until read
+				// "Let's go get our reward from the fisherm...oh."
+				say HELP_TEXT_FISHING_PUZZLE_12
+				wait until read
+				// "We killed the young fisherman, didn't we. Still I'm satisfied with our fishing efforts."
+				say HELP_TEXT_FISHING_PUZZLE_13
+				wait until read
+				send evil spirit home
+			end dialogue
+			/// update snapshot align -1.0
+		end if
+	end if
+
+	if Highlight exists
+		delete Highlight
+	end if
+
+end script FishPuzzle

@@ -1,0 +1,12 @@
+challenge RunSingingStonesC
+
+run script RunSingingStonesC
+
+begin script RunSingingStonesC
+	
+start
+	
+	run script SingingStonesC
+	
+
+end script RunSingingStonesC

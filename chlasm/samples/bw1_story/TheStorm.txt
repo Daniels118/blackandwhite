@@ -1,0 +1,302 @@
+challenge THE_STORM
+
+//run script TheStorm
+
+begin script TheStorm
+
+	GuidePos = marker at [2288.120, 41.469, 2811.481] // from game 
+	TopOfMountain = marker at [2322.187, 138.690, 2491.636] // Mountain Top
+	BeginPos = 0
+	BeginFoc = 0
+	Storm = 0
+	StormStart = marker at [2464.363, 0.000, 2069.785]  
+
+	Stage1 = 0
+	Bolt=0
+
+start
+
+	
+
+	MyCreature = get player 1 creature
+
+	set	MyCreature position to [2314.989, 35.175, 2826.323] 	
+
+	Guide = create CREATURE CREATURE_TYPE_COW at [GuidePos]
+	SCALE of Guide = 1
+
+	begin cinema
+		
+		set Guide focus to [MyCreature]
+
+		set MyCreature focus to [Guide]
+
+		move camera position to [2303.538, 48.181, 2853.733] time 3
+		move camera focus to [2301.144, 42.149, 2813.176] time 3
+		wait until camera ready
+
+		say HELP_TEXT_GUIDE_DIES_01 with interaction // Come, little one. The most important lesson of all awaits.
+		Guide play C_INDIVIDUAL_SUMMON
+		wait until read
+
+		say "what the fuck"
+		wait until read
+
+		Bolt=create special effect SPOT_VISUAL_LIGHTNING_SINGLE_STRIKE at [MyCreature]+[0, 100, 0] time 1.0
+		add Bolt target on Guide
+
+		wait until Guide played
+
+		say HELP_TEXT_GUIDE_DIES_02 with interaction // It's the ket to this world
+		set Guide focus to [TopOfMountain]
+		wait until read
+
+		say HELP_TEXT_GUIDE_DIES_03 with interaction // It's the very secret of our existence
+		Guide play C_INDIVIDUAL_SAD 
+		wait until Guide played
+		wait until read
+
+		move camera position to [2305.990, 40.393, 2853.607] time 4
+		move camera focus to [2302.473, 45.031, 2818.582] time 4
+
+		say HELP_TEXT_GUIDE_DIES_04 with interaction // And it's the way you'll triumph
+		wait until read						
+
+		move Guide position to [TopOfMountain]
+		SPEED of Guide = 0.5
+
+		//thunder clap	
+
+		wait until camera ready
+
+		wait until read	
+
+		move camera position to [2367.826, 91.025, 2776.952] time 8
+		move camera focus to [2343.359, 76.702, 2696.338] time 8
+		
+
+		say HELP_TEXT_GUIDE_DIES_05 with interaction // Follow me to the mountain. I will tell you everything there.
+		wait until read
+
+		wait until camera ready
+
+		move camera position to [2308.487, 50.452, 2874.663] time 3
+		move camera focus to [2320.611, 44.733, 2789.946] time 3
+
+		wait until camera ready
+
+	end cinema
+
+	Bolt=create special effect SPOT_VISUAL_LIGHTNING_SINGLE_STRIKE at [MyCreature]+[0, 100, 0] time 1.0
+	add Bolt target on MyCreature
+
+	release MyCreature
+
+	//TODO storm target MyCreature.
+
+	while [MyCreature] not near [TopOfMountain] radius 40
+
+		if [MyCreature] near [2286.333, 100.322, 2693.014] radius 40 and Stage1 == 0
+
+			Storm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_DRIZZLE at [StormStart]
+			set Storm properties degrees 15 rainfall 1 snowfall 0 overcast 0.8 fallspeed 0
+			set Storm properties time 2000000 fade 10
+			set Storm properties clouds 15 shade 1.5 height 100
+			set Storm properties sheetmin 5 sheetmax 20 forkmin 5 forkmax 20
+			set Storm properties inner 50 outer 100
+			disable Storm affected by wind
+
+			begin cinema
+				SPEED of Storm = 10
+				move Storm position to [2299.205, 0.000, 2299.593]  
+				BeginPos = marker at camera position
+				BeginFoc = marker at camera focus
+				set camera position to [2322.120, 148.517, 2518.381] 
+				set camera focus to [3256.981, -0.023, -2068.578]
+
+				move camera position to [2305.061, 148.738, 2511.453] time 8
+				move camera focus to [4286.295, 0.118, -773.572] time 8
+				set Guide focus to [Storm]
+
+				say HELP_TEXT_GUIDE_DIES_06 with interaction  // Creature. Speak no more.
+				wait until read
+
+				say HELP_TEXT_GUIDE_DIES_07 with interaction  // You have betrayed me enough
+				Guide play C_INDIVIDUAL_FRIGHTENED
+				wait until read
+				
+				wait until Guide played
+
+				set Guide focus to [MyCreature]
+
+				set camera position to [BeginPos]
+				set camera focus to [BeginFoc]
+			end cinema
+			Stage1 = 1
+		end if
+
+
+		if [Guide] near [TopOfMountain] radius 2 and [MyCreature] not near [TopOfMountain] radius 10
+			wait until 2 seconds
+			set Guide focus to [MyCreature]
+			wait until 1 second
+			if Guide viewed	
+
+				Guide play C_INDIVIDUAL_SUMMON
+				wait until Guide played
+
+			end if
+		end if
+
+	end while
+
+	begin cinema
+
+		move MyCreature position to  [2322.464, 138.690, 2509.978]
+
+		set Guide focus to [MyCreature]
+
+		set camera position to [2307.232, 165.679, 2699.285] 
+		set camera focus to [2317.137, 136.197, 2534.297] 
+
+		wait until 1 seconds
+
+		move camera position to [2320.376, 150.782, 2516.236] time 1
+		move camera focus to [2370.948, 0.175, 1673.397] time 1 
+		
+
+		SPEED of Storm = 40
+		move Storm position to [Guide]
+
+		wait until camera ready
+
+		wait until 2 seconds
+
+		move MyCreature position to  [2322.464, 138.690, 2509.978] 
+
+		set MyCreature focus to [Guide]
+		set Guide focus to [MyCreature]
+
+		set camera position to [2349.145, 157.107, 2539.439] 
+		set camera focus to [2310.966, 139.022, 2500.105]
+
+		say HELP_TEXT_GUIDE_DIES_08 with interaction // This is the work of Nemesis. Once he was my god
+		Guide play C_INDIVIDUAL_SAD loop 1 
+		wait until read
+		wait until Guide played
+
+		say HELP_TEXT_GUIDE_DIES_09 with interaction // Run. Get away from here !
+		wait until read
+
+		set camera position to [2324.143, 146.153, 2501.561] // ::Closeup of Guide's face.
+		set camera focus to [2314.547, 178.804, 2466.651] 
+
+		say HELP_TEXT_GUIDE_DIES_10 with interaction // Run and seek the Creed ! It's the Key ! The secret !
+		wait until read
+
+		set camera position to [2347.881, 145.651, 2499.695]
+		set camera focus to [-2244.552, 0.036, 2720.063] 
+
+		say HELP_TEXT_GUIDE_DIES_11 with interaction // Nemesis is also hunting it too.
+		wait until read
+
+		say HELP_TEXT_GUIDE_DIES_12 with interaction // He will destroy you to get it. Find it first !
+		wait until read
+
+		set camera position to [2332.648, 154.245, 2505.916] 
+		set camera focus to [2090.644, 0.381, 2218.499] 
+
+		say HELP_TEXT_GUIDE_DIES_13 with interaction // Go ! Go now and find the Creed.	
+		Guide play C_INDIVIDUAL_ANGRY loop 1
+		wait until read
+		wait until Guide played
+
+		set camera position to [2349.145, 157.107, 2539.439] 
+		set camera focus to [2310.966, 139.022, 2500.105]
+
+	end cinema
+	
+	release MyCreature
+
+	while HEALTH of Guide >= 0.1 and Guide viewed and [MyCreature] near [TopOfMountain] radius 40
+		begin dialogue
+			say HELP_TEXT_GUIDE_DIES_09 with interaction // Run Get away from here !
+			wait until read
+		end dialogue
+	end while 
+
+	begin cinema // Guide dies
+
+	//	set camera position to [2360.264, 162.703, 2539.806] 
+	//	set camera focus to [2314.211, 139.668, 2485.107]  
+
+		force Guide CREATURE_DEAD_FOREVER Guide
+		
+	//	move camera position to [2345.923, 153.102, 2523.328] time 2
+	//	move camera focus to [2318.117, 139.193, 2490.302] time 2
+
+	//	wait until camera ready
+
+	end cinema
+		
+
+	SPEED of Storm = 30
+	move Storm position to [1802.457, 28.140, 2700.997] // Storm then heads to attack the Norse village
+
+
+	wait until 40 seconds
+
+	begin cinema
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set camera position to [1744.199, 44.140, 2703.202] // :: Village with Storm above
+		set camera focus to [1972.917, 43.813, 2654.701] 
+
+		eject good spirit
+		say HELP_TEXT_RANDOM_ADVISOR_49	with interaction  // Your Town is under attack! Do something quick!
+		wait until read
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+
+	end cinema
+
+	while Storm exists
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1744.103, 28.260, 2677.696]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1810.100, 28.064, 2638.789]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1871.968, 38.860, 2731.197]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1853.101, 31.490, 2679.812]  // Storm then heads to attack the Norse village
+
+		wait until 60 seconds
+
+		SPEED of Storm = 30
+		move Storm position to [1802.457, 28.140, 2700.997] // Storm then heads to attack the Norse village
+
+	end while
+
+
+
+
+end script TheStorm
+
+
+
+

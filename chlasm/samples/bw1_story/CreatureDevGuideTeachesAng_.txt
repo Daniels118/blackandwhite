@@ -1,0 +1,89 @@
+challenge CREATURE_DEV_GUIDE_TEACHES_ANGER
+
+run script CreatureDevGuideTeachesAnger
+
+begin script CreatureDevGuideTeachesAnger
+	MyCreature = get player 1 creature
+	FightPos = marker at [1836.4991, 38.8600, 2749.7629]
+	MyCreatureFightPos = marker at [1854.0369, 38.8600, 2741.0989]
+	BeginPos = 0
+	BeginFoc = 0
+start
+	if not Friendly exists
+		Friendly = create_creature_from_creature MyCreature 1.0 at [FightPos] CREATURE_TYPE_COW
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Friendly = 1.8
+		teach Friendly everything
+		set Friendly DEVELOPMENT_PHASE_FULLY_MATURE development
+	end if
+	set Friendly position to [FightPos]
+	force Friendly CREATURE_LOOK_FOREVER MyCreature
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+		Friendly play C_INDIVIDUAL_SUMMON loop 1
+		force MyCreature CREATURE_LOOK_FOREVER Friendly
+		wait until Friendly played
+		wait 3 seconds
+
+
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		set set camera focus follow MyCreature
+		move MyCreature position to [MyCreatureFightPos]
+		wait 3 seconds
+/// Fade Out
+		set MyCreature position to [MyCreatureFightPos]
+		force MyCreature CREATURE_LOOK_FOREVER  Friendly
+		force Friendly CREATURE_LOOK_FOREVER  MyCreature
+		set camera position to [Friendly]+[40,30,40]
+		set camera focus to [Friendly]
+/// Fade In
+
+		begin dual camera to MyCreature Friendly
+			Friendly play C_INDIVIDUAL_TAUNT
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_01
+			force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+			wait until Friendly played
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_02
+			wait until read
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+		end dual camera
+	end cinema
+
+	force Friendly CREATURE_FIGHT MyCreature
+	// NO LONGER NEED TO MAKE BOTH CREATURES FIGHT!!! force MyCreature CREATURE_FIGHT Friendly
+
+	wait until MyCreature fighting
+
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_03
+		wait until read
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_04
+		wait until read
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_05
+		wait until read
+		send good spirit home
+		send evil spirit home
+	end dialogue
+
+	wait until not MyCreature fighting
+	wait until not Friendly fighting
+
+	begin dialogue
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_06
+		wait until read
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_07
+		wait until read
+		say HELP_TEXT_SCRIPTED_CREATURE_DEVELOPMENT_LEARN_TO_FIGHT_08
+		wait until read		
+	end dialogue
+
+	set Friendly only desire CREATURE_DESIRE_TIREDNESS			
+
+end script CreatureDevGuideTeachesAnger

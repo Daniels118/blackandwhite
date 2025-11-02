@@ -1,0 +1,137 @@
+challenge CREATURE_DEV_THIRSTY
+
+ run script CreatureDevThirsty
+
+
+begin script CreatureDevThirsty
+
+CitadelEntrancePos = marker at [1913.1810, 2518.3315]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1911.7795, 18.0900, 2533.7822]
+TrainerPos = marker at [1905.8014, 18.0900, 2531.0649]
+Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+CitadelPos = marker at [1915.0500, 2508.8899]
+
+CamPosStart = marker at [1904.7095, 27.5848, 2529.2278]
+CamPos1 = marker at [1892.8262, 28.3515, 2523.9858]
+
+AtEntranceDoorway = marker at [1910.2390, 18.0900, 2522.7053]
+
+CreatureThirstInitial = 0
+CreatureThirstNow = 0
+LocalTimer = 0
+DeleteTrainer = 0
+LeashOn = 0
+
+BeginPos = 0
+BeginFoc = 0
+
+
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	
+	CreatureThirstInitial = get DEHYDRATION of MyCreature
+// **** Creature Thirsty - Attach leash ****
+	begin cinema
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		set MyCreature position to [MyCreaturePos]
+		move Trainer position to [TrainerPos]
+		move camera position to [CamPos1] time 8
+		set MyCreature focus to [CamPos1]
+		wait until [Trainer] near [TrainerPos] radius 2
+		wait 2 seconds
+		set Trainer focus to [CamPos1]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_01
+		MyCreature play C_CONCURRENT_THIRSTY
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_02
+		move camera focus to [MyCreature] time 4
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_03
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_04
+		wait until read
+		move camera focus to [Trainer] time 4
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_05
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_06
+		wait until read
+		move Trainer position to [CitadelEntrancePos]
+		move camera focus to [MyCreature] time 4
+		wait until [Trainer] near [CitadelEntrancePos] radius 2
+		delete Trainer
+		wait until camera ready
+	end cinema
+
+	LocalTimer = create timer for 60 seconds
+	while LeashOn == 0
+		wait 1 second
+		HEALTH of Trainer = 1
+
+		if MyCreature leashed
+			LeashOn = 1
+		end if
+		if get LocalTimer time remaining <= 0
+			set LocalTimer time to 60 seconds
+			begin dialogue
+				say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_07
+				wait until read
+			end dialogue
+		end if
+
+	end while
+
+	begin dialogue
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_08
+		wait until read
+	end dialogue
+
+	move Trainer position to [CitadelEntrancePos]
+
+	while CreatureThirstNow <= CreatureThirstInitial
+		wait 1 second
+		CreatureThirstNow = get DEHYDRATION of MyCreature
+		if [Trainer] near [CitadelEntrancePos] radius 1 and DeleteTrainer == 0
+			delete Trainer
+			DeleteTrainer = 1
+		end if
+	end while
+
+	if Trainer exists
+		delete Trainer
+	end if
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+		move Trainer position to [AtEntranceDoorway]
+		set camera position to [CamPosStart]
+		set camera focus to [CitadelPos]
+		set set camera focus follow Trainer
+		wait 3 seconds
+		say	HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_09
+		wait until read
+		wait 1 second
+		move Trainer position to [CitadelPos]
+		wait 1 second
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		delete Trainer
+	end cinema
+
+	begin dialogue
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_10
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_THIRSTY_11
+		wait until read
+		send good spirit home
+	end dialogue
+
+
+
+end script CreatureDevThirsty

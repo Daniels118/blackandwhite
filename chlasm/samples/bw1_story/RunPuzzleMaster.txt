@@ -1,0 +1,12 @@
+challenge RunPuzzleMaster
+
+run script RunPuzzleMaster
+
+begin script RunPuzzleMaster
+	
+start
+	
+	run script PuzzleMaster
+	
+
+end script RunPuzzleMaster

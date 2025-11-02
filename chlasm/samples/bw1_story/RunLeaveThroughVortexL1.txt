@@ -1,0 +1,23 @@
+challenge RunLeaveThroughVortexL1
+
+run script RunLeaveThroughVortexL1
+
+begin script RunLeaveThroughVortexL1
+	
+start
+	
+	OpenVortexL1 = 1	
+	run script LeaveThroughVortexL1
+	// managed by the main script control
+	//set fade red 255 green 255 blue 255 time 1
+	//wait 1 second
+	stop all scripts excluding files "RunLeaveThroughVortexL1.txt"
+	load map "scripts/land2.txt"
+//	set fade in time 6
+//	run script BeginLand2
+	run script LandControl2
+
+
+	
+
+end script RunLeaveThroughVortexL1

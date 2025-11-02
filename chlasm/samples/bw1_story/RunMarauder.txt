@@ -1,0 +1,35 @@
+challenge RunMarauder
+
+run script RunMarauder
+
+begin script RunMarauder
+
+StoragePit		= 0
+Creche			= 0
+House			= 0
+
+StoragePitPos	= marker at [3288.8896, 43.5500, 3420.0298]
+CrechePos		= marker at [3326.2798, 43.5500, 3360.2000]
+HousePos		= marker at [3309.8799, 43.5500, 3395.5000]
+	
+start
+	// Build the necessary buildings to run the marauders script
+	build building at [StoragePitPos] desire 1.0		// Storage Pit
+	build building at [CrechePos] desire 1.0			// Creche
+	build building at [HousePos] desire 1.0				// House
+
+	StoragePit	= get HOUSE at [StoragePitPos] radius 5
+	Creche		= get HOUSE at [CrechePos] radius 5
+	House		= get HOUSE at [HousePos] radius 5
+
+	BUILT of StoragePit	= 1
+	BUILT of Creche		= 1
+	BUILT of House		= 1
+
+	// Put food and wood in the stroage pit
+	add resource WOOD 10000 to StoragePit
+	add resource FOOD 10000 to StoragePit
+	
+	run script MarauderMain	
+
+end script RunMarauder

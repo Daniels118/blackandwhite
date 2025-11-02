@@ -1,0 +1,213 @@
+challenge CREATURE_RETRIEVE
+
+global CreatureRetrieve
+global CreatureRetrieveFinished
+global StartedSculpting
+global Sculpting
+global TimeSpent
+
+
+begin script SculptingRock(Sculptor)
+
+start
+	begin cinema
+		StartedSculpting = 1
+		Sculpting = 1
+		move Sculptor position to [SingingStoneRock1] + [2,2]
+		wait until 3 seconds
+		set Sculptor focus to [SingingStoneRock1]
+		Sculptor play ANM_P_SLEDGEHAMMER loop 10
+		snapshot challenge success 0.5 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_06)
+		//Sculptor start Sculpting
+		TimeSpent = create timer for 1200 seconds
+	end cinema
+
+end script SculptingRock
+
+begin script CreatureRetrieveRockReturned(Sculptor) 
+
+	RewardPos = marker at [Sculptor] + [10,0,10]
+
+start
+
+	begin cinema
+		move Sculptor position to [SingingStoneRock1] + [2,2]
+		move camera position to [SingingStoneRock1] +[10,10,10] time 3
+		move camera focus to [Sculptor] time 2
+		say HELP_TEXT_NEW_CREATURE_RETRIEVE_05
+		wait until read
+		snapshot challenge success 1 alignment 1 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_CREATURE_RETRIEVE_09)
+		say HELP_TEXT_NEW_CREATURE_RETRIEVE_06
+		wait until read
+		StartedSculpting = 1
+	end cinema
+	run script rewardfromsky(variable REWARD_BOLT, RewardPos, 0, 1)
+	// Start Sculpting
+
+	run background script SculptingRock(Sculptor)
+
+end script CreatureRetrieveRockReturned
+
+
+begin script TheSculptor
+
+	Creature = 	get player 1 creature	
+	House = get SCRIPT_OBJECT_TYPE_ABODE at [1747.1942, 30.0087, 2709.3215]
+	Sculptor = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [1748.3323, 29.4512, 2717.9075]
+	BeginPos = 0
+	BeginFoc = 0
+	SculptorDead = 0
+	MyTimer = 0
+	Highlight=0
+	Rock1Marker = 0
+	TimeLeft = 0
+	Granite = 0
+
+start
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [House]
+	run script ChallengeHighlightNotify(Highlight, House, 100, variable GOOD_ADVISOR, variable HELP_TEXT_CREATURE_RETRIEVE_01)
+		
+		begin cinema
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+			move Sculptor position to [1756.0748, 30.0505, 2717.5735] 
+			move camera position to [1764.0728, 38.1143, 2729.1882] time 4
+			move camera focus to  [1745.4242, 29.9117, 2703.8818] time 3
+			wait until [Sculptor] at [1756.0748, 30.0505, 2717.5735]
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_06)
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_02
+			wait until read
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_03
+			move camera position to [1769.6934, 37.9137, 2723.8433] time 4
+			wait until read
+			
+			move camera to T00_000 time 2
+			wait until camera ready
+			camera path TRACK00
+			say HELP_TEXT_NEW_CREATURE_RETRIEVE_04
+			wait until camera ready
+
+			eject evil spirit
+			say HELP_TEXT_CREATURE_RETRIEVE_04
+			move camera to T01_000 time 15
+			wait until read
+			eject good spirit
+			say HELP_TEXT_CREATURE_RETRIEVE_05
+			wait until read
+			say HELP_TEXT_CREATURE_RETRIEVE_06
+			wait until read
+			say HELP_TEXT_CREATURE_RETRIEVE_07
+			wait until read
+			say HELP_TEXT_CREATURE_RETRIEVE_08
+			wait until read
+			send evil spirit home
+			send good spirit home
+			
+			camera path TRACK01
+			wait until camera ready
+		end cinema
+
+		state Sculptor WANDER_AROUND position [1756.8418, 29.0586, 2713.4460]
+			float 6
+			ulong 4, 10
+
+		while CreatureRetrieveFinished == 0
+
+			if Sculptor is FLYING and HEALTH of Sculptor <0.1 and SculptorDead == 0
+				begin cinema
+					set camera focus to [Sculptor]
+					set camera focus follow Sculptor	
+					set camera position follow Sculptor
+					set game speed to 0.5
+					say HELP_TEXT_THROW_BLOKE_04
+					Sculpting = 0
+					wait until read
+					wait until Sculptor is not FLYING
+				end cinema
+			end if
+
+
+			if HEALTH of Sculptor <=0 and SculptorDead == 0
+				begin dialogue
+					eject good spirit
+					make good spirit point to Sculptor
+					say HELP_TEXT_KILLING_GA_01
+					wait until read
+					eject evil spirit
+					say HELP_TEXT_KILLING_EA_14
+					wait until read
+					SculptorDead = 1
+					Sculpting = 0
+					CreatureRetrieveFinished = 1
+					snapshot challenge success 1 alignment -1 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_KILLING_GA_01)
+				end dialogue
+			end if
+
+
+			if [SingingStoneRock1] near [Sculptor] radius 30 and (SingingStoneRock1 is not HELD and SingingStoneRock1 not in Creature hand) and StartedSculpting == 0 and SingingStoneRock1 is not FLYING
+				run script CreatureRetrieveRockReturned(Sculptor)
+			end if
+
+			if SingingStoneRock1 is HELD and StartedSculpting == 1 and Sculpting == 1
+				begin dialogue
+					say HELP_TEXT_NEW_CREATURE_RETRIEVE_07
+					Sculpting = 0
+					wait until read
+				end dialogue
+			end if
+
+			if [SingingStoneRock1] near [Sculptor] radius 30 and SingingStoneRock1 is not HELD and StartedSculpting == 1 and Sculpting == 0 and SingingStoneRock1 is not FLYING
+				begin cinema
+					say HELP_TEXT_NEW_CREATURE_RETRIEVE_08
+					move Sculptor position to [SingingStoneRock1] + [2,2]
+					wait until 3 seconds
+					set Sculptor focus to [SingingStoneRock1]
+					Sculptor play ANM_P_SLEDGEHAMMER loop 10
+					wait until read	
+					wait until 3 seconds
+					Sculpting = 1
+					// Start Sculpting
+				end cinema
+			end if
+
+			if get TimeSpent time remaining == 1 and Sculpting == 1
+				begin cinema
+					Rock1Marker = marker at [SingingStoneRock1]
+					delete SingingStoneRock1
+					SingingStoneRock1 = create OBJECT SINGINGSTONE1 at [Rock1Marker]
+					say HELP_TEXT_NEW_CREATURE_RETRIEVE_09
+					snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_04 StandardReminder(variable HELP_TEXT_REMINDER_06)
+					move Sculptor position to [1748.3323, 29.4512, 2717.9075]
+					wait until read
+					delete Sculptor
+				end cinema
+			end if
+
+			if StartedSculpting == 1 and Sculpting == 0 and TimeSpent exists
+				TimeLeft = get TimeSpent time remaining
+				TimeSpent = 0
+			end if
+
+			if StartedSculpting == 1 and Sculpting == 1	and TimeSpent not exists
+				TimeSpent = create timer for TimeLeft seconds
+			end if
+
+			if get MyTimer time remaining <= 0
+				Granite  = get OBJECT ROCK at [Sculptor] radius 30
+				set MyTimer time to 3 seconds
+			end if
+
+			if Granite exists
+				begin cinema
+					move Sculptor position to [Granite] + [2,2]
+					wait until 2 seconds
+					say HELP_TEXT_NEW_CREATURE_RETRIEVE_10
+					wait until read
+					delete Granite
+				end cinema
+			end if
+
+		end while 
+
+end script TheSculptor

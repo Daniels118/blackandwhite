@@ -1,0 +1,12 @@
+challenge RunGreedyFarmer
+
+run script RunGreedyFarmer
+
+begin script RunGreedyFarmer
+	
+start
+	
+	run script GreedyFarmer
+	
+
+end script RunGreedyFarmer

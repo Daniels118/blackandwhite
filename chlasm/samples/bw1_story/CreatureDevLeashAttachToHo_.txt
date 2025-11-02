@@ -1,0 +1,59 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashAttachToHouse
+
+begin script CreatureDevLeashAttachToHouse
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1856.9500, 30.2076, 2655.1396] // near the HouseToLeashTo
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	Rope = marker at [1896.4113, 18.0900, 2527.4729] // TODO: should be pos of Rope Icon.
+	CamPos = marker at [1894.2354, 28.8333, 2508.1797]
+	CamFocus = marker at [1915.0500, 18.0900, 2508.8899]
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+	HouseToLeashTo = get HOUSE at [1846.9500, 30.2076, 2665.1396]
+start
+	if not HouseToLeashTo exists
+		say "Ooops!! No HouseToLeashTo"
+	end if
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	move MyCreature position to [MyCreaturePos]	
+	begin cinema
+		set Trainer focus to [TrainerPos]-[10,0,10]
+		set camera position to [TrainerPos]-[10,0,10] // TODO: nice camera paths
+		set camera focus to [TrainerPos]	// TODO: nice camera paths
+		Trainer play ANM_P_BECKON loop 1
+		wait until Trainer played
+		say "You can attach the leash to objects."
+		begin dual camera to Trainer HouseToLeashTo
+			set Trainer focus to [HouseToLeashTo]
+			Trainer play ANM_P_INTO_POINTING loop 1
+			wait until Trainer played
+			wait until read
+			say "For instance, this house!"
+			Trainer play ANM_P_TALKING_AND_POINTING loop 1
+			wait until Trainer played
+			Trainer play ANM_P_OUT_OF_POINTING loop 1
+			wait until Trainer played
+			wait until read
+			say "Leash your creature to this house, and then I'll show you something considerably more cool"
+			wait until read
+			release MyCreature
+		end dual camera
+	end cinema
+	wait until MyCreature leashed to HouseToLeashTo
+	begin cinema
+		begin dual camera to MyCreature Trainer
+			set Trainer focus to [CamPos]
+			wait until Trainer played
+			Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+			say "Well done. You are being cool."
+			wait until Trainer played
+			wait until read
+		end dual camera
+	end cinema
+	delete Trainer
+end script CreatureDevLeashAttachToHouse

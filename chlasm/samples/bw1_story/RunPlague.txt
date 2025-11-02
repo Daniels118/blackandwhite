@@ -1,0 +1,12 @@
+challenge RunPlague
+
+run script RunPlague
+
+begin script RunPlague
+	
+start
+	
+	run script PlagueMain
+	
+
+end script RunPlague

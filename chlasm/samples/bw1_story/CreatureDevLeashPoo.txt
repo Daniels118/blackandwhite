@@ -1,0 +1,88 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashPoo
+
+begin script CreatureDevLeashPoo
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	Rope = marker at [1896.4113, 18.0900, 2527.4729] // TODO: should be pos of Rope Icon.
+	CamPos = marker at [1894.2354, 28.8333, 2508.1797]
+	CamFocus = marker at [1915.0500, 18.0900, 2508.8899]
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+	CurrentPoo = 1
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	set MyCreature position to [MyCreaturePos]	
+	POOAMOUNT of MyCreature = 1	
+	begin cinema
+		set camera position to [MyCreature]+[10, 0, 10] // TODO: nice camera paths
+		set camera focus to [MyCreature]	// TODO: nice camera paths
+		MyCreature play C_INDIVIDUAL_NEED_A_POO
+		wait until MyCreature played
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+		begin dual camera to MyCreature Trainer
+			// TODO: set Trainer focus to camera
+			Trainer play ANM_P_BECKON loop 1
+			wait until Trainer played
+			set Trainer focus to [MyCreature]
+			wait until Trainer played
+			Trainer play ANM_P_INTO_POINTING loop 1
+			wait until Trainer played
+			Trainer play ANM_P_TALKING_AND_POINTING loop 1
+			wait until Trainer played
+			Trainer play ANM_P_OUT_OF_POINTING loop 1
+			wait until Trainer played
+			say "Your creature needs to relieve himself"
+			MyCreature play C_INDIVIDUAL_NEED_A_POO
+			wait until MyCreature played
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+			wait until MyCreature played
+			wait until read
+			say "You can let him poo wherever he likes"
+			wait until read
+			say "Or you can choose how you want to toilet-train him by using the leash to guide him"
+			wait until read
+		end dual camera
+	end cinema
+
+	// give the player a bit of time to leash his creature before he will start pooing
+	force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+	wait until MyCreature played
+	MyCreature play C_INDIVIDUAL_NEED_A_POO
+	wait until MyCreature played
+	force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+	wait until MyCreature played
+	wait 2 seconds
+	MyCreature play C_INDIVIDUAL_NEED_A_POO
+	wait until MyCreature played
+	set MyCreature only desire CREATURE_DESIRE_TO_POO
+	release MyCreature
+
+	CurrentPoo = 1
+	while CurrentPoo > 0.99
+		CurrentPoo = get POOAMOUNT of MyCreature
+		set MyCreature only desire CREATURE_DESIRE_TO_POO
+	end while
+
+	wait until MyCreature leashed
+	begin cinema
+		begin dual camera to MyCreature Trainer
+			set camera focus to [CamFocus]	// TODO: nice camera paths
+			set Trainer focus to [CamPos]
+			wait until Trainer played
+			Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+			say "Your creature feels much better now."
+			wait until Trainer played
+			move Trainer position to [CitadelEntrancePos]
+			wait until read
+		end dual camera
+	end cinema
+	wait until [Trainer] near [CitadelEntrancePos] radius 3
+	delete Trainer
+end script CreatureDevLeashPoo

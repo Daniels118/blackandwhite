@@ -1,0 +1,76 @@
+challenge THE_MEETING
+
+global Friendly
+
+//run script TheMeeting
+
+begin script TheMeeting
+
+	Scared = create VILLAGER MALE at [2564.3945, 22.8376, 2928.9585]
+	BeginPos = 0
+	BeginFoc = 0
+	MyCreature = get player 1 creature
+	Alignment = 0
+
+start
+	Friendly = create_creature_from_creature MyCreature 2 at  [2566.8174, 21.6546, 2983.9807] CREATURE_TYPE_LION
+	set Friendly all desires SCRIPT_FALSE
+	set Friendly desire HUNGER SCRIPT_FALSE
+	set Friendly desire maximum HUNGER to 0.1
+	set Friendly desire ANGER SCRIPT_FALSE
+	Alignment=ALIGNMENT of MyCreature
+	ALIGNMENT of Friendly = Alignment
+//	teach Friendly everything
+	teach Friendly INTELLECTUAL CREATURE_PHYSICAL_ACTION_KNOWN_ABOUT_THROW SCRIPT_TRUE
+	teach Friendly INTELLECTUAL CREATURE_PHYSICAL_ACTION_KNOWN_ABOUT_CRUSH SCRIPT_TRUE
+    teach Friendly INTELLECTUAL CREATURE_PHYSICAL_ACTION_KNOWN_ABOUT_DANCE SCRIPT_TRUE
+    teach Friendly INTELLECTUAL CREATURE_PHYSICAL_ACTION_KNOWN_ABOUT_RUN SCRIPT_TRUE
+    teach Friendly INTELLECTUAL CREATURE_PHYSICAL_ACTION_KNOWN_ABOUT_FIGHT SCRIPT_TRUE
+	set Friendly priority 0.00001
+//	disable creature help 
+	
+	
+	SPEED of Scared = 0.6
+	move Scared position to [2471.5425, 19.0243, 2873.9829]
+	
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+
+	begin cinema
+		set camera position to  [2531.8108, 30.9441, 2935.6621]
+		set camera focus follow Scared
+		say HELP_TEXT_MEETING_01
+		move camera position to  [2479.3323, 34.0245, 2898.4355] time 14
+		wait until read
+
+		wait until 5 seconds
+	end cinema
+
+	move Friendly position to [2517.7622, 22.3194, 2920.8599]
+
+	begin cinema
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_MEETING_02
+		wait until read
+		say HELP_TEXT_MEETING_03
+		wait until read
+		move camera position to [2473.0811, 26.6793, 2884.9143] time 6
+		move camera focus to [2577.5515, 24.7027, 2931.7769] time 3
+		say HELP_TEXT_MEETING_04
+		wait until read
+		say HELP_TEXT_MEETING_05
+		wait until read
+		force Friendly CREATURE_IDLE Friendly
+		say HELP_TEXT_MEETING_06
+		wait until read
+		say HELP_TEXT_MEETING_07
+		wait until read
+		say HELP_TEXT_MEETING_08
+		wait until read
+		say HELP_TEXT_MEETING_09
+		wait until read
+	end cinema
+
+end script TheMeeting
+

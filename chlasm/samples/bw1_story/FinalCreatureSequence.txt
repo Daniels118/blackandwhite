@@ -1,0 +1,135 @@
+//------------------------------------------------------------------------------------------------------------------------
+// Final Game sequence - Creature walks up to volacano and falls in etc.
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script EndOfGameCreatureSequenceGoToVolcano
+
+	CausewayStartPos = marker at [3436.3589, 10.1730, 2393.9504]
+	CausewayHalfWayPos = marker at [3530.7986, 12.4264, 2394.2620]
+	VolcanoBasePos = marker at [3802.0042, 120.2702, 2323.0886]
+	VolcanoNearTopPos = marker at [3862.4351, 152.2915, 2264.5818]
+	VolcanoTopPos = marker at [3894.7512, 155.1626, 2212.5464]
+	VolcanoCentrePos = marker at [3920.2275, 119.9300, 2153.4255]
+
+	VolcanoFallCameraFocus = marker at [3935.9653, 131.9179, 2190.0105]
+	VolcanoFallCameraPosition = marker at [3855.2422, 190.1308, 2205.6421]
+
+	EnemyCitadelPos = marker at		[3953.8125, 57.6200, 2351.5164]
+	EnemyCitadelCameraPos = marker at [3786.4751, 72.7825, 2581.8445]
+	EnemyCitadelCameraFocus = marker at [3936.8328, 57.6716, 2333.7502]
+	Spell=0
+	Citadel=0
+
+start
+
+	MyCreature = get player 1 creature
+	if MyCreature exists
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+			set MyCreature position to [CausewayStartPos]							// Creature move to start pos
+			set MyCreature focus to [VolcanoTopPos]
+
+			set camera position to [3457.147, 32.680, 2392.568]						// Cam look at creature
+			set camera focus to [3434.836, 34.664, 2389.811]
+
+			wait 2 second
+
+			move camera position to [3419.443, 13.706, 2425.559] time 10			// Cam pan behind creature
+			move camera focus to [VolcanoTopPos] time 10
+
+			wait 3 seconds
+
+			move MyCreature position to [CausewayHalfWayPos]
+			wait until [MyCreature] near [CausewayHalfWayPos ] radius 2
+
+
+			start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+			shake camera at [VolcanoTopPos] radius 800.0 amplitude 0.5 time 8.0
+
+			force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH VolcanoTopPos
+
+			move camera position to [3522.457, 45.134, 2414.120] time 8				// cam catch up with creature
+			move camera focus to [3544.961, 49.182, 2395.431] time 8
+
+			wait until MyCreature played
+			
+			move MyCreature position to [VolcanoNearTopPos]
+
+			wait 4 seconds
+			
+			move camera position to [3807.091, 135.852, 2296.142] time 14			// move cam towards creature
+			move camera focus to [3829.465, 144.789, 2277.830] time 14
+			
+			wait until [MyCreature] near [VolcanoNearTopPos ] radius 10
+
+
+			move MyCreature position to [VolcanoTopPos]
+			wait until [MyCreature] near [VolcanoTopPos ] radius 8
+
+			set camera position to [VolcanoFallCameraPosition]						// cam on creature near top
+			set camera focus to [VolcanoFallCameraFocus]
+
+
+
+			disable MyCreature anim time modify
+			MyCreature play C_MISC_SCRIPT1 loop 1
+
+			wait 3 seconds
+
+			set game speed to 0.5													// slow motion
+
+			start sound LH_SAMPLE_G_CREED_01
+			
+			set camera position to [3896.242, 165.573, 2164.828]					// cam watch creeds appear
+			set camera focus to [3894.073, 165.670, 2193.592]
+
+			wait 1 seconds
+			
+			move camera position to [3895.882, 146.162, 2182.885] time 6			// cam watch creeds appear
+ 			move camera focus to [3900.991, 156.838, 2202.919] time 6
+
+			wait 3 seconds
+
+			start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+			shake camera at [VolcanoTopPos] radius 100.0 amplitude 0.5 time 16.0
+
+
+			//wait until MyCreature played
+			stop music
+
+			wait until get MyCreature played percentage > 0.8
+
+			start sound LH_SCRIPT_SAMPLE_CREATUREFROZENMOAN_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+			start music MUSIC_TYPE_SCRIPT_CREATURE_END_SEQUENCE 
+			wait until get MyCreature played percentage > 0.9
+
+
+//			stop sound LH_SAMPLE_G_CREED_01
+
+
+
+			enable MyCreature anim time modify
+			disable sound effects
+
+//------------------------------------------------------------------------------------------------------------------------
+
+			enable SCRIPT_AVI_SEQUENCE_FALLING avi sequence							// Falling into volcano movie
+
+//------------------------------------------------------------------------------------------------------------------------
+
+			enable sound effects
+			set game speed to 1
+			//Move him to the other side of the map so he can't be seen.
+			set MyCreature position to [1368.161, 23.149, 3570.466] 
+			
+			stop music
+		end cinema
+	end if
+
+end script EndOfGameCreatureSequenceGoToVolcano
+
+
+			

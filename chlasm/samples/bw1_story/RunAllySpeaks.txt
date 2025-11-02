@@ -1,0 +1,12 @@
+challenge RunAllySpeaks
+
+run script RunAllySpeaks
+
+begin script RunAllySpeaks
+	
+start
+	
+	run script AllySpeaks
+	
+
+end script RunAllySpeaks

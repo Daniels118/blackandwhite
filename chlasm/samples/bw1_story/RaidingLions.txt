@@ -1,0 +1,108 @@
+global RaidingLionsTown
+
+//run script RaidingLions
+
+begin script LionKillBehaviour(LionFlock)
+	Pos1 = marker at [1644, 17, 2640]
+	Pos2 = marker at [1717, 30, 2698]
+	Pos3 = marker at [1772, 29, 2659]
+	Pos4 = marker at [1749, 17, 2594]
+	Pos5 = marker at [1758, 15, 2558]
+	CurrentLion = 0
+	Cow1 = 0
+start
+	//begin loop
+		CurrentLion = get ANIMAL LION in LionFlock
+		if not CurrentLion exists
+			say "No Lion"
+			wait until read
+		else
+			say "Found Lion"
+			wait until read
+		end if
+
+		say "Moving Flock"
+		wait until read
+
+		//state CurrentLion LIVING_MOVE_IN_FLOCK
+
+		move LionFlock position to [Pos2]
+
+		//Cow1 = get ANIMAL BOVINE at [CurrentLion] radius 100
+
+		//if Cow1 not exists	
+		//	say "Creating cow"
+		//	wait until read
+		//	Cow1 = create BOVINE ANIMAL at [1624, 17, 2620]
+		//else
+		//	say "Found cow"
+		//	wait until read
+		//end if
+
+		//move CurrentLion position to [Cow1]
+		//say "Moving Lion"
+		//wait until read
+		//wait until [CurrentLion] near [Cow1] radius 5
+		//say "Lion near cow"
+		//wait until read
+		//state CurrentLion ANIMAL_STATE_HUNTING_MOVE_TO_POS
+		//CurrentLion play ANM_A_LION_POUNCE loop 1
+		//HEALTH of Cow1 = 0
+	//end loop
+
+end script LionKillBehaviour
+
+
+begin script KillLions
+
+start
+	say "Kill Lions"
+	wait until read
+end script KillLions
+
+
+begin script MoveLionsAway
+
+start
+	say "Move Lions Away"
+	wait until read
+end script MoveLionsAway
+
+
+begin script PutsLionsInPit
+
+start
+	say "Put Lions In Pit"
+	wait until read
+end script PutsLionsInPit
+
+
+begin script RaidingLions
+	lionStartPos = marker at [1644, 17, 2640]
+	LionFlock = flock at [lionStartPos]
+	TownPos = marker at [1784, 30, 2689]
+	Lion = 0
+start
+	say "Starting RaidingLions"
+	wait until read
+	RaidingLionsTown = get TOWN at [TownPos] radius 100
+	if RaidingLionsTown exists
+		say "Found town"
+		wait until read
+	end if
+ 
+	while size of LionFlock<3
+		say "Creating lion"
+		wait until read
+		Lion = create LION ANIMAL at [lionStartPos]-[size of LionFlock*2+2,size of LionFlock*2+2]
+		say "Attaching Lion to flock"
+		wait until read
+		attach Lion to LionFlock
+	end while
+
+	run script LionKillBehaviour(LionFlock)
+
+	//begin loop
+	//end loop
+
+end script RaidingLions

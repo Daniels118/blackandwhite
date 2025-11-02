@@ -1,0 +1,234 @@
+challenge LEAVE_THROUGH_VORTEX_LAND1
+
+//------------------------------------------------------------------------------------------------------------------------
+//Vortex first appears and bloke gets sucked in------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script LeaveThroughVortexL1
+	ScrollPos = marker at [1680.236, 10.432, 2436.826]      
+	CamPos = marker at [1668.4778, 57.3444, 2386.2607]
+	CamPosIn = marker at [1700.2275, 11.4005, 2520.1829] // 1778.5337, 17.9984, 2618.6548]
+	Vort = 0
+	Highlight=0
+	Bystander = 0
+	BystanderBack = 0
+	PointPosHigh = marker at [1700.2275, 61.4005, 2520.1829]
+	PointPosLow = marker at [1700.2275, 11.4005, 2520.1829]
+	twisted = 0
+	MyTimer = 0
+	MyTimer2 = 0
+	HeldObject = 0
+	SeeThisFX = 0
+start
+
+	if IsSkippingCreatureGuide == 0	
+		wait until OpenVortexL1 == 1
+
+		//create a yellow beam showing where the vortex would be...
+		SeeThisFX = create special effect SPOT_VISUAL_SEE_THIS_BEAM at [CamPosIn] time -1
+		
+		begin dialogue
+			eject good spirit
+			//"This is hopeless what can we do. wait a minute, what's this golden light?"
+			say single line HELP_TEXT_PICKUP_CREATURE_GUIDE_04
+			wait until 0.5 seconds
+			make evil spirit point at [1700.2275, 11.4005, 2520.1829]
+			wait until read
+		end dialogue
+
+		wait until camera position near [CamPosIn] radius 200
+		MyCreature = get player 1 creature
+		SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_CAN_GO_THROUGH_VORTEX of MyCreature = 0
+		PlayerCreatureType = variable get MyCreature sub type			// Necessary to record, for setting up next land
+
+		begin cinema
+
+			move camera position to [1684.369, 17.963, 2548.266] time 7	// cam look at vortex opening up
+			move camera focus to [1713.418, 14.456, 2496.494] time 7
+
+			wait 4 seconds
+
+			Bystander = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [1692.640, 12.060, 2543.364] //bloke who gets sucked in
+			set Bystander focus to [CamPosIn]
+			Bystander play ANM_P_LOOKING_FOR_SOMETHING loop 2
+
+	//		shake camera at [CamPos] radius 20.0 amplitude 0.5 time 5.0		
+
+			VortexOpen=1
+			Vort = create VORTEX VORTEX_TYPE_IN at [CamPosIn] 
+
+			//delete the yellow beam showing where the vortex would be...
+			delete SeeThisFX
+
+	//		shake camera at [CamPos] radius 20.0 amplitude 0.5 time 15.0	
+			wait 1 seconds
+
+			eject good spirit
+			eject evil spirit
+
+			make good spirit look at [1668.4778, 57.3444, 2386.2607]
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_01
+
+			move camera position to [1684.935, 17.568, 2547.255] time 8	// cam move on vortex
+			move camera focus to [1713.345, 25.641, 2496.623] time 8
+
+			wait until camera ready 
+			wait until read						  
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_02
+			wait until read		
+
+			move camera position to [1691.849, 14.379, 2534.931] time 3	// cam at edge of vortex
+			move camera focus to [1719.397, -30.313, 2485.833]   time 4
+			 
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_03
+			wait until read		
+
+			wait until camera ready
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_04
+
+			wait until read				
+			 
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_05
+
+			move camera position to [1660.183, 22.981, 2563.928] time 4	// nice view of vortex
+			move camera focus to [1810.351, 0.170, 2402.020]   time 4
+
+			wait until read		
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_06
+
+			wait until read
+
+			send evil spirit home
+			send good spirit home
+			
+		end cinema
+
+		MyTimer = create timer for 60 seconds
+
+		while twisted == 0
+
+			HeldObject = get object held
+			if get MyTimer time remaining == 0
+				twisted = 1
+			end if
+
+			if HeldObject is HELD
+				MyTimer2 = create timer for 60 seconds
+				wait until HeldObject is not HELD or get MyTimer2 time remaining == 0
+				twisted = 1
+			end if
+
+		end while
+
+		wait 4 seconds 
+
+		wait until [Vort] viewed and camera position near [Vort] radius 150
+
+	//------------------------------------------------------------------------------------------------------------------------
+	//Eject bloke that got sucked in------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------
+		begin cinema
+
+			move camera position to [1684.369, 17.963, 2548.266] time 4	// cam look at vortex opening up
+			move camera focus to [1692.440, 12.060, 2533.705] time 4
+
+			wait 3 seconds
+
+			BystanderBack = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [1692.440, 12.060, 2533.705] //bloke who got sucked in
+			set BystanderBack velocity heading [1684.369, 47.963, 2548.266] speed 16
+
+			set camera focus follow BystanderBack
+			move camera position to [1691.849, 14.379, 2534.931] time 5	// cam at edge of vortex
+
+			//sy "Waheeeey, there's a whole new world through the vortex, come on in! Yippeeeeee....."
+			say HELP_TEXT_PICKUP_LEAVE_THROUGH_VORTEX1_01
+			wait until read
+
+			move camera position to [1660.183, 22.981, 2563.928] time 3	// nice view of vortex
+			move camera focus to [1810.351, 0.170, 2402.020]   time 3
+
+			wait 2 seconds
+
+			eject good spirit
+			eject evil spirit
+			move camera focus to [1810.351, 110.170, 2402.020]   time 3
+			//"GA: That's it. I'm going through for a look."
+			say HELP_TEXT_PICKUP_LEAVE_THROUGH_VORTEX1_02
+			wait 1 second
+			make good spirit point at [PointPosHigh] in world
+			wait until read
+			// start sending GA through
+			make good spirit point at [PointPosLow] in world
+			//"EA: Woah, Nutter. He's gone through."
+			say HELP_TEXT_PICKUP_LEAVE_THROUGH_VORTEX1_03
+			wait until read
+			wait 2 seconds
+			make good spirit point at [PointPosHigh] in world
+			wait 1 second
+			stop good spirit pointing
+			//"The villager was right. There's another land through there."
+			say HELP_TEXT_PICKUP_LEAVE_THROUGH_VORTEX1_04
+			wait until read
+			//"Let's throw some villagers and supplies into the vortex."
+			say HELP_TEXT_NEW_L4_VORTEX_16
+			wait until read
+
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_07
+			wait until read
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_08
+			move camera focus to [1810.351, 0.170, 2402.020]   time 3
+			wait 1 second // wait 1 sec before pointing to tie in with text
+
+			Highlight = create highlight HIGHLIGHT_QUEST at [CamPosIn]  
+			ALTITUDE of Highlight = 20
+
+			make good spirit point at [Highlight]
+			wait until read
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_09
+			wait until read
+
+			say HELP_TEXT_LEAVE_THROUGH_VORTEX1_10
+			wait until read
+
+		end cinema
+	else
+		VortexOpen=1
+		Vort = create VORTEX VORTEX_TYPE_IN at [CamPosIn] 
+		Highlight = create highlight HIGHLIGHT_QUEST at [CamPosIn]  
+		ALTITUDE of Highlight = 20
+	end if
+
+	run script QuestHighlightNotify(Highlight, CamPosIn, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_LEAVE_THROUGH_VORTEX_01, variable HELP_TEXT_NARRATOR_EVIL_SPIRIT, variable HELP_TEXT_LEAVE_THROUGH_VORTEX1_QUEST_REMINDER_01, 30*60)
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_CAN_GO_THROUGH_VORTEX of MyCreature = 1
+
+//------------------------------------------------------------------------------------------------------------------------
+//Leave through vortex into the unknown!!!-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+	begin cinema
+
+		move camera position to [CamPosIn] + [1,100,1]  time 6	// Highest camera 
+		move camera focus to [CamPosIn] time 6
+
+		wait until camera ready
+		
+		move camera position to [CamPosIn]  time 8
+
+		wait 5 seconds
+		set fade red 0 green 0 blue 0 time 2							// Fade to Black
+		wait 2 second
+		wait until camera ready	
+		stop scripts in files "CreatureGuide.txt"
+		LeaveLandNow = 1
+		
+	end cinema
+
+end script LeaveThroughVortexL1
+
+
+
+

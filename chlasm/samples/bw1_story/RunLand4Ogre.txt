@@ -1,0 +1,26 @@
+challenge RunLand4Ogre
+
+run script RunLand4Ogre
+
+begin script RunLand4Ogre
+
+	OgreHighlightPos = marker at [1682.351, 20.770, 2841.488]
+
+start
+	
+	run script SetupLand4
+	run background script KeepCreatureAwayFromOgre
+//	run script BeginLand4(0)					// Big flyby at beginning of land
+
+	challenge LAND_4_OGRE
+	snapshot challenge success 0 alignment 0 HELP_TEXT_TITLE_110 StandardReminder(variable HELP_TEXT_REMINDER_103)
+
+	OgreHighlight = create highlight HIGHLIGHT_QUEST at [OgreHighlightPos]
+	enable OgreHighlight active 
+	ALTITUDE of OgreHighlight = 10
+
+	ManHasExplainedAboutNemesis=1
+	run script Land4Ogre
+	
+
+end script RunLand4Ogre

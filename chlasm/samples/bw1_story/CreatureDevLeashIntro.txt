@@ -1,0 +1,64 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashIntro
+
+begin script CreatureDevLeashIntro
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	Rope = marker at [1893.2129, 18.0900, 2532.2954]
+	TrainerFocus = marker at [1894.2354, 28.8333, 2508.1797]
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	move MyCreature position to [MyCreaturePos]	
+	begin cinema		
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		Trainer play ANM_P_BECKON loop 1
+		wait until Trainer played
+		set Trainer focus to [Rope]
+		wait until Trainer played
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_OUT_OF_POINTING loop 1
+		wait until Trainer played
+		say "This is the rope icon"
+		move camera to LEASH_INTROT01_000 time 1
+		camera path LEASH_INTROTRACK01
+		wait until read
+		say "Please click on it"
+		wait until read
+		// TODO: the script language needs to know whether a rope icon has been clicked on
+		// eg: "if leash ROPE chosen" or "if leash ANGRY chosen" or somesuch.
+		set Trainer focus to [MyCreature]
+		release MyCreature
+		wait until Trainer played
+		Trainer play ANM_P_INTO_POINTING loop 1
+		say "Now click on your creature"
+		wait until Trainer played
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		wait until read
+	end cinema
+	wait until MyCreature leashed
+	begin cinema
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		set Trainer focus to [TrainerFocus]
+		wait until Trainer played
+		Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+		say "Well done. Now you've got some direct control of the little beast"
+		wait until Trainer played
+		move Trainer position to [CitadelEntrancePos]
+		wait until read
+	end cinema
+	wait until [Trainer] near [CitadelEntrancePos] radius 3
+	delete Trainer
+end script CreatureDevLeashIntro

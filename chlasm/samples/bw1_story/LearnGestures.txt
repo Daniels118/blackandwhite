@@ -1,0 +1,314 @@
+challenge LEARN_GESTURES
+
+//------------------------------------------------------------------------------------------------------------------------
+global SelectGesture=0
+global GetSpellGesture=0
+					  
+//------------------------------------------------------------------------------------------------------------------------
+begin script PlayMiracleHandDemo(WorshipSite)
+	RequiredMana=get mana for spell SPELL_FOOD
+start
+	clear player 1 spell charging
+	RequiredMana*=2
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_KHAZAR
+		move camera position to [3222.985, 101.944, 3370.304] time 5
+		move camera focus to [3130.855, 49.218, 3358.674] time 4
+
+		move computer player 2 to [3150.297, 50, 3403.188] speed 50
+
+		//"You can charge miracles without having to return to your temple to select them"
+		say HELP_TEXT_EXTRA_KHAZAR_05
+		wait until read
+		wait until camera ready
+		
+		if get WorshipSite mana total < RequiredMana
+			set WorshipSite mana RequiredMana
+		end if
+
+		start hand demo "gestures" with pause on trigger
+		//"Move your hand in a spiral like this, and you’ll charge into Miracle selection."
+		say HELP_TEXT_EXTRA_KHAZAR_07
+		wait until read
+		wait until hand demo trigger
+
+		//"Now select the Miracle of your choice. "
+		say HELP_TEXT_EXTRA_KHAZAR_08
+		wait until read
+
+		//"Grain is selected like this."
+		say HELP_TEXT_EXTRA_KHAZAR_09
+		wait until hand demo trigger
+		wait until hand demo trigger
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+		snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_115 PlayMiracleHandDemo(WorshipSite)
+
+		wait until hand demo played
+		say single line HELP_TEXT_KHAZAR_EXTRA_LINES_02 with interaction
+		wait until read
+
+		stop music
+	end cinema with dialogue
+		SelectGesture = get HELP_EVENT_TYPE_GESTURE_START_SPELL_SELECT total events
+		GetSpellGesture = get HELP_EVENT_TYPE_GESTURE_ACTUAL_SPELL_SELECT total events
+		
+		//TODO - Clear repeat and remove leash for confusion.
+
+		//"You try it now."
+		say single line HELP_TEXT_EXTRA_KHAZAR_10
+		wait until read
+
+	end dialogue
+
+end script PlayMiracleHandDemo
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LearnGestures(Town)
+ 	StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [2978.6399, 48.0123, 3433.4199] radius 20
+	HighlightPos = marker at [3127.059, 53.788, 3316.982]  
+	HighlightPos2 = marker at [2998.1567, 50.0720, 3436.3870]  
+	Highlight = 0
+	GestureTimer = create timer for 0 seconds
+	GestureSuccess=0
+	Exit = 0
+
+	DYKMarker =  marker at [3134.5190, 43.8065, 3387.3367]
+	RequiredMana=get mana for spell SPELL_FOOD
+	WorshipSitePos=marker at [3361.2600, 77.7200, 3241.8501]
+	WorshipSite = get WORSHIP WORSHIP_SITE_INFO_NORSE at [WorshipSitePos] radius 50
+	AmountOfFood = 0
+	SpellIcon=0
+	Citadel=0
+
+start
+	Citadel=get CITADEL at player 2 temple position radius 10
+
+	RequiredMana*=2
+	remove resource RESOURCE_TYPE_FOOD 9000000 from StoragePit
+	remove resource RESOURCE_TYPE_WOOD 9000000 from StoragePit
+
+	KhazarInScript=1
+	move computer player 2 to [HighlightPos] speed 200 with fixed height
+	wait until computer player 2 ready
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 0
+
+	wait 2 seconds
+
+	release computer player 2
+	KhazarInScript=0
+
+	run script CheckForKhazarChallengeHighlightNotify(Highlight, Highlight, variable GOOD_ADVISOR, variable HELP_TEXT_NEW_LAND_2_NOTIFIER_05)
+
+	if KhazarGone == 0
+
+		pause computer player 2
+		KhazarInScript=1	
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+
+			move camera position to [3205.3284, 81.6263, 3379.3469] time 4
+			move camera focus to [3105.8923, 51.2013, 3355.4866] time 5
+
+			move computer player 2 to [3108.7620, 65, 3353.0410] speed 300	
+			wait until camera ready
+
+			wait until computer player 2 ready
+
+			move computer player 2 to facing camera position distance 20 speed 100 
+
+			//"You have become well established."
+			say HELP_TEXT_EXTRA_KHAZAR_01
+			wait until read
+
+			//"Our combined strength is becoming greater."
+			say HELP_TEXT_EXTRA_KHAZAR_02
+			wait until read
+
+			//"As you near Lethys it will become more essential to have your Miracle skills in top form."
+			say HELP_TEXT_EXTRA_KHAZAR_03
+			move camera position to [3207.5225, 79.3993, 3354.9631] time 12
+			move camera focus to [3102.3752, 51.7861, 3356.6270] time 12
+
+			move computer player 2 to [3135.0400, 49.7763, 3358.4634] speed 50 with fixed height
+
+			wait until read
+
+			//"For this you must experience the benefit of gestures."
+			say HELP_TEXT_EXTRA_KHAZAR_04
+			wait until read
+
+			wait until camera ready
+			set interaction SCRIPT_INTERFACE_LEVEL_JUST_HAND_MOVE
+		end cinema
+		// Initial snapshot is in the hand demo
+		run script PlayMiracleHandDemo(WorshipSite)
+
+//		snapshot quest success 0.0 alignment 0.0 HELP_TEXT_TITLE_115 PlayMiracleHandDemo(WorshipSite)
+
+		run background script DidYouKnow(DYKMarker, variable HELP_TEXT_DYK_107, variable DYK_MIRACLES)
+
+		set GestureTimer time to 5*60 seconds
+		GestureSuccess=1
+
+		while	SelectGesture == get HELP_EVENT_TYPE_GESTURE_START_SPELL_SELECT total events or
+				GetSpellGesture == get HELP_EVENT_TYPE_GESTURE_ACTUAL_SPELL_SELECT total events
+
+				clear player 1 spell charging
+				wait 1 seconds
+
+				//Make sure you can afford the spell always
+				if get WorshipSite mana total < RequiredMana
+					set WorshipSite mana RequiredMana
+				end if
+
+				if get GestureTimer time remaining <= 0
+					SelectGesture++
+					GetSpellGesture++
+					begin dialogue
+						//"Well it doesn't matter if you cannot do it now"
+						say single line HELP_TEXT_EXTRA_KHAZAR_25
+						wait until read
+						GestureSuccess = 0
+					end dialogue
+				end if
+		end while
+
+		wait until read
+		set interaction SCRIPT_INTERFACE_LEVEL_NORMAL
+
+		//Wait for the player to do a gesture.
+		begin cinema
+			if GestureSuccess == 1
+				wait 1.5 seconds
+				//"Superb. "
+				say single line HELP_TEXT_EXTRA_KHAZAR_11
+				wait until read
+				close dialogue
+			end if
+
+			remove resource RESOURCE_TYPE_FOOD 9000000 from StoragePit
+			remove resource RESOURCE_TYPE_WOOD 9000000 from StoragePit
+			set Highlight position to [HighlightPos2]
+
+			if Town exists
+				//"You should practise your gestures, let's go and impress this town over here."
+				say HELP_TEXT_EXTRA_KHAZAR_12
+				move camera position to [3009.2546, 67.1943, 3414.7341] time 8
+				move camera focus to [2973.0776, 48.4872, 3431.0750] time 6
+
+				move computer player 2 to [StoragePit] + [0,12,0] speed 75 
+				wait until read
+
+				wait until camera ready
+
+				snapshot quest success 0.5 alignment 0 HELP_TEXT_TITLE_115 StandardReminder(variable HELP_TEXT_EXTRA_KHAZAR_28)
+				move camera position to [2980.9182, 65.2912, 3406.8567] time 12
+				move camera focus to [2977.8545, 48.4295, 3432.7754] time 12
+
+				//"They look like theyre in a bad way, no food or wood."
+				say HELP_TEXT_EXTRA_KHAZAR_13
+				wait until read
+
+				if StoragePit exists
+					//"Why don't you create some food for their storage pit, whilst I supply them with wood."
+					say HELP_TEXT_EXTRA_KHAZAR_14 with interaction
+				end if
+
+				move computer player 2 to [2945.7505, 43.6128, 3414.6023] speed 50 with fixed height
+
+				move camera position to [3004.2896, 81.1983, 3394.9707] time 5
+				move camera focus to [2940.7485, 44.3136, 3441.9175] time 4
+				wait until read	
+
+				if StoragePit exists
+					say HELP_TEXT_KHAZAR_EXTRA_LINES_03
+					wait until read
+				end if
+				wait until camera ready
+			end if
+		end cinema
+
+		release computer player 2
+
+		if Town exists
+			//Tell the computer player to put wood down on the storage pit
+			SpellIcon=get spell icon MAGIC_TYPE_WOOD in Citadel
+			if SpellIcon exists
+				RequiredMana=get mana for spell SPELL_WOOD*6
+				clear computer player 2 actions
+				//Make sure the computer player has enough mana to cast 3 wood spells.
+				set SpellIcon mana RequiredMana
+				queue computer player 2 action "ShallCastWoodSpell" Town SpellIcon
+				queue computer player 2 action "ShallCastWoodSpell" Town SpellIcon
+				queue computer player 2 action "ShallCastWoodSpell" Town SpellIcon
+				queue computer player 2 action "ShallCastWoodSpell" Town SpellIcon
+				release computer player 2
+			end if
+
+			while Exit == 0
+				wait 3 seconds
+				AmountOfFood=get resource RESOURCE_TYPE_FOOD in StoragePit
+				update snapshot success 0.5 + ((AmountOfFood/2800)/2) alignment 0 HELP_TEXT_TITLE_115 StandardReminder(variable HELP_TEXT_EXTRA_KHAZAR_28)
+				if  AmountOfFood > 2800	
+					//	and	get resource RESOURCE_TYPE_WOOD in StoragePit > 2800
+					release computer player 2
+
+					if KhazarGone == 0
+						begin cinema
+
+							KhazarInScript = 1
+
+							set computer player 2 position to [2976.115, 48.648, 3415.941] with fixed height 
+
+							set camera position to [2958.385, 67.128, 3470.994] 
+							set camera focus to [2980.999, 48.690, 3431.180] 
+
+							move camera position to [2944.409, 58.932, 3433.120] time 6
+							move camera focus to [2983.853, 48.571, 3433.978] time 6
+							
+							if PLAYER of Town != 1
+								//"Excellent, we have filled the town store and the people are easily impressed."
+								say HELP_TEXT_EXTRA_KHAZAR_15
+								wait until read
+
+								//"The town needs more impressing before it becomes yours."
+								say HELP_TEXT_EXTRA_KHAZAR_16
+								wait until read
+								DidLearnGesturesBeforeOwningTown=1
+							else
+								//"Excellent, we have filled the town store and the people are easily impressed."
+								say single line HELP_TEXT_EXTRA_KHAZAR_15
+								wait until read
+								DidLearnGesturesBeforeOwningTown=0
+							end if
+
+							wait until camera ready
+
+							release computer player 2
+
+							KhazarInScript = 0
+
+						end cinema
+					end if
+					Exit = 1
+				end if 
+				if not Town exists or not StoragePit exists
+					Exit = 1
+				end if
+			end while
+		end if
+
+
+		snapshot quest success 1 alignment 0 HELP_TEXT_TITLE_115 StandardReminder(variable HELP_TEXT_EXTRA_KHAZAR_29)
+		wait until PLAYER of Town == 1 or not Town exists
+	end if
+
+	LearnGesturesCompleted = 1
+
+end script LearnGestures

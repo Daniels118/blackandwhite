@@ -1,0 +1,12 @@
+challenge RunSwapToBrownBear
+
+run script RunSwapToBrownBear
+
+begin script RunSwapToBrownBear
+	
+start
+	
+	run script SwapToBrownBear
+	
+
+end script RunSwapToBrownBear

@@ -1,0 +1,62 @@
+challenge SWAP_TO_HORSE
+
+// SCRIPT NO LONGER USED
+
+
+begin script SwapToHorse
+	HorsePos = marker at [2523.72, 21.44, 2935.73]
+	Horse = 0
+	Man = 0
+	Highlight = 0
+
+start
+	//Taken out 'cause it don't compile - Paul.
+	///	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_28 StandardReminder(variable HELP_TEXT_REMINDER_26)
+
+	
+	wait until [HorsePos] not viewed
+	Horse = create CREATURE CREATURE_TYPE_HORSE at [HorsePos]
+	Man = create VILLAGER INDIAN_TRADER at [HorsePos]
+	force Horse CREATURE_IDLE Horse
+	set Horse focus to [HorsePos] + [-3, 5, -20]
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HorsePos]
+	run script ChallengeHighlightNotify(Highlight, HorsePos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_03)
+	MyCreature = get player 1 creature
+
+	begin cinema
+		move camera focus to [HorsePos] time 2
+		move camera position to [HorsePos] + [-3, 5, -20] time 4
+		wait until camera ready
+		move Man position to [HorsePos] + [-1, -5]
+		set Man focus to camera position
+		wait 2 seconds
+		say HELP_TEXT_SWAP_TO_HORSE_01
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_02
+		wait until read
+		move Horse position to [HorsePos] + [0, -4]
+		say HELP_TEXT_SWAP_TO_HORSE_03
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_04
+		wait until read
+		eject evil spirit
+		eject good spirit
+		say HELP_TEXT_SWAP_TO_HORSE_05
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_06
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_07
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_08
+		wait until read
+		say HELP_TEXT_SWAP_TO_HORSE_09
+		wait until read
+	end cinema
+
+	run background script SwapCreatures(Horse)
+
+	//Taken out 'cause it don't compile - Paul.
+	//	snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_28 StandardReminder(variable HELP_TEXT_REMINDER_26)
+
+end script SwapToHorse

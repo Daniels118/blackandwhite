@@ -1,0 +1,12 @@
+challenge RunThrowBloke
+
+run script RunThrowBloke
+
+begin script RunThrowBloke
+	
+start
+	
+	run script ThrowBlokeMain
+	
+
+end script RunThrowBloke

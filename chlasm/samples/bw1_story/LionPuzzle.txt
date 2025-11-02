@@ -1,0 +1,212 @@
+challenge LION_PUZZLE
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LPSitDown (Tamer)
+start
+	wait until Tamer played
+	Tamer play ANM_P_SITTING_DOWN1_SITTING loop -1
+end script LPSitDown
+
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LionPuzzle
+
+Puzzle = 0
+PuzzlePos = marker at [1620.0453, 18.2549, 2969.1855]
+
+LionPos = marker at [1572.228, 10.542, 2988.446]
+Lion = 0
+Tamer = 0
+TamerPos = marker at [1621.956, 14.070, 2959.683] 
+Highlight = 0
+PlayPuzzleCamPos= marker at [1636.7618, 74.5535, 2957.7292]
+PlayPuzzleCamFoc = marker at [1635.2006, 19.3254, 2982.6006]
+BeginPos = 0 
+BeginFoc = 0
+PuzzlePlayed = 0
+TamerDead = 0
+Campfire = 0
+ViewBellPos = marker at [1638.245, 21.800, 2958.887] 
+ViewBellFoc = marker at [1621.472, 14.425, 2968.771] 
+dyklionpuzzle = marker at [PuzzlePos]+[20,20] // This will put it exactly on the corner of the fence next to the sheep
+PuzzleStatus = 0
+
+PlayerTown = get TOWN at [1294.9275, 27.4700, 3550.9336] radius 100
+
+start
+	Puzzle = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TILT1 at [PuzzlePos]
+	Tamer = create VILLAGER MALE at [TamerPos]
+	disable Tamer hurt by fire
+	enable Tamer indestructible
+	disable Tamer pickup
+	set Tamer focus to [TamerPos]+[7,5,7]
+	Tamer play ANM_P_SITTING_DOWN1_INTO loop 1
+	run background script LPSitDown (Tamer)
+	Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [TamerPos]+[2,2]
+	// challenge notify
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [PuzzlePos]
+	run background script ChallengeHighlightNotifyWithEndVariable(Highlight, PuzzlePos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+
+	ChallengeHighlightEndVariable=0
+	while ChallengeHighlightEndVariable == 0
+		if Highlight clicked
+			ChallengeHighlightEndVariable = 1
+		end if
+		PuzzleStatus = variable state of Puzzle 
+		if PuzzleStatus == variable SCRIPT_PUZZLE_GAME_STATUS_GAME_IN_PROGRESS
+			ChallengeHighlightEndVariable = 1
+			enable Highlight active
+		end if
+	end while
+
+	MyCreature = get player 1 creature
+
+	begin cinema
+
+		enable Tamer high graphics detail 
+
+		set Tamer focus to [TamerPos]+[7,5,-7]
+		Tamer play	ANM_P_SITTING_DOWN1_OUT_OF loop -1
+		move camera position to [TamerPos]+[5,3,-5] time 4
+		move camera focus to [TamerPos] + [0,0.7,0] time 3
+		wait until camera ready
+
+		move camera focus to [TamerPos] + [2,2,1] time 6
+
+		run background script DidYouKnow(dyklionpuzzle,variable HELP_TEXT_DYK_RULES_05, variable DYK_MISC)
+		wait 0.5 seconds
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_51)
+		
+		Tamer play ANM_P_GOSSIP_MAN  loop 1
+		wait until Tamer played
+		Tamer play ANM_P_AMBIENT2  loop 1
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_01
+		wait until read
+		wait until Tamer played
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_02
+		wait until read
+		//wait until Tamer played
+		set Tamer focus to [1633.588, 14.222, 2961.301] 
+
+		Tamer play ANM_P_CONDUCT_MEETING  loop 1
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_03
+		
+		
+		
+		move camera position to [ViewBellPos] time 2
+		move camera focus to [ViewBellFoc] time 1
+
+		wait until Tamer played
+		wait until read	
+
+		Tamer play ANM_P_SITTING_DOWN1_INTO loop 1
+		run background script LPSitDown (Tamer)
+		move camera position to [PlayPuzzleCamPos] time 4
+		move camera focus to [PlayPuzzleCamFoc] time 3
+		wait until camera ready
+
+		disable Tamer high graphics detail
+
+	end cinema with dialogue
+		eject evil spirit
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_04
+		wait until read
+		send evil spirit home
+	end dialogue
+
+	while PuzzlePlayed == 0
+		if HEALTH of Tamer <= 0 and TamerDead == 0
+			begin dialogue
+				eject good spirit
+				say HELP_TEXT_NEW_L5_LION_PUZZLE_05
+				wait until read
+				send good spirit home
+				TamerDead = 1
+			end dialogue
+		end if
+
+		if Puzzle played
+			PuzzlePlayed = 1
+		end if
+
+	end while
+
+if HEALTH of Tamer > 0
+
+	Lion = create CREATURE CREATURE_TYPE_LION at [LionPos]
+	begin cinema
+		enable Tamer high graphics detail
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		Tamer play	ANM_P_SITTING_DOWN1_OUT_OF loop 1
+		move camera position to [Tamer]+[7,5,7] time 4
+		move camera focus to [Tamer] time 3
+		wait until camera ready
+		wait until Tamer played
+		set Lion focus to camera position
+		set Tamer focus to camera position
+		Tamer play ANM_P_GOSSIP_MAN  loop 1
+		// "Well done, Mighty One."
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_06
+		wait until read
+		wait until Tamer played
+		Tamer play ANM_P_AMBIENT2  loop 1
+		
+		set Tamer focus to [LionPos]
+		// "Here, take and use this magical Lion I have."
+		Tamer play ANM_P_INTO_POINTING
+ 		say HELP_TEXT_NEW_L5_LION_PUZZLE_07
+		wait until read
+		start sound LH_SAMPLE_G_REWARDSTING
+		move camera position to [LionPos]+[7,5,7] time 4
+		move camera focus to [LionPos] + [0,1.5,0] time 3
+		wait until camera ready
+		wait until Tamer played
+
+		Tamer play ANM_P_SITTING_DOWN1_INTO loop 1
+		run background script LPSitDown (Tamer)
+		set Lion focus to camera position
+		wait 1 second
+		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_51)
+		wait until read
+		force Lion CREATURE_WAVE_AT_PLAYER Lion
+		make good spirit point at [Lion]
+		// "He must want to become our creature. Let's have him."
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_08
+		wait until read
+		stop good spirit pointing
+
+		disable Tamer high graphics detail
+
+	end cinema
+
+	run background script SwapCreatures(Lion)
+
+	begin dialogue
+		// Also give a fireball power up 2 to the players home town.
+		enable spell SPELL_FIREBALL_LEVEL_2 in PlayerTown
+		enable spell SPELL_FIREBALL_LEVEL_3 in PlayerTown
+		eject evil spirit
+		make evil spirit point at [PlayerTown]
+		say HELP_TEXT_FIREBALL_GESTURE1_REWARD_01
+		wait until read
+	end dialogue
+
+	//snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_30 StandardReminder(variable HELP_TEXT_REMINDER_51)
+else
+	begin dialogue
+		eject good spirit
+		// "Well done, you've completed the puzzle!"
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_09
+		wait until read
+		// "It's a shame you murdered the guy who asked you to do it in the first place."
+		say HELP_TEXT_NEW_L5_LION_PUZZLE_10
+		wait until read
+		send good spirit home
+	end dialogue
+end if
+
+
+end script LionPuzzle

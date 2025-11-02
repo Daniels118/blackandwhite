@@ -1,0 +1,870 @@
+challenge PIED_PIPER
+
+//------------------------------------------------------------------------------------------------------------------------
+// Pied Pier script
+//------------------------------------------------------------------------------------------------------------------------
+global PiedPiperChildrenInCave
+global CaveOpen
+global ChildrenEscaped
+global PiedPiperDead
+global BackOfCave
+global PiedPiperFlockSize
+//global PiperInCave
+global PiperCaughtStory
+
+//------------------------------------------------------------------------------------------------------------------------
+define script PiedPiperIntelligence(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+define script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+
+//------------------------------------------------------------------------------------------------------------------------
+// Cave cry
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiperCaveCry(CaveFlock)
+	Amount=0
+start
+	while PiedPiperFinished == 0
+		if PiedPiperChildrenInCave > 0
+			Amount = 250/(PiedPiperChildrenInCave+1)
+			if number from 0 to Amount == 0
+				if CaveOpen == 0
+					start sound constant from LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_01 to LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_10 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveFlock]
+				else
+					start sound constant from LH_SCRIPT_SAMPLE_CHILD_CRY_NORMAL_01 to LH_SCRIPT_SAMPLE_CHILD_CRY_NORMAL_11 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveFlock]
+				end if
+			end if
+		end if
+	end while
+end script PiedPiperCaveCry
+
+//------------------------------------------------------------------------------------------------------------------------
+// Leader cry 
+//------------------------------------------------------------------------------------------------------------------------
+begin script LeaderCry(Leader)
+	SoundTimer=0
+start
+	while PiedPiperFinished == 0 and Leader exists
+		SoundTimer++
+		if HEALTH of Leader > 0
+			//Play sound on Leader
+			if camera position near [Leader] radius 10 and SoundTimer>=100
+				SoundTimer=number from 0 to 50
+				start sound constant from LH_SCRIPT_SAMPLE_WOMAN_CRY_01 to LH_SCRIPT_SAMPLE_WOMAN_CRY_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [Leader]
+			end if
+		end if		
+	end while
+end script LeaderCry
+
+//------------------------------------------------------------------------------------------------------------------------
+// Piper prod
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperProd(Piper)
+	SoundTimer=create timer for 0 seconds
+start
+	while PiedPiperFinished == 0 and Piper exists
+		if Piper clicked
+			clear clicked object
+			if get SoundTimer time remaining <= 0
+				// "SFX: Prod me orl ya leeke! I don believ in yous!"
+				start say sound HELP_TEXT_PIED_PIPER_33 at [Piper]
+				set SoundTimer time to 15 seconds
+			end if 
+		end if
+	end while
+end script PiperProd
+
+//------------------------------------------------------------------------------------------------------------------------
+// Piper Damaged
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckPiperDamaged(Piper)
+	MyTimer=create timer for 0 seconds
+	Health=HEALTH of Piper
+start
+	while PiedPiperFinished == 0 and Piper exists
+		if get MyTimer time remaining <= 0
+			if HEALTH of Piper < Health
+				// "SFX RAND: You cannot hurt me"
+				start say sound constant from HELP_TEXT_PIED_PIPER_61 to HELP_TEXT_PIED_PIPER_64 at [Piper]
+				//wait until read
+				set MyTimer time to 15 seconds
+				HEALTH of Piper = Health
+			end if
+		end if
+	end while
+end script CheckPiperDamaged
+
+//------------------------------------------------------------------------------------------------------------------------
+// Piper flock laughter function
+//------------------------------------------------------------------------------------------------------------------------				
+begin script PiperFlockLaugh(PiperFlock)
+	Amount=0
+start
+	while PiedPiperFinished == 0
+		if PiedPiperFlockSize > 1
+			Amount = 250/(PiedPiperFlockSize)
+			if number from 0 to Amount == 0
+				start sound constant from LH_SCRIPT_SAMPLE_CHILD_LAUGH_01 to LH_SCRIPT_SAMPLE_CHILD_LAUGH_07 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [PiperFlock]
+			end if
+		end if
+	until PiperFlock not exists
+	end while
+end script PiperFlockLaugh
+
+//------------------------------------------------------------------------------------------------------------------------
+// The piper has now killed 30 Children and wants to retire
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiperKilled30Children 
+start
+	begin cinema
+		update snapshot success 1.0 alignment -0.8 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_PIED_PIPER_20)
+		start music MUSIC_TYPE_SCRIPT_GENERIC_02 
+		eject evil spirit
+		//"30 Children are now dead and the Piper retires"
+		say HELP_TEXT_PIED_PIPER_19
+		wait until read
+		//"I have never seen a day as grim as this. Thirty little mites !"
+		eject good spirit
+		say HELP_TEXT_PIED_PIPER_20
+		wait until read
+		stop music
+	end cinema
+	PiedPiperFinished=2
+end script PiedPiperKilled30Children
+
+//------------------------------------------------------------------------------------------------------------------------
+// You killed the Creche Leader
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiperCrecheLeaderDead(CrecheLeader)
+	BeginPos = 0
+	BeginFoc = 0		   
+start
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		eject evil spirit
+		if CrecheLeader exists
+	  		move camera position to [CrecheLeader] + [-2,1,-2] time 3	// Camera pos to dead CrecheLeader
+			set camera focus follow CrecheLeader						// Camera foc to dead CrecheLeader
+			make evil spirit point to CrecheLeader
+		end if
+
+		eject good spirit
+		//"That's one creche leader we don't have to worry about!"
+		say HELP_TEXT_PIED_PIPER_10
+		wait until read
+		update snapshot success 0.5 alignment 0 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_NEW_REMINDER_22)
+		//"This is just too appalling for words."
+		say HELP_TEXT_PIED_PIPER_11
+		wait until read
+		send good spirit home
+		send evil spirit home
+
+		move camera position to [BeginPos] time 2
+		move camera focus to [BeginFoc] time 2
+		wait until camera ready
+	end cinema
+end script PiedPiperCrecheLeaderDead
+
+//------------------------------------------------------------------------------------------------------------------------
+// Reaction to player damaging Creche
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiperCrecheDamaged(CrecheLeader, Creche)
+
+start
+	if HEALTH of CrecheLeader > 0
+		set CrecheLeader focus to camera position
+		CrecheLeader play ANM_P_ATTRACT_YOUR_ATTENTION loop 1
+		begin dialogue
+			// "Oi! Stop bashing the Creche! You'll hurt the children."
+			say single line HELP_TEXT_PIED_PIPER_31
+			wait until read
+		end dialogue
+		wait 2 seconds
+		state CrecheLeader WANDER_AROUND position [1858.0212, 38.4805, 2728.1650]
+			float 6
+			ulong 4, 20
+	else
+		begin dialogue
+			eject evil spirit
+			// "Just as well the CrecheLeader is dead or you'd get an earful for decking the Creche."
+			say single line HELP_TEXT_PIED_PIPER_32
+			wait until read
+			send evil spirit home
+		end dialogue
+	end if
+
+end script PiedPiperCrecheDamaged
+
+//------------------------------------------------------------------------------------------------------------------------
+// Open or Close Cave
+//------------------------------------------------------------------------------------------------------------------------
+begin script OpenOrCloseCave(OpenCaveFlag, CaveEntrance)
+start
+	if OpenCaveFlag == 0
+		if CaveOpen != 0
+			start sound LH_SCRIPT_SAMPLE_CAVEDOOR_SLIDE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveEntrance]	
+			CaveOpen=0
+			close PiperCave																// PiperCave doors close...
+			wait 2 seconds
+			start sound LH_SCRIPT_SAMPLE_CAVEDOOR_SLAM AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveEntrance]
+		end if
+	else
+		if CaveOpen != 1
+			CaveOpen=1
+			open PiperCave																// PiperCave doors open...
+			start sound LH_SCRIPT_SAMPLE_CAVEDOOR_SLIDE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveEntrance]	
+			wait 2 seconds
+			start sound LH_SCRIPT_SAMPLE_CAVEDOOR_SLAM AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CaveEntrance]	
+		end if
+	end if
+end script OpenOrCloseCave
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script RewardForPiper(IsGood)
+	RewardPos = marker at [1860.0336, 38.8600, 2736.5525]
+start
+	PiedPiperFinished=1
+	if IsGood == 1
+
+		if GlobalHealSpell == 0
+			run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_HEAL, 0.0, 0, 0)
+			GlobalHealSpell = 1
+		else 
+			run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_HEAL_PU_ONE, 0.0, 0, 0)
+		end if
+
+		snapshot challenge success 1.0 alignment 1 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_PIED_PIPER_20)
+	else
+		run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_LIGHTNING_BOLT, 0.0, 0, 0) 
+		snapshot challenge success 1.0 alignment -0.3 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_PIED_PIPER_20)
+	end if
+
+	PiedPiperFinished=1
+end script RewardForPiper
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SendTheKidsHome(CaveFlock)
+	EscapeFlock=0
+	Child=0
+start
+	//Create the kids and let them go...
+	EscapeFlock = flock at [NorseTown]
+	while PiedPiperChildrenInCave > 0
+		Child = create random villager of tribe TRIBE_TYPE_NORSE at [CaveFlock]
+		AGE of Child = number from 3 to 11
+		attach Child to NorseTown
+		attach Child to EscapeFlock
+		SPEED of Child = (number from 3 to 5)/10
+		state Child LIVING_MOVE_IN_FLOCK
+		PiedPiperChildrenInCave--
+	end while
+
+	wait 30 seconds
+	disband EscapeFlock
+
+end script SendTheKidsHome
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperSetFree(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+start
+	wait until not Piper is FLYING
+
+	if Piper is DROWNING
+		delete Piper with fade
+		begin dialogue
+			say single line HELP_TEXT_YOU_ARE_EVIL_02
+			wait until read
+		end dialogue
+		run background script RewardForPiper(0)
+	else
+		//Are we free near the cave?
+		if  [Piper] near [CaveFlock] radius 35
+			begin cinema
+				PiedPiperFinished=1
+				/// CINEMA NEEDED
+				// "Thanks for letting me go!"
+				say HELP_TEXT_PIED_PIPER_35
+				wait until read
+				// "I release the children!"
+				say HELP_TEXT_PIED_PIPER_36
+				wait until read
+				run script OpenOrCloseCave(1, CaveEntrance)
+				run background script SendTheKidsHome(CaveFlock)
+				// "From now on I shall spend my time in the village"
+				say HELP_TEXT_PIED_PIPER_37
+				wait until read
+				// "spreading your good word, and the error of my ways"
+				say HELP_TEXT_PIED_PIPER_38
+				wait until read
+				attach Piper to NorseTown
+				enable Piper pickup
+				enable Piper moveable
+				disable Piper indestructible
+				release Piper
+			end cinema
+
+			run background script RewardForPiper(1)
+		else
+			run background script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+			begin dialogue
+				// "Ha, I'm nowhere near my cave and now I'm free! I'm outta here!"
+				say single line HELP_TEXT_PIED_PIPER_39
+				wait until read
+			end dialogue
+		end if
+	end if
+		
+end script PiperSetFree
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperKilledByCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+start
+	begin cinema
+		PiedPiperFinished=1
+		/// CINEMA NEEDED
+		eject evil spirit
+		eject good spirit
+		// "EA - Nice one, your creature has my kinda appitite!"
+		say HELP_TEXT_PIED_PIPER_40
+		wait until read
+		// "GA - It more like bad taste if you ask me!"
+		say HELP_TEXT_PIED_PIPER_41
+		wait until read
+	end cinema
+	
+	run script RewardForPiper(0)
+
+end script PiperKilledByCreature
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperCaught(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+
+ObjectInCreaturesHand	= 0
+NotHappeningTimer = create timer for 0 seconds
+NotHappened=0
+
+start
+	if PiperCaughtStory == 0
+		begin cinema
+			enable Piper pickup
+			disable Piper indestructible
+
+			// "Arrrrrrrgh"
+			say single line HELP_TEXT_PIED_PIPER_42
+			toggle player 1 leash
+
+			// ****		NOTE		****
+			// Make sure creature holding something is handled.  Not the best way though.
+			ObjectInCreaturesHand = get held by MyCreature 
+			if ObjectInCreaturesHand exists
+				force MyCreature CREATURE_PUT_DOWN MyCreature
+				wait until MyCreature played
+			end if
+
+			force MyCreature CREATURE_HOLD_OBJECT Piper
+			set NotHappeningTimer time to 10 seconds
+			wait until Piper in MyCreature hand or get NotHappeningTimer time remaining <= 0
+
+			if not get NotHappeningTimer time remaining <= 0 and Piper exists
+				PiperCaughtStory=1
+				wait until read
+				clear dialogue
+				// "Ok you got me, please don't eat me!"
+				say HELP_TEXT_PIED_PIPER_43
+				wait until read
+				// "If you spare me and take me to my cave I'll set the children free"
+				say HELP_TEXT_PIED_PIPER_44
+				wait until read
+				//"I only wanted my own family, and I was too ugly for the town woman"
+				say HELP_TEXT_PIED_PIPER_45
+				eject evil spirit
+				wait until read
+				// "EA: Sod the kids - go on, time for a creature lunch!"
+				say HELP_TEXT_PIED_PIPER_46
+				eject good spirit
+				wait until read
+				eject good spirit
+				// "GA: No take him back, the kids will surely starve trapped in the cave!"
+				say HELP_TEXT_PIED_PIPER_47
+				wait until read
+			else
+				NotHappened=1
+			end if
+			release MyCreature
+		end cinema
+	else
+		begin cinema
+			enable Piper pickup
+			disable Piper indestructible
+			// "Arrrrrrrgh you've got me again"
+			say single line HELP_TEXT_PIED_PIPER_48
+			toggle player 1 leash
+
+			// ****		NOTE		****
+			// Make sure creature holding something is handled.  Not the best way though.
+			ObjectInCreaturesHand = get held by MyCreature 
+			if ObjectInCreaturesHand exists
+				force MyCreature CREATURE_PUT_DOWN MyCreature
+				wait until MyCreature played
+			end if
+
+			force MyCreature CREATURE_HOLD_OBJECT Piper
+			set NotHappeningTimer time to 10 seconds
+			wait until Piper in MyCreature hand or get NotHappeningTimer time remaining <= 0
+			if not get NotHappeningTimer time remaining <= 0 and Piper exists
+				wait until read
+				clear dialogue
+				// "If you spare me and take me to my cave I'll set the children free"
+				say single line HELP_TEXT_PIED_PIPER_44
+				wait until read
+			else 
+				NotHappened=1
+			end if
+			release MyCreature
+		end cinema
+	end if
+	
+	begin loop
+	until Piper not exists
+		wait until read
+		run background script PiperKilledByCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	until not Piper in MyCreature hand
+		disable Piper pickup
+		enable Piper indestructible
+		wait until read
+		if Piper not exists
+			run background script PiperKilledByCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+		elsif NotHappened==1
+			run background script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+		else
+			run background script PiperSetFree(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+		end if
+	end loop
+end script PiperCaught
+
+//------------------------------------------------------------------------------------------------------------------------
+// Pied piper is leashed to the creature
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperLeashed(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	MyTimer=create timer for 20 seconds
+start
+	state Piper LIVING_IN_SCRIPT
+	detach music from Piper
+
+	// "SFX: I've wet myself, aaaargh"
+	start say sound HELP_TEXT_PIED_PIPER_49 at [Piper]
+		
+	// *** New stuff
+	move MyCreature position to [Piper]	radius 10
+	// *** End of new stuff
+
+	begin loop
+		if get MyTimer time remaining <= 0
+			if MyCreature leashed to Piper
+				toggle player 1 leash
+				// "SFX: You can't tie me up for long, I'm an escape artist"
+				start say sound HELP_TEXT_PIED_PIPER_50 at [Piper]
+			end if	
+		end if
+	until not MyCreature leashed to Piper
+			// *** New stuff
+			release MyCreature
+			// *** End of new stuff
+			run background script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	until [Piper] near [MyCreature] radius 15
+			run background script PiperCaught(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	end loop
+end script PiperLeashed
+
+//------------------------------------------------------------------------------------------------------------------------
+// Ok the creatures near - The piper is scared of this.
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	InCave = 0
+	MyTimer=create timer for 0 seconds
+start
+	begin loop
+		run background script OpenOrCloseCave(1, CaveEntrance)
+		SPEED of Piper=0.6
+		move Piper position to [CaveEntrance]
+		set MyTimer time to 25 seconds
+		wait until read //Could have some previous speech here
+		// "SFX: Fek off ya big creature ting you"
+		start say sound HELP_TEXT_PIED_PIPER_51 at [Piper]
+
+		wait until [Piper] near [CaveEntrance] radius 1
+		move Piper position to [CaveFlock]
+		wait until [Piper] near [CaveFlock]	radius 1
+
+		run background script OpenOrCloseCave(0, CaveEntrance)
+		wait 1.5 seconds
+		if MyCreature leashed to Piper
+			toggle player 1 leash
+		end if
+		wait 0.5 seconds
+
+		begin dialogue
+			eject evil spirit 
+			// "SFX: Your creature cannot catch me, I'm too fast"
+			say single line HELP_TEXT_PIED_PIPER_52
+			wait until read
+			// "EA: Boss, Tie him up, the cheeky scank"
+			say HELP_TEXT_PIED_PIPER_53
+			eject good spirit 
+			wait until read
+			// "GA: He's right you know, he'll not run fast when our creature attached!"
+			say HELP_TEXT_PIED_PIPER_54
+			wait until read
+		end dialogue
+		InCave=1
+		wait 15 seconds
+		begin loop
+			if get MyTimer time remaining <= 0
+				// "SFX RAND: I knows ya out dere, leave me alone"
+				start say sound constant from HELP_TEXT_PIED_PIPER_55 to HELP_TEXT_PIED_PIPER_60 at [Piper]
+				set MyTimer time to 25 seconds
+			end if
+		end loop
+
+	until [Piper] not near [MyCreature] radius 30 and InCave != 0 and not MyCreature leashed to Piper
+		run background script PiedPiperIntelligence(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+		stop script "OpenOrCloseCave"
+	until MyCreature leashed to Piper and [Piper] not near [CaveEntrance] radius 10
+		run background script PiperLeashed(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	end loop
+end script PiperFleeFromCreature
+
+//------------------------------------------------------------------------------------------------------------------------
+// Piper's crusade to collect Children
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiperIntelligence(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	StartTimer=create timer for 0 seconds
+	PiperDance = 0
+	PiperPiping = marker at	[1886.318, 41.388, 2736.750]
+	Child=0
+
+start
+	begin loop
+		SPEED of Piper=0.2
+		//Exit cave
+		set Piper position to [BackOfCave]
+		Piper play ANM_PIED_PIPER_SUMMON loop 1
+		run script OpenOrCloseCave(1, CaveEntrance)
+
+		move Piper position to [CaveEntrance]
+		detach music from Piper
+
+		//Close cave
+		run script OpenOrCloseCave(0, CaveEntrance)
+	
+		//Walk to the song position and play tune
+		move Piper position to [PiperPiping]
+		set Piper anim ANM_PIED_PIPER_WALK
+		wait until [Piper] at [PiperPiping]
+		set Piper focus to [Creche]
+		Piper play ANM_PIED_PIPER_DANCE_STAND loop -1
+		attach music MUSIC_TYPE_SCRIPT_PIPER_TUNE to Piper
+
+		//Waiting for five kids and dance
+		PiperDance = make Piper dance DANCE_INFO_DANCE_AROUND_PERSON around [Piper] time 30
+			
+		begin loop
+			//Looking for a child
+			Child = get SCRIPT_OBJECT_TYPE_VILLAGER_CHILD in NorseTown at [Piper] radius 100	excluding scripted
+			if Child exists
+				//Found a child
+				detach Child from NorseTown
+				attach Child to PiperFlock
+				PiedPiperFlockSize=size of PiperFlock
+
+				//Waiting for child
+				begin loop
+					wait until 1 second
+					until Child is HELD
+						Child = 0
+						Piper play ANM_P_CROWD_LOST loop 1
+						wait until Piper played
+						Piper play ANM_PIED_PIPER_DANCE_STAND loop -1
+					until [Child] near [Piper] radius 10
+						//Got the little blighter
+						attach Child to PiperDance
+						Piper play ANM_PIED_PIPER_DANCE_STAND_SPIN loop 2
+						wait until Piper played
+				end loop
+
+				Piper play ANM_PIED_PIPER_DANCE_STAND loop -1
+				wait until 10 seconds
+			else 
+				wait until 3 seconds
+			end if
+
+			until size of PiperDance >=5								// Got enough
+				wait 15 seconds
+			until get StartTimer time since set > 60*10 and size of PiperDance > 1			// Had enough, at least got 1 and a minute has gone
+		end loop
+
+		//Take the kids out of the dance and make them move into a flock
+		while size of PiperDance >=1
+			Child = detach from PiperDance
+			if Child exists
+				state Child LIVING_MOVE_IN_FLOCK
+			end if
+		end while
+
+		//Got some kids
+		move Piper position to [CaveEntrance]
+		set Piper anim ANM_PIED_PIPER_DANCE_WALK
+		wait until [Piper] at [CaveEntrance]
+		Piper play ANM_PIED_PIPER_DANCE_STAND_SPIN loop -1
+		wait until 15 seconds
+		wait until [PiperFlock] near [CaveEntrance] radius 3
+
+		Piper play ANM_PIED_PIPER_SUMMON loop 2
+		run script OpenOrCloseCave(1, CaveEntrance)
+
+		//Remove kids from flock into cave
+		detach Piper from PiperFlock
+		while size of PiperFlock > 0
+			Child=detach from PiperFlock
+			move Child position to [BackOfCave]
+			wait until [Child] at [BackOfCave]
+			delete Child with fade
+			PiedPiperChildrenInCave++
+			PiedPiperFlockSize--
+		end while
+
+		attach Piper to PiperFlock as leader
+		PiedPiperFlockSize=1
+		move Piper position to [BackOfCave]
+		set Piper anim ANM_PIED_PIPER_DANCE_WALK
+		wait until [Piper] near [BackOfCave] radius 1
+		attach music MUSIC_TYPE_SCRIPT_PIPER_CAVE_TUNE to Piper
+		Piper play ANM_PIED_PIPER_DANCE_STAND loop -1
+
+		run script OpenOrCloseCave(0, CaveEntrance)
+		wait until 10 seconds
+		
+	until [Piper] near [MyCreature] radius 30 or MyCreature leashed to Piper
+		if PiperDance exists
+			disband PiperDance
+		end if
+
+		if size of PiperFlock > 1
+			// "SFX: Hurrah we are saved by our god."
+			start say sound HELP_TEXT_PIED_PIPER_34
+		end if
+
+		disband PiperFlock
+		attach Piper to PiperFlock as leader
+		PiedPiperFlockSize=0
+		stop script "OpenOrCloseCave"
+		run background script PiperFleeFromCreature(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+	end loop
+
+until PiedPiperFinished!=0
+
+end script PiedPiperIntelligence
+
+//------------------------------------------------------------------------------------------------------------------------
+// Set Variables for the PiedPiper and run the Script
+//------------------------------------------------------------------------------------------------------------------------
+begin script PiedPiper
+	Creche = get HOUSE at [1868.0100, 38.8600, 2730.1201]
+	CaveEntrance = marker at [1967.2156, 64.1787, 2807.9077]
+	Count = time-61
+	CrecheLeaderDead = 0
+	CrecheLeader = 0
+	Piper = 0
+	PiperFlock = 0
+	CaveFlock = flock at [1972.496, 64.574, 2813.805]
+	TimeOut = time
+	BeginPos = 0
+	BeginFoc = 0
+	BeginPPos = 0
+	BeginPFoc = 0
+	BeginCPos = 0
+	BeginCFoc = 0
+	SoundTimer = 0
+	EvilOut = 0
+	GoodOut = 0
+	SoapBox = marker at [1862.5153, 38.8600, 2729.0571]
+	Pos1 = marker at [1863.7339, 38.7763, 2725.6997]
+	Pos2 = marker at [1867.4436, 38.8600, 2725.4980]
+	Highlight=0
+	CrecheLeaderInfluence=0
+	OriginalHealthOfCreche=0
+	CrecheDamagedSpeech=0
+	NumberOfBoys = 2
+	NumberOfGirls = 2
+	Kid = 0
+	
+start 
+	BackOfCave = marker at [1972.4427, 64.5791, 2813.9004]
+
+	PiedPiperFinished = 0
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [Creche]
+	run script ChallengeHighlightNotify(Highlight, Creche, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_02)
+
+	PiedPiperInitiated = 1
+
+	CrecheLeader = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [Creche]
+	Piper = create VILLAGER VILLAGER_INFO_PIED_PIPER at [PiperCave]
+	PiperFlock = flock at [Piper]
+	set CaveFlock properties inner 1 outer 1.5
+	set PiperFlock properties inner 2 outer 4
+	attach Piper to PiperFlock as leader
+	CrecheLeaderInfluence=create influence on CrecheLeader radius 2
+	//PiperInfluence=create anti influence on Piper radius 3
+	disable Piper pickup
+	enable Piper indestructible
+	disable Piper hurt by fire
+	disable Piper set on fire
+
+	while NumberOfBoys > 0
+		Kid = create VILLAGER MALE at [Creche]
+		AGE of Kid = 3
+		attach Kid to NorseTown
+		NumberOfBoys--
+	end while
+
+	while NumberOfGirls > 0
+		Kid = create VILLAGER FEMALE at [Creche]
+		AGE of Kid = 3
+		attach Kid to NorseTown
+		NumberOfGirls--
+	end while
+
+	run background script PiedPiperIntelligence(Piper, PiperFlock, CaveFlock, CaveEntrance, Creche)
+
+	// Pretend there are 5 children in the cave from the outset
+	PiedPiperChildrenInCave = 5
+
+	//Start the kids in the cave crying...
+	run background script PiedPiperCaveCry(CaveFlock)
+
+	OriginalHealthOfCreche = HEALTH of Creche
+
+	//Do the introduction animation...
+	begin cinema
+		enable CrecheLeader high graphics detail
+		start music MUSIC_TYPE_SCRIPT_GENERIC_02
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [1862.594, 40.902, 2720.310] time 7	 // Camera Pos Zoom to creche
+		set camera focus follow CrecheLeader						 // Camera foc to creche
+																	 
+		move CrecheLeader position to [SoapBox]
+		wait until [CrecheLeader] at [SoapBox]
+		move CrecheLeader position to [Pos1]
+
+		wait until [CrecheLeader] at [Pos1]
+		move CrecheLeader position to [Pos2]
+		wait until [CrecheLeader] at [Pos2]
+		set CrecheLeader focus to camera position
+
+		CrecheLeader play ANM_P_LOOKING_FOR_SOMETHING loop 4
+		//"Oh no ! Some of my poor children are lost."
+		say HELP_TEXT_PIED_PIPER_01
+
+		move camera position to  [1863.944, 40.382, 2721.703]  time 5	// Camera pos zoom to creche leader
+
+		wait until read
+		wait until 1 seconds
+
+		CrecheLeader play ANM_P_STAND_DESPAIR_2 loop 4
+		//"A stranger has been seen putting the children into trances."
+		say HELP_TEXT_PIED_PIPER_02
+
+		set camera position to [Piper] + [-3,1,-2]				// Camera pos look at piper
+		set camera focus to [Piper]					    		// Camera foc look at piper
+		set camera focus follow Piper					    	// Camera foc look at piper
+
+		move camera position to [Piper] + [-3,2,-2]	time 3
+
+		wait until read
+		wait until 2 seconds
+		//"He has them imprisoned in a secret hideaway."
+		say HELP_TEXT_PIED_PIPER_03
+
+		set camera position to [1953.138, 62.091, 2783.255]		// Camera pos look at PiperCave
+		set camera focus to [1957.241, 62.918, 2791.696]		// Camera foc look at PiperCave
+
+		move camera position to [1958.994, 65.320, 2805.253] time 4	// Zoom pos to PiperCave
+		move camera focus to [1962.332, 65.955, 2806.824] time 4   	// Zoom foc to PiperCave
+
+		start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [PiperCave]
+		wait until 1 second
+		start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [PiperCave]
+		wait until 0.5 seconds
+		start sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [PiperCave]
+		wait until camera ready
+
+		set camera position to [1863.944, 39.382, 2721.703]		// Camera pos back to creche leader
+		set camera focus to [CrecheLeader] + [0,1,0]			// Camera foc back to creche leader
+
+		move camera position to [1865.888, 40.224, 2724.965] time 14	// camera pos to crecheleader crying
+		move camera focus to [1868.952, 39.0, 2725.453] time 14			// camera foc to crecheleader crying
+
+		wait until read
+		//"This stranger is to blame, I know it. "
+		say HELP_TEXT_PIED_PIPER_04
+		wait until read
+		CrecheLeader play ANM_P_MOURNING loop 4
+		//"But if he should die before we find the children, they could be lost forever. Oh my babies, my babies !"
+		say HELP_TEXT_PIED_PIPER_05
+		wait until read
+		start sound LH_SCRIPT_SAMPLE_WOMAN_CRY_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [CrecheLeader]
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_20 StandardReminder(variable HELP_TEXT_NEW_REMINDER_22)
+
+		move camera position to [BeginPos] time 3			// Camera pos back to player pos
+		move camera focus to [BeginFoc] time 3				// Camera foc back to player foc
+
+		wait until camera ready
+		state CrecheLeader WANDER_AROUND position [1858.0212, 38.4805, 2728.1650]
+			float 6
+			ulong 4, 20
+		stop music
+
+		eject good spirit
+		//"We must act. Tiny lives are at stake."
+		say HELP_TEXT_PIED_PIPER_25
+		wait until read
+		eject evil spirit
+		//"I agree. Let's get a killing rage on!"
+		say HELP_TEXT_PIED_PIPER_26
+		wait until read
+		disable CrecheLeader high graphics detail
+	end cinema
+
+	run background script LeaderCry(CrecheLeader)
+	run background script PiperFlockLaugh(PiperFlock)
+	run background script PiperProd(Piper)
+	run background script CheckPiperDamaged(Piper)
+
+	while PiedPiperFinished==0
+		//Creshe leader dead
+		when HEALTH of CrecheLeader <= 0.01 and CrecheLeaderDead==0 
+			CrecheLeaderDead=1
+			run script PiedPiperCrecheLeaderDead(CrecheLeader)
+
+		//Check the pied piper
+		when PiedPiperDead==0 and PiedPiperChildrenInCave >= 35
+			run script PiedPiperKilled30Children
+
+		//Check damage to the creshe
+		when HEALTH of Creche < OriginalHealthOfCreche and CrecheDamagedSpeech == 0
+			run script PiedPiperCrecheDamaged (CrecheLeader,Creche)
+			CrecheDamagedSpeech = 1
+	end while
+
+	PiedPiperCompletedNow = 1
+
+end script PiedPiper

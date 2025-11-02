@@ -1,0 +1,304 @@
+challenge LOST_TREASURE
+
+global WolfPackUnwanted
+global PuzzleSolved
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Checks to see whether all objects are in place
+//------------------------------------------------------------------------------------------------------------------------
+begin script CheckObjects(Altar)
+
+	Wolf = 0
+	Poo = 0
+	FindSpellMag = 0
+	FindSpellPhy = 0
+	HotObject = 0
+
+start
+
+	while PuzzleSolved == 0 
+		Wolf = get ANIMAL ANIMAL_INFO_WOLF at [Altar] radius 10
+		if Wolf exists
+			wait 0.1 seconds
+			Poo = get POO at [Altar] radius 10
+			if Poo exists 
+				FindSpellMag = get spell SPELL_PHYSICAL_SHIELD at [Altar] radius 5
+				FindSpellPhy = get spell SPELL_SHIELD at [Altar] radius 5
+				if FindSpellMag exists or FindSpellPhy exists
+					if fire near [Altar] radius 10
+						PuzzleSolved =1
+					end if
+				end if
+			end if
+		end if
+	end while
+
+	delete Wolf with fade
+	delete Poo with fade
+	if FindSpellMag exists
+		delete FindSpellMag
+	elsif FindSpellPhy exists
+		delete FindSpellPhy
+	end if
+	
+end script CheckObjects
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// Woman tells us her riddles
+//------------------------------------------------------------------------------------------------------------------------
+begin script Riddle(AnnikaHome, AnnikaPos)
+	Annika = 0
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_02
+		
+		Annika = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_INDIAN_HOUSEWIFE_FEMALE at [AnnikaHome]
+		move Annika position to [AnnikaPos]
+
+		enable Annika high graphics detail
+		
+		move camera position to [2624.948, 40.897, 2473.333] time 3	
+		//move camera focus to [2643.409, 34.243, 2475.694] time 3 
+		move camera focus to [2642.445, 34.430, 2475.515] time 3
+
+		wait until 2 seconds
+
+		move camera position to [2633.735, 36.339, 2478.953]  time 3 
+		move camera focus to [2642.445, 34.430, 2475.515]  time 3
+
+		wait until [Annika] at [AnnikaPos]
+		wait until camera ready
+		set Annika focus to camera position
+
+		move camera focus to [2643.445, 33.430, 2475.515] time 8
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_16 Riddle(AnnikaHome, AnnikaPos)
+	
+		if HEALTH of AnnikaHome < 1
+			say single line HELP_TEXT_LOST_TREASURE_25 // "Apparantly the broad won't tell us any more clues until she's fixed her house."
+			wait until read
+		else
+			Annika play ANM_P_GOSSIP_WOMAN_2 
+			say HELP_TEXT_LOST_TREASURE_02 // "Annika: I've got this here ancient scroll that legend says leads to a great power. Can you help me solve the clue please."
+
+			wait until read
+			set Annika focus to camera position
+
+			Annika play ANM_P_GOSSIP_WOMAN_3 
+			
+			set camera position to [2629.623, 45.613, 2547.425] 
+			set camera focus to [2633.296, 32.889, 2523.879] 
+
+			move camera position to [2615.924, 33.199, 2521.832]  time 12
+			move camera focus to [2631.775, 32.109, 2526.892]  time 12
+
+			say HELP_TEXT_LOST_TREASURE_37
+			wait until read
+
+			say HELP_TEXT_LOST_TREASURE_38
+			wait until read
+
+			Annika play ANM_P_GOSSIP_WOMAN_2 
+
+			say HELP_TEXT_LOST_TREASURE_39
+			wait until read
+
+			Annika play ANM_P_GOSSIP_WOMAN_1 
+
+			say HELP_TEXT_LOST_TREASURE_40
+			wait until read
+
+			say HELP_TEXT_LOST_TREASURE_41
+			wait until read
+
+			wait until camera ready
+
+			set camera position to [2633.735, 36.339, 2478.953]
+			set camera focus to [2642.445, 34.430, 2475.515]
+			move camera focus to [2643.445, 33.430, 2475.515] time 8
+
+			Annika play ANM_P_GOSSIP_WOMAN_2 
+											 
+			say HELP_TEXT_LOST_TREASURE_15 // "Knock on my door and I'll remind you of the clues."
+			wait until read
+
+			wait 2 second
+
+			//Annika play ANM_P_TURN_180 loop 1
+			wait until Annika played
+
+			move camera position to [BeginPos] time 4
+			move camera focus to [BeginFoc] time 4
+
+		end if		
+		move Annika position to [AnnikaHome]
+		wait until [Annika] at [AnnikaHome]
+		wait until camera ready
+		delete Annika with fade
+		stop music
+	end cinema
+
+end script Riddle
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** NIGHT WOLVES ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script NightWolves
+	InsideForest = marker at [2654.197, 18.621, 2361.887] 
+	WaterEdge = marker at [2619.457, 0.000, 2336.141] 
+	TimeOfDay = 0
+	WolfPack = 0
+	EndWolfLoop = 0
+
+start
+	begin loop
+		wait until get game time > 21 or get game time < 6
+		wait until [InsideForest] not viewed
+		WolfPack = flock at [InsideForest]
+		set WolfPack properties inner 5 outer 10
+		populate WolfPack with 5 ANIMAL ANIMAL_INFO_WOLF
+		wait 2 seconds
+		move WolfPack position to [WaterEdge]
+		wait until [WolfPack] near [WaterEdge] radius 35 or size of WolfPack <= 0
+		state WolfPack LIVING_MOVE_IN_FLOCK
+		wait until get game time > 6 and get game time < 21
+		move WolfPack position to [InsideForest]
+		wait until [WolfPack] near [InsideForest] radius 35 or size of WolfPack <= 0
+		wait until [InsideForest] not viewed
+		delete WolfPack
+		if WolfPackUnwanted == 1
+			EndWolfLoop = 1
+		end if
+	until EndWolfLoop == 1
+	end loop
+end script NightWolves
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MAIN ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script LostTreasureMain
+	Zebra = 0
+	Tiger = 0
+	ChosenOne = 0
+	Annika = 0
+	AnnikaHome = get SCRIPT_OBJECT_TYPE_ABODE at [2645.4934, 34.1700, 2477.0095] radius 5
+	AnnikaPos = marker at [2638.1921, 34.0470, 2477.8413]  
+	BeginPos = 0
+	BeginFoc = 0
+	ClueNumber = 0
+	ClueOnGround = 0
+	ArtifactFour = 0
+	Altar = marker at [2630.4441, 31.8904, 2524.9048]
+
+	WhileTick = 0
+	EffectTick = 0
+	EffectsOver = 0
+	
+	Shroom1 = 0
+	Shroom2 = 0
+	Shroom3 = 0
+	Shroom4 = 0
+	Shroom5 = 0
+	Shroom6 = 0
+	Shroom7 = 0
+	Shroom8 = 0
+	Size = 2
+	Shroom1Pos = marker at [Altar] + [5*Size,0]
+	Shroom2Pos = marker at [Altar] + [3.5*Size,3.5*Size]
+	Shroom3Pos = marker at [Altar] + [0,5*Size]
+	Shroom4Pos = marker at [Altar] + [-3.5*Size,3.5*Size]
+	Shroom5Pos = marker at [Altar] + [-5*Size,0]
+	Shroom6Pos = marker at [Altar] + [-3.5*Size,-3.5*Size]
+	Shroom7Pos = marker at [Altar] + [0,-5*Size]
+	Shroom8Pos = marker at [Altar] + [3.5*Size,-3.5*Size]
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [AnnikaHome]
+
+start
+
+	Shroom1 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom1Pos]
+	set Shroom1 focus to [Altar]
+	Shroom2 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom2Pos]
+	set Shroom2 focus to [Altar]
+	Shroom3 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom3Pos]
+	set Shroom3 focus to [Altar]
+	Shroom4 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom4Pos]
+	set Shroom4 focus to [Altar]
+	Shroom5 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom5Pos]
+	set Shroom5 focus to [Altar]
+	Shroom6 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom6Pos]
+	set Shroom6 focus to [Altar]
+	Shroom7 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom7Pos]
+	set Shroom7 focus to [Altar]
+	Shroom8 = create with angle 0 and scale 0.8 FEATURE FEATURE_INFO_TOADSTOOL at [Shroom8Pos]
+	set Shroom8 focus to [Altar]
+
+	ALTITUDE of Highlight = 5
+
+	run script ChallengeHighlightNotify(Highlight, AnnikaHome, variable EVIL_ADVISOR, variable HELP_TEXT_LOST_TREASURE_01)
+	
+	run script Riddle(AnnikaHome, AnnikaPos)
+	begin dialogue
+		eject good spirit
+		say single line HELP_TEXT_LOST_TREASURE_10
+		wait until read
+	end dialogue
+	run background script NightWolves
+	run background script CheckObjects(Altar)
+
+//	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_16 Riddle(AnnikaHome, AnnikaPos)
+
+	wait until PuzzleSolved > 0
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_04
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [Altar]+[15,10,15] time 3
+		move camera focus to [Altar] time 3
+
+		wait until camera ready
+
+		snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_16 StandardReminder(variable HELP_TEXT_REMINDER_16)
+
+		eject good spirit
+		eject evil spirit
+
+		// "GA: Oooh look a groovy effect!!"
+		say HELP_TEXT_LOST_TREASURE_10
+		wait until read
+
+		Zebra = create CREATURE CREATURE_TYPE_ZEBRA at [Altar]
+
+		set Zebra focus to [Altar]+[15,10,15]
+ 		force Zebra CREATURE_WAVE_AT_PLAYER Zebra
+		stop music
+	end cinema with dialogue
+
+ 		// "EA: Look a Zebra."
+		say HELP_TEXT_LOST_TREASURE_11
+		wait until read
+
+		say HELP_TEXT_LOST_TREASURE_12
+		wait until read
+
+		say HELP_TEXT_LOST_TREASURE_13
+		wait until read
+
+		say HELP_TEXT_LOST_TREASURE_14
+
+	end dialogue
+
+	run background script SwapCreatures(Zebra)
+ 
+end script LostTreasureMain

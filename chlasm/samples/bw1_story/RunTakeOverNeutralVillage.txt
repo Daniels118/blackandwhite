@@ -1,0 +1,12 @@
+challenge RunTakeOverNeutralVillage
+
+run script RunTakeOverNeutralVillage
+
+begin script RunTakeOverNeutralVillage
+	
+start
+	
+	run script TakeOverNeutraL5
+	
+
+end script RunTakeOverNeutralVillage

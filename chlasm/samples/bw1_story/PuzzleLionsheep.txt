@@ -1,0 +1,15 @@
+run script PuzzleLionSheep
+
+begin script PuzzleLionSheep
+
+Game = 0
+
+
+start
+	begin cinema
+
+
+	Game = create SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_LIONSHEEP at hand position
+
+	end cinema
+end script PuzzleLionSheep

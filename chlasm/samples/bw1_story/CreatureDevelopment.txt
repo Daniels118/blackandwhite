@@ -1,0 +1,1902 @@
+challenge CREATURE_DEVELOPMENT
+//------------------------------------------------------------------------------------------------------------------------
+//-GLOBALS-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+global TrainerDeleted
+global CreatureDevInterimReminderFlag 
+global LeashTree
+global CitadelEntrancePos
+//------------------------------------------------------------------------------------------------------------------------
+//-FUNCTIONS-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+// begin script CreatureDevelopmentHighlightNotify
+// begin script CheckForCommentOnFoodItems(Creature)
+// begin script CreatureDevSeeHome
+// begin script CreatureDevLearnToEat
+// begin script CreatureDevPunishment
+// begin script CreatureDevLeashIntro
+// begin script CreatureDevLeashAttachToHouse
+// begin script CreatureDevLeashGoodAndEvil
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//-Auto runs-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+run script CreatureDevelopmentAutoRun
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureDevelopmentAutoRun
+start
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+end script CreatureDevelopmentAutoRun
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** GetRidOfTrainer ****
+//------------------------------------------------------------------------------------------------------------------------
+begin script GetRidOfTrainer (Trainer)
+
+ Town = get TOWN at [1865.61,2641.24] radius 100
+ SoditTimer = create timer for 30 seconds
+
+start
+	attach Trainer to Town
+	move Trainer position to [Town]
+	enable Trainer moveable
+	enable Trainer pickup
+	disable Trainer indestructible
+	wait until [Trainer] near [Town] radius 30 or get SoditTimer time remaining <= 0
+	release Trainer
+	Trainer=0
+end script GetRidOfTrainer
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//-CreatureDevelopmentHighlightNotify-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CreatureDevelopmentHighlightNotify(Highlight, Notifier, Radius, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+	CreatureCount = 0
+	CreaturePointAtState = 0
+	WhichAnim = 1
+start
+	MyCreature = get player 1 creature
+	begin loop
+		set Notifier focus to camera position
+		if WhichAnim == 1			
+			Notifier play ANM_P_BECKON loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			WhichAnim = 2
+		else
+			Notifier play ANM_P_INTO_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			set Notifier focus to camera position
+			Notifier play ANM_P_TALKING_AND_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			Notifier play ANM_P_OUT_OF_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			WhichAnim = 1
+		end if
+		if time-CreatureCount>40 or ( (not camera position near [Highlight] radius 30) and time-CreatureCount>12)
+			CreatureCount = time
+			run SCRIPT_DEV_FUNCTION_MY_CREATURE_POINT_OUT_HIGHLIGHT developer function
+		end if
+		if camera position near [Highlight] radius Radius and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				begin dialogue
+					if AdvisorType == variable GOOD_ADVISOR
+						eject good spirit
+						make good spirit point at [Highlight] in world
+					elsif AdvisorType == variable EVIL_ADVISOR
+						eject evil spirit
+						make evil spirit point at [Highlight] in world
+					end if
+					Count=time
+					say single line constant AdvisorSpeakEnum
+					wait until read
+				end dialogue
+			end if
+		end if
+	until Highlight clicked or Notifier clicked
+	end loop
+	enable Highlight active
+end script CreatureDevelopmentHighlightNotify
+
+//------------------------------------------------------------------------------------------------------------------------
+//-CreatureDevelopmentHighlightNotify-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CreatureDevelopmentHighlightNotifyTwo(Highlight, HighlightTwo, Notifier, Radius, AdvisorType, AdvisorSpeakEnum) 
+	Count = time-31
+	WhichAnim = 1
+start
+
+	begin loop
+		set Notifier focus to camera position
+		if WhichAnim == 1			
+			Notifier play ANM_P_BECKON loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			WhichAnim = 2
+		else
+			Notifier play ANM_P_INTO_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			set Notifier focus to camera position
+			Notifier play ANM_P_TALKING_AND_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			Notifier play ANM_P_OUT_OF_POINTING loop 1
+			while not Notifier played
+				set Notifier focus to camera position
+			end while				
+			WhichAnim = 1
+		end if
+		if camera position near [Highlight] radius Radius and Highlight viewed
+			//wait until cameramode
+			if time-Count>30
+				begin dialogue
+					if AdvisorType == variable GOOD_ADVISOR
+						eject good spirit
+						make good spirit point at [Highlight] in world
+					elsif AdvisorType == variable EVIL_ADVISOR
+						eject evil spirit
+						make evil spirit point at [Highlight] in world
+					end if
+					Count=time
+					say single line constant AdvisorSpeakEnum
+					wait until read
+				end dialogue
+			end if
+		end if
+	until Highlight clicked or Notifier clicked or HighlightTwo clicked
+	end loop
+	enable Highlight active
+end script CreatureDevelopmentHighlightNotifyTwo
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//-CheckForCommentOnFoodItems(Creature)-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script	CheckForCommentOnFoodItems(Creature)
+	piggy = 0 
+	piggy_timer = create timer for 0 seconds
+	wheat = 0 
+	wheat_timer = create timer for 0 seconds
+	cow = 0
+	cow_timer = create timer for 0 seconds
+	myvillager = 0
+	villager_timer = create timer for 0 seconds
+	pit = 0
+	pit_timer = create timer for 0 seconds
+ 
+start
+
+	begin loop
+		piggy=get ANIMAL ANIMAL_INFO_PIG at hand position radius 5.5 excluding scripted
+
+		if piggy exists 
+			if get piggy_timer time remaining == 0
+				set piggy_timer time to 180 seconds
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [piggy]
+					// "Hay what about some meat, humm pork chops our creature would love them"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_08
+					wait until read
+				end dialogue
+			end if
+		end if
+
+		wheat=get STORE FOODSTORE at hand position radius 5.5 excluding scripted
+
+		if wheat exists
+			if get wheat_timer time remaining == 0
+				set wheat_timer time to 190 seconds
+				begin dialogue
+					eject good spirit
+					make good spirit point at [wheat]
+					// "now that would be a good meal: corn from the fields"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_09
+					wait until read
+				end dialogue
+			end if
+		end if
+
+		cow=get ANIMAL ANIMAL_INFO_COW at hand position radius 5.5 excluding scripted
+
+		if cow exists
+			if get cow_timer time remaining == 0
+				set cow_timer time to 190 seconds
+				begin dialogue
+					eject evil spirit
+					make evil spirit point at [cow]
+					// "Hay what about some juicy steak, and meat eaters are more agressive!"
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_10
+					wait until read
+				end dialogue
+			end if
+		end if
+
+		myvillager=get VILLAGER at hand position radius 5.5 excluding scripted
+
+		if myvillager exists
+			if get villager_timer time remaining == 0
+				if get cow_timer time remaining > 0 or get piggy_timer time remaining > 0
+					set villager_timer time to 190 seconds
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [myvillager]
+						if AGE of myvillager < 11
+							// "Now that would be super evil, Its up to you."
+							say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_11
+						else
+							// "Now that would be evil, teaching your creature to eat people"
+							say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_12
+						end if
+						wait until read
+					end dialogue
+				end if
+			end if
+		end if
+
+		pit = get HOUSE ABODE_INFO_NORSE_STORAGE_PIT at hand position radius 15.5
+		if pit exists
+			if get pit_timer time remaining == 0
+				set pit_timer time to 190 seconds
+				begin dialogue
+					eject good spirit
+					make good spirit point at [pit]
+					// "How about some grain from the store to feed the creature, humm wheat."
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_13
+					wait until read
+				end dialogue
+			end if
+		end if
+
+	end loop
+
+end		script	CheckForCommentOnFoodItems
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CREATURE DEVELOPMENT REMINDER ****
+//		During a creature development script this will run to remind the player about what the 
+//		script is specifically waiting for him to do. Such as click on the creature etc. No highlights
+//		are created.
+//		Flag = 0 means okay to start a script, -1 means stop the script, 1 means in progress.
+//------------------------------------------------------------------------------------------------------------------------
+//--CreatureDevInterimReminder----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CreatureDevInterimReminder(Location, AdvisorType, AdvisorSpeakEnum) 
+	Count = time
+start
+	if CreatureDevInterimReminderFlag == 0
+		CreatureDevInterimReminderFlag = 1
+		begin loop
+			if camera position near [Location] radius 150 and Location viewed
+				if not MyCreature locked interaction					// Player is not interacting with Creature
+					if time-Count>30
+						begin dialogue
+							if AdvisorType == variable GOOD_ADVISOR
+								eject good spirit
+								make good spirit point at [Location] in world
+								say single line constant AdvisorSpeakEnum
+								wait until read
+								send good spirit home
+							elsif AdvisorType == variable EVIL_ADVISOR
+								eject evil spirit
+								make evil spirit point at [Location] in world
+								say single line constant AdvisorSpeakEnum
+								wait until read
+								send evil spirit home
+							else
+								say single line constant AdvisorSpeakEnum
+								wait until read
+							end if
+						end dialogue
+						Count=time
+					end if
+				end if
+			end if
+		until CreatureDevInterimReminderFlag != 1
+		end loop
+	end if
+	CreatureDevInterimReminderFlag = 0
+
+end script CreatureDevInterimReminder
+
+//------------------------------------------------------------------------------------------------------------------------
+// Trainer leaves citadel
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CreatureDevelopmentTrainerLeaveCitadel(Trainer, TrainerPos) 
+
+start
+
+	SPEED of Trainer = 0.3
+	disable Trainer pickup
+	disable Trainer moveable
+	enable Trainer indestructible
+	move Trainer position to [TrainerPos]	
+	wait until [Trainer] near [TrainerPos] radius 1
+
+end script CreatureDevelopmentTrainerLeaveCitadel
+
+//-----------------------------------------------------------------------------------------------------------------------
+// Trainer goes back to citadel
+//------------------------------------------------------------------------------------------------------------------------
+begin challenge help script CreatureDevelopmentTrainerGoesBack(Trainer, Highlight) 
+
+start
+
+	move Trainer position to [CitadelEntrancePos]
+	wait until [Trainer] near [CitadelEntrancePos] radius 1
+
+	delete Trainer with fade
+	delete Highlight
+	wait until Trainer not exists
+	TrainerDeleted = 1
+
+end script CreatureDevelopmentTrainerGoesBack
+
+//------------------------------------------------------------------------------------------------------------------------
+//  Creature arrives at his new Home *************************************************************************************
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureDevSeeHome
+
+	HomePos = marker at [1896.50, 29.48, 2520.06]
+	Timer = 0
+	OldMagnitude = 0
+	CurrentMagnitude = 0
+	HighlightPos = marker at [1881.533, 29.273, 2514.629] 
+	Highlight = 0
+	TrainerPos = marker at [1888.327, 28.810, 2529.019]  // TrainerPos
+	Trainer = 0
+	CheckForMistake = 0
+	MistakeMade = 0
+	dyk13 = marker at [1882.1720,  29.019, 2519.0260]				// resting creatures grow quicker
+
+start
+
+	set game time 04.59															// Wake up to a luvly sunset
+	enable game time
+
+	run background script DidYouKnow(dyk13, variable HELP_TEXT_DYK_13, variable DYK_CREATURE)			// resting creatures grow quicker
+	MyCreature = get player 1 creature
+
+	if IsSkippingCreatureGuide == 0
+		Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CitadelEntrancePos]
+		Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+		ALTITUDE of Highlight = 6
+
+		set MyCreature DEVELOPMENT_PHASE_INITIAL development
+		enable MyCreature development script
+		enable Highlight active
+	else
+		begin cinema
+			set camera position to [1891.039, 31.693, 2520.674]				// Wakeup position 1
+			set camera focus to	[1899.053, 30.312, 2518.680]				
+		end cinema
+		set fade in time 2
+	end if
+
+	set MyCreature position to [HomePos]
+	set MyCreature home position [HomePos]
+	set MyCreature focus to camera position
+
+	if IsSkippingCreatureGuide == 0
+		run background script CreatureDevelopmentTrainerLeaveCitadel (Trainer, TrainerPos)
+
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+			enable Trainer high graphics detail	
+
+			EXHAUSTION of MyCreature = 1
+			force MyCreature CREATURE_SLEEP MyCreature
+			wait 6 seconds
+
+			set fade in time 5
+
+			set camera position to [1900.655, 30.957, 2527.927]				// Sunrise position 1
+			set camera focus to	[1899.626, 29.657, 2519.951]				
+
+			wait 5 seconds
+
+			move camera position to [1904.668, 37.983, 2527.970] time 7		// Pan on Sunrise
+			move camera focus to [1899.213, 35.672, 2522.175] time 7					
+
+			wait 7 seconds
+
+			set Trainer focus to camera position							// Trainer look at camera
+
+			set camera position to [1891.039, 31.693, 2520.674]				// Wakeup position 1
+			set camera focus to	[1899.053, 30.312, 2518.680]				
+
+			move camera position to [1885.514, 29.724, 2529.217] time 6		// Wakeup position 2
+			move camera focus to [1893.684, 30.466, 2526.399] time 6					
+
+			wait until camera ready
+
+			snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_05)
+
+			set Trainer focus to camera position							// Trainer look at camera
+			Trainer play ANM_P_GOSSIP_WOMAN_2 loop 1
+
+			force MyCreature CREATURE_POINT_AT_CAMERA MyCreature
+
+			set MyCreature focus to camera position
+
+			//sy "This is your creatures new home"
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_01
+
+			wait until MyCreature played
+
+			MyCreature play C_INDIVIDUAL_TIRED
+			EXHAUSTION of MyCreature = 0
+			wait until read
+
+			set Trainer focus to [MyCreature]
+
+			move camera position to [1885.735, 32.573, 2526.956] time 3		// Look at creature
+			move camera focus to [MyCreature] time 3
+
+			wait until MyCreature played
+			MyCreature play C_INDIVIDUAL_FRIGHTENED
+
+			Trainer play ANM_P_GOSSIP_WOMAN_3 loop 1
+			//sy "He is a baby at the moment, but look after him and he'll be big and powerful one day."
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_02
+			wait until read
+
+			wait until camera ready
+			wait until MyCreature played
+
+			MyCreature play C_MISC_CRY
+
+			move camera position to [1885.514, 29.724, 2529.217] time 3		// Back to Trainer
+			move camera focus to [1893.684, 30.466, 2526.399] time 3					
+
+			wait until MyCreature played
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+
+			set MyCreature focus to camera position
+
+			Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+			wait until camera ready
+
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_03 // He is frightened
+
+			wait 1 second
+
+			MyCreature play C_INDIVIDUAL_FRIGHTENED
+			wait until MyCreature played
+			
+			wait 1 seconds
+					
+			wait until read
+
+			Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_04 with interaction				// "stroke him"
+
+			wait until MyCreature played
+			MyCreature play C_INDIVIDUAL_SAD
+
+			move camera position to [1880.536, 38.781, 2530.759] time 5
+			move camera focus to [1886.963, 34.967, 2526.744] time 5
+			wait until camera ready
+			wait until read
+
+			close dialogue
+
+			wait 0.1 seconds
+
+			snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_EXTRA_TRAINER_06)
+
+			disable Trainer high graphics detail
+
+			stop music
+		end cinema with dialogue
+
+			//------------------------------------------------------------------------------------------------------------------------
+			// Stroke your creature
+			//------------------------------------------------------------------------------------------------------------------------
+			set MyCreature only desire CREATURE_DESIRE_SADNESS
+			release MyCreature
+
+			wait until MyCreature played
+
+			Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+
+			say single line HELP_TEXT_EXTRA_TRAINER_06
+			wait until read
+
+			release MyCreature focus
+			wait until camera ready
+		end dialogue
+
+		run background script CreatureDevInterimReminder(MyCreature, variable GOOD_ADVISOR, variable HELP_TEXT_INTERIM_REMINDER_01) 
+		//wait until MyCreature locked interaction					// Player has clicked on the Creature
+		while CheckForMistake == 0
+			if MyCreature locked interaction
+				wait 2 seconds
+				if MyCreature locked interaction
+					CheckForMistake = 1
+				else
+					begin dialogue
+						if MistakeMade == 0
+							//sy "Holy One, you're clicking and letting go too quickly."
+							say single line HELP_TEXT_CREATURE_DEVELOPMENT_CLICK_HOLD_01
+							MistakeMade = 1
+						else
+							//sy "I humbly suggest you click and hold the mouse button for longer."
+							say single line HELP_TEXT_CREATURE_DEVELOPMENT_CLICK_HOLD_02
+						end if
+						wait until read
+					end dialogue
+				end if
+			end if
+		end while
+
+		CreatureDevInterimReminderFlag=-1
+
+		begin dialogue
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_06
+			wait until read
+			// "Stroking tells your creature you think he is good, and makes him happy"
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_10
+			wait until read
+		end dialogue
+		
+		set MyCreature only desire CREATURE_DESIRE_SADNESS
+		release MyCreature
+		
+		Timer = create timer for 120 seconds
+		CurrentMagnitude = get MyCreature interaction magnitude
+
+		run background script CreatureDevInterimReminder(MyCreature, variable GOOD_ADVISOR, variable HELP_TEXT_INTERIM_REMINDER_02) 
+		while CurrentMagnitude == OldMagnitude and get Timer time remaining > 0
+			CurrentMagnitude = get MyCreature interaction magnitude
+		end while
+		CreatureDevInterimReminderFlag=-1
+
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+
+		if CurrentMagnitude < 0
+		
+			// Slapped Creature
+			begin dialogue
+
+				MyCreature play C_INDIVIDUAL_SAD
+
+				Trainer play ANM_P_CROWD_UNIMPRESSED_1 loop 1
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_08
+
+				wait until MyCreature played
+				MyCreature play C_INDIVIDUAL_SAD
+				wait until read
+
+			end dialogue
+
+		elsif CurrentMagnitude > 0
+		
+			// Stroked Creature
+			begin dialogue
+
+				MyCreature play C_INDIVIDUAL_HAPPY
+
+				Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+				say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_07
+
+				wait until MyCreature played
+				MyCreature play C_INDIVIDUAL_HAPPY
+				wait until read
+				
+			end dialogue
+
+		end if
+
+		set MyCreature disable only desire
+		release MyCreature
+
+		move Trainer position to [CitadelEntrancePos]			   // Trainer gose back to citadel
+
+		begin dialogue
+ 			say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_INITIAL_09 with interaction
+			wait until read
+		end dialogue
+
+		delete Highlight
+
+		wait until [Trainer] near [CitadelEntrancePos] radius 0.5
+		delete Trainer with fade
+		wait until Trainer not exists
+		TrainerDeleted = 1
+		disable MyCreature development script
+		
+
+		wait until 1 seconds
+		wait until 30 seconds
+	else
+		set fade in time 2
+		wait 2 seconds
+	end if
+
+end script CreatureDevSeeHome
+
+//------------------------------------------------------------------------------------------------------------------------
+// Creature learn to eat
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureDevLearnToEat
+
+	MyCreaturePos = marker at [1896.582, 29.480, 2526.114]  // from game
+	TrainerPos = marker at [1897.275, 29.480, 2516.200]  // TrainerPos
+	Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CitadelEntrancePos]
+	CamPosStart = marker at [1895.2290, 35.7275, 2497.7000]
+	CamPos1 = marker at [1894.2354, 28.8333, 2508.1797]
+	CreatureEnergyInitial = 0
+	CreatureEnergyNow = 0
+	BodgeTimer = 0
+	HighlightPos = marker at [1894.8346, 29.4800, 2514.7295] // [1901.516, 29.480, 2517.113] 
+	Highlight = 0
+	BeginPos = 0
+	BeginFoc = 0
+	NumTimes = 0
+	Said1NumTimes = 0
+	Said2NumTimes = 0
+	ObjectInHandNear = 0
+	ObjectInHand = 0
+	dyk111 = marker at [1892.3467, 28.8100, 2535.8831]				// Stroke creature to feed him
+
+start
+
+	MyCreature = get player 1 creature
+	set MyCreature DEVELOPMENT_PHASE_LEARN_TO_TAKE_FROM_PLAYER_AND_EAT development
+
+	ENERGY of MyCreature = 0	
+
+	CreatureEnergyInitial = get ENERGY of MyCreature
+	run script CreatureDevelopmentTrainerLeaveCitadel(Trainer, TrainerPos) 
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 6
+
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 200, variable EVIL_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_12)
+	update snapshot success 0.08 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_02)
+
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+	begin cinema  
+
+		enable Trainer high graphics detail	
+		set Trainer focus to [MyCreature]
+
+		move MyCreature position to [MyCreaturePos]
+
+		move camera position to [1895.593, 30.865, 2518.553] time 4
+		move camera focus to [1898.778, 29.903, 2514.814] time 4
+
+		wait until camera ready
+		set Trainer focus to camera position
+	
+		wait until MyCreature played
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+		MyCreature play C_INDIVIDUAL_HUNGRY
+		Trainer play ANM_P_GOSSIP_MAN loop 1
+		
+		//Your creature is hungry
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_01	
+
+		wait until MyCreature played
+		wait until read
+		
+		wait until MyCreature played
+		//I suggest you feed him
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_02	
+		
+		move camera focus to [MyCreature] + [0,2,0] time 4					// Camera look at hungry creature
+		wait until camera ready
+
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+
+		MyCreature play C_INDIVIDUAL_HUNGRY
+		wait until MyCreature played
+
+		// Choose carefully...
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_03	with interaction
+		wait until read
+		set MyCreature focus to camera position
+
+		move camera position to [BeginPos] time 3							// Camera back to player pos
+		move camera focus to [BeginFoc] time 3
+		
+		MyCreature play C_INDIVIDUAL_HUNGRY
+
+		wait until camera ready
+
+		release MyCreature
+		disable Trainer high graphics detail
+
+	end cinema
+
+	run background script DidYouKnow(dyk111, variable HELP_TEXT_DYK_111, variable DYK_CREATURE)
+
+	update snapshot success 0.08 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_INTERIM_REMINDER_09)
+
+	// Player goes to get some food or whatever
+	// Directions of how to feed
+
+	run background script CheckForCommentOnFoodItems(MyCreature)
+
+	while ObjectInHandNear == 0
+		ObjectInHand = get object held
+
+		if ObjectInHand exists
+			if [ObjectInHand] near [MyCreature] radius 50
+				ObjectInHandNear = 1
+			end if
+		end if
+	end while
+
+	stop script "CheckForCommentOnFoodItems"
+
+	update snapshot success 0.08 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_INTERIM_REMINDER_10)
+
+	begin dialogue
+		say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_04
+		wait until read
+	end dialogue
+
+	ENERGY of MyCreature = 0
+	
+	CreatureEnergyNow = get ENERGY of MyCreature
+
+	while NumTimes < 1
+		NumTimes = number of times action CREATURE_EAT_ALIVE by MyCreature + number of times action CREATURE_EAT_AFTER_EXAMINING by MyCreature + number of times action CREATURE_EAT_OBJECT_IN_HAND by MyCreature + number of times action CREATURE_EAT_FROM_MAGIC_FOOD_PILE by MyCreature 
+		CreatureEnergyNow = get ENERGY of MyCreature
+		set MyCreature only desire CREATURE_DESIRE_HUNGER
+		ENERGY of MyCreature = CreatureEnergyNow // because only desire will mess with energy
+	end while
+
+	begin cinema
+		enable Trainer high graphics detail
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_06
+		make good spirit point at [MyCreature]
+		wait 2 seconds
+		send good spirit home
+		wait until read
+
+		move camera focus to [1898.778, 29.903, 2514.814] time 4
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEARN_TO_EAT_05	 with interaction// T:And when you've fed him, I'll pass on more information about these amazing beasts.
+		wait until read
+
+		run background script CreatureDevelopmentTrainerGoesBack(Trainer, Highlight)
+		disable Trainer high graphics detail
+
+	end cinema
+
+	release MyCreature
+
+	set MyCreature disable only desire
+
+	release MyCreature
+
+	wait until TrainerDeleted == 1
+
+	ENERGY of MyCreature = 1
+	
+	TrainerDeleted = 0
+	disable MyCreature development script
+
+	wait until 1 seconds
+	wait until 60 seconds
+
+end script CreatureDevLearnToEat
+
+//------------------------------------------------------------------------------------------------------------------------
+// Learn to punish him
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureDevPunishment
+
+	MyCreaturePos = marker at [1896.582, 29.480, 2526.114] // from game
+	TrainerPos = marker at [1897.275, 29.480, 2516.200]  // TrainerPos
+	Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CitadelEntrancePos]
+	HighlightPos = marker at [1894.8346, 29.4800, 2514.7295] // [1901.516, 29.480, 2517.113]
+	TargetPos = marker at [1885.1318, 28.8100, 2527.9397] 
+	AfterThrownPos = marker at [1887.8694, 28.9252, 2526.1353] 
+	Highlight = 0
+	OldMagnitude = 0
+	CurrentMagnitude = 0
+	BodgeTimer = 0
+	BeginPos = 0
+	BeginFoc = 0
+	TinyStone = 0
+	RepeatTimer = create timer for 0 seconds
+	SlapHim = 0
+
+start
+	set MyCreature DEVELOPMENT_PHASE_PUNISHMENT development
+	MyCreature = get player 1 creature		
+		
+	run script CreatureDevelopmentTrainerLeaveCitadel(Trainer, TrainerPos) 
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 6
+
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable EVIL_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_12)
+
+	update snapshot success 0.15 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_03)
+
+	move MyCreature position to [MyCreaturePos]
+
+	begin cinema
+		enable Trainer high graphics detail
+		enable Trainer moveable
+		enable Trainer pickup
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+//		move camera position to [1868.258, 36.293, 2538.940] time 3
+//		move camera focus to [1883.655, 29.227, 2529.580] time 3
+//		wait until camera ready
+
+		move camera position to [1882.027, 32.275, 2530.364] time 4
+		move camera focus to [1894.990, 29.555, 2522.059] time 4 
+
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature	
+
+		Trainer play ANM_P_BECKON loop 1
+		wait until Trainer played
+		set Trainer focus to [MyCreature]
+		wait until Trainer played
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+
+		//sy "Your Creature is starting to develop a personality." with interaction 
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_01 without interaction 
+
+		move camera focus to [MyCreature] + [0,2,0] time 4
+		wait until read
+
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_OUT_OF_POINTING loop 1
+		wait until Trainer played
+
+		TinyStone = create with angle 0 and scale 0.01 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [TargetPos]
+//		TinyStone = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [TargetPos]
+//		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of TinyStone = 0.01
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature	
+		wait until MyCreature played
+
+		begin dual camera to MyCreature Trainer
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature	
+			wait until MyCreature played
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+
+			
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_02 without interaction
+			force MyCreature CREATURE_HURL TinyStone with Trainer
+			//Hey what is going on...
+			wait until read
+
+			// Needed to time the Aiieeee correctly
+			while Trainer is not FLYING
+			end while
+
+			wait until 1 second
+
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_04 without interaction// Aiieeee
+			wait until MyCreature played
+
+			move MyCreature position to [MyCreaturePos]
+			wait 2 seconds
+
+			MyCreature play C_INDIVIDUAL_HAPPY
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_05 with interaction
+			wait until read
+			wait until MyCreature played
+
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+			move Trainer position to [TrainerPos]	
+			
+			wait until MyCreature played
+			MyCreature play C_INDIVIDUAL_LOOK_AT_ME
+			wait until MyCreature played
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+		end dual camera
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+		
+		disable Trainer high graphics detail
+		disable Trainer moveable
+		disable Trainer pickup
+		enable Trainer indestructible
+
+		wait until camera ready
+
+	end cinema
+
+	
+
+	wait until [Trainer] near [TrainerPos] radius 1
+	set Trainer focus to [MyCreature]
+
+	Trainer play ANM_P_SHAKE_FIST_FEMALE loop 6
+
+	release MyCreature
+
+	BodgeTimer = create timer for 60 seconds
+	CurrentMagnitude = 0
+	OldMagnitude = 0
+	run SCRIPT_DEV_FUNCTION_CLEAR_INTERACTION_MAGNITUDE developer function
+
+	while CurrentMagnitude == OldMagnitude
+		wait 2 seconds
+		CurrentMagnitude = get MyCreature interaction magnitude
+
+		// See if player has clicked on the Creature
+		if MyCreature locked interaction
+			if SlapHim == 0
+				begin dialogue
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_07
+					wait until read
+				end dialogue
+				SlapHim = 1
+			end if
+		else
+			if get RepeatTimer time remaining <= 0
+				begin dialogue
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_06
+					wait until read
+				end dialogue
+				set RepeatTimer time to 60 seconds
+			end if
+			SlapHim = 0
+		end if
+	end while
+
+	if CurrentMagnitude < 0
+
+		// Slapped Creature
+		begin dialogue
+
+			Trainer play ANM_P_SHAKE_FIST_FEMALE loop 3
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_08
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_11 with interaction
+			wait until read
+		end dialogue
+
+	elsif CurrentMagnitude > 0
+
+		// Stroked Creature
+		begin dialogue
+			Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_09
+			wait until read
+			Trainer play ANM_P_SHAKE_FIST_FEMALE loop 1
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_P_N_R_10 with interaction
+			wait until read
+		end dialogue
+	end if
+		 
+	run background script CreatureDevelopmentTrainerGoesBack(Trainer, Highlight)
+
+	release MyCreature
+	delete Highlight
+
+	wait until TrainerDeleted == 1
+
+	TrainerDeleted = 0
+	disable MyCreature development script
+
+	wait until 1 seconds
+	wait until 60 seconds
+
+end script CreatureDevPunishment
+
+//------------------------------------------------------------------------------------------------------------------------
+// Learn about the leash
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureDevLeashIntro
+
+	MyCreaturePos = marker at [1896.582, 29.480, 2526.114] // from game
+	TrainerPos = marker at [1897.275, 29.480, 2516.200]  // TrainerPos
+	Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CitadelEntrancePos]
+	HighlightPos = marker at [1894.8346, 29.4800, 2514.7295] // [1901.516, 29.480, 2517.113] 
+	Highlight=0
+	Rope = marker at [1902.8757, 34.8624, 2528.1145]
+	TrainerFocus = marker at [1894.2354, 28.8333, 2508.1797]
+	BeginPos= 0
+	BeginFoc = 0
+
+	NearTreePos = marker at [1958.873, 28.216, 2527.082]
+	SFX = 0
+	TreeDistance = 0
+	OriginalTreeDistance = 0
+	SaidLess10 = 0
+	SaidLess20 = 0
+	SaidLess30 = 0
+	SaidGreater = 0				
+	Cow = 0
+	CowPos = marker at [1963.887, 29.480, 2491.963]
+	HeldObject = 0
+	CowDistance = 0
+	OriginalCowDistance = 0
+	SaidGreaterOriginal = 0
+	LeashType = 0
+	dyk20 = marker at [1856.4255, 30.8252, 2661.8555]				// learn to use leash
+
+start
+	
+	MyCreature = get player 1 creature
+//	set MyCreature DEVELOPMENT_PHASE_LEASH_PULL_AND_PICKUP development
+	LeashTree = create TREE TREE_INFO_PALM at [1962.062, 28.412, 2523.358]
+
+	disable LeashTree moveable
+	disable LeashTree pickup
+	enable LeashTree indestructible
+	disable LeashTree hurt by fire
+
+	run script CreatureDevelopmentTrainerLeaveCitadel(Trainer, TrainerPos) 
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 6
+
+	run script CreatureDevelopmentHighlightNotify (Highlight, Trainer, 100, variable EVIL_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_12)
+	update snapshot success 0.23 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_INTERIM_REMINDER_03)
+	move MyCreature position to [MyCreaturePos]
+
+	// Make sure player cannot leash creature too early
+	set MyCreature DEVELOPMENT_PHASE_LEASH_PULL_AND_PICKUP development
+	
+	begin cinema
+
+		enable Trainer high graphics detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus 
+
+		set Trainer focus to [Rope]
+
+		move camera position to [1894.387, 44.864, 2544.104] time 3	                // Look at leash
+		move camera focus to [1896.236, 29.992, 2521.740] time 3
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_INTRO_06
+
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+
+		run SCRIPT_DEV_FUNCTION_ROPE_LEASH_ENABLED developer function
+
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1								// trainer points to leash
+		wait until Trainer played
+
+		Trainer play ANM_P_OUT_OF_POINTING loop 1
+		wait until Trainer played
+		wait until camera ready
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_INTRO_01 // T:This is the rope icon
+		make good spirit point at [Rope]
+		wait until read
+
+		// "Please click on it, and I will show how to use it with your creature" // T:PLease click on it
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_INTRO_05 with interaction
+		wait until read
+
+		disable Trainer high graphics detail
+
+	end cinema
+
+	while (LeashType != 2)
+		LeashType = variable get MyCreature leash type 
+	end while
+
+//------------------------------------------------------------------------------------------------------------------------
+// Player has selected leash - now has to attach it to creature
+//------------------------------------------------------------------------------------------------------------------------
+
+
+	begin dialogue
+
+		say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_INTRO_03
+		wait until read
+		close dialogue
+		update snapshot success 0.23 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_INTERIM_REMINDER_04)	
+		set Trainer focus to [MyCreature]
+		release MyCreature
+		wait until Trainer played
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		wait until read
+
+	end dialogue
+
+	release MyCreature
+
+	wait until MyCreature leashed
+
+	run background script DidYouKnow(dyk20, variable HELP_TEXT_DYK_20, variable DYK_CREATURE)		// learn to use leash
+
+//------------------------------------------------------------------------------------------------------------------------
+// Player has leashed creature - now has to take him for a walk
+//------------------------------------------------------------------------------------------------------------------------
+
+	begin cinema
+
+		enable leash draw
+
+		set Trainer focus to camera position
+		Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_INTRO_04 // T:Well done. Now you've got some direct control of the little beast.
+		wait until read
+		
+//		set Trainer focus to Camerapos
+
+		enable Trainer high graphics detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		
+		Trainer play ANM_P_BECKON loop 1
+
+		move camera position to [1887.4279, 39.3735, 2527.4487] time 4			// Cam look at Trainer
+		move camera focus to [Trainer] time 4
+
+		wait until Trainer played
+
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+
+//		set Trainer focus to [Camerapos]
+
+		wait until Trainer played
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PULL_01 // T:You can pull the creature about with the leash
+		wait until read
+
+		move camera focus to [LeashTree] time 3									// Cam focus on post
+		//move camera position to [1895.593, 40.865, 2518.553] time 6			// Move cam up on trainer
+
+		wait 2 seconds
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PULL_02 with interaction	//"You see that luvly tree over there ?"
+		SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [LeashTree] time 30
+
+		eject good spirit
+		make good spirit point at [LeashTree]
+		
+		wait until read
+
+		set Trainer focus to [LeashTree]
+		release MyCreature
+//		enable leash on MyCreature
+
+		Trainer play ANM_P_INTO_POINTING loop 1
+
+		wait until camera ready
+
+		wait 1 second
+ 
+		//move camera position to [1895.593, 30.865, 2518.553] time 3			// Cam back to Trainer
+		//move camera focus to [1898.778, 29.903, 2514.814] time 3
+		move camera focus to [Trainer] time 3
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PULL_03 with interaction// "Take your creature for a walk to the tree and I'll meet you there."
+		wait until camera ready
+		wait until read
+
+		move camera position to [1880.536, 38.781, 2530.759] time 3			// Camera ready for leash pull lesson
+		move camera focus to [1886.963, 34.967, 2526.744] time 3
+
+		wait until camera ready
+		update snapshot success 0.23 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_REMINDER_109)
+		wait until read
+		send good spirit home
+		disable Trainer high graphics detail
+
+//		disable leash draw
+
+
+	end cinema
+
+	OriginalTreeDistance = get distance from [LeashTree] to [MyCreature]
+	release MyCreature
+
+	SPEED of Trainer = 0.5
+	move Trainer position to [NearTreePos]
+
+	run background script CreatureDevInterimReminder(MyCreature, variable GOOD_ADVISOR, variable HELP_TEXT_INTERIM_REMINDER_05) 
+	while not (MyCreature leashed and [MyCreature] near [LeashTree] radius 20 and [Trainer] near [NearTreePos] radius 3)
+
+		if [Trainer] near [NearTreePos] radius 1 and Trainer played
+			set Trainer focus to [MyCreature]
+			Trainer play ANM_P_BECKON loop 1
+			wait until Trainer played
+		end if
+
+		TreeDistance = get distance from [LeashTree] to [MyCreature]
+
+		if TreeDistance < 20 and SaidLess10 == 0
+			start say sound HELP_TEXT_ROTATION_DONE_01
+			SaidLess10 = 1
+		elsif TreeDistance < 30 and SaidLess20 == 0
+			start say sound HELP_TEXT_ROTATION_YES_01
+			SaidLess20 = 1
+		elsif TreeDistance < 40 and SaidLess30 == 0
+			start say sound HELP_TEXT_ROTATION_YES_01
+			SaidLess30 = 1
+		elsif TreeDistance > OriginalTreeDistance+10 and SaidGreater == 0
+			start say sound HELP_TEXT_ROTATION_NO_01
+			SaidGreater = 1
+		end if
+	end while
+	CreatureDevInterimReminderFlag=-1
+
+//------------------------------------------------------------------------------------------------------------------------
+// Creature has reached post
+//------------------------------------------------------------------------------------------------------------------------
+	
+	begin cinema
+
+		enable Trainer high graphics detail
+		enable leash draw
+		force MyCreature CREATURE_IDLE MyCreature
+
+		//BeginPos = marker at camera position
+		//BeginFoc = marker at camera focus
+
+		move camera position to [1956.330, 29.335, 2529.589] time 3			// cam look at trainer at tree
+		move camera focus to [1967.066, 27.726, 2502.161] time 3
+
+		wait until camera ready
+
+ 		set Trainer focus to camera position
+
+		Trainer play ANM_P_THANK_YOU loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PULL_04 // T:Thats right, well done.
+		wait until read
+
+		delete SFX
+
+		Trainer play ANM_P_TALK2_FEMALE loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_02	// T:You can use the leash to direct your creature towards objects.
+		wait until read
+
+		Cow = create ANIMAL BOVINE at [1963.887, 29.480, 2491.963]
+		enable Cow indestructible
+		disable Cow pickup
+		disable Cow moveable
+		
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_03	with interaction// T: You see that cow over there ?
+		SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [Cow] time 30
+		set Trainer focus to [Cow]
+
+		move camera focus to [Cow] time 3									// Cam look at cow
+
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		wait until read
+
+		Trainer play ANM_P_GOSSIP_WOMAN_2 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_04	// T:If you move your hand over the cow with the leash on, the creature will pick it up
+
+		set Trainer focus to camera position
+
+		wait until read 
+
+		Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_05	with interaction// T:Get your creature to pickup this cow.
+
+		move camera focus to [1967.066, 27.726, 2502.161] time 3			// Cam back to trainer
+
+		wait until Trainer played
+		wait until read
+
+		set Trainer focus to [Cow]
+
+		Trainer play ANM_P_AMBIENT1 loop -1
+
+		update snapshot success 0.23 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_INTERIM_REMINDER_06)
+
+		disable leash draw
+		disable Trainer high graphics detail
+
+	end cinema
+
+	release MyCreature
+	set MyCreature only desire CREATURE_DESIRE_CURIOSITY
+
+	run background script CreatureDevInterimReminder(MyCreature, variable GOOD_ADVISOR, variable HELP_TEXT_INTERIM_REMINDER_06) 
+	OriginalCowDistance = get distance from [Cow] to [MyCreature]
+	release MyCreature
+
+	wait until hand position near [Cow] radius 10
+	enable Cow pickup
+
+	HeldObject = get held by MyCreature
+
+	while not HeldObject exists or not HeldObject == Cow or Cow is HELD
+
+		if Cow is HELD
+			delete Cow
+			Cow = create ANIMAL BOVINE at [1963.887, 29.480, 2491.963]
+			enable Cow pickup
+			disable Cow moveable
+			enable Cow indestructible
+		end if
+
+		if [Trainer] near [1882.021, 28.140, 2631.839] radius 1
+			set Trainer focus to camera position
+		end if
+
+		CowDistance = get distance from [Cow] to [MyCreature]
+
+		if CowDistance < 10 and SaidLess10 == 0
+			start say sound HELP_TEXT_ROTATION_YES_01
+			SaidLess10 = 1
+		elsif CowDistance < 20 and SaidLess20 == 0
+			start say sound HELP_TEXT_ROTATION_YES_01
+			SaidLess20 = 1
+		elsif CowDistance < 30 and SaidLess30 == 0
+			start say sound HELP_TEXT_ROTATION_YES_01
+			SaidLess30 = 1
+		elsif CowDistance > OriginalCowDistance+10 and SaidGreaterOriginal == 0
+			start say sound HELP_TEXT_ROTATION_NO_01
+			SaidGreaterOriginal = 1
+		end if
+
+		HeldObject = get held by MyCreature
+
+		set MyCreature only desire CREATURE_DESIRE_CURIOSITY
+
+	end while
+
+	enable Cow moveable
+	disable Cow indestructible
+
+	CreatureDevInterimReminderFlag=-1
+	delete SFX
+
+	begin cinema
+
+		enable Trainer high graphics detail
+		enable leash draw
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [1956.330, 29.335, 2529.589] time 3			// cam look at trainer at tree
+		move camera focus to [1967.066, 27.726, 2502.161] time 3
+
+		wait until camera ready
+
+		set Trainer focus to camera position
+
+//		wait until Trainer played
+		Trainer play ANM_P_WELL_DONE__FEMALE loop 2
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_06	// T:Well done. You see ! The leash is very useful
+		wait until read
+
+		Trainer play ANM_P_WAITING_FOR_KICK_OFF_2 loop 2
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_07	 //"why not take your creature for a bit of a walk - excercise will keep him healthy."
+		wait until read
+
+		// "By the way you can drop the leash from your hand by shaking the hand left and right quickly" with interaction
+		Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_PICKUP_08	with interaction
+		wait until read
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		disable leash draw
+		disable Trainer high graphics detail
+
+	end cinema
+
+	delete Trainer with fade
+
+	delete Highlight
+
+	if Cow exists
+		delete Cow with fade
+	end if
+
+	set MyCreature disable only desire
+	release MyCreature
+
+	disable MyCreature development script
+
+	wait until 1 seconds
+	wait until 30 seconds
+
+end script CreatureDevLeashIntro
+
+//------------------------------------------------------------------------------------------------------------------------
+// Teach player to attach leash to object
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureDevLeashAttachToHouse
+
+	MyCreaturePos = marker at [1896.582, 29.480, 2526.114] // from game
+
+	TrainerPos = marker at [1958.873, 28.216, 2527.082] // near the HouseToLeashTo
+
+	Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [TrainerPos]
+	Highlight=0
+	HighlightPos = marker at [1962.062, 28.412, 2523.358] // from game
+	Rope = marker at [1896.4113, 18.0900, 2527.4729] // TODO: should be pos of Rope Icon.
+	CamPos = marker at [1894.2354, 28.8333, 2508.1797]
+	CamFocus = marker at [1915.0500, 18.0900, 2508.8899]
+	HouseToLeashTo = LeashTree
+	BeginPos = 0
+	BeginFoc = 0
+	SFX = 0
+	HouseDistance = 0
+	OriginalHouseDistance = 0
+	SaidLess10 = 0
+	SaidLess20 = 0
+	SaidLess30 = 0
+	SaidGreater = 0				
+	DoubleClickTimer = create timer for 0 seconds
+	HighlightTwo = 0
+	HighlightTwoPos = marker at [1894.8346, 29.4800, 2514.7295] // [1901.516, 29.480, 2517.113]
+	GranaryStorage = 0
+	TotalStorage = 0  
+	RemoveAmount = 0
+	dyk41 = marker at [1895.5620, 28.8130, 2535.5180]				// Creature pen
+	dyk109 = marker at [1959.549, 28.171, 2522.056]				// Advanced Leash useage
+
+start
+
+	MyCreature = get player 1 creature
+	disable HouseToLeashTo moveable
+	disable HouseToLeashTo pickup
+	disable Trainer moveable
+	disable Trainer pickup
+	enable Trainer indestructible
+
+	set MyCreature DEVELOPMENT_PHASE_LEASH_ATTACH_TO_HOUSE development
+	HighlightTwo = create highlight HIGHLIGHT_QUEST at [HighlightTwoPos]
+	ALTITUDE of HighlightTwo = 6
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 12
+
+	run script CreatureDevelopmentHighlightNotifyTwo(Highlight, HighlightTwo, Trainer, 100, variable EVIL_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_12)
+	enable HighlightTwo	active
+	enable Highlight active
+
+	update snapshot success 0.31 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_05)
+
+	begin cinema
+
+		enable Trainer high graphics detail
+		enable leash draw
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [1956.330, 29.335, 2529.589] time 3			// cam look at trainer at tree
+		move camera focus to [1967.066, 27.726, 2502.161] time 3
+
+		wait until camera ready
+
+		set Trainer focus to camera position
+
+		Trainer play ANM_P_GOSSIP_WOMAN_3 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_01 // T:You can attach the leash to objects.
+		wait until read
+
+		set Trainer focus to [1962.062, 28.412, 2523.358]
+		SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [1962.062, 28.412, 2523.358] time 30
+
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_02
+		wait until read
+
+		Trainer play ANM_P_LOOK_AT_HAND loop -1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_03
+		wait until read
+
+		move camera position to [BeginPos] time 3
+		move camera focus to [BeginFoc] time 3
+
+		wait until camera ready
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_04 with interaction // Move your hand to the house
+		wait until read
+
+	end cinema 
+
+	release MyCreature
+
+	OriginalHouseDistance = get distance from [HouseToLeashTo] to [MyCreature]
+
+	run background script CreatureDevInterimReminder(MyCreature, variable GOOD_ADVISOR, variable HELP_TEXT_INTERIM_REMINDER_08) 
+	while not MyCreature leashed to HouseToLeashTo 
+		if hand position near [HouseToLeashTo] radius 10
+			if get DoubleClickTimer time remaining == 0
+				set DoubleClickTimer time to 30 seconds
+				begin dialogue
+					say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_05 //Then click the action button
+					wait until read
+				end dialogue
+			end if
+		end if
+//		while not Trainer played
+//			set Trainer focus to camera position
+//		end while				
+	end while
+
+	CreatureDevInterimReminderFlag=-1
+	set MyCreature DEVELOPMENT_PHASE_LEASH_GOOD_AND_EVIL development
+
+	begin cinema
+
+		enable Trainer high graphics detail
+		enable leash draw
+	
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		move camera position to [1956.330, 29.335, 2529.589] time 3			// cam look at trainer at tree
+		move camera focus to [1967.066, 27.726, 2502.161] time 3
+
+		set Trainer focus to [1859.817, 41.692, 2654.802]
+
+		Trainer play ANM_P_WELL_DONE__FEMALE loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_06 			// Well done. You are being cool.
+		wait until Trainer played
+		wait until read
+
+		Trainer play ANM_P_GOSSIP_WOMAN_1 loop 1
+		say HELP_TEXT_TRAINER_EXTRA_TEXT_02	with interaction
+		wait until read
+
+//------------------------------------------------------------------------------------------------------------------------
+// Learn about good and evil leash
+//------------------------------------------------------------------------------------------------------------------------
+
+		run SCRIPT_DEV_FUNCTION_OTHER_LEASHES_ENABLED developer function
+
+		set Trainer focus to camera position
+
+		Trainer play ANM_P_GOSSIP_WOMAN_2 loop 1
+		// "There's another two leashes for you back at the citadel
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_07 
+		wait until read
+
+		move camera position to [1908.106, 36.980, 2527.975] time 3						// Look at evil leash
+		move camera focus to [1901.237, 30.055, 2520.906] time 3						
+
+		// "This is the bondage leash" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_08
+		wait until read
+
+		// "This will make your creature tend to be more aggressive." 
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_09 with interaction
+		wait until read
+
+		move camera position to [1902.547, 36.584, 2533.582] time 3						// Look at good leash
+		move camera focus to [1895.363, 29.753, 2526.366] time 3						
+
+		// "and this is the love leash." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_10 
+		wait until read
+		
+		// " Using this will make your creature tend to be more compassionate" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_11 with interaction
+		wait until read
+
+		run background script DidYouKnow(dyk109, variable HELP_TEXT_DYK_109, variable DYK_CREATURE)	  //Leash length
+
+		Trainer play ANM_P_GOSSIP_MAN loop 1
+
+		move camera position to [1956.330, 29.335, 2529.589] time 3			// cam look at trainer at tree
+		move camera focus to [1967.066, 27.726, 2502.161] time 3
+
+		Trainer play ANM_P_THANK_YOU loop 1
+		// " I suggest you experiment with the leashes, there's so much you can teach your creature" with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_12
+		wait until read
+
+		Trainer play ANM_P_THANK_YOU loop 1
+ 		// "I'll bid you farewell. You now know as much about Creatures as I do." with interaction
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_13 
+		wait until read
+
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+
+		move camera position to	[1957.853, 29.265, 2528.010] time 15					// Close up for effect!
+		move camera focus to [1981.115, 32.285, 2510.123] time 15
+
+		Trainer play ANM_P_GOSSIP_MAN loop 2
+		// "One thing remains. Legends tell of an ancient Creature somewhere on this land. Perhaps you might learn more from him."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_14 
+		wait until read
+
+		Trainer play ANM_P_LOOKING_FOR_SOMETHING loop -1
+		// "If you ever meet him. I have heard him but I've never seen him. He hides from us humans, I think."
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_TO_HOUSE_15 with interaction
+		wait until read
+
+		move camera position to [BeginPos] time 4
+		move camera focus to [BeginFoc]	time 4
+
+		disable leash draw
+		disable Trainer high graphics detail
+
+		wait until camera ready
+		stop music
+
+	end cinema with dialogue
+		make good spirit appear
+		make good spirit point at [dyk109] in world
+		//"This did you know sign contains more information about leashes." with interaction
+		say single line HELP_TEXT_PICKUP_01 with interaction
+		wait until read
+		make good spirit disappear
+	end dialogue
+
+	run background script DidYouKnow(dyk41,variable HELP_TEXT_DYK_41, variable DYK_CREATURE)			// Pen & Leashes
+
+	disable MyCreature development script
+
+	release MyCreature
+	delete SFX
+
+	run background script GetRidOfTrainer (Trainer)
+
+
+	//run background script GetRidOfTrainer (Trainer)
+
+	GranaryStorage = get HOUSE at [1826.7900, 28.1400, 2641.3601]
+	TotalStorage = get resource RESOURCE_TYPE_FOOD in GranaryStorage
+	RemoveAmount = TotalStorage - 1000
+	remove resource FOOD RemoveAmount from GranaryStorage
+
+end script CreatureDevLeashAttachToHouse
+
+//------------------------------------------------------------------------------------------------------------------------
+// Learn about good and evil leash (OLD)
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script CreatureDevLeashGoodAndEvil
+	MyCreaturePos = marker at [1896.582, 29.480, 2526.114] // from game
+	TrainerPos = marker at [1897.275, 29.480, 2516.200]  // TrainerPos
+	Trainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CitadelEntrancePos]
+	Highlight=0
+	//HighlightPos = marker at [1882.199, 28.889, 2521.019]  // HighlightPos
+	HighlightPos = marker at [1868.7506, 28.1819, 2538.1633] // Temporary to let you play the Creature Dev
+	Rope = marker at [1892.4779, 35.2605, 2535.7112] // Rope Leash
+	DyingVillagerPos = marker at [1863.081, 22.168, 2570.861] // Dying Villager
+	DyingVillager = 0
+	EvilLeashIconPos = marker at [1897.1418, 35.5173, 2532.8020] // Evil Leash
+	GoodLeashIconPos = marker at [1886.9177, 35.2294, 2536.0542] // Good Leash
+	BeginPos = 0
+	BeginFoc = 0
+	SFX = 0
+	leash_type = 0
+	Town = get TOWN at [1819.3, 28.0929, 2652.79] radius 20
+
+start
+
+	MyCreature = get player 1 creature
+	run script CreatureDevelopmentTrainerLeaveCitadel(Trainer, TrainerPos) 
+
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	ALTITUDE of Highlight = 0
+	
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable EVIL_ADVISOR, variable HELP_TEXT_SPECIFIC_CHALLENGE_START_12)
+	update snapshot success 0.92 alignment 0 HELP_TEXT_TITLE_105 StandardReminder(variable HELP_TEXT_SHOW_CREATURE_DEVELOPMENT_CRITERIA_13)
+	detach MyCreature leash
+	move MyCreature position to [MyCreaturePos]	
+
+	begin cinema
+		
+		enable Trainer high graphics detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set Trainer focus to camera position
+		Trainer play ANM_P_BECKON loop 1
+
+		move MyCreature position to [MyCreaturePos]
+		
+
+		move camera position to [1875.461, 37.780, 2534.489] time 3
+		move camera focus to [1891.400, 29.631, 2524.548] time 3
+		wait until camera ready
+
+		wait until Trainer played
+
+		set Trainer focus to camera position
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_01 with interaction// T:YOu have learnt how to use the rope.
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_02 with interaction// T:Now it is time to learn about the other two leashes !
+		wait until read
+
+		move camera position to [1887.645, 40.835, 2546.626] time 3
+		move camera focus to [1890.918, 29.845, 2521.507] time 3
+		wait until camera ready
+
+		eject good spirit
+		make good spirit point at [GoodLeashIconPos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_03 with interaction// T:The fluffy leash makes your creature behave nicely
+		wait until read
+
+		send good spirit home
+		move camera position to [1901.962, 41.350, 2540.188] time 2
+		move camera focus to [1890.615, 29.613, 2527.031] time 2
+		eject evil spirit
+		make evil spirit point at [EvilLeashIconPos]
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_04 with interaction// T:The spiky leash makes him bad.
+		wait until read
+
+		send evil spirit home
+
+		move camera position to [1906.039, 40.961, 2533.153] time 3	
+		move camera focus to [1863.159, 22.452, 2559.494] time 3
+
+		DyingVillager = create VILLAGER VILLAGER_INFO_NORSE_FARMER_MALE at [DyingVillagerPos]
+		HEALTH of DyingVillager = 0.3
+		DyingVillager play ANM_P_DYING
+
+		set Trainer focus to [DyingVillager]
+		eject good spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_05 with interaction// T:You see that guy over there ?
+		make good spirit point at [DyingVillager]
+		SFX=create special effect SPOT_VISUAL_CREATURE_TARGET at [DyingVillager] time 30
+
+		wait until camera ready
+
+		make good spirit point at [DyingVillager]
+
+		move camera position to [1866.156, 23.166, 2569.019] time 3
+		move camera focus to [1863.289, 22.288, 2571.454] time 3
+		wait until read
+
+		stop good spirit pointing		
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_06 with interaction// T:Choose one of the leashes. and direct your creature over to this guy to see what happens.
+		wait until read										  
+		send good spirit home
+
+		wait until camera ready
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+
+		release MyCreature
+		disable Trainer high graphics detail
+
+	end cinema
+
+	wait until MyCreature leashed
+
+	begin dialogue
+
+		set Trainer focus to [DyingVillager]
+		Trainer play ANM_P_INTO_POINTING loop 1
+		wait until Trainer played
+		say single line HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_07 with interaction// T:Good. Now move your creature over to that guy.
+		Trainer play ANM_P_TALKING_AND_POINTING loop 1
+		wait until Trainer played
+		wait until read
+		release MyCreature
+
+	end dialogue
+
+	while not [MyCreature] near [DyingVillager] radius 15
+/*		leash_type = variable get MyCreature leash type 
+		if leash_type == variable LEASH_TYPE_GOOD
+			sy "Good Leash" // Debugging only
+		elsif leash_type  == variable LEASH_TYPE_EVIL
+			sy "Evil Leash" // Debugging only
+		else
+			sy "Rope Leash" // Debugging only
+		end if
+*/
+
+	end while
+
+	begin cinema
+
+		enable Trainer high graphics detail
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set Trainer focus to [MyCreature]
+		Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_08 with interaction// T:Thats it ! I can break the curse now.
+		wait until Trainer played
+		wait until read
+
+		set camera position to [1888.507, 30.397, 2518.269] 
+		set camera focus to [1887.787, 30.103, 2520.380] 
+
+		set Trainer focus to camera position
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_09 with interaction// T:Well, thats good. You know how to use your creature now.
+		wait until read
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_10 with interaction// T: I have nothing more to teach you.
+		wait until read
+
+		set Trainer focus to camera position
+		Trainer play ANM_P_INTO_PRAY loop 1
+		wait until Trainer played
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_LEASH_GOOD_AND_EVIL_11 with interaction// T:Now hes all yours. It is up to you, My Lord.
+		Trainer play ANM_P_PRAY loop 1
+		wait until Trainer played
+
+		Trainer play ANM_P_OUT_OF_PRAY loop 1
+		wait until Trainer played
+		wait until read
+
+		move Trainer position to [2013.939, 49.727, 2490.340]
+		SPEED of Trainer = 0.3
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+
+		disable Trainer high graphics detail
+
+	end cinema
+
+	delete SFX
+
+	release MyCreature
+
+	disable MyCreature development script
+
+	move Trainer position to [Town]
+	wait until [Trainer] near [Town] radius 0.5
+	attach Trainer to Town
+	enable Trainer moveable
+	enable Trainer pickup
+	release Trainer
+	Trainer=0
+
+	//	delete Trainer with fade
+	
+end script CreatureDevLeashGoodAndEvil
+
+//------------------------------------------------------------------------------------------------------------------------
+//--CreatureDevelopmentSet----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script CreatureDevelopmentSet
+start
+	run script CreatureDevSeeHome
+	run script CreatureDevLearnToEat
+	run script CreatureDevPunishment
+	run script CreatureDevLeashIntro
+	run script CreatureDevLeashAttachToHouse
+end script CreatureDevelopmentSet
+
+
+
+
+
+
+
+

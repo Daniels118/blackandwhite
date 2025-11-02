@@ -1,0 +1,248 @@
+challenge MAGIC_MUSHROOM
+
+begin script MagicMushroom
+
+Puzzle = 0
+PuzzlePos = marker at [2197.4185, 27.4700, 2310.3711]
+Actor = 0
+ActorHut = get HOUSE at [2185.1565, 26.9021, 2301.5596]
+ActorPos = marker at [2186.009, 27.423, 2309.311]  // needs to be nearish ActorHut and right next to "Cauldron" of Puzzle
+CorrectMushroom = 0
+Spell = 0
+RewardPos = marker at [2182.3257, 27.4700, 2315.1445]
+Reward = 0
+Toadstill = 0
+Highlight = 0
+Me = 0
+
+start
+	// REMOVE SHROOMS ALREADY THERE
+	if immersion exists
+		Toadstill = get MOBILE_OBJECT MOBILE_OBJECT_INFO_MAGIC_MUSHROOM at [PuzzlePos] radius 100
+		while Toadstill exists
+			delete Toadstill
+			Toadstill = get MOBILE_OBJECT MOBILE_OBJECT_INFO_MAGIC_MUSHROOM at [PuzzlePos] radius 100
+		end while
+
+		Toadstill = get MOBILE_OBJECT MOBILE_OBJECT_INFO_CHAMPI at [PuzzlePos] radius 100
+		while Toadstill exists
+			delete Toadstill
+			Toadstill = get MOBILE_OBJECT MOBILE_OBJECT_INFO_CHAMPI at [PuzzlePos] radius 100
+		end while
+
+		/// challenge Notify
+		Puzzle = create with angle 0 and scale 1.2 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_IMMERSION at [PuzzlePos]
+
+		Highlight = create highlight HIGHLIGHT_CHALLENGE at [ActorHut]
+		run script ChallengeHighlightNotify(Highlight, ActorHut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_05)
+		Actor = create VILLAGER VILLAGER_INFO_HIPPY at [ActorHut]
+		enable Actor indestructible
+		disable Actor hurt by fire
+		disable Actor pickup
+		
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_04
+
+			enable Actor high gfx detail
+			move Actor position to [ActorPos]
+
+			//BeginPos = marker at camera position
+			//BeginFoc = marker at camera focus
+
+			move camera position to [2185.306, 28.866, 2311.387] time 4
+			move camera focus to [2190.004, 24.854, 2298.275] time 3
+
+			wait until [Actor] near [ActorPos] radius 1
+
+			set Actor focus to [2185.306, 28.866, 2311.387]
+
+			wait until 1 second
+
+			set Actor focus to [PuzzlePos]
+
+			Actor play ANM_P_TALKING_AND_POINTING loop 1
+
+			wait until camera ready
+//			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_106 StandardReminder(variable HELP_TEXT_REMINDER_96)
+
+			move camera focus to [PuzzlePos] time 3
+
+			// "Hi there god. See them there mushrooms."
+			say HELP_TEXT_MAGIC_MUSHROOM_01
+			wait until read
+
+			move camera position to [2181.101, 32.832, 2314.485] time 3
+			move camera focus to [2193.390, 27.221, 2310.621] time 3
+
+			Actor play ANM_P_PUZZLED loop 1
+
+			// "Well they've got magical properties, ya see."
+			say HELP_TEXT_MAGIC_MUSHROOM_02
+			wait until read
+
+			set Actor focus to camera position 
+
+			Actor play ANM_P_GOSSIP_MAN loop 1
+
+			// "The more potent they are then the more they shake."
+			say HELP_TEXT_MAGIC_MUSHROOM_03
+			wait until read
+
+			move camera position to [2183.362, 28.776, 2310.621] time 3
+			move camera focus to [2196.856, 26.494, 2308.131] time 3
+
+			set Actor focus to [2183.362, 28.776, 2310.621]
+
+			// "I'll need a really powerful one to finish my experiment."
+			say HELP_TEXT_MAGIC_MUSHROOM_04
+			wait until read
+
+			// "Could ya find me the most potent one and drop it in my cauldron."
+			say HELP_TEXT_MAGIC_MUSHROOM_05
+			wait until read
+
+			close dialogue
+
+			move camera position to [2187.904, 36.825, 2327.192] time 4
+			move camera focus to [2196.291, 27.938, 2312.633] time 4
+
+			move Actor position to [ActorHut]
+			disable Actor high gfx detail
+
+			wait until camera ready
+
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_106 StandardReminder(variable HELP_TEXT_REMINDER_96)
+
+			stop music			
+		end cinema
+
+		wait until [Actor] near [ActorHut] radius 1
+
+		wait until Puzzle played
+
+		/// find out if they did it correctly if so - CorrectMushroom = 1
+		CorrectMushroom = variable state of Puzzle
+		if CorrectMushroom == variable SCRIPT_PUZZLE_GAME_STATUS_WON
+			CorrectMushroom = 1
+		else
+			CorrectMushroom = 0
+		end if
+
+		begin cinema
+
+			delete Highlight
+
+			enable Actor high gfx detail
+
+			move Actor position to [ActorPos]
+
+			//BeginPos = marker at camera position
+			//BeginFoc = marker at camera focus
+
+			move camera position to [2185.306, 28.866, 2311.387] time 4
+			move camera focus to [2190.004, 24.854, 2298.275] time 3
+			wait until camera ready
+
+			wait until [Actor] near [ActorPos] radius 1
+
+			set Actor focus to camera position
+
+			// "Cheers god. Now let's add it to the mix and see what happens..."
+			say single line HELP_TEXT_MAGIC_MUSHROOM_06
+			wait until read
+
+			close dialogue
+
+			/// play an anim of removing the mushroom from the cauldron
+			/// wait until Actor played
+
+			move Actor position to [ActorHut]
+
+			move camera position to [2215.829, 36.508, 2318.007] time 4
+			move camera focus to [2189.227, 27.281, 2303.308] time 4 
+
+			disable Actor high gfx detail
+			wait 2 seconds
+			start sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+
+			wait until camera ready
+
+			wait until [Actor] near [ActorHut] radius 1
+
+			delete Actor
+			delete Highlight
+
+			if CorrectMushroom == 1
+
+				shake camera at [ActorHut] radius 40.0 amplitude 0.1 time 5
+
+				wait 3 seconds
+				stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+				Spell=cast SPELL_HEAL_LEVEL_2 spell at [ActorHut] from [ActorHut]+[0,30,0] radius 0 time 5 curl 0
+				stop sound LH_SCRIPT_SAMPLE_CHILD_CRY_MUFFLED_01
+				wait 3 seconds
+
+				snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_106 StandardReminder(variable HELP_TEXT_REMINDER_96)
+
+			else
+
+				shake camera at [ActorHut] radius 40.0 amplitude 0.1 time 5
+
+				wait 3 seconds
+
+				Actor = create VILLAGER VILLAGER_INFO_HIPPY at [ActorHut]
+				enable Actor indestructible
+				
+				enable ActorHut on fire 0.5
+				Spell=cast SPELL_EXPLOSION_LEVEL_1 spell at [ActorHut] from [ActorHut]+[0,30,0]  radius 50.0 time 30 curl 0
+				stop sound LH_SCRIPT_SAMPLE_MUSHROOM_SUSPENSE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+				Me = marker at camera position
+
+				wait 1 seconds
+
+				set Actor target [Me] time 2
+		
+				snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_106 StandardReminder(variable HELP_TEXT_REMINDER_96)
+
+			end if
+
+		end cinema
+
+		if Actor exists 
+			disable Actor indestructible
+			release Actor
+		end if
+
+		if CorrectMushroom == 1
+
+			begin dialogue
+				eject good spirit
+				make good spirit point at [RewardPos]
+				// "It looks like we got the correct mushroom, there's a reward for us."
+				say single line HELP_TEXT_MAGIC_MUSHROOM_07
+				wait until read
+				stop good spirit pointing
+			end dialogue
+
+			run script GiveSpellDispenserReward(RewardPos, variable MAGIC_TYPE_CREATURE_SPELL_COMPASSION, 0.0, 0, 0)
+		else
+			begin dialogue
+
+				wait 2 seconds
+
+				eject evil spirit
+				// "Looks like we got the wrong mushroom. Nobody's perfect."
+				say single line HELP_TEXT_MAGIC_MUSHROOM_08
+				wait until read
+				stop evil spirit pointing
+
+			end dialogue
+		end if
+
+
+//		update snapshot success 1.0 alignment 0.0 HELP_TEXT_TITLE_106 StandardReminder(variable HELP_TEXT_REMINDER_96)
+	end if
+end script MagicMushroom

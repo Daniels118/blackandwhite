@@ -1,0 +1,2371 @@
+challenge LAND_4_METEORITES
+
+global TotemPuzzle
+global StartLand4Nomad
+global Totem1
+global Totem2
+global UndeadTown
+global UndeadHighlight
+global PlayerSavedUndeadTown
+global UndeadVillageCutScenePlayed
+global FireMeteorWaveAggressive
+global IllegalExplore
+global ForceMeteorWaveActive
+global CreatureHasGotCreed
+global KeepQuiet
+global TowerClicked
+global TotemsBothPulledUp
+
+//------------------------------------------------------------------------------------------------------------
+
+define script SendManHome(Man)
+define script LookAfterTotems
+define script TellPlayerToGotoJapaneseTown
+define script SkeletonIndividual(Person)
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script BuildUpTown
+
+start
+
+	wait 30 seconds	
+
+	begin dialogue
+		eject good spirit
+		make good spirit point at [L4HomeTownCentre]
+//			"Yuk! We have got to get our town built up, and shelter our people from this terrible storm."
+//			GA:	We have to build up our Village and shelter the people from this terrible storm.
+		say HELP_TEXT_NEW_L4_INTRO_13
+		wait until read
+		stop good spirit pointing
+
+		eject evil spirit
+//			"No, no, no!  Leave them to it."
+//			EA:	No, leave them. It'll put hairs on their chests.
+		say HELP_TEXT_NEW_L4_INTRO_14
+		wait until read
+//			"We need to find out what has happened here. We need to explore."
+//			EA:	Better to explore and find out what's going down in this land.
+		say HELP_TEXT_NEW_L4_INTRO_15
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+	end dialogue
+
+	wait until BUILT of WorkshopL4 == 1
+	wait until camera position near [HomeTownL4] radius 150 or [HomeTownL4] viewed or [WorkshopL4] viewed
+	
+	begin dialogue
+		eject good spirit
+		make good spirit point at [WorkshopL4]
+//			"Excellent.  The Workshop is built.  But we could really do with a Storage Pit."
+//			GA:	Excellent. The Workshop is built. Now let's concentrate on making a Village Store.
+		say HELP_TEXT_NEW_L4_INTRO_16
+		wait until read
+		stop good spirit pointing
+//			"You'll need 3 combined scaffolds to build the Storage Pit."
+//			GA:	You'll need three combined Scaffolds to build it.
+		say HELP_TEXT_NEW_L4_INTRO_18
+		wait until read
+
+//			"And don't leave the poor villagers homeless in this miserable storm."
+//			GA:	[TA shakehead]And we mustn't leave our poor Villagers homeless in this weather.
+		say HELP_TEXT_NEW_L4_INTRO_17
+		wait until read
+		
+		eject evil spirit
+//			"Now wait a minute.  The Storage Pit I can understand, but homes for these slackers?"
+//			EA:	Hey. Okay, we need a Village Store. But homes for the people? No way!
+		say HELP_TEXT_NEW_L4_INTRO_19
+		wait until read
+//			"Forget them, we have to start exploring and find the creed.  We've already wasted enough time."
+//			EA:	Forget them. We gotta get exploring. Somewhere there'll be an element of the Creed, and I want to find it.
+		say HELP_TEXT_NEW_L4_INTRO_20
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+	end dialogue
+
+end script BuildUpTown
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script SetupUndeadVillage
+
+Totem1Pos			= marker at [3016.44,3584.36] 
+Totem2Pos			= marker at [2922.68,3550.94]
+UndeadTownPos		= marker at [3001.0828, 11.3900, 3457.6755]
+
+start
+	//Set the undead town to be skeletons.
+	UndeadTown = get TOWN at [UndeadTownPos] radius 100
+	enable UndeadTown skeleton
+	Totem1 = create with angle 352.1 and scale 2.233 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_AFRICAN_TOTEM at [Totem1Pos]
+	Totem2 = create with angle 36 and scale 2.233 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_AFRICAN_TOTEM at [Totem2Pos]
+
+	enable Totem1 indestructible
+	enable Totem2 indestructible
+
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem1 = 0
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem2 = 0
+
+	// Make the undead town un-killable
+	enable UndeadTown indestructible
+
+end script SetupUndeadVillage
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script SetUndeadTownHealth
+
+SetHealthTimer	= create timer for 0 seconds
+TimeDelay		= 60 * 5						// 5 minute delay
+
+start
+	set SetHealthTimer time to TimeDelay seconds
+
+	// Set the health of the undead town to maximum after a delay.  Stops them hobbling about.
+	while CreatureHasGotCreed == 0
+		if get SetHealthTimer time remaining <= 0
+			set SetHealthTimer time to TimeDelay seconds
+			HEALTH of UndeadTown = 1.0
+		end if
+	end while
+
+end script SetUndeadTownHealth
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script SetUndeadTownBeliefToZero
+
+ImpressCounter		= 0
+
+start
+
+ 	while PlayerSavedUndeadTown == 0
+		if get UndeadTown belief for player 1 >= 0.1
+			set UndeadTown player 1 belief 0
+			if UndeadVillageCutScenePlayed == 1
+				ImpressCounter++
+			end if
+			if ImpressCounter == 2
+				begin dialogue
+					eject good spirit
+					// Leader. We're not managing to impress anyone in this town
+					say HELP_TEXT_NEW_L4_METEORITES_83 with interaction
+					wait until read
+					// We're going to have to break the curse Nemesis has put here
+					say HELP_TEXT_NEW_ENUM_15 with interaction
+					wait until read
+					// But we're going to need to get influence near those totems
+					say HELP_TEXT_NEW_ENUM_16 with interaction
+					wait until read
+					send good spirit home
+				end dialogue
+			end if
+		end if
+
+		wait 1 seconds
+
+	end while
+
+end script SetUndeadTownBeliefToZero
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script ManExplainsAboutUndeadVillage
+
+Man					= 0
+
+BeginPos			= 0
+BeginFoc			= 0
+
+UndeadHighlightPos	= marker at [2590.6699, 2.6800, 3201.2202]		
+
+ManStartPos			= marker at [2591.9692, 2.8370, 3207.4419]		   
+ManWaypointPos		= marker at [2586.7478, 2.6800, 3203.2222]	
+ManEndPos			= marker at [2590.363, 2.680, 3196.893]			
+
+Arrived				= 0											
+
+// Undead Village Stuff
+SkeletonMan			= 0
+SkeletonManPos		= marker at [3011.054, 11.390, 3459.639]
+
+Kid1				= 0
+Kid2				= 0
+Chatter1			= 0
+Chatter2			= 0
+WalkingMan1			= 0
+Dust = 0
+
+OldGameTime			= 0
+
+start
+	challenge LAND_4_UNDEAD_VILLAGE
+	// Create the highlight
+	UndeadHighlight = create highlight HIGHLIGHT_QUEST at [UndeadHighlightPos]
+	run script ChallengeHighlightNotify(UndeadHighlight, UndeadHighlightPos , variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+
+	// Raise the totems for story telling
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem1 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of Totem1
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem2 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of Totem2
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [2591.128, 4.292, 3193.251] time 5
+		move camera focus to [2584.672, -1.503, 3214.371] time 5
+		wait until camera ready
+
+		// Create the man behind the hut
+		Man = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [ManStartPos]
+		enable Man high graphics detail
+
+		// Move the man to the waypoint
+		while Arrived == 0
+			move Man position to [ManWaypointPos]
+			if [Man] near [ManWaypointPos] radius 0.5
+				Arrived = 1
+			end if
+		end while
+
+		Arrived = 0
+
+		disable jc special SJC_BLEND_ANGLE on Man	
+		enable jc special SJC_PREPARE_ROTATE_LEFT_90 on Man
+		Man play ANM_P_TURN_90_LEFT loop 1
+		wait Man played
+
+		// Move the man to the end pos
+		while Arrived == 0
+			move Man position to [ManEndPos]
+			if [Man] near [ManEndPos] radius 0.5
+				Arrived = 1
+			end if
+		end while
+
+		// Scene #1 Japanese Introduction
+		set Man focus to [2591.128, 4.292, 3193.251]
+		Man play ANM_P_GOSSIP_MAN loop 6
+//		"You have done well, oh Mighty One."
+//		MAN:	Your success is great, Mighty One.	
+		say HELP_TEXT_NEW_L4_METEORITES_01
+		wait until read
+//		"You have almost restored our land."
+//		MAN:	You have almost restored our land to blessed normality.
+		say HELP_TEXT_NEW_L4_METEORITES_02
+		wait until read
+		move camera position to [2590.627, 4.080, 3195.841] time 20
+		move camera focus to [2588.840, 2.491, 3201.687] time 20
+//		"However there is one more area that is still tainted by Nemesis."
+//		MAN:	But one more area remains tainted by Nemesis.
+		say HELP_TEXT_NEW_L4_METEORITES_03
+		wait until read
+
+		// Scene #2 Pan across living town
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+		disable UndeadTown skeleton
+		set camera position to [2989.436, 13.229, 3398.465] 
+		set camera focus to [3000.508, 13.013, 3412.265] 
+
+		OldGameTime = get game time
+		set game time 16.50
+		disable game time
+
+		move camera position to [2952.430, 13.229, 3428.154] time 30
+		move camera focus to [2963.501, 13.013, 3441.955] time 30
+		set fade in time 2
+		wait until fade ready
+		wait 4 seconds
+//		"There was once a village that refused to worship Nemesis."
+//		MAN:	One village refused to bow to Nemesis.
+		say HELP_TEXT_NEW_L4_METEORITES_04
+		wait until read
+//		"They didn't like his ways."
+//		MAN:	They saw his might and were afraid.
+		say HELP_TEXT_NEW_L4_METEORITES_05
+		wait until read
+																
+		// Scene #3 Kids/Humans playing happily
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+
+		set camera position to [3001.842, 12.383, 3466.029] 
+		set camera focus to [2997.152, 9.518, 3419.198] 
+		move camera position to [3011.497, 12.383, 3465.062] time 10
+		
+		Kid1=create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3014.514, 11.390, 3454.944] 
+		AGE of Kid1=10
+		Kid1 play ANM_P_JUMP_AT_HAND loop 100
+		Kid2=create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3013.113, 11.390, 3455.996] 
+		AGE of Kid2=9
+		Kid2 play ANM_P_JUMP_AT_HAND_2 loop 100
+		set Kid2 focus to [Kid1]		
+		set Kid1 focus to [Kid2]
+
+		WalkingMan1 = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3009.914, 11.390, 3457.019] 
+		SPEED of WalkingMan1 = 0.1
+		move WalkingMan1 position to [2993.972, 11.390, 3448.709] 
+
+		Chatter1 = create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [3014.224, 11.390, 3451.870] 
+		Chatter2 = create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [3013.159, 11.390, 3452.285]
+		Chatter1 play ANM_P_GOSSIP_WOMAN_3 loop 100
+		Chatter2 play ANM_P_GOSSIP_WOMAN_2 loop 100
+		set Chatter1 focus to [Chatter2]		
+		set Chatter2 focus to [Chatter1]
+
+		SkeletonMan = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3001.521, 11.390, 3455.251]
+		
+		enable SkeletonMan high graphics detail
+		enable Kid1 high graphics detail
+		enable Kid2 high graphics detail
+		enable Chatter1 high graphics detail
+		enable Chatter2 high graphics detail
+		enable WalkingMan1 high graphics detail
+		
+		set camera focus follow SkeletonMan
+		SPEED of SkeletonMan = 0.15
+		move SkeletonMan position to [SkeletonManPos]
+		
+		set fade in time 2
+		wait until fade ready
+		wait 4 seconds
+
+		// Scene #4 Behind Totems
+
+		// DOWN TOTEMS
+
+		//russ big totem shakes
+		start sound  LH_SCRIPT_SAMPLE_CREATUREGATESTONEMOVE_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX 
+		shake camera at [Totem1] radius 150.0 amplitude 0.25 time 5
+		shake camera at [Totem2] radius 150.0 amplitude 0.25 time 5
+		wait 1 second
+		set camera position to [3002.128, 118.967, 3610.437] 
+		set camera focus to [3003.869, 13.387, 3483.293]
+		
+		// Undead Village started
+		snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_108 StandardReminder(variable HELP_TEXT_REMINDER_101)
+		challenge LAND_4_METEORITES
+
+		run background script LookAfterTotems
+		wait 4 seconds
+		set camera position to [2917.027, 119.262, 3484.698] 
+		set camera focus to [2949.781, 88.787, 3553.625] 
+		wait 1 seconds
+//		"Their source of power, their totems, were forced into the ground."
+//		MAN:	So Nemesis buried their totems, their source of power.
+		say single line HELP_TEXT_NEW_L4_METEORITES_06
+		wait until read
+		wait 1 seconds
+			
+		close dialogue
+
+		// Scene #5 Town gets Cursed
+		set camera focus to [2997.152, 9.518, 3419.198] 
+		set camera position to [3012.84, 12.383, 3462.09]
+		SkeletonMan play ANM_P_LOOKING_FOR_SOMETHING loop -1
+		wait 1 seconds
+//		"In return, Nemesis cursed their village."
+//		MAN:	And cursed their Village.
+		say single line HELP_TEXT_NEW_L4_METEORITES_07
+		wait until [SkeletonMan] at [SkeletonManPos]
+
+		Dust = create special effect SPOT_VISUAL_SMOKE at [SkeletonManPos] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 6.0							
+		wait 0.2 seconds
+		wait until read
+		close dialogue
+		SkeletonMan play ANM_P_YANKED_UNDERGROUND2 loop 1
+		run background script SkeletonIndividual(SkeletonMan)
+		set Kid2 focus to [SkeletonMan]
+		Kid2 play ANM_P_INTO_POINTING loop 1
+		wait until Kid2 played 
+		Kid2 play ANM_P_TALKING_AND_POINTING loop 1
+		wait 1.5 seconds
+		Dust = create special effect SPOT_VISUAL_SMOKE at [Kid1] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 3.0							
+		wait 0.2 seconds
+		
+		Kid1 play ANM_P_YANKED_UNDERGROUND2 loop 1
+		wait 0.25 seconds
+		Dust = create special effect SPOT_VISUAL_SMOKE at [WalkingMan1] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 3.0							
+		wait 0.2 seconds
+		run background script SkeletonIndividual(Kid1)
+		
+		WalkingMan1 play ANM_P_YANKED_UNDERGROUND3 loop 1
+		wait 0.25 seconds
+		Dust = create special effect SPOT_VISUAL_SMOKE at [Chatter1] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 3.0
+		wait 0.2 seconds
+		run background script SkeletonIndividual(WalkingMan1)
+		
+		Chatter1 play ANM_P_YANKED_UNDERGROUND loop 1
+		wait 0.5 seconds
+		Dust = create special effect SPOT_VISUAL_SMOKE at [Kid2] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 3.0							
+		wait 0.2 seconds
+		run background script SkeletonIndividual(Chatter1)
+		
+		Kid2 play ANM_P_YANKED_UNDERGROUND loop 1
+		Dust = create special effect SPOT_VISUAL_SMOKE at [Chatter2] time 3
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 3.0							
+		wait 0.2 seconds
+		run background script SkeletonIndividual(Kid2)
+		
+		Chatter2 play ANM_P_YANKED_UNDERGROUND3 loop 1
+		run background script SkeletonIndividual(Chatter2)
+				
+		enable UndeadTown skeleton
+		wait until read
+		
+		wait until SkeletonMan played
+		SkeletonMan play ANM_P_POISONED loop 1
+		wait 6 seconds
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		wait 1 seconds
+		
+		disable SkeletonMan high graphics detail
+		disable Kid1 high graphics detail
+		disable Kid2 high graphics detail
+		disable Chatter1 high graphics detail
+		disable Chatter2 high graphics detail
+		disable WalkingMan1 high graphics detail
+		
+		delete SkeletonMan 
+		delete Kid1 
+		delete Kid2 
+		delete Chatter1 
+		delete Chatter2 
+		delete WalkingMan1 
+
+		// Final Scene Japanese Guy signs off
+
+		set camera position to [2591.128, 4.292, 3193.251]
+		set camera focus to [2584.672, -1.503, 3214.371]
+
+		set game time OldGameTime
+		enable game time
+
+		wait until camera ready
+		set fade in time 2
+		wait until fade ready
+
+		Man play ANM_P_GOSSIP_MAN loop 6
+//		"If you help them, I am sure they will help you."
+//		MAN:	If you help them. I'm sure they'll be forever in your debt.
+		say HELP_TEXT_NEW_L4_METEORITES_08
+		wait until read
+//		"They know the position of the object of your desire."
+//		MAN:	And they know the location of the object you desire.
+//		HELP_TEXT_NEW_L4_METEORITES_09	// WRONG - Line no longer needed.
+//		wait until read
+		move camera position to [2590.627, 4.080, 3195.841] time 20
+		move camera focus to [2588.840, 2.491, 3201.687] time 20
+//		"They know the position of the creed you search for."
+//		MAN:	They know where the Creed you seek can be found.
+		say HELP_TEXT_NEW_L4_METEORITES_10
+		wait until read
+
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		wait until camera ready
+		set fade in time 2
+		wait until fade ready
+		disable Man high graphics detail
+		stop music
+	end cinema
+	delete Man
+	UndeadVillageCutScenePlayed = 1
+
+end script ManExplainsAboutUndeadVillage
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script CreatureGetsCreed
+
+CreatureGetCreedPos = marker at [2707.420, 138.690, 2591.429] 
+CreatureHeight		= 0
+
+start
+	wait until CreedL4 in MyCreature hand
+	CreatureHasGotCreed = 1
+
+	set fade red 255 green 255 blue 255 time 1
+	wait until fade ready
+	wait 2 seconds
+	delete CreedL4
+	MyCreature = get player 1 creature
+	set MyCreature position to [CreatureGetCreedPos]
+	set MyCreature focus to [2722.594, 143.337, 2650.061]
+	set MyCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 0.1 time 0.0
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+		set camera position to [2731.222, 116.102, 2631.810] 
+		set camera focus to [CreatureGetCreedPos]+[0,1.3*CreatureHeight,0] 
+		set fade in time 1
+		wait until fade ready
+		move camera position to [2714.375, 224.345, 2636.730] time 20
+		wait 4 seconds
+		set MyCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 1.0 time 0.0
+		wait until camera ready
+
+		eject good spirit
+		eject evil spirit
+
+//		"Well done! You have found the second Creed!"
+//		GA:	You found the second Creed!
+		say HELP_TEXT_NEW_L4_METEORITES_11
+		wait until read
+
+//		EA:	Yeah. Oh this is a great day!
+		say HELP_TEXT_NEW_L4_METEORITES_12
+		wait until read
+		
+		wait 1 second
+
+
+		start sound LH_SCRIPT_SAMPLE_SCREENRUMBLE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		shake camera at [CreatureGetCreedPos] radius 100 amplitude 1 time 5
+
+		wait 6 seconds
+
+		// What was that!
+		say HELP_TEXT_NEW_ENUM_17
+		wait until read
+
+		send good spirit home
+		send evil spirit home
+		stop music
+	end cinema
+	release MyCreature
+end script CreatureGetsCreed
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script SkeletonIndividual(Person)
+start
+	wait until Person played 
+	enable Person skeleton
+	Person play ANM_P_DROWNING
+	wait until Person played 
+	Person play ANM_P_OUT_OF_MOURNING
+	wait until Person played 
+	Person play ANM_P_POISONED
+	wait until Person played
+	
+end script SkeletonIndividual
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script StopPlayerExploring
+
+OgrePos = marker at [1705.7167, 10.0500, 2790.1104]
+RetreatPos = marker at [2183.6868, 8.6236, 3095.9983]
+
+start
+	
+	// Stop the player if they try to go into restricted areas too soon
+	while IllegalExplore == 0
+		if camera position near [JapaneseTown] radius 150
+			IllegalExplore = 1
+		elsif camera position near [OgrePos] radius 250
+			IllegalExplore = 1
+		elsif CreatureVenturedTooFar == 1
+			IllegalExplore = 1
+			move MyCreature position to [RetreatPos] radius 50
+		end if
+	end while
+
+end script StopPlayerExploring
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script ManExplainsAboutNemesis
+
+Man					= 0
+ManStartPos			= marker at [2387.8604, 49.8182, 2567.8838]
+BeginPos			= marker at [2377.7314, 54.1591, 2566.6101]
+BeginFoc			= marker at [2387.2104, 50.2344, 2567.7363]
+NomadPos			= marker at [3053.3274, 131.9900, 2665.3174]
+Tree				= 0
+Armageddon			= 0
+Highlight			= 0
+HighlightPos		= marker at [2390.8188, 50.5876, 2572.4880]
+ExplainTimer		= create timer for 300 seconds					// set to 300
+WaitExplain			= 0
+ExplainType			= 0
+WaitForScroll		= 0
+
+start
+	// Make sure the intro flyby has finished before creating the man so you don't get pulled...
+	//...straight into the mans cutscene 
+	wait until IntroFlybyFinished == 1
+
+	// Make sure player is not pulled in if they skip text on intro flyby (at least for 30 seconds)
+	wait 30 seconds
+
+	run background script StopPlayerExploring
+
+	// Wait for time or player explored too far
+	while WaitExplain == 0
+		if get ExplainTimer time remaining <= 0
+			WaitExplain = 1
+		end if
+		if IllegalExplore == 1
+			WaitExplain = 1
+		end if
+	end while
+
+	// Wait until you're not looking at the mans start position then create him.
+	// Move him to his start pos so he has a valid destination pos that he can walk back to
+	wait until [ManStartPos] not viewed
+	Man = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [ManStartPos] - [2, 0, 2]
+	move Man position to [ManStartPos]
+	wait 2 seconds
+
+	// Make the man not pickupable and make him indestructable
+	disable Man pickup
+	enable Man indestructible
+
+	set Man focus to [L4CitadelPos]
+	Man play ANM_P_PRAY loop -1
+
+	if IllegalExplore == 0
+		Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+		ALTITUDE of Highlight = 0
+		run background script ChallengeHighlightNotify(Highlight, HighlightPos , variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+		while WaitForScroll == 0
+			if Highlight clicked
+				WaitForScroll = 1
+				ExplainType = 1
+			end if 
+			if IllegalExplore == 1
+				WaitForScroll = 1
+			end if
+		end while
+		delete Highlight
+	 	IllegalExplore = 1				// Force Background script to end
+	end if
+
+	// Make sure the fireballs are switched on for the cutscene
+	ForceMeteorWaveActive = 1
+
+	// Pull the player into the story cutscene when close enough
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_CREATURE_GUIDE
+		enable Man high graphics detail
+		set Man focus to [L4CitadelPos]
+		if ExplainType == 1
+			move camera position to [BeginPos] time 6
+			move camera focus to [BeginFoc] time 4
+			wait until camera ready
+			Man play ANM_P_OUT_OF_PRAY loop 1
+			wait until Man played
+		else
+			set fade red 0 green 0 blue 0 time 2				
+			wait until fade ready
+			close dialogue
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+			set fade in time 2
+			wait until fade ready
+			Man play ANM_P_PRAY loop 1
+			wait until Man played
+			Man play ANM_P_OUT_OF_PRAY loop 1
+			wait until Man played
+		end if
+		Man play ANM_P_GOSSIP_MAN loop 6
+//		"Please don't harm me holy one."
+//		MAN:	Please don't harm me.
+		say HELP_TEXT_NEW_L4_METEORITES_14
+		wait until read
+//		"It has taken me a while to pluck up the courage to come and see you." with interaction
+//		MAN:	I come, trembling with fear, before you.
+		say HELP_TEXT_NEW_L4_METEORITES_15 with interaction
+		wait until read
+		set Man focus to [JapaneseTown]
+		Man play ANM_P_TALKING_AND_POINTING loop -1
+//		"I am from a nearby Japanese village."
+//		MAN:	I'm from the Japanese village nearby.
+		say HELP_TEXT_NEW_L4_METEORITES_16
+		// Move the camera to face where the man is pointing		
+		wait 1 seconds
+		move camera position to [2385.4539, 74.2925, 2547.7117] time 5
+		move camera focus to [2442.1575, 42.5093, 2625.8354] time 5
+		wait until camera ready
+		wait until read
+
+		// Move to Japanese village with fade
+		set fade red 0 green 0 blue 0 time 1				
+		wait until fade ready
+		close dialogue
+		set camera position to [2611.0171, 47.4781, 3089.2661]
+		set camera focus to [2608.0496, 13.6695, 3213.0054]
+		set fade in time 1
+		wait until fade ready
+
+		// Pan around Japanese village
+		move camera position to [2541.7234, 26.4967, 3238.8628] time 5
+		move camera focus to [2600.7568, 8.1056, 3210.5449] time 5
+//		"And I have come to ask for your help to rid us of this curse placed on our land."
+//		MAN:	I ask that you remove the curse on our land.
+		say single line HELP_TEXT_NEW_L4_METEORITES_17
+		wait until read
+		wait until camera ready
+
+		// Move back to the Japanese fellow with fade
+		set fade red 0 green 0 blue 0 time 1				
+		wait until fade ready
+		close dialogue
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		set fade in time 1
+		set Man focus to [L4CitadelPos]
+		Man play ANM_P_GOSSIP_MAN loop 6
+		wait until fade ready
+
+//		"There was someone like you here not long ago."
+//		MAN:	A god visited us long ago.
+		say HELP_TEXT_NEW_L4_METEORITES_18
+		wait until read
+//		"He displayed his powers to the world."
+//		MAN:	He showed us his power and his might.
+		say HELP_TEXT_NEW_L4_METEORITES_19
+		wait until read
+//		"If you listen, I will tell all." with interaction
+//		MAN:	It was a terrifying display.
+		say HELP_TEXT_NEW_L4_METEORITES_20 with interaction
+		wait until read
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+		set camera position to [2171.184, 26.122, 1994.947] 
+		set camera focus to [2095.773, 33.179, 1927.552] 
+		set game time 12.00
+		disable game time
+		
+		Tree = create TREE TREE_INFO_BEECH at [1984.788, 13.913, 2078.925] 	
+		disable sound effects
+		set fade in time 2
+		wait until fade ready
+		
+		move camera position to [2047.693, 26.162, 2133.346] time 20
+		move camera focus to [1972.004, 33.008, 2066.245] time 20
+
+	
+//		"This land used to be beautiful, once."
+//		MAN:	You see, this land used to be beautiful.
+		say HELP_TEXT_NEW_L4_METEORITES_21
+		wait until read
+//		"We used to live in peace and harmony."
+//		MAN:	We lived in peace here.
+		say HELP_TEXT_NEW_L4_METEORITES_22
+		wait until read
+//		"We didn't want for anything."
+//		MAN:	And we didn't want for anything.
+		say HELP_TEXT_NEW_L4_METEORITES_23
+		wait until read
+//		"Then, the Gods appeared."
+//		MAN:	Then the gods themselves appeared.
+		say HELP_TEXT_NEW_L4_METEORITES_24
+		wait until read
+//		"At first, all was well."
+//		MAN:	At first, all was well.
+		say HELP_TEXT_NEW_L4_METEORITES_25
+		wait until read
+//		"All was well. Until the one called Nemesis."
+//		MAN:	But then the one called Nemesis arrived.
+		say HELP_TEXT_NEW_L4_METEORITES_26
+		wait until read
+		close dialogue
+		wait until camera ready
+
+		enable sound effects
+		Armageddon = cast SPELL_EXPLOSION_LEVEL_2 spell at [1984.788, 13.913, 2078.925] from [1984.788, 13.913, 2078.925]+[0,30,0]  radius 50.0 time 15 curl 0
+		wait 2.5 seconds
+		set fade red 255 green 255 blue 255 time 1
+		wait until fade ready
+		close dialogue
+		delete Tree
+
+		set camera position to [2335.767, 139.061, 2694.904] 
+		set camera focus to [1597.092, 60.511, 2851.295] 
+		wait 2 seconds
+		set game time 16.50
+		set fade in time 1
+		wait until fade ready
+		wait 1 seconds
+
+//		"We were forced to worship him."
+//		MAN:	We were forced to worship him.
+		say HELP_TEXT_NEW_L4_METEORITES_27
+		wait until read
+//		"It was he who brought down the fires from the heavens."
+//		MAN:	He brought forth fire from the heavens.
+		say HELP_TEXT_NEW_L4_METEORITES_28
+		wait until read
+		wait 1 seconds
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [1953.323, 121.546, 2706.996] 
+		set camera focus to [1773.148, 39.246, 2633.301] 
+		set fade in time 1
+		wait until fade ready
+		
+//		"It was he who brought down the pillars of lightning."
+//		MAN:	He gave us pillars of lightning.
+		say HELP_TEXT_NEW_L4_METEORITES_29
+		wait until read
+//		"Our life became a living hell."
+//		MAN:	Our lives have become unbearable.
+		say	HELP_TEXT_NEW_L4_METEORITES_30	// WRONG - Change back to the original line.
+		wait until read
+		wait 1 seconds
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [2731.452, 123.538, 2623.491] 
+		set camera focus to [2806.905, 161.590, 2756.710] 
+		set fade in time 1
+		wait until fade ready
+		
+//		"It was he who made the sky everlasting blood red."
+//		MAN:	Even the sky turned the colour of blood.
+		say single line HELP_TEXT_NEW_L4_METEORITES_31
+		wait until read
+		wait 1 seconds
+
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		set fade in time 1
+		wait until fade ready
+		
+		Man play ANM_P_GOSSIP_MAN loop 6
+//		"However, all this aggression made him weak."
+//		MAN:	But such a display, and so many dying worshippers made Nemesis weak.
+		say HELP_TEXT_NEW_L4_METEORITES_32
+		wait until read
+//		"He could not control these elements while away from here."
+//		MAN:	He started to lose his iron grip on the elements.
+		say HELP_TEXT_NEW_L4_METEORITES_33
+		wait until read
+//		"Before leaving, he left three Guardian Stones that controlled them on this land." with interaction
+//		MAN:	So he set three Guardian Stones to control this land.
+		say HELP_TEXT_NEW_L4_METEORITES_34 with interaction
+		wait until read
+		
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [2561.134, 83.304, 3180.888] 
+		set camera focus to [2522.793, 35.909, 3068.601] 
+		set fade in time 1
+		wait until fade ready
+		
+//		"The first part lays underneath a magic sheild." with interaction
+//		MAN:	The first lies under a Miracle Shield.
+		say HELP_TEXT_NEW_L4_METEORITES_35
+		wait until read
+//		"Even the village elders don't know its secrets."
+//		MAN:	Even the wisest of our people don't know how to reach it.
+		say HELP_TEXT_NEW_L4_METEORITES_36 with interaction
+		wait until read
+		
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [1788.163, 3.192, 2834.693] 
+		set camera focus to  [1709.746, 20.050, 2791.021] 
+		move camera position to [1727.618, 3.192, 2883.854] time 25
+		set fade in time 1
+		wait until fade ready
+
+		challenge LAND_4_OGRE
+		// Ogre started
+		snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_110 StandardReminder(variable HELP_TEXT_REMINDER_103)
+		challenge LAND_4_METEORITES
+
+		wait 0.1 seconds						// Make sure no text is in the snapshot
+
+//		"The second part was trusted to an evil ogre." with interaction
+//		MAN:	The second Guardian Stone was entrusted to an evil Ogre.
+		say HELP_TEXT_NEW_L4_METEORITES_37 
+		wait until read
+//		"He is strong and powerful, and will take some defeating."
+//		MAN:	He's too strong for any mere mortal to beat.
+		say HELP_TEXT_NEW_L4_METEORITES_38 with interaction
+		wait until read 
+		
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [3020.871, 130.347, 2699.032] 
+		set camera focus to [3059.291, 116.807, 2655.317]
+		move camera position to [2928.051, 129.320, 2632.677] time 20
+		move camera focus to [3034.632, 105.279, 2640.536] time 20
+		set fade in time 1
+		wait until fade ready
+							  
+//		"The third was given to a lonely old man." with interaction
+//		MAN:	The third Stone was given to a lonely old man.
+		say HELP_TEXT_NEW_L4_METEORITES_39 
+		wait until read
+//		"He totally worships Nemesis."
+//		MAN:	Who worships only Nemesis.
+		say HELP_TEXT_NEW_L4_METEORITES_40 with interaction
+		wait until read
+		
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		set fade in time 1
+		wait until fade ready
+
+		Man play ANM_P_GOSSIP_MAN loop 6
+//		"This is all I know."
+//		MAN:	This is everything we know.
+		say HELP_TEXT_NEW_L4_METEORITES_41
+		wait until read
+//		"Please help us in our plight."
+//		MAN:	Please help us in our plight.
+		say HELP_TEXT_NEW_L4_METEORITES_42
+		wait until read
+//		"I'll be off home.  Goodbye for now holy one."
+//		MAN:	You have all of our support, Holy One.
+		say HELP_TEXT_NEW_L4_METEORITES_43
+		wait until read
+		
+		wait until camera ready
+		
+		// Turn the man around
+		Man play ANM_P_TURN_180 loop 1									
+		wait Man played
+		
+		disable Man high graphics detail  
+		stop music
+	end cinema
+
+	// Make the man pickupable and killable
+	enable Man pickup
+	disable Man indestructible
+	ForceMeteorWaveActive = 0
+	ManHasExplainedAboutNemesis=1
+
+	// Send man home
+	run background script SendManHome(Man)
+
+	// Start reminding player to visit the Japanese village
+	run background script TellPlayerToGotoJapaneseTown
+
+end script ManExplainsAboutNemesis
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script JapaneseTotemPuzzle
+
+JapaneseTotemPuzzle			= 0
+JapaneseTotemPuzzlePos		= marker at [2286.4448, 41.9535, 3588.0894]
+DYK							= 0
+RewardDispenser				= 0
+RewardDispenserInfluence	= 0
+PuzzleInfluence				= 0												
+
+start
+	PuzzleInfluence =  create influence at [JapaneseTotemPuzzlePos] radius 30
+
+	JapaneseTotemPuzzle = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TOTEM_3 at [JapaneseTotemPuzzlePos]
+
+	// Instructions for completing the puzzle
+	run background script DidYouKnow(JapaneseTotemPuzzlePos, variable HELP_TEXT_DYK_RULES_04, variable DYK_MISC)
+	wait until JapaneseTotemPuzzle played
+
+	delete PuzzleInfluence
+
+		// delete signpost
+	DYK = get HIGHLIGHT HIGHLIGHT_TIPS at [JapaneseTotemPuzzlePos] radius 2
+	delete DYK with fade
+
+	// Give reward
+	run script GiveSpellDispenserReward(JapaneseTotemPuzzlePos, variable MAGIC_TYPE_SHIELD, 77.5, 0, 0)
+	RewardDispenserInfluence = create influence at [JapaneseTotemPuzzlePos] radius 10
+
+end script JapaneseTotemPuzzle
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script TellPlayerToGotoJapaneseTown
+
+RemindTimer		= create timer for 0 seconds
+PlayerBelief	= 0
+TargetBelief	= 0.3				// 0.5 is the level to take over a neutral town
+TimeDelay		= 180				// 3 minutes delay for the reminder
+
+start
+	set RemindTimer time to TimeDelay seconds
+
+	while PlayerBelief < TargetBelief
+		PlayerBelief = get JapaneseTown belief for player 1	
+		if JapaneseTown not exists
+			PlayerBelief=TargetBelief
+		elsif get RemindTimer time remaining == 0
+			begin dialogue
+				eject good spirit
+				eject evil spirit
+				make good spirit point at [JapaneseTown]
+//				"GA: Leader.  Perhaps we should start impressing that Japanese Town."
+//				GA:	Leader, let's start impressing the Japanese village.
+				say HELP_TEXT_NEW_L4_METEORITES_51
+				wait until read
+				stop good spirit pointing
+//				"EA: If it means we get hold of the Guardian Stone, I'm all up for it."
+//				EA:	If it means we get our hands on the Guardian Stone, I'm for it.
+				say HELP_TEXT_NEW_L4_METEORITES_52
+				wait until read
+				send good spirit home
+				send evil spirit home
+			end dialogue
+			set RemindTimer time to TimeDelay seconds
+		end if
+		wait 5 seconds
+	end while
+
+end script TellPlayerToGotoJapaneseTown
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script MoveToWaypoint(Man, Waypoint)
+
+arrived = 0
+
+start
+	if Man exists
+		move Man position to [Waypoint]
+		while arrived == 0
+			if Man not exists
+				arrived = 1
+			elsif HEALTH of Man <= 0
+				arrived = 1
+			elsif [Man] near [Waypoint] radius 4
+				arrived = 1
+			end if
+		end while
+	end if
+
+end script MoveToWaypoint
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script SendManHome(Man)
+
+ManWaypoint1	= marker at [2528.1897, 26.6744, 2652.0576]
+ManWaypoint2	= marker at [2521.4668, 30.3384, 2877.1929]
+ManWaypoint3	= marker at [2653.2822, 30.8959, 2998.8711]
+ManWaypoint4	= marker at [2633.9016, 15.3446, 3098.7170]
+ManWaypoint5	= marker at [2572.9539, 2.6800, 3167.3118] 
+ManWaypoint6	= marker at [2571.3962, 2.6800, 3195.7979]
+
+start
+	// Move the Japanese Man to the Japanese village via waypoints
+	run script MoveToWaypoint(Man, ManWaypoint1)
+	run script MoveToWaypoint(Man, ManWaypoint2)
+	run script MoveToWaypoint(Man, ManWaypoint3)
+	run script MoveToWaypoint(Man, ManWaypoint4)
+	run script MoveToWaypoint(Man, ManWaypoint5)
+	run script MoveToWaypoint(Man, ManWaypoint6)
+
+	// Attach the Japanese Man to the Japanese town
+	if Man exists
+		attach Man to JapaneseTown
+		release Man
+	end if
+
+end script SendManHome
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script Land4MeteoritesFireMeteorEffect(StartPosition, DestinationPosition, AgressivePosition, Spread)
+WaitTime = 0
+FireBall = 0
+MinWait = 0
+MaxWait = 0
+start
+	while FireMeteorBroken == 0
+		MinWait = 20
+		MinWait = 30
+		if FireMeteorWaveActive == 1 or ForceMeteorWaveActive == 1
+				if FireMeteorWaveAggressive == 0
+					FireBall = cast SPELL_FIREBALL_LEVEL_1 spell at [DestinationPosition]+[number from -Spread to Spread, 0, number from -Spread to Spread] from [StartPosition] radius 1.0 time 30 curl 0					
+					MinWait = 2
+					MinWait = 5
+				else
+					FireBall = cast SPELL_FIREBALL_LEVEL_1 spell at [AgressivePosition]+[number from -Spread to Spread, 0, number from -Spread to Spread] from [StartPosition] radius 1.0 time 30 curl 0					
+					STRENGTH of FireBall=2.0
+					MinWait = 10
+					MinWait = 20
+				end if								
+		end if
+		WaitTime = number from MinWait to MaxWait
+		wait WaitTime seconds
+	end while
+end script Land4MeteoritesFireMeteorEffect
+  
+//------------------------------------------------------------------------------------------------------------
+begin script Land4MeteoritesControl
+AttackTime = 120
+PauseTime = 120
+WaveCount = 0
+WaveTimer = create timer for 240 seconds						// Initially
+WorshipBuilt = 0
+start
+	while FireMeteorBroken == 0
+		if get WaveTimer time remaining == 0 and ForceMeteorWaveActive == 0 and KeepQuiet == 0
+			if FireMeteorWaveActive == 1						// Switch Off Attack
+				FireMeteorWaveActive = 0
+				FireMeteorWaveAggressive = 0
+				set WaveTimer time to PauseTime seconds
+				begin dialogue
+					eject evil spirit
+					// Hey, it looks like those fireballs have stopped
+					say HELP_TEXT_NEW_L4_METEORITES_84
+					wait until read
+					eject good spirit
+					// Well at least for now, they have
+					say HELP_TEXT_NEW_L4_METEORITES_85
+					wait until read
+				end dialogue
+			else												// Switch ON
+				FireMeteorWaveActive = 1
+				WaveCount++
+				if WaveCount >= 1
+					begin dialogue
+						eject good spirit
+						// Oh no, here come those fireballs again
+						say single line HELP_TEXT_NEW_L4_METEORITES_86
+						wait until read
+					end dialogue
+				end if
+
+				if WorshipBuilt == 0
+					L4HomeWorship = get WORSHIP at [L4CitadelPos] radius 50
+					if L4HomeWorship exists
+						if BUILT of L4HomeWorship == 1
+							WorshipBuilt=1
+						end if
+					end if
+				elsif BUILT of L4HomeTownCentre == 1
+					wait 30 seconds
+					begin dialogue
+						eject good spirit
+						// Hey! Some of those Fireballs are getting very close to our town
+						say single line HELP_TEXT_NEW_L4_METEORITES_87
+						wait until read
+					end dialogue
+					wait 30 seconds
+					FireMeteorWaveAggressive = 1
+				else
+					FireMeteorWaveAggressive = 0
+				end if
+				set WaveTimer time to AttackTime seconds
+			end if
+		end if
+	end while
+end script Land4MeteoritesControl
+  
+//------------------------------------------------------------------------------------------------------------
+
+begin script Land4MeteoritesLighteningMeteorEffect(Pos)
+	LighteningStorm = 0
+start
+	LighteningStorm = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_DRIZZLE at [Pos]
+	set LighteningStorm properties degrees 15 rainfall 0.2 snowfall 0 overcast 0.9 fallspeed 0
+	set LighteningStorm properties time 2000000 fade 10
+	set LighteningStorm properties clouds 6 shade 1.7 height 180
+	set LighteningStorm properties sheetmin 2 sheetmax 10 forkmin 2 forkmax 5
+	set LighteningStorm properties inner 200 outer 400
+	disable LighteningStorm affected by wind
+	wait until LighteningMeteorBroken==1
+	set LighteningStorm properties time 8 fade 12
+	wait 30 seconds
+end script Land4MeteoritesLighteningMeteorEffect
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script Land4MeteoritesDarknessMeteorEffect
+start
+	set game time 16.50
+	move game time 19.00 time 1000
+	wait 120 seconds
+	disable game time
+	wait until DarknessMeteorBroken==1
+	//set game time 12.00
+	enable game time
+end script Land4MeteoritesDarknessMeteorEffect
+
+//------------------------------------------------------------------------------------------------------------
+begin script ProtectWomanWalking(Woman, ResetPos)
+	PositionReset = 0
+	WomanDistance = 0
+start
+
+	while WomanNotNearMiserableBastard == 0
+		if Woman is HELD
+			wait until Woman is not HELD
+			PositionReset = 1
+		end if
+		
+		if Woman is FLYING
+			wait until Woman is not FLYING
+			PositionReset = 1
+		end if
+
+		if Woman in MyCreature hand
+			wait until Woman not in MyCreature hand
+			PositionReset = 1
+		end if
+		
+		while WomanNotNearMiserableBastard == 0 and PositionReset == 1
+			WomanDistance = get distance from [Woman] to [ResetPos]
+			if WomanDistance > 100
+				if Woman not in MyCreature hand and Woman is not HELD and Woman is not FLYING and Woman not viewed
+					set Woman position to [ResetPos]
+					PositionReset = 0
+				end if
+			else
+//				move Woman position to [ResetPos]
+				PositionReset = 0
+			end if
+		end while
+
+	end while
+
+end script ProtectWomanWalking
+
+//------------------------------------------------------------------------------------------------------------
+
+begin script WomanWalkingAroundTown(Woman)
+
+	Pos1 = marker at [3343.5378, 87.7700, 3080.7058] 
+	Pos2 = marker at [3324.6699, 87.2413, 3087.9221]
+	Pos3 = marker at [3312.3938, 87.7700, 3074.1284]
+start
+	SPEED of Woman = 0.1
+	move Woman position to [Pos1]
+
+	run background script ProtectWomanWalking(Woman, Pos2)
+	
+	while WomanNotNearMiserableBastard == 0
+		if [Woman] at [Pos1]
+			Woman play ANM_P_SITTING_DOWN1_INTO loop 1
+			wait until Woman played
+			Woman play ANM_P_SITTING_DOWN1_SITTING loop 4
+			wait until Woman played
+			Woman play ANM_P_SITTING_DOWN1_OUT_OF loop 1
+			wait until Woman played
+			move Woman position to [Pos2]
+			set Woman anim ANM_P_WALK_DESPAIR_AWAY_1
+		end if 
+		if [Woman] at [Pos2]
+			Woman play ANM_P_INSPECT_OBJECT_2 loop 1
+			wait until Woman played
+			move Woman position to [Pos3]
+			set Woman anim ANM_P_WALK_DESPAIR_AWAY_1
+		end if 
+		if [Woman] at [Pos3]
+			Woman play ANM_P_INTO_MOURNING loop 1
+			wait until Woman played
+			Woman play ANM_P_MOURNING loop 3
+			wait until Woman played
+			Woman play ANM_P_OUT_OF_MOURNING loop 1
+			wait until Woman played
+			move Woman position to [Pos1]
+			set Woman anim ANM_P_WALK_DESPAIR_AWAY_3
+		end if 
+	end while
+end script WomanWalkingAroundTown
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Land4Nomad
+	Nomad = 0
+	NomadShack = get HOUSE at [3053.3274, 131.9900, 2665.3174]
+	NomadShackInfluence = 0
+	Woman = 0
+	WomanPos = marker at [2924.591, 31.490, 2887.764] 
+	WomanShack = marker at [2931.025, 31.490, 2892.565] 
+	Highlight = 0
+	HighlightPos = marker at [2930.707, 31.490, 2875.430] 
+	Smoke = 0
+	NemesisPart = 0
+	Explosion = 0
+	Flash = 0
+	MeteorPos = marker at [2987.576, 103.180, 2614.510] 
+	Girlfriend = 0
+	GirlfriendStartPos	= marker at [3346.6599, 87.7700, 3094.6699]
+	OriginalCameraPos = 0
+	OriginalCameraFoc = 0
+	NomadOut = 0
+	FinishedGood = 0
+	OgreHighlightPos = marker at [1682.351, 20.770, 2841.488]
+start
+	NemesisPart = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_METEOR at [MeteorPos]						  
+	ALTITUDE of NemesisPart = 2
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of NemesisPart=0.3
+	enable NemesisPart indestructible
+	disable NemesisPart moveable
+	disable NemesisPart pickup
+		
+	Smoke = create special effect SPOT_VISUAL_BONFIRE at [MeteorPos] time 2000000
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke = 25
+
+	wait until StartLand4Nomad == 1
+
+	challenge LAND_4_NOMAD
+	Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+	run script ChallengeHighlightNotify(Highlight, HighlightPos , variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+
+	Woman = create VILLAGER AZTEC_HOUSEWIFE at [WomanShack]
+	Nomad = create VILLAGER NOMADE at [NomadShack]
+	set Nomad focus to [3045.923, 117.274, 2667.473] 
+	Nomad play ANM_P_MOURNING loop 2000000
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_03
+		
+		enable Woman high graphics detail	
+		move Woman position to [WomanPos]
+		move camera position to [2923.801, 32.326, 2883.931] time 6
+		move camera focus to [2951.975, 17.523, 3074.428] time 6
+		wait until [Woman] at [WomanPos]
+		set Woman focus to [2923.801, 32.326, 2883.931]
+
+		wait until camera ready
+			
+		Woman play ANM_P_GOSSIP_WOMAN_1 loop 3
+		
+//		"Oh mighty one, thank you for hearing my prayers."
+//		W/MAN:	Thank you for hearing my prayers.
+		say HELP_TEXT_NEW_L4_METEORITES_81				// DODGY - New enum
+		wait until read
+		set fade red 0 green 0 blue 0 time 2
+		wait until fade ready
+		close dialogue
+//		set camera position to [3049.728, 117.473, 2665.990] 
+//		set camera focus to [3103.754, 115.181, 2641.200]
+		set camera position to [3041.9519, 118.3002, 2668.7268] 
+		set camera focus to [3051.7390, 116.7286, 2665.0037]
+		set fade in time 2
+		wait until fade ready
+
+		// Nomad started
+		snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_107 StandardReminder(variable HELP_TEXT_REMINDER_100)
+		wait 0.1 seconds						// Make sure no text is in the snapshot
+
+//		"My friend and neighbour Knobbo is in great despair!"
+//		W/MAN:	My neighbour, Adam is a soul in torment.
+		say HELP_TEXT_NEW_L4_METEORITES_53
+		wait until read
+
+		move camera position to [3029.247, 118.342, 2675.391] time 10
+		move camera focus to [3083.273, 116.050, 2650.600] time 10
+
+//		"Keiko, his girlfriend has been taken back to the Aztec village by Nemesis."
+//		W/MAN:	Keiko, his wife has been taken to the Aztec Village by Nemesis.
+		say HELP_TEXT_NEW_L4_METEORITES_54
+		wait until read
+
+//		"He has said that she will live only while Knobbo's faith in him remains strong."
+//		W/MAN:	Nemesis keeps her alive only while Adam's faith in him remains.
+		say HELP_TEXT_NEW_L4_METEORITES_55
+		wait until read
+		close dialogue
+		wait until camera ready
+
+		move camera focus to [WomanPos] time 4
+		wait 2 seconds
+
+		move camera position to [2923.801, 32.326, 2883.931] time 6
+		move camera focus to [2951.975, 17.523, 3074.428] time 7
+		
+		wait until camera ready
+		Woman play ANM_P_GOSSIP_WOMAN_1 loop 3
+//		"Help him! Please rescue Keiko, and reunite her with Knobbo."
+//		W/MAN:	Please help them by rescuing Keiko and reuniting her with Adam.
+		say HELP_TEXT_NEW_L4_METEORITES_56
+		wait until read
+
+		move camera position to [2923.292, 35.810, 2880.492] time 5
+		move camera focus to [2924.672, 31.876, 2889.821] time 5
+		move Woman position to [WomanShack]
+
+		eject evil spirit
+//		"Hey boss! Wasn't he the one that was entrusted with a guardian stone?"
+//		EA:	Hey, Boss. Wasn't he the lonely guy with the Guardian Stone?
+		say HELP_TEXT_NEW_L4_METEORITES_57
+		wait until read
+//		"Let's kill him!"
+//		EA:	Let's kill him!
+		say HELP_TEXT_NEW_L4_METEORITES_58
+		wait until read
+		wait until camera ready	
+
+		disable Woman high graphics detail	
+		stop music
+	end cinema	 
+	Girlfriend = create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [GirlfriendStartPos] 
+	delete Woman
+	run background script WomanWalkingAroundTown(Girlfriend)
+
+	while WomanNotNearMiserableBastard == 0
+		if not Girlfriend exists or not HEALTH of Girlfriend > 0
+			stop script "WomanWalkingAroundTown, ProtectWomanWalking"
+			wait 2 seconds
+			WomanNotNearMiserableBastard=1
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			begin cinema
+				OriginalCameraPos = marker at camera position
+				OriginalCameraFoc = marker at camera focus
+				set camera position to [3042.120, 118.179, 2666.159] 
+				set camera focus to [3054.175, 115.438, 2665.525] 
+				enable Nomad high graphics detail
+				set Nomad position to [3047.538, 116.580, 2665.844] 
+				set Nomad focus to [3042.120, 118.179, 2666.159]
+				Nomad play ANM_P_MOURNING loop 2000
+				wait 2 seconds
+				set fade in time 1
+				wait until fade ready
+
+				// Nomad finished - Killed girlfriend
+				snapshot quest success 1 alignment -0.8 HELP_TEXT_TITLE_107 StandardReminder(variable HELP_TEXT_REMINDER_100)
+				wait 1 seconds
+				
+//				"You have killed my one true love."
+//				MAN:	You've killed my soulmate!
+				say HELP_TEXT_NEW_L4_METEORITES_59
+				wait until read
+//				"Nemesis promised to protect her, but he has failed me."
+//				MAN:	Nemesis promised to protect her. He has failed!
+				say HELP_TEXT_NEW_L4_METEORITES_60
+				wait until read
+//				"Take the stone. I have nothing to live for now."
+//				MAN:	Take the Stone. I've got no faith left in anything.
+				say HELP_TEXT_NEW_L4_METEORITES_61
+				wait until read
+				
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				disable Nomad high graphics detail
+				FinishedGood=0
+			end cinema
+		end if
+
+		if not Nomad exists	or not HEALTH of Nomad > 0
+			stop script "WomanWalkingAroundTown, ProtectWomanWalking"
+			wait 2 seconds
+			WomanNotNearMiserableBastard=1
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			begin cinema
+				OriginalCameraPos = marker at camera position
+				OriginalCameraFoc = marker at camera focus
+				Woman = create VILLAGER AZTEC_HOUSEWIFE at [WomanPos]
+				enable Woman high graphics detail
+				set camera position to [2923.801, 32.326, 2883.931]
+				set camera focus to [2951.975, 17.523, 3074.428]
+				set Woman focus to [2923.801, 32.326, 2883.931]
+
+				Woman play ANM_P_MOURNING loop 5
+			
+				wait 2 seconds
+				set fade in time 1
+				wait until fade ready
+
+				// Nomad finished - Killed Nomad
+				snapshot quest success 1 alignment 0 HELP_TEXT_TITLE_107 StandardReminder(variable HELP_TEXT_REMINDER_100)
+				wait 1 seconds
+
+//				"Noooooo!!! My neighbour is dead!"
+//				FRIEND:	My neighbour lies dead.
+				say HELP_TEXT_NEW_L4_METEORITES_62
+				wait until read
+//				"You are indeed a cruel God."
+//				FRIEND:	You are as cruel as Nemesis. Are all gods like this?
+				say HELP_TEXT_NEW_L4_METEORITES_63
+				wait until read
+			
+				eject evil spirit
+//					"Neat Boss. With that guy out of the way,"
+//					EA:	Boss, that guy's out of the way.
+					say HELP_TEXT_NEW_L4_METEORITES_64
+					wait until read
+//					"that stone isn't under Nemesis' influence any longer."
+//					EA:	And the Stone isn't under Nemesis' influence any longer.
+					say HELP_TEXT_NEW_L4_METEORITES_65
+					wait until read
+				send evil spirit home
+
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				NomadShackInfluence=create influence at [Woman] radius 200
+				disable Woman high graphics detail
+				FinishedGood=0
+			end cinema
+			release Woman
+		end if
+
+		if [Girlfriend] near [Nomad] radius 50 and Girlfriend is not HELD and Girlfriend not in MyCreature hand and NomadOut == 1 and Nomad is not HELD and Girlfriend is not FLYING and Nomad is not FLYING
+			stop script "WomanWalkingAroundTown, ProtectWomanWalking"
+			disable Girlfriend pickup
+			disable Nomad pickup
+			WomanNotNearMiserableBastard=1
+
+			set fade red 0 green 0 blue 0 time 1
+			wait until fade ready
+			begin cinema
+				start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+				OriginalCameraPos = marker at camera position
+				OriginalCameraFoc = marker at camera focus
+				set Nomad position to [3050.494, 116.423, 2672.348] 
+				set Girlfriend position to [3051.482, 116.452, 2671.938] 
+				set Nomad focus to [Girlfriend]
+				set Girlfriend focus to [Nomad]
+				set camera position to [3050.887, 117.356, 2676.118] 
+				set camera focus to [3051.313, 117.206, 2666.435] 
+				enable Nomad high graphics detail
+				enable Girlfriend high graphics detail
+				wait 2 seconds
+				set fade in time 1
+				wait until fade ready
+				wait 1 second
+				
+				Nomad play ANM_P_DANCE_PISS_TAKE_ loop 1
+				Girlfriend play ANM_P_DANCE_PISS_TAKE_ loop 1
+
+				// Nomad finished - reunited both
+				snapshot quest success 1 alignment 0.8 HELP_TEXT_TITLE_107 StandardReminder(variable HELP_TEXT_REMINDER_100)
+				challenge LAND_4_METEORITES
+
+				wait until Nomad played
+				wait until Girlfriend played
+
+				Nomad play ANM_P_HUG loop 1
+				Girlfriend play ANM_P_HUG loop 1
+				wait until Nomad played
+				wait until Girlfriend played
+
+				set Nomad focus to camera position
+				set Girlfriend focus to camera position 
+				wait 1 second
+
+				Nomad play ANM_P_GOSSIP_MAN loop 6
+//				"Thank you! Thank you!"
+//				MAN:	Oh how can I ever, ever thank you!
+				say HELP_TEXT_NEW_L4_METEORITES_66
+				wait 0.5 seconds
+				Girlfriend play ANM_P_AMBIENT2 loop 6
+				wait until read
+//				"We are together again!"
+//				W/MAN:	We're together again! I can't believe it.
+				say HELP_TEXT_NEW_L4_METEORITES_67
+				wait until read
+//				"You are truly a great God! I have a reason to live!"
+//				MAN:	You are a magnificent god! I have a reason to live!
+				say HELP_TEXT_NEW_L4_METEORITES_68
+				wait until read
+
+				SPEED of Nomad = 0.2
+				SPEED of Girlfriend = 0.15
+
+				move Nomad position to [3048.388, 116.580, 2666.079] 
+				wait 0.5 seconds
+				move Girlfriend position to [3048.388, 116.580, 2666.079] 
+
+				move camera position to [3034.084, 122.198, 2684.148] time 6
+				move camera focus to [3054.761, 116.752, 2660.661] time 4
+				
+				wait until [Nomad] near [3048.388, 116.580, 2666.079] radius 1
+				move Nomad position to [NomadShack]
+				wait until [Girlfriend] near [3048.388, 116.580, 2666.079] radius 1
+				move Girlfriend position to [NomadShack]
+				wait until camera ready
+
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				disable Nomad high graphics detail
+				disable Girlfriend high graphics detail
+				FinishedGood=1
+				stop music
+			end cinema
+		elsif [Girlfriend] near [Nomad] radius 50 and NomadOut == 0
+			move Nomad position to [3045.698, 116.148, 2667.821] 
+			NomadShackInfluence=create influence at [Nomad] radius 50
+			wait until [Nomad] near [3045.698, 116.148, 2667.821] radius 1
+			Nomad play ANM_P_ATTRACT_YOUR_ATTENTION loop 20000
+			NomadOut = 1
+		end if 
+	end while
+	
+	
+	delete Nomad
+	delete Girlfriend
+		
+	begin cinema
+		OriginalCameraPos = marker at camera position
+		OriginalCameraFoc = marker at camera focus
+		set camera position to [2995.429, 109.354, 2620.116] 
+		set camera focus to [NemesisPart]
+		
+		wait 2 seconds
+		set fade in time 1
+		wait until fade ready
+		
+		if FinishedGood == 1
+			eject good spirit
+			make good spirit point at [NemesisPart]
+//			"Look! The renewed faith of that man meant we can get the guardian stone."
+//			GA:	Look! The newfound faith of this man has freed the Guardian Stone.
+			say HELP_TEXT_NEW_L4_METEORITES_69
+			wait until read
+			close dialogue
+			send good spirit home
+		else
+			eject evil spirit
+			make evil spirit point at [NemesisPart]
+//			"Ha! Killing is the best way of getting influence in life."
+//			EA:	Ha! Killing. It's the answer to everything. Eh, beardy?
+			say HELP_TEXT_NEW_L4_METEORITES_70
+			wait until read
+//			"They are so scared of you, you got access to the stone."
+//			EA:	Never underestimate death. And fear. And agony.
+			say HELP_TEXT_NEW_L4_METEORITES_71
+			wait until read
+			close dialogue
+			send evil spirit home
+		end if 
+		wait 1 seconds
+		start music MUSIC_TYPE_SCRIPT_GUARDIAN_STONES
+		shake camera at [NemesisPart] radius 300.0 amplitude 0.1 time 5
+		set camera focus follow NemesisPart
+		while get ALTITUDE of NemesisPart < 20
+			ALTITUDE of NemesisPart+=0.1
+		end while
+		Explosion = create special effect SPOT_VISUAL_BANG at [NemesisPart] time 6
+		Flash = create special effect SPOT_VISUAL_FLASH at [NemesisPart] time 6
+		delete NemesisPart with explode
+		start sound LH_SCRIPT_SAMPLE_GUARDIANSTONEEXPLODE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+
+		wait 2 seconds
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera position to [2731.452, 123.538, 2623.491] 
+		set camera focus to [2806.905, 161.590, 2756.710] 
+		set fade in time 1
+		wait until fade ready
+		enable game time
+		move game time 12.00 time 200
+		wait 10 seconds
+		eject good spirit
+		eject evil spirit
+//		"Look! The sky!"
+//		GA:	The sky! It's turning back to normal!
+		say HELP_TEXT_NEW_L4_METEORITES_72
+		wait until read
+//		"Its turning back to its normal colour!"
+//		EA:	Personally I like it before.
+		say	HELP_TEXT_NEW_L4_METEORITES_82
+		wait until read
+		wait 3 seconds
+		send good spirit home 
+		send evil spirit home
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		close dialogue
+		set camera position to [OriginalCameraPos]
+		set camera focus to [OriginalCameraFoc]		
+		set fade in time 1
+		wait until fade ready
+		DarknessMeteorBroken = 1
+		stop music
+	end cinema
+	//Get rid of the smoke.
+	delete Smoke
+
+	if OgreDefeated == 0
+		challenge LAND_4_OGRE
+		// Create Ogre Script Reminder Scroll
+		OgreHighlight = create highlight HIGHLIGHT_QUEST at [OgreHighlightPos]
+		enable OgreHighlight active 
+		ALTITUDE of OgreHighlight = 10
+		challenge LAND_4_METEORITES
+	end if
+
+end script Land4Nomad
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script HighlightTower(Tower)
+Explosion = 0
+start	
+	Explosion = create special effect SPOT_VISUAL_OBJECT_APPEAR at [Tower] time 2
+end script HighlightTower
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script SeeWhichTowerClickedOn(T1, T2, T3, T4, T5, Time)
+Finished = 0
+Timer = 0
+start
+	TowerClicked = 0
+	Timer = create timer for Time seconds
+	clear clicked object
+	while Finished == 0 and get Timer time remaining > 0
+		if T1 clicked
+			TowerClicked = 1
+			Finished = 1
+			run script HighlightTower(T1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [T1]
+		elsif T2 clicked
+			TowerClicked = 2
+			Finished = 1
+			run script HighlightTower(T2)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [T2]
+		elsif T3 clicked
+			TowerClicked = 3
+			Finished = 1
+			run script HighlightTower(T3)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [T3]
+		elsif T4 clicked
+			TowerClicked = 4
+			Finished = 1
+			run script HighlightTower(T4)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [T4]
+		elsif T5 clicked
+			TowerClicked = 5
+			Finished = 1
+			run script HighlightTower(T5)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [T5]
+		end if
+	end while
+	clear clicked object
+end script SeeWhichTowerClickedOn
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script Land4Puzzle
+	Smoke = 0
+	NemesisPart = 0
+	MeteorPos =  marker at [2519.1875, 34.8950, 3081.4050]
+	PuzzleShield1 = 0
+	PuzzleShield2 = 0
+	Explosion = 0
+	Flash = 0
+
+	BellTower1 = 0
+	BellTower1Pos = marker at [2538.989, 34.840, 3076.031] 
+	BellTower2 = 0
+	BellTower2Pos = marker at [2539.545, 34.840, 3085.679] 
+	BellTower3 = 0
+	BellTower3Pos = marker at [2534.248, 34.840, 3096.156] 
+	BellTower4 = 0
+	BellTower4Pos = marker at [2523.743, 34.727, 3101.693] 
+	BellTower5 = 0
+	BellTower5Pos = marker at [2510.944, 35.267, 3102.708] 
+
+	Highlight = 0
+	HighlightPos = marker at [2542.824, 34.840, 3109.667] 
+	
+	Finished = 0
+	Level = 0
+	BeamExplosion = 0 
+
+	IntroSeen = 0
+	OutroSeen = 0
+	OwnJapaneseTown = 0
+
+	TownElder = 0
+	TownElderStartPos = marker at [2530.725, 34.840, 3094.833] 
+	TownElderWaypoint = marker at [2535.853, 34.840, 3090.168] 
+	TownElderEndPos = marker at [2554.051, 34.840, 3099.077] 
+	TownElderTalkPos = marker at [2545.396, 34.840, 3095.092] 
+	
+	TownElderLostPos = marker at [2547.810, 34.840, 3103.340] 
+start
+	NemesisPart = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_METEOR at [MeteorPos]						  
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of NemesisPart=0.3
+	ALTITUDE of NemesisPart = 2
+
+	enable NemesisPart indestructible
+	disable NemesisPart moveable
+	disable NemesisPart pickup
+	
+	Smoke = create special effect SPOT_VISUAL_BONFIRE at [MeteorPos] time 2000000
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke = 25
+	PuzzleShield1 = cast SPELL_PHYSICAL_SHIELD spell at [MeteorPos] from [MeteorPos] radius 15.0 time -1 curl 0
+	PuzzleShield2 = cast SPELL_SHIELD spell at [MeteorPos] from [MeteorPos] radius 7.0 time -1 curl 0
+	
+	BellTower1 = create with angle 340.0 and scale 1 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_BELLTOWER at [BellTower1Pos]
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of BellTower1 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of BellTower1
+	BellTower2 = create with angle 10.0 and scale 1 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_BELLTOWER at [BellTower2Pos]
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of BellTower2 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of BellTower2
+	BellTower3 = create with angle 50.1 and scale 1 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_BELLTOWER at [BellTower3Pos]
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of BellTower3 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of BellTower3
+	BellTower4 = create with angle 80.1 and scale 1 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_BELLTOWER at [BellTower4Pos]
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of BellTower4 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of BellTower4
+	BellTower5 = create with angle 100.1 and scale 1 SCRIPT_OBJECT_TYPE_TOTEM ABODE_INFO_BELLTOWER at [BellTower5Pos]
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of BellTower5 = SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of BellTower5
+
+	disable BellTower1 pickup
+	disable BellTower2 pickup
+	disable BellTower3 pickup
+	disable BellTower4 pickup
+	disable BellTower5 pickup
+
+	while OwnJapaneseTown == 0
+		if get PLAYER of JapaneseTown == 1
+			OwnJapaneseTown = 1
+		end if
+		if JapaneseTown not exists						// Town Destroyed
+			OwnJapaneseTown = 1
+		end if
+		if size of JapaneseTown == 0					// People all dead
+			OwnJapaneseTown = 1
+		end if
+
+		wait 10 seconds
+	end while
+
+	while Finished == 0 
+		challenge LAND_4_TOTEM_PUZZLE
+		Highlight = create highlight HIGHLIGHT_QUEST at [HighlightPos]
+		run script ChallengeHighlightNotify(Highlight, HighlightPos , variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+		delete Highlight
+
+		if IntroSeen == 0
+			begin cinema 
+				start music MUSIC_TYPE_SCRIPT_GENERIC_01
+
+				move camera position to [2557.479, 37.192, 3101.230] time 4
+				move camera focus to [2546.906, 32.192, 3094.176] time 4
+				TownElder = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [TownElderStartPos]
+				enable TownElder high graphics detail		
+				SPEED of TownElder = 0.4
+				move TownElder position to [TownElderWaypoint]
+				wait until [TownElder] near [TownElderWaypoint] radius 1
+				move TownElder position to [TownElderEndPos]
+				wait until [TownElder] near [TownElderEndPos] radius 1
+				wait 0.5 seconds
+				set TownElder focus to [2557.479, 37.192, 3101.230]
+				TownElder play ANM_P_PRAY loop 1
+				wait until TownElder played
+				TownElder play ANM_P_OUT_OF_PRAY loop 1
+				wait until TownElder played
+				TownElder play ANM_P_GOSSIP_MAN loop -1
+		
+//				"Hail, O' mighty leader."
+//				MAN:	Hail, spiritual leader!
+				say HELP_TEXT_NEW_L4_METEORITES_44
+				wait until read
+//				"I am a village elder.  I was trying to learn the secrets of these towers."
+//				MAN:	I am the Village elder. I have tried to learn the secrets of the bell towers.
+				say HELP_TEXT_NEW_L4_METEORITES_45
+				wait until read
+
+				SPEED of TownElder = 0.2
+				move TownElder position to [TownElderTalkPos]
+				set TownElder anim ANM_P_WALK_BECKON02
+				wait 2 seconds
+				
+				move camera position to [2556.558, 49.233, 3111.082]  time 4
+				move camera focus to [2523.806, 35.163, 3086.001] time 4
+				//move camera position to [2561.056, 49.233, 3092.420] time 4
+				//move camera focus to [2549.090, 45.083, 3090.214] time 4
+//				"But I have had no luck.  Maybe you could solve the puzzle."
+//				MAN:	But they are too much for my old brain. Perhaps you could solve the puzzle.
+				say HELP_TEXT_NEW_L4_METEORITES_46
+				wait until read
+//				"For I am sure it must reveal great knowledge."
+//				MAN:	The rewards are surely worth the effort. But you must first gain influence over them.
+//				HELP_TEXT_NEW_L4_METEORITES_47	// WRONG - Remove line, not needed any more
+//				wait until read
+//				"Good luck!"
+//				MAN:	Good luck. I'll be praying for you.
+				say HELP_TEXT_NEW_L4_METEORITES_48
+				wait until read
+
+				close dialogue
+				wait 0.1 seconds
+
+				// Simon Says start
+				snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_109 StandardReminder(variable HELP_TEXT_NEW_L4_METEORITES_50)
+				disable TownElder high graphics detail
+				delete TownElder
+				stop music
+			end cinema
+			IntroSeen = 1
+			StartLand4Nomad = 1
+		else
+			begin cinema
+				move camera position to [2556.558, 49.233, 3111.082]  time 4
+				move camera focus to [2523.806, 35.163, 3086.001] time 4
+				eject evil spirit
+				say single line HELP_TEXT_NEW_L4_METEORITES_50
+				wait until read
+			end cinema
+		end if
+
+		Level = 1
+		KeepQuiet = 1
+
+		run script HighlightTower(BellTower1)		
+		start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+		wait 1 seconds
+		
+		run script HighlightTower(BellTower2) 
+		start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+		wait 1 seconds
+
+		run script HighlightTower(BellTower3) 
+		start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+		wait 1 seconds
+	
+		run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 10)
+		if TowerClicked == 1
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)		
+			if TowerClicked == 2
+				run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)	
+				if TowerClicked == 3
+					start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at camera position
+					wait 3 seconds
+					Level = 2
+				end if
+			end if
+		end if 
+
+		if Level == 2
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			run script HighlightTower(BellTower3) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+			wait 1 seconds
+			run script HighlightTower(BellTower5) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower5]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 10)
+			if TowerClicked == 1
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)		
+				if TowerClicked == 2
+					run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)	
+					if TowerClicked == 3
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)
+						if TowerClicked == 5
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)
+							if TowerClicked == 2
+								start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at camera position
+								wait 3 seconds
+								Level = 3
+							end if 
+						end if
+					end if
+				end if
+			end if 
+		end if 
+
+		if Level == 3
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			run script HighlightTower(BellTower3) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+			wait 1 seconds
+			run script HighlightTower(BellTower5) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower5]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			run script HighlightTower(BellTower3) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+			wait 1 seconds
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			
+			
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 5)
+			if TowerClicked == 1
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)		
+				if TowerClicked == 2
+					run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)	
+					if TowerClicked == 3
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)
+						if TowerClicked == 5
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)
+							if TowerClicked == 2
+								run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)
+								if TowerClicked == 3
+									run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)
+									if TowerClicked == 1
+										start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at camera position
+										wait 3 seconds
+										Level = 4					
+									end if 
+								end if 
+							end if 
+						end if
+					end if
+				end if
+			end if 
+		end if 
+
+		if Level == 4
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			run script HighlightTower(BellTower3) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+			wait 1 seconds
+			run script HighlightTower(BellTower5) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_05 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower5]
+			wait 1 seconds
+			run script HighlightTower(BellTower2) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_02 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower2]
+			wait 1 seconds
+			run script HighlightTower(BellTower3) 
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_03 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower3]
+			wait 1 seconds
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			run script HighlightTower(BellTower4)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_04 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower4]
+			wait 1 seconds
+			run script HighlightTower(BellTower1)
+			start sound LH_SCRIPT_SAMPLE_SIMONBELL_01 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [BellTower1]
+			wait 1 seconds
+			
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 3)
+			if TowerClicked == 1
+			run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)		
+				if TowerClicked == 2
+					run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)	
+					if TowerClicked == 3
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+						if TowerClicked == 5
+						run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+							if TowerClicked == 2
+								run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+								if TowerClicked == 3
+									run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+									if TowerClicked == 1
+										run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+										if TowerClicked == 4
+											run script SeeWhichTowerClickedOn(BellTower1, BellTower2, BellTower3, BellTower4, BellTower5, 2)
+											if TowerClicked == 1
+												start sound LH_SCRIPT_SAMPLE_STONE8 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at camera position
+												wait 3 seconds
+												Level = 5
+											end if
+										end if 
+									end if 
+								end if 
+							end if 
+						end if
+					end if
+				end if
+			end if 
+		end if 
+
+		if Level == 5
+			BeamExplosion = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [BellTower1] time 2
+			BeamExplosion = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [BellTower2] time 2
+			BeamExplosion = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [BellTower3] time 2
+			BeamExplosion = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [BellTower4] time 2
+			BeamExplosion = create special effect SPOT_VISUAL_BEAM_EXPLOSION_FX at [BellTower5] time 2
+			wait 1 seconds
+			delete BellTower1 with explode
+			delete BellTower2 with explode
+			delete BellTower3 with explode
+			delete BellTower4 with explode
+			delete BellTower5 with explode
+			Finished =  1
+		else
+			start sound LH_SCRIPT_SAMPLE_BADSTONE3 AUDIO_SFX_BANK_TYPE_SCRIPT_SFX at [HighlightPos]	
+			if OutroSeen == 0
+				begin cinema
+					move camera position to [2551.367, 36.103, 3099.958] time 4
+					move camera focus to [2521.679, 32.398, 3129.030] time 4
+					TownElder = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [TownElderLostPos]
+					enable TownElder high graphics detail
+					wait 0.5 seconds
+					set TownElder focus to [2551.367, 36.103, 3099.958]
+					TownElder play ANM_P_GOSSIP_MAN loop -1
+					// Thats the same problem I had
+					say HELP_TEXT_NEW_L4_PUZZLE_01
+					wait until read
+					// You'll get the hang of it, though
+					say HELP_TEXT_NEW_L4_PUZZLE_02
+					wait until read
+					move camera position to [2552.217, 36.524, 3111.527] time 4
+					move camera focus to [2520.529, 33.251, 3104.320] time 4
+					// To have another go, activate the scoll again
+					say HELP_TEXT_NEW_L4_PUZZLE_03
+					wait until read
+					wait until camera ready
+					disable TownElder high graphics detail
+					delete TownElder
+				end cinema
+				OutroSeen = 1
+			else
+				begin dialogue
+					eject evil spirit
+					// Oh oh! Looks like you messed it up!
+					say single line HELP_TEXT_NEW_L4_PUZZLE_04
+					wait until read
+				end dialogue
+			end if 
+			KeepQuiet = 0
+		end if
+ 	end while
+
+	//TotemPuzzle = create with angle 0 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TOTEM_3 at [MeteorPos]
+	//wait until TotemPuzzle played
+
+	challenge LAND_4_TOTEM_PUZZLE
+	// Totem Puzzle finished
+	update snapshot success 1 alignment 0 HELP_TEXT_TITLE_109 StandardReminder(variable HELP_TEXT_REMINDER_102)
+	challenge LAND_4_METEORITES
+
+	delete PuzzleShield1
+	delete PuzzleShield2
+
+	// Make sure the fireballs are switched on for the cutscene
+	ForceMeteorWaveActive = 1
+
+	wait 2 seconds 
+	begin cinema
+		move camera position to [2538.784, 35.902, 3101.461] time 6
+		move camera focus to [NemesisPart] time 4
+		wait until camera ready
+		wait 2 seconds
+		
+		eject good spirit
+		make good spirit point at [NemesisPart]
+//		"Well done! You solved the puzzle, and got the Guardian Stone."
+//		GA:	You solved the puzzle and got the Guardian Stone!
+		say HELP_TEXT_NEW_L4_METEORITES_73
+		wait until read
+		send good spirit home
+
+		start music MUSIC_TYPE_SCRIPT_GUARDIAN_STONES
+		shake camera at [NemesisPart] radius 300.0 amplitude 0.1 time 5
+		set camera focus follow NemesisPart
+		while get ALTITUDE of NemesisPart < 20
+			ALTITUDE of NemesisPart+=0.1
+		end while
+		Explosion = create special effect SPOT_VISUAL_BANG at [NemesisPart] time 6
+		Flash = create special effect SPOT_VISUAL_FLASH at [NemesisPart] time 6
+		delete NemesisPart with explode
+		start sound LH_SCRIPT_SAMPLE_GUARDIANSTONEEXPLODE AUDIO_SFX_BANK_TYPE_SCRIPT_SFX
+		
+		
+//		"Whow! That part of nemesis. It exploded!"
+//		EA:	That part of Nemesis just got vapourised.
+		say HELP_TEXT_NEW_L4_METEORITES_74				
+		wait until read
+
+		close dialogue
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera position to [2261.391, 31.504, 2616.764] 
+		set camera focus to [2147.668, 71.951, 2665.867] 
+		set fade in time 1
+		wait until fade ready
+		wait 2 seconds
+		FireMeteorBroken = 1
+		KeepQuiet = 0
+		wait 9 seconds
+
+		eject evil spirit
+//		"The fireballs! They're not raining down any more."
+//		EA:	Where are the fireballs? They've stopped!
+		say HELP_TEXT_NEW_L4_METEORITES_75
+		wait until read
+//		"Maybe we should search out the other Guardian Stones?"
+//		EA:	Maybe we should seek the other Guardian Stones?
+		say HELP_TEXT_NEW_L4_METEORITES_76	
+		wait until read
+		send evil spirit home
+		stop music
+	end cinema
+	ForceMeteorWaveActive = 0
+	delete Smoke
+end script Land4Puzzle
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterTotem(Totem)
+PreviousHeight = 0
+CreatureDistance = 0
+CreatureRaise = 0
+Dust = 0
+start
+	MyCreature = get player 1 creature
+	while TotemsBothPulledUp == 0
+		PreviousHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem
+		if MyCreature exists 
+			CreatureDistance = get distance from [MyCreature] to [Totem]
+			if CreatureDistance < 50
+				if SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem > 90
+					CreatureRaise = 1
+				end if
+				if CreatureRaise == 1 and SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem == 0
+					MyCreature = get player 1 creature
+					force MyCreature CREATURE_RAISE_TOTEM_POLE Totem
+					wait until MyCreature played
+					wait until SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem == SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of Totem
+					release MyCreature
+					CreatureRaise = 0
+				end if
+			end if
+			if SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem > 0 and SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem <= PreviousHeight
+				if not Totem locked interaction
+					SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem -= 0.00005															
+				end if
+				Dust = create special effect SPOT_VISUAL_SMOKE at [Totem] time 3
+				SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 7.0							
+			end if
+		end if
+	end while
+end script LookAfterTotem
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterTotems
+SkeletonMan = 0
+CreedInfluence = 0
+CreedPos = marker at [2694.475, 138.659, 2594.948]
+Dust = 0
+start
+	TotemsBothPulledUp = 0
+	MyCreature = get player 1 creature
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem1 -= 0.00005
+	SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem2 -= 0.00005
+	run background script LookAfterTotem(Totem1)
+	run background script LookAfterTotem(Totem2)
+	while TotemsBothPulledUp == 0
+		if SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem1 == SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of Totem1 and SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of Totem2 == SCRIPT_OBJECT_PROPERTY_TYPE_MAX_HEIGHT of Totem2
+			TotemsBothPulledUp = 1
+		end if
+	end while
+
+	SkeletonMan = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3006.458, 11.390, 3462.335] 
+	//SkeletonMan = create VILLAGER VILLAGER_INFO_AZTEC_FARMER_MALE at [3011.054, 11.390, 3459.639]
+	enable SkeletonMan skeleton
+	set SkeletonMan focus to [3014.625, 12.228, 3457.634]
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_EPIC_02
+		enable SkeletonMan high graphics detail
+		move camera position to [3014.625, 12.228, 3457.634] time 6
+		move camera focus to [2954.751, 10.394, 3488.584] time 6
+		wait 4 seconds
+		move SkeletonMan position to [3011.054, 11.390, 3459.639]
+		wait until camera ready
+		SkeletonMan play ANM_P_YANKED_UNDERGROUND2 loop 1
+		Dust = create special effect SPOT_VISUAL_SMOKE at [SkeletonMan] time 5
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Dust = 16
+		wait until SkeletonMan played 
+		disable UndeadTown skeleton
+		disable SkeletonMan skeleton
+		SkeletonMan play ANM_P_DROWNING loop 1
+		wait until SkeletonMan played 
+		SkeletonMan play ANM_P_OUT_OF_MOURNING loop 1
+		wait until SkeletonMan played 
+
+		wait 2 seconds
+		SkeletonMan play ANM_P_AMBIENT2 loop -1
+//		MAN:	We owe you everything.
+		say HELP_TEXT_NEW_L4_METEORITES_77
+		wait until read
+//		MAN:	We can tell you where the Creed you need can be found.
+		say HELP_TEXT_NEW_L4_METEORITES_79
+		wait until read
+//		MAN:	The Creed lies in the body of the one you knew as the Guide.
+		say HELP_TEXT_NEW_L4_METEORITES_78
+		wait until read
+		close dialogue
+
+		CreedL4 = create SCRIPT_OBJECT_TYPE_MOBILE_OBJECT MOBILE_OBJECT_INFO_CREED at [CreedPos]						  		
+		CreedInfluence = create anti influence on CreedL4 radius 30
+
+		set fade red 0 green 0 blue 0 time 1
+		wait until fade ready
+		set camera to T07_000
+		set fade in time 1
+		wait until fade ready
+		wait 2 seconds
+		camera path TRACK07
+		wait until camera ready
+
+		challenge LAND_4_UNDEAD_VILLAGE
+		// Undead Village finished - Might need to be placed elsewhere
+		snapshot quest success 1 alignment 0 HELP_TEXT_TITLE_108 StandardReminder(variable HELP_TEXT_REMINDER_101)
+		challenge LAND_4_METEORITES
+		delete UndeadHighlight
+
+		// Make the undead town killable
+		disable UndeadTown indestructible
+		stop music
+		disable SkeletonMan high graphics detail
+	end cinema
+
+	release MyCreature
+	PlayerSavedUndeadTown = 1
+
+end script LookAfterTotems
+
+
+			

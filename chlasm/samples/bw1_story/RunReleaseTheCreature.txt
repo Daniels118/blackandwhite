@@ -1,0 +1,12 @@
+challenge RunReleaseTheCreature
+
+run script RunReleaseTheCreature
+
+begin script RunReleaseTheCreature
+	
+start
+	
+	run script ReleaseTheCreature
+	
+
+end script RunReleaseTheCreature

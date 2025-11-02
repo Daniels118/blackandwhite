@@ -1,0 +1,12 @@
+challenge RunCreatureBreederLand5
+
+run script RunCreatureBreederLand5
+
+begin script RunCreatureBreederLand5
+	
+start
+	
+	run script RunCreatureBreederLand(5)
+	
+
+end script RunCreatureBreederLand5

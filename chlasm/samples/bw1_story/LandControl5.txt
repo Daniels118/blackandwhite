@@ -1,0 +1,2223 @@
+challenge LandControl5
+
+//run script LandControl5
+global NemesisStillFighting
+global CreatureFinishedChanging
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script FindCirclePointDust(Centre, OuterCentre, Radius, Degrees, Offset)
+Position  = marker at [0, 0, 0]
+Dust = 0
+//TCentre = marker at [Centre]
+start
+	Position = marker at get target from [OuterCentre] to [Centre] distance Radius angle Degrees
+	SCRIPT_OBJECT_PROPERTY_TYPE_YPOS of Position = -5
+	Dust = create special effect SPOT_VISUAL_MAGIC_BEAM at [Position] time 8
+	add Dust target at [Position] + [number from - 2 to 2, 100, number from -2 to 2]
+end script FindCirclePointDust
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script LookAfterDust(DestHeight)
+Centre = marker at [2208.199, 36.405, 2658.479] 
+Centre2 = marker at [2218.199, 36.405, 2658.479] 
+Angle1 = 0
+Angle2 = 180
+Angle3 = 90
+Angle4 = 270
+Height = 0
+Radius = 10
+start
+	while CreatureFinishedChanging == 0
+		run script FindCirclePointDust(Centre, Centre2, Radius, Angle1, Height)
+		run script FindCirclePointDust(Centre, Centre2, Radius, Angle2, Height)
+		run script FindCirclePointDust(Centre, Centre2, Radius, Angle3, Height)
+		run script FindCirclePointDust(Centre, Centre2, Radius, Angle4, Height)
+		
+		if (Height < DestHeight)
+			Height += 1
+		end if 
+
+		if (Radius > 1)
+			Radius -= 0.5
+		end if 
+
+		Angle1 += 10
+		Angle2 += 10
+		Angle3 += 10
+		Angle4 += 10
+
+		if Angle1 > 360
+			Angle1 = 0
+		end if 
+		if Angle2 > 360
+			Angle2 = 0
+		end if 
+		if Angle3 > 360
+			Angle3 = 0
+		end if 
+		if Angle4 > 360
+			Angle4 = 0
+		end if 
+	end while
+end script LookAfterDust
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script ReturnCreatureBackToNormal(DestStrength, DestSize, DestAlignment)
+StrengthReturned = 0
+SizeReturned = 0
+AlignmentReturned = 0
+start
+	MyCreature = get player 1 creature
+	SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature = DestAlignment
+	AlignmentReturned = 1
+	while StrengthReturned == 0 or SizeReturned == 0 or AlignmentReturned == 0
+		if (SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature < DestStrength)
+			if ((SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature + 0.1) > DestStrength)
+			   SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature = DestStrength
+			   StrengthReturned = 1
+			else
+				SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature += 0.1
+			end if 
+		else
+			if ((SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature - 0.1) < DestStrength)
+			   SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature = DestStrength
+			   StrengthReturned = 1
+			else
+				SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature -= 0.1
+			end if 
+		end if
+
+		if (SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature < DestSize)
+			if ((SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature + 0.5) > DestSize)
+			   SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature = DestSize
+			   SizeReturned = 1
+			else
+				SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature += 0.5
+			end if 
+		else
+			if ((SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature - 0.5) < DestSize)
+			   SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature = DestSize
+			   SizeReturned = 1
+			else
+				SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature -= 0.5
+			end if 				
+		end if
+
+	end while
+end script ReturnCreatureBackToNormal
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script OpenWindow(OnLeft)
+start
+	if OnLeft == 1
+		set clipping window across 0.1 down 0.2 width 0.4 height 0.6 time 0.5		
+	else
+		set clipping window across 0.5 down 0.2 width 0.4 height 0.6 time 0.5				
+	end if
+	
+	wait 0.5 seconds
+	set fade in time 2
+	wait 3 seconds
+end script OpenWindow
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script CloseWindow
+start
+	fade all draw text time 3 seconds
+	wait 2 seconds
+	set fade red 0 green 0 blue 0 time 2
+	wait 3 seconds
+	clear clipping window time 0.5
+	wait 0.5 seconds
+end script CloseWindow
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script VillageWavingSequence
+PiedPiperPos = marker at [2960.794, 14.018, 3419.506]  
+PiedPiper = 0
+
+MonkPos = marker at [2964.104, 13.795, 3419.417] 
+Monk = 0
+
+IdolBuilderPos = marker at [2963.460, 13.840, 3418.326] 
+IdolBuilder = 0
+
+HermitPos = marker at [2964.812, 13.748, 3418.920] 
+Hermit = 0
+
+HippyPos = marker at [2963.001, 13.871, 3417.654] 
+Hippys = 0
+
+PriestPos = marker at [2964.850, 13.745, 3419.750] 
+Priest = 0
+
+PriestessPos = marker at [2965.630, 13.693, 3419.712] 
+Priestess = 0
+
+MarauderPos = marker at [2966.324, 13.649, 3419.353] 
+Marauder = 0
+
+
+EngineerPos = marker at [2962.250, 13.921, 3417.973] 
+Engineer = 0
+
+ShephardPos = marker at [2961.492, 13.971, 3418.550] 
+Shephard = 0
+
+NomadPos = marker at [2966.430, 13.620, 3420.318] 
+Nomad = 0
+
+AztecLeaderPos = marker at [2965.972, 13.549, 3421.837] 
+AztecLeader = 0
+
+CreatureTrainerPos = marker at [2963.234, 13.855, 3419.766] 
+CreatureTrainer = 0
+
+SailorPos = marker at [2966.967, 13.533, 3421.092] 
+Sailor = 0
+
+BreederPos = marker at [2960.002, 14.130, 3419.132] 
+Breeder = 0
+
+HealerPos = marker at [2960.526, 14.143, 3417.925] 
+Healer = 0
+
+SculptorsPos = marker at [2960.533, 14.018, 3420.279] 
+Sculptor = 0
+
+CrusaderPos = marker at [2968.331, 13.471, 3420.637] 
+Crusader = 0
+
+
+MotherPos = marker at [2965.362, 13.641, 3421.063] 
+Mother = 0
+
+FatherPos = marker at [2964.642, 13.711, 3420.776]  
+Father = 0
+
+BoyPos = marker at [2954.430, 15.844, 3422.376] 
+BoyDestinationPos = marker at [2964.815, 13.667, 3421.245] 
+Boy = 0
+
+
+APos1 = marker at [2966.935, 13.460, 3422.192] 
+APos2 = marker at [2967.805, 13.280, 3424.049] 
+APos3 = marker at [2969.115, 13.321, 3422.097] 
+APos4 = marker at [2970.289, 13.290, 3422.769] 
+APos5 = marker at [2968.141, 13.348, 3422.688] 
+APos6 = marker at [2968.396, 13.193, 3424.743] 
+APos7 = marker at [2958.688, 14.557, 3420.254] 
+APos8 = marker at [2958.716, 14.654, 3419.035] 
+APos9 = marker at [2957.926, 14.942, 3419.667] 
+APos10 = marker at [2959.389, 14.177, 3420.916] 
+
+
+A1 = 0
+A2 = 0
+A3 = 0
+A4 = 0
+A5 = 0
+A6 = 0
+A7 = 0
+A8 = 0
+A9 = 0
+A10 = 0
+
+
+FireWorks = 0
+
+SpareCharacter1 = 0
+SpareCharacter2 = 0
+SpareCharacter3 = 0
+SpareCharacter4 = 0
+
+start
+ 	
+	set draw text colour red 255 green 255 blue 255
+	
+	//EXPECTING TO BE BLACK WHEN COMING IN
+	//set fade red 0 green 0 blue 0 time 2
+	//wait 3 seconds
+	begin cinema
+		//Stop the sfx here.
+		disable sound effects
+
+		start music MUSIC_TYPE_OUTRO
+		
+		set game time 12.00
+		disable game time
+		//Black & White, created by Lionhead Studios. (CRUSADERS - 5)
+		set camera position to [1408.068, 50.007, 2064.123] 
+		set camera focus to [1412.502, 45.892, 2065.353] 
+		move camera position to [1407.266, 50.007, 2067.014] time 20
+		move camera focus to [1411.584, 45.966, 2065.244] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_CRUSADER at [1412.571, 44.688, 2067.938] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_CRUSADER at [1412.439, 44.840, 2065.915] 
+		SpareCharacter3 = create VILLAGER VILLAGER_INFO_CRUSADER at [1413.374, 44.673, 2066.561] 
+
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		enable SpareCharacter3 high graphics detail 
+
+		set SpareCharacter1 focus to [1411.282, 44.961, 2066.481] 
+		set SpareCharacter2 focus to [1411.282, 44.961, 2066.481] 
+		set SpareCharacter3 focus to [1411.282, 44.961, 2066.481] 
+		SpareCharacter1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		SpareCharacter2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		SpareCharacter3 play ANM_P_CONDUCT_MEETING loop -1
+		
+		run script OpenWindow(1)
+
+		
+		set draw text colour red 255 green 255 blue 255
+		draw text HELP_TEXT_INGAME_CREDITS_01 across 0.5 down 0.2 width 0.4 height 0.2 size 0.1 fade in time 2 seconds
+		draw text HELP_TEXT_INGAME_CREDITS_02 across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		
+		run script CloseWindow
+		wait 2 seconds
+		
+		
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		disable SpareCharacter3 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+		delete SpareCharacter3
+		
+		
+		//Game Programming.	(WIRLWHIND GUY - 5) marker at 
+		set game time 16.00
+		disable game time
+		set camera position to [1519.324, 68.450, 2258.761] 
+		set camera focus to [1564.959, 67.797, 2291.255] 
+		move camera position to [1521.064, 68.450, 2256.317] time 30
+		move camera focus to [1566.699, 67.797, 2288.812] time 30
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [1524.072, 67.709, 2259.441]  
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [1507.822, 69.800, 2250.621] 
+		SpareCharacter1 play ANM_P_CROWD_IMPRESSED_1 loop -1
+
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_03 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		
+		draw text "Peter Molyneux" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mark Webley" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jonty Barnes" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Richard Evans" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Giles Jermy" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jeremy Chatelaine" across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Oliver Purkiss" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Thomas Barnet-Lamb" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jason Hutchens" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+		
+		//3D and AI (nomad  - 4)
+		set game time 16.00
+		disable game time
+		set camera position to [1818.908, 52.350, 3263.729] 
+		set camera focus to [1815.674, 51.128, 3265.087] 
+		move camera position to [1812.281, 50.250, 3264.017] time 20
+		move camera focus to [1808.990, 49.313, 3265.461] time 20
+
+		SpareCharacter1 = create VILLAGER NOMADE at [1806.693, 48.172, 3264.396]   
+		SpareCharacter2 = create VILLAGER AZTEC_HOUSEWIFE at [1807.332, 48.277, 3264.076] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		set SpareCharacter1 focus to [1808.365, 48.457, 3263.498] 
+		set SpareCharacter2 focus to [1803.943, 47.507, 3266.463] 	
+		SpareCharacter1 play ANM_P_DANCE_X loop -1
+		SpareCharacter2 play ANM_P_DANCE_X_PARTNER loop -1
+
+		run script OpenWindow(1)
+
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_04 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Jean-Claude Cottier" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Alex Evans" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Scawen Roberts" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+		
+
+		//Art (jap - 4)
+		set game time 12.00
+		disable game time
+		set camera position to [2256.089, 27.555, 3469.616] 
+		set camera focus to [2259.030, 24.793, 3464.680] 
+		move camera position to [2255.312, 27.685, 3466.850] time 30
+		move camera focus to [2258.445, 24.609, 3461.594] time 30
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_CRUSADER at [2256.927, 24.562, 3463.518] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [2253.751, 24.727, 3464.720] 
+		SpareCharacter1 play ANM_P_LOOKING_FOR_SOMETHING loop -1
+
+		run script OpenWindow(0)
+
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_06 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+
+		draw text "Paul McLaughlin" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mark Healey" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Bass" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Christian Bravery" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Animation etc (BLIND WOMAN- 4)
+		set game time 12.00
+		disable game time
+		set camera position to [3982.490, 169.893, 2078.604] 
+		set camera focus to [4352.051, 122.152, 2148.304] 
+		move camera position to [4031.620, 163.546, 2087.867] time 80
+		move camera focus to [4401.182, 115.805, 2157.567] time 80
+		
+		SpareCharacter1 =  create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [3988.877, 168.345, 2080.754] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [4177.021, 3.138, 1986.837] 
+		SpareCharacter1 play ANM_P_SITTING_DOWN_DANCE_SAILING3 loop -1
+
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_07 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Eric Bailey" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_08 across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "James Leach" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_09 across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Russell Shaw" across 0.5 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1		
+
+		//Scanario and Level design (OGRE - 4)
+		set game time 16.00
+		disable game time
+		set camera position to [2950.689, 31.003, 3484.146] 
+		set camera focus to [2988.040, 20.748, 3414.249] 
+		move camera position to [2928.435, 32.517, 3475.689] time 20
+		move camera focus to [2992.726, 22.262, 3429.352] time 20
+
+		SpareCharacter1 = create CREATURE CREATURE_TYPE_OGRE at [2963.472, 13.023, 3432.214] 
+		set SpareCharacter1 focus to [2954.962, 10.322, 3445.661] 
+		ALIGNMENT of SpareCharacter1 = -1
+		SCALE of  SpareCharacter1 = 1.5
+		set SpareCharacter1 focus to [2913.472, 0.000, 3505.542] 
+		wait 0.1 seconds
+		SpareCharacter1 play C_STATIC_SIT
+		
+		
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_05 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Tim Rance" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Dan Deptford" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Georg Backer" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_14 across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Jamie Durrant" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Paul Nettleton" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ken Malcolm" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		delete SpareCharacter1
+
+		//Internet programming (MONK - 3)
+		set game time 12.00
+		disable game time
+		set camera position to [2205.444, 29.397, 3483.468] 
+		set camera focus to [2214.039, 28.237, 3492.858] 
+		move camera position to [2209.699, 28.544, 3492.263] time 20
+		move camera focus to [2218.295, 27.384, 3501.654] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_SHAOLIN at [2212.036, 27.606, 3496.626] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [2210.303, 27.488, 3493.627] 
+		SpareCharacter1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_15 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Andy Robson" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Nathan Smethurst" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Lawrie" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Joe Borthwick" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Aaron Ludlow" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jeff Brutus" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//PR & Admin (CREATURE BREEDER - 3)
+		set game time 16.00
+		disable game time
+		set camera position to [3015.915, 1.090, 3085.426] 
+		set camera focus to [3020.189, 1.086, 3083.787] 
+		move camera position to [3014.913, 1.090, 3082.812] time 40
+		move camera focus to [3019.187, 1.086, 3081.173] time 40
+
+		SpareCharacter1 = create VILLAGER MALE at [3021.333, 0.000, 3080.010] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [3025.547, 0.000, 3081.137] 
+		set SpareCharacter1 carrying CARRIED_OBJECT_FISHING_ROD
+		SpareCharacter1 play ANM_P_FISHERMAN loop -1
+	
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_17 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Janice Nussey" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Claire Hedley" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Pete Hawley" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Jackson" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Catherine Tutton" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_16 across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Cathy Campos" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Music(WOLFs - 2)
+		set game time 12.00
+		disable game time
+		set camera position to [2241.113, 3.775, 3551.668]
+		set camera focus to [2259.808, -0.747, 3581.671] 
+		move camera position to [2238.555, 4.688, 3544.869] time 30
+		move camera focus to [2258.183, 0.167, 3574.270] time 30
+	
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_AFRICAN_FARMER_MALE at [2242.037, 2.492, 3557.281] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_AFRICAN_LEADER_MALE at [2243.398, 2.596, 3556.365] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		set SpareCharacter1 focus to [SpareCharacter2]
+		set SpareCharacter2 focus to [SpareCharacter1]
+		SpareCharacter1 play ANM_P_TALK1_MALE loop -1
+		SpareCharacter2 play ANM_P_TALK2_MALE loop -1
+			
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_10 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Steafan Hannigan" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_11 across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Stuart Hall" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Melissa Holding" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Donald Quan" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Saskia Tomkins" across 0.5 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ray Hickie" across 0.5 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ron Korb" across 0.5 down 0.75 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+		
+	
+
+		//VOICES (ENGINEER
+		set game time 12.00
+		disable game time
+		set camera position to [3904.657, 148.553, 2206.098] 
+		set camera focus to [3871.355, 164.873, 2219.053] 
+		move camera position to [3899.627, 151.709, 2203.663] time 30
+		move camera focus to [3888.444, 151.254, 2241.318] time 30
+		
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_ENGINEER at [3899.404, 150.823, 2210.236] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [3923.678, 117.920, 2140.369] 
+		SpareCharacter1 play ANM_P_INSPECT_OBJECT_1 loop -1
+		
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_13 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Marc Silk" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Shelley Blond" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Hugo Myatt" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_EXTRA_JOB_TITLES_02 across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Jon Farmer" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ben Irwin" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+
+
+		
+
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Testers (PRIEST/ESS - 2)
+		set game time 16.00
+		disable game time
+		set camera position to [1744.217, 80.982, 2286.372] 
+		set camera focus to [2047.692, -184.072, 4346.194] 
+		move camera position to [1753.121, 80.982, 2285.060]   time 150
+		move camera focus to [2056.596, -184.072, 4344.883]   time 150
+
+	
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_PRIEST at [1745.865, 80.007, 2290.887]  
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_PRIESTESS at [1746.918, 79.937, 2291.281] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+	
+		set SpareCharacter1 focus to [1748.768, 78.636, 2287.646] 
+		set SpareCharacter2 focus to [1748.768, 78.636, 2287.646] 
+
+		SpareCharacter1 play ANM_P_PRAY loop -1
+		SpareCharacter2 play ANM_P_PRAY loop -1
+
+		run script OpenWindow(1)
+
+		
+		//Page 1
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_25 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Adam Burke" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Adam Hodgson" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Alex Ashby" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Alison Robinson" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Allan Mulholland" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Andrew Copland" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Andrew Mills" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Andrew White" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Andy Smith" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Armando D'Amico" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ashley Berlin" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ben Ward" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Bernie Goldsmith" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Bradley Brown" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Brian Dyg Arp" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Carl Andersson" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Carton Wim" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chad Goulding" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Charles Bullen" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Charlton Edwards" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Armsden" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Hagg" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Janes" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Johnson" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Knowles" across 0.5 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Christian Gloor" across 0.7 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		//Page 2
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_25 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Craig Garvey" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Cook" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Eggar" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Kollmann" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Overton" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Owusu-Ankomah" across 0.65 down 0.3750 width 0.3 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Daniel Scheers" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "David John Springate" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "David Liliehammar" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "David Polson" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "David Webley" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Dennis Luesebrink" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Derek Da Silva" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Dimitri Mavrikakis" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Douglas Berg" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Duncan Sutherland" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Dylan Davies" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ed Goodfellow" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Edward Karney" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Eric Boltjes" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Eric Reynolds" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Felix Klastrup" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Foster Pollard" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Glen Woods" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Iain Farrell" across 0.5 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James Carey" across 0.7 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+	
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		//Page 3
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_25 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "James Hamer-Morton" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James McSweeney" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James Mearman" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James Milner-Walker" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jamie Newman" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James Noy" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jeremy White" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Joe Falke" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Johan Ribenfors" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "John Emery" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Johnathan Rowlands" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jon Hupper" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jonothan Clarey" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Joost Ronkes Agerbeek" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Joshua 'Fred' Pugsley" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Justin Amore" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Koen Korteweg" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Lester Milner" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Liam Fincham" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Louis Bromne" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Marcus Robinson" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mark Ffrench" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mark Klocek" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mark Smethurst" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Markus Backer" across 0.5 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Martin Gilday" across 0.7 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		//Page 4
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_25 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Martin Khige" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Matthew Fletcher" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Matthew Hamilton" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Matthew Lilly" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Maurice Berk" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Michael Milne" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mirco Matuscheck" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mitchell Munter" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Natali Mailand" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Nick Tsiatinis" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Oliver Parker-Picken" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Olli Koob" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Paul Dollimore" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Paul Johnson" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Paul Lockett" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Paul Richardson" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Peter Brozyna" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Peter Leung" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Peter McSweeney" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Peter Nicholson" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Peter Smith" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Raphael D'Amico" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Rob Den Dekker" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Robert Bowry" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Robert Mould" across 0.5 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Robert Ranisch" across 0.7 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		//Page 5		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_25 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Robin Allison" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Roger Ingraham" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ross Smith" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Rowan Newman" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Roy Cheung" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Sam Hamilton" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Sam Vantilburgh" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Scott Kirkham" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Simon Dune" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Simon Finch" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Simon Rooner" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Sos Kjeldsen" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Stephen Hibbert" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Steven Fossett" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Styn Dekker" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Thilmany Alexandre" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Thor Keil" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Tim Wvyts" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Timmy Geleyn" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Toby Hine" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Tom Arnell" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Tom Lee" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Tony Ciniglio" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Troy Lonergan" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Valerie Cook" across 0.5 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "William Hall" across 0.7 down 0.75 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "William Overgard" across 0.5 down 0.7875 width 0.4 height 0.05 size 0.0375 fade in time 2 seconds
+		
+				
+
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+		//Production (SLAVER - 2)
+		set game time 12.00
+		disable game time
+		set camera position to [1467.194, 44.032, 3832.727]
+		set camera focus to [1455.453, 43.950, 3831.237] 
+		move camera position to [1472.244, 44.069, 3831.186] time 20
+		move camera focus to [1460.409, 43.986, 3831.180] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [1464.007, 43.322, 3833.406] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1467.296, 43.453, 3831.477] 
+		SpareCharacter3 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1463.530, 43.432, 3835.306] 
+		SpareCharacter4 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1460.970, 43.657, 3833.500] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		enable SpareCharacter3 high graphics detail 
+		enable SpareCharacter4 high graphics detail 
+
+		set SpareCharacter1 focus to [1473.140, 43.524, 3830.399] 
+		set SpareCharacter2 focus to [1472.743, 43.534, 3830.255] 
+		set SpareCharacter3 focus to [1470.917, 43.377, 3832.586] 
+		set SpareCharacter4 focus to [1470.612, 43.508, 3830.644] 
+
+		SpareCharacter1 play ANM_P_MOURNING loop -1
+		SpareCharacter2 play ANM_P_AMBIENT1 loop -1
+		SpareCharacter3 play ANM_P_STAND loop -1
+		SpareCharacter4 play ANM_P_STAND loop -1
+		
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_27 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Dan Blackstone" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mike Cooper" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Wayne Frost" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Richard Leinfellner" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Lisa Stokes" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		disable SpareCharacter3 high graphics detail 
+		disable SpareCharacter4 high graphics detail 
+
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+		delete SpareCharacter3
+		delete SpareCharacter4
+
+
+
+
+		//Testing (SABLE - 1)
+		set game time 16.00
+		disable game time
+		set camera position to [1625.186, 2.723, 3205.230] 
+		set camera focus to [1256.534, -37.785, 3652.711] 
+		move camera position to [1634.293, 2.723, 3212.735] time 90
+		move camera focus to [1265.641, -37.785, 3660.215] time 90 
+		
+		SpareCharacter1 = create with angle 180 and scale 1 FEATURE FEATURE_INFO_PIER at [1604.488, 0.000, 3210.913] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [1621.160, 0.000, 3211.180] 
+		enable SpareCharacter2 high graphics detail 
+	
+		ALTITUDE of SpareCharacter2 = 1.3
+		set SpareCharacter2 focus to [1624.541, 0.000, 3210.981] 
+		SpareCharacter2 play ANM_P_SITTING_SWINGING_LEGS loop -1
+	
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_28 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Pete Samuels" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Bussell" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Pat Russell" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Matt Price" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Oliver Byrne" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Stuart Williams" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Paul Watson" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_28 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Richard Wilderspin" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Chris Gambold" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Nathan Jacobs" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Lee Smith" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Dan Golding" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jon Trumper" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Piers Langridge" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Richard Diaz" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Fabrizio Calabria" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Tom Kilminister" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Grant Harden" across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Martin Bradley" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "James Fry" across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Barrie Tingle" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Terry Streeter" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Carl Maynard" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Alez Young" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Steven Morgan" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ross Douglas" across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jamie Cawte" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Barry Scott" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ricky Watts" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Constantin Yacoumis" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Ben Jackson" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Raj Saroye" across 0.5 down 0.75 width 0.4 height 0.05 size 0.0375 fade in time 2 seconds
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+		
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_28 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Syruss Flyte" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Aaron Keppel" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Anthony Duong" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mathew Ellison" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Matt Dominguez" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Lenny Castillo" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Chad Hawks" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Chris McCay" across 0.5 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		
+
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+	
+	
+
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+	
+
+		//Marketing (MISSIONARIES - 1)
+		set game time 23.00
+		disable game time
+		set camera position to [3385.658, 18.250, 2235.600] 
+		set camera focus to [3387.449, 16.369, 2219.068] 
+		move camera position to [3454.756, 27.308, 2324.056]     time 20
+		move camera focus to [3457.325, 25.427, 2307.627]   time 20
+		SpareCharacter1 = create FEATURE FEATURE_INFO_ARK at [3398.403, 0.000, 2216.053] 
+		
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_29 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Jonathan Bunney" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Marray Pannell" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "David Millar" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Perkins" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_30 across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Mel Drummond" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "James O'Riordan" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Hannah Ward" across 0.1 down 0.75 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		delete SpareCharacter1
+
+		//Localisation 	 (SCULPTOR
+		set game time 12.00
+		disable game time
+		set camera position to [2134.315, 101.149, 2243.988] 
+		set camera focus to [2163.471, 102.237, 2243.016] 
+		move camera position to [2134.369, 101.149, 2245.587]  time 20
+		move camera focus to [2163.524, 102.237, 2244.615]  time 20
+
+		SpareCharacter1 = create OBJECT  MOBILE_STATIC_INFO_SCULPTURE_IN_PROGRESS at [2135.199, 99.830, 2245.455] 
+		SpareCharacter2 = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_SCULPTOR at [2136.491, 99.830, 2245.244] 
+		enable SpareCharacter2 high graphics detail 
+		SpareCharacter2 play ANM_P_SCULPTOR loop -1
+
+		set SpareCharacter2 focus to [2135.199, 99.830, 2245.455] 
+
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_31 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Andy Nuttall" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "David Lapp" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Masa Nemoto" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Sandra Picaper" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+
+
+		//FOR EA  HIPPY
+		set game time 12.00
+		disable game time
+		set camera position to [2297.547, 59.347, 3378.439] 
+		set camera focus to [2227.648, 27.755, 3394.810] 
+		move camera position to [2257.442, 31.353, 3398.829] time 20
+		move camera focus to [2249.381, 27.710, 3400.718] time 20	
+
+		SpareCharacter1 = create with angle 0 and scale 10 FEATURE FEATURE_INFO_MAGIC_MUSHROOM at [2250.145, 26.999, 3403.660] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_HIPPY at [2250.181, 27.198, 3402.205] 
+		enable SpareCharacter2 high graphics detail 
+	
+	
+		set SpareCharacter2 focus to [2254.084, 27.470, 3402.496] 
+		set SpareCharacter2 carrying CARRIED_OBJECT_AXE
+		SpareCharacter2 play ANM_P_CHOPPING_TREE loop -1
+
+		run script OpenWindow(0)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_26 across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "James Lenoel" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Gaffney" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Martyn Sibley" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Tom O'Connor" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Joe Grant" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Rob Charlish" across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Wayne Boyce" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Tom O'Connor" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Marcus Purvis" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Donna Hicks" across 0.1 down 0.75 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+			
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+
+
+	
+		//Thanks  PIED PIPER
+		set game time 16.00
+		disable game time
+		set camera position to [2128.063, 64.591, 2828.341] 
+		set camera focus to [2128.620, 64.035, 2824.395]
+		move camera position to [2125.956, 64.591, 2827.777] time 20
+		move camera focus to [2127.535, 64.035, 2824.117] time 20
+		
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_PIED_PIPER at [2130.966, 62.839, 2821.173] 
+		enable SpareCharacter1 high graphics detail 
+		SpareCharacter1 play ANM_PIED_PIPER_DANCE_STAND_SPIN loop -1
+	
+
+		run script OpenWindow(1)
+
+		set draw text colour red 128 green 128 blue 128
+		draw text HELP_TEXT_INGAME_CREDITS_20 across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		set draw text colour red 255 green 255 blue 255
+		draw text "Brian Trewin" across 0.5 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "QSound" across 0.7 down 0.3 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Creative Labs" across 0.5 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Rhubarb" across 0.7 down 0.3375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Bill Lusty" across 0.5 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Claudia Stevens" across 0.7 down 0.3750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Toneworx GmbH" across 0.5 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "NVidia Corporation" across 0.7 down 0.4125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Prima Games UK" across 0.5 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Alex Klimovitski" across 0.7 down 0.45 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Intel Corp." across 0.5 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "GameSpy Industries" across 0.7 down 0.4875 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Immersion Corp." across 0.5 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Nick Copus" across 0.7 down 0.5250 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Nick Thomas" across 0.5 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Don Mattrick" across 0.7 down 0.5625 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Danny Bilson" across 0.5 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Jeff Roberts" across 0.7 down 0.6 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "RAD Game Tools Inc." across 0.5 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		draw text "Mike Richardson" across 0.7 down 0.6375 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		//draw text "Barry Scott" across 0.5 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		//draw text "Ricky Watts" across 0.7 down 0.6750 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		//draw text "Constantin Yacoumis" across 0.5 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		//draw text "Ben Jackson" across 0.7 down 0.7125 width 0.2 height 0.05 size 0.0375 fade in time 2 seconds
+		//draw text "Raj Saroye" across 0.5 down 0.75 width 0.4 height 0.05 size 0.0375 fade in time 2 seconds
+
+
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+		
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		
+		A1 = create VILLAGER VILLAGER_INFO_EGYPTIAN_HOUSEWIFE_FEMALE at [APos1]
+		A2 = create VILLAGER VILLAGER_INFO_FOOTBALLER_2 at [APos2]
+		A3 = create VILLAGER VILLAGER_INFO_INDIAN_FORESTER_MALE at [APos3]
+		A4 = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [APos4]
+		A5 = create VILLAGER VILLAGER_INFO_AFRICAN_FORESTER_MALE at [APos5]
+		A6 = create VILLAGER VILLAGER_INFO_TIBETAN_SHEPHERD_MALE at [APos6]
+		A7 = create VILLAGER VILLAGER_INFO_AFRICAN_LEADER_MALE at [APos7]
+		A8 = create VILLAGER VILLAGER_INFO_INDIAN_LEADER_MALE at [APos8]
+		A9 = create VILLAGER VILLAGER_INFO_CELTIC_LEADER_MALE at [APos9]
+		A10 = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [APos10]
+		
+		
+		Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [MonkPos]
+		IdolBuilder = create VILLAGER VILLAGER_INFO_IDOL_BUILDER at [IdolBuilderPos]	
+		Hermit = create VILLAGER VILLAGER_INFO_HERMIT at [HermitPos]
+		Hippys = create VILLAGER VILLAGER_INFO_HIPPY at [HippyPos]
+		Priest = create VILLAGER VILLAGER_INFO_PRIEST at [PriestPos]
+		Priestess = create VILLAGER VILLAGER_INFO_PRIESTESS at [PriestessPos]
+		Marauder = create VILLAGER VILLAGER_INFO_MARAUDER at [MarauderPos]
+		Engineer = create VILLAGER VILLAGER_INFO_ENGINEER at [EngineerPos]
+		Shephard = create VILLAGER VILLAGER_INFO_FOOTBALLER_1 at [ShephardPos] 
+		Nomad = create VILLAGER VILLAGER_INFO_NOMADE at [NomadPos]
+		AztecLeader = create VILLAGER VILLAGER_INFO_AZTEC_LEADER at [AztecLeaderPos] 
+		CreatureTrainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CreatureTrainerPos]
+		Sailor = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [SailorPos]
+		Breeder = create VILLAGER VILLAGER_INFO_BREEDER at [BreederPos]
+		Healer = create VILLAGER VILLAGER_INFO_HEALER at [HealerPos]
+		Sculptor = create VILLAGER VILLAGER_INFO_SCULPTOR at [SculptorsPos]
+		Crusader = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderPos]
+		Mother = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [MotherPos]
+		Father = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [FatherPos]
+		Boy = create VILLAGER MALE at [BoyPos]  
+
+		enable sound effects
+		set fade in time 2
+
+		AGE of Boy = 8
+		SCALE of Boy = 0.75
+		SPEED of Boy = 0.28
+
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [PiedPiperPos]  time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [3009.129, 13.125, 3344.816] time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [2992.059, 12.233, 3306.523] time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [2955.640, 17.423, 3395.000] time 300
+
+	
+
+		
+
+
+
+		set camera position to [2963.259, 14.876, 3421.859] 
+		set camera focus to [2970.235, 12.743, 3405.717] 
+		
+		set PiedPiper focus to [2959.795, 15.936, 3429.878]
+		set Monk focus to [2959.795, 15.936, 3429.878]
+		set IdolBuilder focus to [2959.795, 15.936, 3429.878]
+		set Hermit focus to [2959.795, 15.936, 3429.878]
+		set Hippys focus to [2959.795, 15.936, 3429.878]
+		set Priest focus to [2959.795, 15.936, 3429.878]
+		set Priestess focus to [2959.795, 15.936, 3429.878]
+		set Marauder focus to [2959.795, 15.936, 3429.878]
+		set Engineer focus to [2959.795, 15.936, 3429.878]
+		set Shephard focus to [2959.795, 15.936, 3429.878]
+		set Nomad focus to [2959.795, 15.936, 3429.878]
+		set AztecLeader focus to [2959.795, 15.936, 3429.878]
+		set CreatureTrainer focus to [2959.795, 15.936, 3429.878]
+		set Sailor focus to [2959.795, 15.936, 3429.878]
+		set Breeder focus to [2959.795, 15.936, 3429.878]
+		set Healer focus to [2959.795, 15.936, 3429.878]
+		set Sculptor focus to [2959.795, 15.936, 3429.878]
+		set Crusader focus to [2959.795, 15.936, 3429.878]
+		set Mother focus to [2959.795, 15.936, 3429.878]
+		set Father focus to [2959.795, 15.936, 3429.878]
+
+		set A1 focus to [2959.795, 15.936, 3429.878]
+		set A2 focus to [2959.795, 15.936, 3429.878]
+		set A3 focus to [2959.795, 15.936, 3429.878]
+		set A4 focus to [2959.795, 15.936, 3429.878]
+		set A5 focus to [2959.795, 15.936, 3429.878]
+		set A6 focus to [2959.795, 15.936, 3429.878]
+		set A7 focus to [2959.795, 15.936, 3429.878]
+		set A8 focus to [2959.795, 15.936, 3429.878]
+		set A9 focus to [2959.795, 15.936, 3429.878]
+		set A10 focus to [2959.795, 15.936, 3429.878]
+
+		
+		enable PiedPiper high graphics detail 
+		enable Monk high graphics detail 
+		enable IdolBuilder high graphics detail 
+		enable Hermit high graphics detail 
+		enable Priest high graphics detail 
+		enable Priestess high graphics detail 
+		enable Marauder high graphics detail 
+		enable Engineer high graphics detail 
+		enable Shephard high graphics detail 
+		enable Nomad high graphics detail 
+		enable AztecLeader high graphics detail 
+		enable CreatureTrainer high graphics detail 
+		enable Sailor high graphics detail 
+		enable Breeder high graphics detail 
+		enable Healer high graphics detail 
+		enable Sculptor high graphics detail 
+		enable Crusader high graphics detail 
+		enable Mother high graphics detail 
+		enable Father high graphics detail 
+		enable Boy high graphics detail
+
+		enable A1  high graphics detail 
+		enable A2 high graphics detail 
+		enable A3 high graphics detail 
+		enable A4 high graphics detail 
+		enable A5 high graphics detail 
+		enable A6 high graphics detail 
+		enable A7 high graphics detail 
+		enable A8 high graphics detail 
+		enable A9 high graphics detail 
+		enable A10 high graphics detail 
+
+		
+		
+		PiedPiper play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Monk play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		IdolBuilder play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Hermit play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		Hippys play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Priest play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Priestess play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Marauder play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		Engineer play ANM_P_CLAP_1 loop -1	
+		wait 0.1 seconds
+		Shephard play ANM_P_CLAP_2 loop -1	
+		wait 0.1 seconds
+		Nomad play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		AztecLeader play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		CreatureTrainer play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Sailor play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Breeder play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Healer play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		Sculptor play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Crusader play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Mother play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		Father play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+
+		A1 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A2 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		A3 play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		A4 play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		A5 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A6 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		A7 play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		A8 play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		A9 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A10 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+
+
+		move camera position to [2959.795, 15.936, 3429.878] time 30
+		move camera focus to [2966.771, 13.803, 3413.736] time 30
+		
+		wait 15 seconds
+
+		move Boy position to [BoyDestinationPos]
+		set Boy anim ANM_P_SKIP02
+
+		wait until [Boy] near [BoyDestinationPos] radius 1
+
+		set Boy focus to [Mother]
+		set Mother focus to [Boy]
+
+		wait 0.3 seconds
+		
+		Boy play ANM_P_HUG loop 1
+		Mother play ANM_P_HUG loop 1
+		
+		wait Mother played
+		wait Boy played
+		
+		set Mother focus to [2959.795, 15.936, 3429.878]
+		set Boy focus to [2959.795, 15.936, 3429.878]
+		wait 1 seconds
+		Mother play ANM_P_CROWD_IMPRESSED_1 loop -1
+		Boy play ANM_P_CLAP_2 loop -1
+		
+		wait 10 seconds
+		wait until key constant 57 down 
+		
+		disable PiedPiper high graphics detail 
+		disable Monk high graphics detail 
+		disable IdolBuilder high graphics detail 
+		disable Hermit high graphics detail 
+		disable Priest high graphics detail 
+		disable Priestess high graphics detail 
+		disable Marauder high graphics detail 
+		disable Engineer high graphics detail 
+		disable Shephard high graphics detail 
+		disable Nomad high graphics detail 
+		disable AztecLeader high graphics detail 
+		disable CreatureTrainer high graphics detail 
+		disable Sailor high graphics detail 
+		disable Breeder high graphics detail 
+		disable Healer high graphics detail 
+		disable Sculptor high graphics detail 
+		disable Crusader high graphics detail 
+		disable Mother high graphics detail 
+		disable Father high graphics detail 
+		disable Boy high graphics detail 
+
+		disable A1  high graphics detail 
+		disable A2 high graphics detail 
+		disable A3 high graphics detail 
+		disable A4 high graphics detail 
+		disable A5 high graphics detail 
+		disable A6 high graphics detail 
+		disable A7 high graphics detail 
+		disable A8 high graphics detail 
+		disable A9 high graphics detail 
+		disable A10 high graphics detail 
+
+		release Monk
+		release IdolBuilder
+		release Hermit
+		release Hippys
+		release Priest
+		release Priestess
+		release Marauder
+		release Engineer
+		release Shephard
+		release Nomad
+		release AztecLeader
+		release CreatureTrainer
+		release Sailor
+		release Breeder
+		release Healer
+		release Sculptor 
+		release Crusader
+		release Mother
+		release Father
+		release Boy
+		release A1
+		release A2
+		release A3
+		release A4
+		release A5
+		release A6
+		release A7 
+		release A8 
+		release A9 
+		release A10 
+
+		stop music
+	end cinema
+
+end script VillageWavingSequence
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Background script to keep the meteor smoking.
+begin script MakesSmokeComeOutOfMeteor(Meteor)
+Smoke = 0
+Explosive = 0
+start
+	while Meteor exists	and Meteor is not HELD and Meteor is FLYING
+		//THE TIME AT THE END OF THIS LINE GIVES THE LENGTH OF THE FLUME
+		Smoke = create special effect SPOT_VISUAL_BONFIRE at [Meteor] time 0.7
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Smoke = 8.0
+	end while
+
+	wait 6 seconds
+	wait until Meteor is not HELD and Meteor is not FLYING
+	Explosive = cast SPELL_FIREBALL_LEVEL_1 spell at [Meteor]+[number from -5 to 5,5,number from -5 to 5] from [Meteor] radius 1.0 time 4 curl 0
+	delete Meteor with explosion
+
+end script MakesSmokeComeOutOfMeteor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script NemesisDefendHisLastTown
+MeteorTargetPos =  marker at [2859.577, 19.927, 2768.325] 
+MeteorDefencePos = marker at [3088.801, 14.821, 2654.140] 
+MeteorDefenceDelay = create timer for 10 seconds
+NemTownShieldPos = marker at [3104.551, 4.439, 2639.607] 
+ShieldDefenceDelay = create timer for 2 seconds
+CannonPos = marker at [3566.924, 250, 2384.156]
+Meteor = 0
+TownShield = 0
+start
+	MyCreature = get player 1 creature
+	while NemesisStillFighting == 0
+		if [MyCreature] near [MeteorDefencePos] radius 200
+			if get MeteorDefenceDelay time remaining <= 0
+				/// FIRE METEOR
+				Meteor = create with angle 0 and scale 0.5 OBJECT ROCK at [CannonPos]
+				// set Meteor temperature to superheated blim
+				enable Meteor on fire 6
+				set Meteor temperature 2000
+				disable Meteor affected by wind
+				set Meteor target [MeteorTargetPos] + [number from -30 to 30, number from -30 to 30] time 6
+				run background script MakesSmokeComeOutOfMeteor(Meteor)
+				set MeteorDefenceDelay time to 6 seconds
+			end if
+			if get ShieldDefenceDelay time remaining <= 0
+				set ShieldDefenceDelay time to 30 seconds
+				TownShield = cast SPELL_PHYSICAL_SHIELD spell at [NemTownShieldPos] from [NemTownShieldPos] radius 75 time 30 curl 1
+			end if
+		end if
+	end while
+end script NemesisDefendHisLastTown
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ThrowBeamBlock(Origin, Target, NumberOfBeamsPerSide, DistanceBetweenBeams, NumberOfBeamsBeforeObject, TimeBetweenEachBeem)
+Distance = 0
+Step = 0
+Explosion = 0
+ExplosionTarget = 0
+AdditionalExplosionTarget = 0
+AdditionalBeamCount = 0
+start
+	Distance = get distance from [Origin] to [Target] 
+	Distance /= NumberOfBeamsBeforeObject 
+	while Step < NumberOfBeamsBeforeObject
+		ExplosionTarget = marker at get target from [Origin]-([Target]-[Origin]) to [Origin] distance Distance*Step angle 0
+		Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [ExplosionTarget] from [ExplosionTarget]+[0,30,0]  radius 50.0 time 15 curl 0
+		AdditionalBeamCount = NumberOfBeamsPerSide
+		while AdditionalBeamCount > 0
+			AdditionalExplosionTarget = marker at get target from [Origin]-([ExplosionTarget]-[Origin]) to [ExplosionTarget] distance DistanceBetweenBeams*AdditionalBeamCount angle 90
+			Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [AdditionalExplosionTarget] from [AdditionalExplosionTarget]+[0,30,0]  radius 50.0 time 15 curl 0
+			AdditionalExplosionTarget = marker at get target from [Origin]-([ExplosionTarget]-[Origin]) to [ExplosionTarget] distance DistanceBetweenBeams*AdditionalBeamCount angle -90
+			Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [AdditionalExplosionTarget] from [AdditionalExplosionTarget]+[0,30,0]  radius 50.0 time 15 curl 0
+			AdditionalBeamCount--	
+		end while 
+		Step++
+		wait TimeBetweenEachBeem seconds
+	end while
+
+end script ThrowBeamBlock
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LandControl5
+
+TownUnderControl = 0
+HigherTownControled = 0
+
+PlayersCitadel = 0
+NeutralTown1 = get TOWN at [2257.9912, 23.4500, 3315.3586] radius 100
+Town2 = get TOWN at [2637.4839, 109.8800, 3747.7695] radius 100 // Mirror Fight
+Town3 = get TOWN at [2220.5083, 37.6482, 2633.8025] radius 100 // Fire on High town
+Town4 = get TOWN at [1678.1516, 95.7629, 2322.4634] radius 100 // Throw through shield
+
+NemesisTown = get TOWN at [3123.7798, 9.3026, 2625.7500] radius 100
+
+NeutralTown1Taken = 0
+Town2Taken = 0
+Town3Taken = 0
+Town4Taken = 0
+NemesisTownTaken = 0
+LastTownLocked = 0
+NemesisRulesSpeech = 0
+
+VillagersSaved = 0
+
+BeginPos = 0
+BeginFoc = 0
+
+
+// NEW VARIABLES
+WondersActive = 0
+Town2FirstTaken = 0
+Town3FirstTaken = 0
+Town4FirstTaken = 0
+NeutralTownFirstViewed = 0
+Town2FirstViewed = 0
+Town3FirstViewed = 0
+Town4FirstViewed = 0
+NemesisTownFirstViewed = 0
+
+NemesisTownNowConquerable = 0
+RunBrownBear = 0
+Wonder1Pos = marker at [2663.767, 109.079, 3671.004] //Azctec
+Wonder2Pos = marker at [2331.919, 38.860, 2581.005] //Greek
+Wonder3Pos = marker at [1758.438, 95.506, 2337.047] //Tibetan
+Wonder4Pos = marker at [3150.261, 6.014, 2609.817]  //Nemesis land
+Wonder1 = 0
+Wonder2 = 0
+Wonder3 = 0
+Wonder4 = 0	
+Explosion = 0
+Dust = 0
+GreekMan = 0
+Tornado = 0
+
+Traitor = 0
+CreatureHeight = 0
+
+
+OldSize = 0
+OldStrength = 0
+OldAlignment = 0
+
+
+BeamStart = marker at [2928.495, 7.310, 2729.476] 
+BeamTimer = 0
+BeamTown = 0
+
+SuccessValue = 1
+
+start
+	set game time 13.00
+
+	NemesisStillFighting = 0
+	
+	build building at [2663.767, 109.079, 3671.004] desire 0.6
+	build building at [2331.919, 38.860, 2581.005] desire 0.6
+	build building at [1758.438, 95.506, 2337.047] desire 0.6
+
+
+	Wonder1 = get HOUSE at [Wonder1Pos]
+	BUILT of Wonder1 = 0.6
+	Wonder2 = get HOUSE at [Wonder2Pos]
+	BUILT of Wonder2 = 0.6
+	Wonder3 = get HOUSE at [Wonder3Pos]
+	BUILT of Wonder3 = 0.6
+	Wonder4 = get HOUSE at [Wonder4Pos]//Nemesis land
+	BUILT of Wonder4 = 0.6	
+
+	run script SetupLand5
+	
+	run script BeginLand5
+	run background script LionPuzzle
+	MyCreature = get player 1 creature
+
+	OldSize = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+	OldStrength = SCRIPT_OBJECT_PROPERTY_TYPE_STRENGTH of MyCreature
+	OldAlignment = SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of MyCreature
+	 
+	
+
+	run background script CreatureCurse(Wonder1, Wonder2, Wonder3, Wonder4)
+	run background script JapaneseTraitor
+	run background script ThrowThroughShield
+	run background script Crusaders
+	if ArkSailed == 1
+		run background script MissionariesReturned
+	end if
+	run background script NemesisDefendHisLastTown
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+	
+		 
+
+	WondersActive = 0
+	while WondersActive == 0
+		if get NemesisTown belief for player 1 >= 0.1
+			set NemesisTown player 1 belief 0		
+			if camera position near [NemesisTown] radius 200 and [NemesisTown] viewed
+				begin dialogue
+					eject good spirit
+					make good spirit point at [NemesisTown]
+					say HELP_TEXT_NEW_L5_VILLAGE4_01
+					wait until read
+					stop good spirit pointing
+					say HELP_TEXT_NEW_L5_VILLAGE4_02
+					wait until read
+					send good spirit home
+				end dialogue
+				NemesisRulesSpeech = 1
+			end if
+		end if
+
+		if get PLAYER of NeutralTown1 == 1
+			// town under our control
+			if NeutralTown1Taken == 0
+				NeutralTown1Taken = 1
+				if RunBrownBear == 0
+					run background script SwapToBrownBear
+					RunBrownBear = 1
+				end if
+			end if
+		elsif get PLAYER of NeutralTown1 == 2 and NeutralTown1Taken == 1
+			NeutralTown1Taken = 0
+		end if
+
+		//------------------------------------------------------------------------------------------------------------------------
+		// **** TOWN 2 ****
+		//------------------------------------------------------------------------------------------------------------------------
+
+		if get PLAYER of Town2 == 1
+			// town under our control
+			if Town2Taken == 0
+				if Town2FirstTaken == 0
+				set fade red 0 green 0 blue 0 time 1
+				wait until fade ready
+				begin cinema
+					start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+					BeginPos = marker at camera position
+					BeginFoc = marker at camera focus
+		
+					move computer player 2 to [2671.610, 120.880, 3771.421]	speed 4000
+				
+					
+					set camera position to [2673.725, 121.163, 3792.426]  
+					set camera focus to [2665.778, 113.862, 3708.882]
+
+					wait until widescreen ready
+					set fade in time 1
+
+					move computer player 2 to [2666.235, 120.880, 3711.333] speed 8
+					move camera position to [2666.954, 120.782, 3721.277] time 12
+					move camera focus to [2659.017, 113.299, 3637.845] time 12
+
+					say HELP_TEXT_NEW_L5_VILLAGE1_01
+					wait until read
+
+					say HELP_TEXT_NEW_L5_VILLAGE1_02
+					wait until read
+					close dialogue
+					wait until camera ready
+
+					move computer player 2 to [2666.235, 140.880, 3711.333] speed 8
+					
+					move camera position to [2637.847, 133.230, 3712.455] time 8
+					move camera focus to [2674.252, 106.277, 3646.018] time 8
+
+					wait 2 seconds
+					Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [Wonder1] from [Wonder1]+[0,30,0]  radius 50.0 time 15 curl 0
+					wait 1 seconds
+					
+					challenge CREATURE_CURSE
+					snapshot quest success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_NEW_L5_INTRO_09 StandardReminder(variable HELP_TEXT_NEW_L5_CREATURE_CURSE_03)
+					SuccessValue++
+					challenge LandControl5
+
+					wait until camera ready
+
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+					set camera position to [BeginPos]
+					set camera focus to [BeginFoc]
+					release computer player 2
+					stop music
+				end cinema
+				set fade in time 1
+				Town2FirstTaken = 1
+				else
+					begin dialogue
+						eject good spirit
+						make good spirit point at [Town2]
+						say HELP_TEXT_NEW_L5_VILLAGE1_03
+						wait until read
+						send good spirit home
+					end dialogue
+				end if
+				Town2Taken = 1
+			end if
+		elsif get PLAYER of Town2 == 1 and Town2Taken == 1
+			begin dialogue
+				//THIS IS NEMESIS TAKING THE VILLAGE BACK!
+				say HELP_TEXT_NEW_L5_VILLAGE1_04
+				wait until read
+			end dialogue
+			Town2Taken = 0
+		end if
+
+		//------------------------------------------------------------------------------------------------------------------------
+		// **** TOWN 3 ****
+		//------------------------------------------------------------------------------------------------------------------------
+
+		if get PLAYER of Town3 == 1
+			// town under our control
+			if Town3Taken == 0
+				if Town3FirstTaken == 0
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+					begin cinema
+						pause computer player 2
+						start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+
+						BeginPos = marker at camera position
+						BeginFoc = marker at camera focus
+		
+						wait until widescreen ready
+						
+						GreekMan = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [2309.759, 40.477, 2565.886] 
+						enable GreekMan high graphics detail		
+						set GreekMan focus to [2262.124, 41.901, 2562.331] 
+						set camera position to [2305.084, 41.888, 2565.607] 
+						set camera focus to [2421.339, 24.796, 2573.823] 
+						set fade in time 1
+						wait until fade ready											
+
+						GreekMan play ANM_P_AMBIENT2 loop 5
+						say HELP_TEXT_NEW_L5_VILLAGE2_01
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_02
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_03
+						wait until read
+						
+						say HELP_TEXT_NEW_L5_VILLAGE2_04
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_05
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_06
+						wait until read
+						close dialogue
+						
+						move camera position to [2305.084, 41.888, 2565.607] time 2
+						move camera focus to [2416.637, 41.209, 2601.438] time 2
+						
+						Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [2338.974, 38.860, 2576.011] from [2338.974, 68.860, 2576.011]  radius 50.0 time 15 curl 0
+						wait 1 seconds
+
+						challenge CREATURE_CURSE
+						snapshot quest success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_NEW_L5_INTRO_09 StandardReminder(variable HELP_TEXT_NEW_L5_CREATURE_CURSE_03)
+						SuccessValue++
+						challenge LandControl5
+
+						start music MUSIC_TYPE_SCRIPT_NEMESIS
+						GreekMan play ANM_P_FRIGHT_DUCK loop 1
+						wait until camera ready
+
+						move computer player 2 to [2328.473, 45.378, 2572.288] speed 400 
+						//set marker at [2351.317, 35.000, 2605.078] 
+
+						move camera position to [2310.907, 43.798, 2567.478] time 6 
+						move camera focus to [2422.460, 43.119, 2603.309] time 6
+						
+						wait until GreekMan played
+						set GreekMan focus to [2328.473, 45.378, 2572.288]
+
+						wait 2 seconds
+						say HELP_TEXT_NEW_L5_VILLAGE2_07
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_08
+						wait until read
+
+						wait until camera ready
+						
+						GreekMan play ANM_P_STAND_DESPAIR_2 loop 500
+						
+						move camera position to [2305.701, 40.908, 2566.070] time 6
+						move camera focus to [2417.076, 46.788, 2601.844] time 6
+
+						say HELP_TEXT_NEW_L5_VILLAGE2_09
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE2_10
+						wait until read
+						say  HELP_TEXT_NEW_L5_VILLAGE2_11
+						wait until read
+						close dialogue
+
+	
+						GreekMan play ANM_P_SCARED_STIFF_2 loop 500
+						
+						start say sound HELP_TEXT_NEW_L5_VILLAGE2_12
+						wait 2 seconds 
+						wait until read
+						
+						disable GreekMan high graphics detail	
+
+						wait 1.5 seconds
+						Tornado = cast SPELL_TORNADO spell at [2317.173, 39.779, 2569.156] from [2317.173, 39.779, 2569.156]   radius 25.0 time 30 curl 0
+						wait 4 seconds
+						set GreekMan target [2317.173, 39.779, 2569.156] time 2
+						release GreekMan
+						move camera focus to [2398.180, 101.967, 2595.636] time 20
+						say single line HELP_TEXT_NEW_L5_VILLAGE2_13
+						wait until read
+						close dialogue
+
+						wait 10 seconds
+						set fade red 0 green 0 blue 0 time 5
+						wait until fade ready
+						set camera position to [BeginPos]
+						set camera focus to [BeginFoc]
+						release computer player 2
+						stop music
+					end cinema
+					set fade in time 1					
+					run background script FireOnHighMain
+					Town3FirstTaken = 1
+				else
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [Town3]
+						say HELP_TEXT_NEW_L5_VILLAGE2_14
+						wait until read
+						send evil spirit home
+					end dialogue
+				end if
+				Town3Taken = 1
+			end if
+		elsif get PLAYER of Town3 == 1 and Town3Taken == 1
+			begin dialogue
+				//THIS IS NEMESIS TAKING THE VILLAGE BACK!
+				say HELP_TEXT_NEW_L5_VILLAGE2_15
+				wait until read
+			end dialogue
+			Town3Taken = 0
+		end if
+
+		//------------------------------------------------------------------------------------------------------------------------
+		// **** TOWN 4 ****
+		//------------------------------------------------------------------------------------------------------------------------
+
+		// Lines replaced with ThrowThroughShield which performs the same task better
+		if get PLAYER of Town4 == 1
+			// town under our control
+			if Town4Taken == 0
+				if Town4FirstTaken == 0
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+					begin cinema
+						start music MUSIC_TYPE_SCRIPT_EPIC_04
+
+						pause computer player 2
+
+						BeginPos = marker at camera position
+						BeginFoc = marker at camera focus
+						wait until widescreen ready
+						set camera position to [1681.827, 130.022, 2331.194] 
+						set camera focus to [1601.964, 69.612, 2325.674] 
+
+						move camera position to [1794.109, 130.022, 2338.953] time 20
+						move camera focus to [1748.349, 95.408, 2335.791] time 20
+						set fade in time 1
+						wait until fade ready											
+
+						eject good spirit
+						eject evil spirit
+
+						say HELP_TEXT_NEW_L5_VILLAGE3_26
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE3_27
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE3_28
+						wait until read
+						close dialogue
+						send good spirit home
+						send evil spirit home
+						wait until camera ready
+
+						Explosion = cast SPELL_EXPLOSION_LEVEL_1 spell at [1757.229, 95.449, 2337.416] from [1757.229, 125.449, 2337.416]  radius 50.0 time 15 curl 0
+
+						wait 1 seconds
+
+						challenge CREATURE_CURSE
+						snapshot quest success (SuccessValue * 0.33) alignment 0.0 HELP_TEXT_NEW_L5_INTRO_09 StandardReminder(variable HELP_TEXT_NEW_L5_CREATURE_CURSE_03)
+						SuccessValue++
+						challenge LandControl5
+
+						move computer player 2 to [1783.423, 133.529, 2372.380] speed 4000
+						wait 1.5 seconds
+
+						move camera position to [1794.109, 130.022, 2338.953] time 3
+						move camera focus to [1776.209, 133.324, 2392.354] time 2
+						wait until camera ready
+						wait 1 seconds
+
+						say HELP_TEXT_NEW_L5_VILLAGE3_29
+						wait until read
+						say HELP_TEXT_NEW_L5_VILLAGE3_30
+						wait until read
+						close dialogue
+
+						set fade red 0 green 0 blue 0 time 1
+						wait until fade ready
+						set camera position to [BeginPos]
+						set camera focus to [BeginFoc]
+						release computer player 2
+						stop music
+					end cinema
+					set fade in time 1					
+					Town4FirstTaken = 1
+				else
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [Town3]
+						say HELP_TEXT_NEW_L5_VILLAGE3_31
+						wait until read
+						send evil spirit home
+					end dialogue
+				end if
+				Town4Taken = 1
+			end if
+		elsif get PLAYER of Town4 == 1 and Town4Taken == 1
+			begin dialogue
+				//THIS IS NEMESIS TAKING THE VILLAGE BACK!
+				say HELP_TEXT_NEW_L5_VILLAGE3_32
+				wait until read
+			end dialogue
+			Town4Taken = 0
+		end if
+
+		if Town2Taken == 1 and Town3Taken == 1 and Town4Taken == 1
+			WondersActive = 1
+		end if
+
+	end while
+
+ 					 
+	//This is where the creature is no longer cursed.
+	stop script "CreatureCurse"
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** INTERLUDE ****
+//------------------------------------------------------------------------------------------------------------------------
+
+	//Creature cured cut-scene
+	set fade red 0 green 0 blue 0 time 2			
+	wait until fade ready
+	begin cinema
+		
+		Traitor = create VILLAGER VILLAGER_INFO_CRUSADER at [2178.041, 39.821, 2655.696] 
+		enable Traitor high graphics detail		
+		move Traitor position to [2193.172, 37.766, 2651.477]    //traitor in position 
+
+		set camera position to [2198.636, 40.861, 2649.582] 
+		set camera focus to [2192.585, 35.819, 2652.056] 
+		move camera position to [2194.447, 39.040, 2651.062] time 12
+		move camera focus to [2178.245, 38., 2658.162] time 8
+
+		
+	
+
+		MyCreature = get player 1 creature
+		
+		set MyCreature position to [2208.199, 36.405, 2658.479]   
+		set MyCreature focus to [2282.263, 58.919, 2634.987] 
+
+		set fade in time 1
+
+		wait until [Traitor] near [2193.172, 37.766, 2651.477] radius 1
+		wait 1 seconds
+		set Traitor focus to camera position
+		wait 0.5 seconds
+		//wait until camera ready
+		Traitor play ANM_P_CROWD_MEXICAN_WAVE loop 1
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_01
+		wait until read
+		
+		Traitor play ANM_P_AMBIENT2 loop 1
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_02
+		wait until read
+		
+		Traitor play ANM_P_THANK_YOU
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_03
+		wait until Traitor played
+		Traitor play ANM_P_AMBIENT1 loop -1
+		wait until read
+		close dialogue
+
+
+
+		
+
+
+		CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+		move camera position to [MyCreature] + [CreatureHeight*1.5,CreatureHeight*1.5, -CreatureHeight*1.5] time 8
+		move camera focus to [MyCreature]+[0, CreatureHeight*0.7, 0] time 8
+		wait until camera ready
+		start music MUSIC_TYPE_SCRIPT_EPIC_02		
+
+		CreatureFinishedChanging = 0
+		run background script LookAfterDust(50)
+		start sound constant 30.0 AUDIO_SFX_BANK_TYPE_SPELL
+
+		MyCreature = get player 1 creature
+		MyCreature play C_INDIVIDUAL_SUMMON loop 1
+		
+		move camera position to [MyCreature] + [OldSize*1.5,OldSize*1.5, -OldSize*1.5] time 8
+		move camera focus to [MyCreature]+[0, OldSize*0.7, 0] time 8
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_04
+		wait until read
+		close dialogue
+
+		run background script ReturnCreatureBackToNormal(OldStrength, OldSize, OldAlignment)
+		move camera position to [2234.743, 42.562, 2631.935] time 10
+		wait 5 seconds
+		CreatureFinishedChanging = 1
+		wait until camera ready
+		wait 5 seconds
+
+		MyCreature = get player 1 creature
+		
+		force MyCreature CREATURE_SIT MyCreature
+		move camera position to [2279.100, 38.158, 2623.736] time 4
+		move camera focus to [2248.505, 34.519, 2652.787] time 4
+		wait 2 seconds
+		set Traitor position to [2278.880, 36.850, 2630.004]  
+		move  Traitor position to [2276.913, 36.850, 2626.114] 
+		wait until camera ready
+		
+		wait until [Traitor] near [2276.913, 36.850, 2626.114] radius 1
+		wait 0.5 seconds
+		set Traitor focus to [2279.100, 38.158, 2623.736]
+		wait 1 seconds
+
+		challenge CREATURE_CURSE
+		snapshot quest success 1.0 alignment 0.0 HELP_TEXT_NEW_L5_INTRO_09 StandardReminder(variable HELP_TEXT_NEW_L5_CREATURE_CURSE_03)
+		challenge LandControl5
+						  
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_05
+		wait until read
+		set camera position to [2244.705, 142.535, 2358.301] 
+		set camera focus to [2262.449, 140.342, 2356.703] 
+
+		run background script GiveSpellDispenserReward(marker at [2260.917, 52.621, 2331.909], variable MAGIC_TYPE_HEAL_PU_ONE, 270.0, 0, 5*60)
+
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_06
+		wait until read
+
+		move camera position to [2239.425, 72.615, 2344.280] time 15
+		move camera focus to [2284.157, 41.532, 2317.351] time 15
+		
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_07
+		wait until read
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_08
+		wait until read
+
+
+		say HELP_TEXT_NEW_L5_CREATURE_RESTORED_09
+		wait until read
+		
+		disable Traitor high graphics detail		
+		delete Traitor
+		stop music
+	end cinema 
+				 	   
+	release MyCreature	
+//------------------------------------------------------------------------------------------------------------------------
+// **** FINAL FIGHT ****
+//------------------------------------------------------------------------------------------------------------------------
+			 
+	BeamTimer = create timer for 15 seconds
+	PlayersCitadel = get CITADEL at [1553.588, 19.430, 3385.665] radius 50
+	while NemesisStillFighting == 0
+		if get BeamTimer time remaining <= 0
+			BeamTown = number from 1 to 4
+			if BeamTown == 1
+				if PLAYER of Town2 == 1
+					run background script ThrowBeamBlock(marker at [3102.909, 0.000, 2899.542], marker at [Town2], 3, 20, 20, 2)
+				end if 
+			end if 
+			if BeamTown == 2
+				if PLAYER of Town3 == 1
+					run background script ThrowBeamBlock(marker at [2841.509, 0.000, 2462.761], marker at [Town3], 3, 20, 20, 2)
+				end if 
+			end if 
+			if BeamTown == 3
+				if PLAYER of Town4 == 1
+					run background script ThrowBeamBlock(marker at [2786.849, 0.000, 2300.933], marker at [2199.373, 87.040, 2158.135] , 3, 20, 20, 2)
+				end if 
+			end if 
+			if BeamTown == 4
+				run background script ThrowBeamBlock(BeamStart, marker at [PlayersCitadel], 3, 20, 10, 1)
+			end if 
+			set BeamTimer time to 15 seconds
+		end if 
+		
+		if PLAYER of NeutralTown1 == 2 or PLAYER of Town2 == 2 or PLAYER of Town3 == 2 or PLAYER of Town4 == 2
+			set NemesisTown player 1 belief 0
+			if NemesisTownNowConquerable == 0
+				NemesisTownNowConquerable = 1
+				begin dialogue
+					say HELP_TEXT_NEW_L5_VILLAGE4_03
+					wait until read
+					say HELP_TEXT_NEW_L5_VILLAGE4_04
+					wait until read
+				end dialogue
+			end if
+		elsif NemesisTownNowConquerable == 1
+			begin dialogue
+				say single line HELP_TEXT_NEW_L5_VILLAGE4_05
+				wait until read
+			end dialogue
+			NemesisTownNowConquerable = 0
+		end if
+
+		if PLAYER of NemesisTown == 1
+			NemesisStillFighting = 1
+		end if
+	end while
+
+	stop all scripts excluding files "LandControl5.txt"
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** NEMESIS HAS LOST ALL TOWNS ****
+//------------------------------------------------------------------------------------------------------------------------
+	run script TheBigFightMain
+	run script EndOfGameCreatureSequenceGoToVolcano
+	run script NemesisCitadelDestroyed
+	disable computer player 2
+	run script VillageWavingSequence
+wait 50000 seconds
+
+
+end script LandControl5
+

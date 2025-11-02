@@ -1,0 +1,130 @@
+run script CreatureChoice
+
+begin script CreatureChoice
+	
+	CreatureCow = create CREATURE_TYPE_COW SCRIPT_OBJECT_TYPE_CREATURE at [3575, 39, 3786]
+	CreatureApe = create CREATURE_TYPE_APE SCRIPT_OBJECT_TYPE_CREATURE at [3573, 39.9, 3783]
+	CreatureTiger = create CREATURE_TYPE_TIGER SCRIPT_OBJECT_TYPE_CREATURE at [3568.9, 38, 3784.5]
+	ChosenACreature = 0
+	RunAwayPos = marker at [3523, 37.5, 3715.4]
+	RunAwayPos2 = marker at [RunAwayPos] + [3,3,3]
+
+start
+	set CreatureCow focus to position of camera
+	set CreatureApe focus to position of camera
+	set CreatureTiger focus to position of camera 
+	begin cinema
+		set camera position to [3570, 50.8, 3802]
+		set camera focus to [3570, 39, 3786.9]
+		eject good spirit
+		say "Choose one of these mothers"
+		wait until read
+		send good home
+	end cinema
+
+	while ChosenACreature==0
+		// First check for click
+		if CreatureCow clicked
+			say "You have chosen the nice cow"
+			ChosenACreature=1
+			set player_creature to CreatureCow
+			CreatureCow play C_INDIVIDUAL_HAPPY loop 1
+			CreatureApe play C_INDIVIDUAL_SAD loop 1
+			CreatureTiger play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureCow played
+			wait until CreatureApe played
+			wait until CreatureTiger played
+			move CreatureApe position to [RunAwayPos]
+			move CreatureTiger position to [RunAwayPos2]
+			wait until [CreatureApe] near [RunAwayPos] radius 10
+			wait until [CreatureTiger] near [RunAwayPos2] radius 10
+			CreatureApe play C_INDIVIDUAL_SAD loop 1
+			CreatureTiger play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureApe played
+			wait until CreatureTiger played
+			remove CreatureApe
+			remove CreatureTiger
+		elsif CreatureApe clicked
+			say "You have chosen the nice ape"
+			ChosenACreature=1
+			set player_creature to CreatureApe
+			CreatureApe play C_INDIVIDUAL_HAPPY loop 1
+			CreatureCow play C_INDIVIDUAL_SAD loop 1
+			CreatureTiger play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureCow played
+			wait until CreatureApe played
+			wait until CreatureTiger played
+			move CreatureCow position to [RunAwayPos]
+			move CreatureTiger position to [RunAwayPos2]
+			wait until [CreatureCow] near [RunAwayPos] radius 10
+			wait until [CreatureTiger] near [RunAwayPos2] radius 10
+			CreatureCow play C_INDIVIDUAL_SAD loop 1
+			CreatureTiger play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureCow played
+			wait until CreatureTiger played
+			remove CreatureCow
+			remove CreatureTiger
+		elsif CreatureTiger clicked
+			say "You have chosen the nice tiger"
+			ChosenACreature=1
+			set player_creature to CreatureTiger
+			CreatureTiger play C_INDIVIDUAL_HAPPY loop 1
+			CreatureApe play C_INDIVIDUAL_SAD loop 1
+			CreatureCow play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureCow played
+			wait until CreatureApe played
+			wait until CreatureTiger played
+			move CreatureApe position to [RunAwayPos]
+			move CreatureCow position to [RunAwayPos2]
+			wait until [CreatureApe] near [RunAwayPos] radius 10
+			wait until [CreatureCow] near [RunAwayPos2] radius 10
+			CreatureApe play C_INDIVIDUAL_SAD loop 1
+			CreatureCow play C_INDIVIDUAL_SAD loop 1
+			wait until CreatureCow played
+			wait until CreatureApe played
+			remove CreatureApe
+			remove CreatureCow
+		end if
+		// Then check for hand-over
+		if position of hand near [CreatureCow] radius 1.5
+			CreatureCow play C_INDIVIDUAL_PICK_ME loop 1
+			make good point to CreatureCow
+			say "You could choose the cow"
+			wait until read
+			wait until CreatureCow played
+			send good home
+		end if
+		if position of hand near [CreatureApe] radius 1.5
+			CreatureApe play C_INDIVIDUAL_PICK_ME loop 1
+			make good point to CreatureApe
+			say "You could choose the ape"
+			wait until read
+			wait until CreatureApe played
+			send good home
+		end if
+		if position of hand near [CreatureTiger] radius 1.5
+			CreatureTiger play C_INDIVIDUAL_PICK_ME loop 1
+			make good point to CreatureTiger
+			say "You could choose the tiger"
+			wait until read
+			wait until CreatureTiger played
+			send good home
+		end if
+		// Then check for hand-over
+		if position of hand near [CreatureCow] radius 15
+			set CreatureCow focus to position of hand
+		else
+			set CreatureCow focus to position of camera
+		end if
+		if position of hand near [CreatureApe] radius 15
+			set CreatureApe focus to position of hand
+		else
+			set CreatureApe focus to position of camera
+		end if
+		if position of hand near [CreatureTiger] radius 15
+			set CreatureTiger focus to position of hand
+		else
+			set CreatureTiger focus to position of camera
+		end if
+	end while
+end script CreatureChoice

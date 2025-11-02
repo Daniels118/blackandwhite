@@ -1,0 +1,382 @@
+challenge JAPANESE_TRAITOR
+
+global MetTraitor
+
+begin script AdvisorSpotsFire (Campfire)
+
+ KeepLooking = 0
+ DayTimeSpoken = 0
+ DelayTimer = create timer for 0 seconds
+
+start
+	while KeepLooking == 0 and MetTraitor == 0
+		if get DelayTimer time remaining <= 0
+			if camera position near [Campfire] radius 150 and [Campfire] viewed
+				if get game time > 18  or get game time < 7 //Night
+					begin dialogue
+						eject good spirit
+						make good spirit point at [Campfire]
+						say HELP_TEXT_NEW_L5_JAP_TRAITOR_01
+						wait until read
+						stop good spirit pointing
+						say HELP_TEXT_NEW_L5_JAP_TRAITOR_02
+						wait until read
+						say HELP_TEXT_NEW_L5_JAP_TRAITOR_03
+						wait until read
+						stop good spirit pointing
+						set DelayTimer time to 30 seconds
+					end dialogue
+				elsif DayTimeSpoken == 0
+					begin dialogue	  //Day
+						eject good spirit
+						make good spirit point at [Campfire]
+						say HELP_TEXT_NEW_L5_JAP_TRAITOR_04
+						wait until read
+						say HELP_TEXT_NEW_L5_JAP_TRAITOR_05
+						wait until read
+						set DelayTimer time to 60 seconds
+						DayTimeSpoken = 1
+					end dialogue
+				end if
+			end if
+		end if
+	end while
+
+
+
+end script AdvisorSpotsFire
+
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script JapaneseTraitor
+
+ //TraitorHut = get HOUSE at [2328.211, 17.438, 3435.913] 
+ TraitorPos = marker at [2197.820, 26.609, 3502.809] 
+ Traitor = 0
+ Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [TraitorPos] + [-2,0,0]	
+ BeginPos = 0
+ BeginFoc = 0
+Wonder1Pos = marker at [2663.767, 109.079, 3671.004] //Azctec
+Wonder2Pos = marker at [2331.919, 38.860, 2581.005] //Greek
+Wonder3Pos = marker at [1758.438, 95.506, 2337.047] //Tibetan
+Wonder4Pos = marker at [3150.261, 6.014, 2609.817]  //Nemesis land
+Wonder1 = get HOUSE at [Wonder1Pos]
+Wonder2 = get HOUSE at [Wonder2Pos]
+Wonder3 = get HOUSE at [Wonder3Pos]
+Wonder4 = get HOUSE at [Wonder4Pos]
+ TraitorSpoken = 0
+ TotalNumberOfDays = 0
+ IntroSpoken = 0
+
+ Highlight = 0
+ HighlightClickedOn = 0
+
+start
+	run background script AdvisorSpotsFire (Campfire)
+
+	while TraitorSpoken < 3
+		wait until get game time > 16 or get game time < 8
+		HighlightClickedOn = 0
+		Traitor = create VILLAGER VILLAGER_INFO_CRUSADER at [2188.500, 28.255, 3481.737] //[TraitorHut]
+		enable Traitor indestructible
+		disable Traitor hurt by fire
+		disable Traitor pickup
+		move Traitor position to [TraitorPos]
+		wait until [Traitor] at [TraitorPos]
+
+		delete Campfire
+		Campfire = create OBJECT MOBILE_STATIC_INFO_COUNTRY_LANTERN at [TraitorPos] + [-2,0,0]	
+
+		set Traitor focus to [Campfire]
+		Traitor play ANM_P_PRAY loop -1
+
+		if TraitorSpoken == 0 and Wonder1 not exists
+			TraitorSpoken = 1
+		end if
+		if TraitorSpoken == 1 and Wonder2 not exists
+			TraitorSpoken = 2
+		end if
+		if TraitorSpoken == 2 and Wonder3 not exists
+			TraitorSpoken = 3
+		end if
+		if TraitorSpoken == 3 and Wonder4 not exists
+			TraitorSpoken = 4
+		end if
+
+		if TraitorSpoken < 3
+			Highlight = create highlight HIGHLIGHT_CHALLENGE at [TraitorPos]
+			while HighlightClickedOn == 0 and (get game time > 16 or get game time < 8)
+				if Highlight clicked 
+					HighlightClickedOn = 1
+				end if 
+			end while 
+			//run script ChallengeHighlightNotify(Highlight, TraitorPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_04)
+			//wait until ((camera position near [TraitorPos] radius 50) and ([TraitorPos] viewed)) 
+			if HighlightClickedOn == 1		
+				// Bumps you up the cinema order if the relevant wonder has been destroyed already
+			
+	  			if TraitorSpoken == 0 and Wonder1 not exists
+					TraitorSpoken = 1
+				end if
+				if TraitorSpoken == 1 and Wonder2 not exists
+					TraitorSpoken = 2
+				end if
+				if TraitorSpoken == 2 and Wonder3 not exists
+					TraitorSpoken = 3
+				end if
+				if TraitorSpoken == 3 and Wonder4 not exists
+					TraitorSpoken = 4
+				end if
+
+
+				//if camera position near [TraitorPos] radius 75 and [TraitorPos] viewed
+				
+					if TraitorSpoken == 0
+		// 1 -------------------------------------------------------------------------
+						
+						begin cinema
+							start music MUSIC_TYPE_SCRIPT_GENERIC_02
+
+							MetTraitor = 1
+
+							enable Traitor high graphics detail
+
+							BeginPos = marker at camera position
+							BeginFoc = marker at camera focus
+
+							move camera position to [TraitorPos]+[8,4,5] time 4 //realpos
+							move camera focus to [TraitorPos] + [-1,0.5,0] time 3
+							wait until camera ready
+							move camera position to [TraitorPos]+[-3,2,2] time 8 // -figures are in front 
+												
+							//set Traitor focus to camera position
+							Traitor play ANM_P_PRAY loop -1
+							
+							if IntroSpoken == 0
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_06
+								wait until read
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_07
+								wait until read
+								IntroSpoken = 1
+							end if
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_08
+							wait until read
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							wait 1 seconds
+							
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_11
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_12
+							wait until read
+
+							set camera position to [2637.199, 128.137, 3689.774] //Acztec
+							set camera focus to [2657.435, 109.965, 3678.175]
+							wait 1 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_13
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_14
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_15
+							move camera position to [2632.450, 122.997, 3685.354] time 3 //Acztec later
+							move camera focus to [2672.858, 110.049, 3669.922] time 3
+							wait until read
+							wait 2 seconds
+
+
+							set camera position to [TraitorPos]+[-3,2,2]
+							set camera focus to [TraitorPos] + [-1,0.5,0]
+							move camera position to [TraitorPos]+[-5,8,-6] time 4
+
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_10
+							wait until read
+							wait until camera ready
+
+							move camera position to [BeginPos] time 4
+							move camera focus to [BeginFoc] time 3
+							wait until camera ready
+							set Traitor focus to [Campfire]
+							Traitor play ANM_P_PRAY loop -1
+
+							disable Traitor high graphics detail
+							stop music
+						end cinema
+						TraitorSpoken = 1
+				elsif TraitorSpoken == 1
+						
+		// 2 -----------------------------------------------------------------------------------
+					
+					begin cinema
+							start music MUSIC_TYPE_SCRIPT_GENERIC_02
+							
+							MetTraitor = 1
+ 
+							enable Traitor high graphics detail
+
+							BeginPos = marker at camera position
+							BeginFoc = marker at camera focus
+
+							move camera position to [TraitorPos]+[-8,4,5] time 4 //realpos
+							move camera focus to [TraitorPos] + [-1,0.5,0] time 3
+							wait until camera ready
+							move camera position to [TraitorPos]+[-3,2,2] time 8 //  
+												
+							//set Traitor focus to camera position
+							Traitor play ANM_P_PRAY loop -1
+							
+							if IntroSpoken == 0
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_06
+								wait until read
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_07
+								wait until read
+								IntroSpoken = 1
+							end if
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_08
+							wait until read
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							wait 1 seconds
+
+							
+							set camera position to [2300.817, 60.447, 2567.068] //Greek
+							set camera focus to [2327.666, 39.360, 2581.163]  
+							wait 1 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_16
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_17
+							move camera position to [2307.482, 53.338, 2574.843]  time 3 //Greek later 
+							move camera focus to [2405.846, 29.083, 2585.527] time 3 
+							wait until read
+							wait 2 seconds
+
+
+							set camera position to [TraitorPos]+[-3,2,2]
+							set camera focus to [TraitorPos] + [-1,0.5,0]
+							move camera position to [TraitorPos]+[-5,8,-6] time 4
+							
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_10
+							wait until read
+							wait until camera ready
+
+							move camera position to [BeginPos] time 4
+							move camera focus to [BeginFoc] time 3
+							wait until camera ready
+							set Traitor focus to [Campfire]
+							Traitor play ANM_P_PRAY loop -1
+
+							disable Traitor high graphics detail
+							stop music
+						end cinema
+						TraitorSpoken = 2
+					elsif TraitorSpoken == 2
+
+		// 3 -----------------------------------------------------------------------------------
+					  begin cinema
+						MetTraitor = 1
+							start music MUSIC_TYPE_SCRIPT_GENERIC_02
+					
+							enable Traitor high graphics detail
+
+							BeginPos = marker at camera position
+							BeginFoc = marker at camera focus
+
+							move camera position to [TraitorPos]+[8,4,-5] time 4 //realpos
+							move camera focus to [TraitorPos] + [-1,0.5,0] time 3
+							wait until camera ready
+							move camera position to [TraitorPos]+[-3,2,2] time 8 // -figures are in front 
+												
+							//set Traitor focus to camera position
+							Traitor play ANM_P_PRAY loop -1
+							
+							if IntroSpoken == 0
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_06
+								wait until read
+								say HELP_TEXT_NEW_L5_JAP_TRAITOR_07
+								wait until read
+								IntroSpoken = 1
+							end if
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_08
+							wait until read
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							wait 2 seconds
+
+							
+							set camera position to [1728.325, 110.751, 2342.207] //Tibetan
+							set camera focus to [1752.961, 95.765, 2341.747] 
+							wait 2 seconds
+
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_18
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_19
+							move camera position to [1735.024, 112.496, 2355.897] time 3 //later Tibean
+							move camera focus to [1992.366, 35.752, 2272.549] time 3 
+							wait until read
+							wait 2 seconds
+
+
+							
+							set camera position to [TraitorPos]+[-3,2,2]
+							set camera focus to [TraitorPos] + [-1,0.5,0]
+							move camera position to [TraitorPos]+[-5,8,-6] time 4
+							
+							wait 0.5 seconds
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_09
+							wait until read
+							say HELP_TEXT_NEW_L5_JAP_TRAITOR_10
+							wait until read
+							wait until camera ready
+
+							move camera position to [BeginPos] time 4
+							move camera focus to [BeginFoc] time 3
+							wait until camera ready
+							set Traitor focus to [Campfire]
+							Traitor play ANM_P_PRAY loop -1
+
+							disable Traitor high graphics detail
+
+							stop music
+						end cinema
+						TraitorSpoken = 3
+					end if
+						
+					if TraitorSpoken == 3
+						TraitorSpoken = 5
+					end if 
+				
+					delete Highlight
+				wait until get game time > 8 and get game time < 16
+			end if
+		end if		
+
+		if Highlight exists
+			delete Highlight
+		end if
+
+		
+
+		move Traitor position to [2188.500, 28.255, 3481.737] //spot in woods
+
+		wait until [Traitor] not near [TraitorPos] radius 10
+
+		delete Campfire
+		Campfire = create OBJECT MOBILE_STATIC_INFO_BONFIRE at [TraitorPos] + [-2,0,0]	
+
+		wait until [Traitor] at [2188.500, 28.255, 3481.737] //spot in woods
+		delete Traitor with fade
+
+	end while
+	//until TraitorSpoken == 5
+	//end loop
+
+end script JapaneseTraitor

@@ -1,0 +1,13 @@
+challenge RunChimpPosse
+
+run script RunChimpPosse
+
+begin script RunChimpPosse
+	
+start
+
+	run script SetupLand5	
+	run script ChimpPosse
+	
+
+end script RunChimpPosse

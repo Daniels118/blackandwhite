@@ -1,0 +1,50 @@
+/*
+ *	This script demonstrates an occasional divide-by-zero error when creating a flock.
+ *
+ *	All bug scripts are run in cinema mode, which enables them to be batched.
+ */
+run script BugFlock
+begin script BugFlock
+	Field = marker at	[3279,3403]
+	Cattle=0
+	Cow=0
+start
+	begin cinema
+		say "Bug in Flock"
+		move camera focus to [Field] time 5
+		move camera position to [Field]+[20,40,20] time 5
+		wait until position of camera near [Field] radius 50 and read
+		say "Creating flock"
+		Cattle = flock at [Field]
+		wait until read
+		say "Setting flock properties"
+		flock Cattle radius 20 distance 3
+		wait until read
+		say "Adding ten cows to the flock"
+		wait until read
+		while size of Cattle<10
+			say "Creating cow"
+			Cow = create ANIMAL_INFO_COW SCRIPT_OBJECT_TYPE_ANIMAL at [Field]+[number from -5 to 5, number from -5 to 5]
+			wait until read
+			say "Attaching cow to flock"
+			attach Cow to Cattle
+			wait until read
+			say "Making cow wander"
+			state Cow ANIMAL_STATE_WANDER
+			wait until read
+		end while
+		say "Removing cows"
+		while size of Cattle>0
+			say "Getting a random cow"
+			Cow = detach from Cattle
+			wait until read
+			say "Removing cow"
+			remove Cow
+		end while
+		say "Disbanding flock"
+		disband Cattle
+		wait until read
+	end cinema
+	remove Field
+	remove Cattle
+end script BugFlock

@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global GulliversStrength
+global GulliversFatness
+global GulliversAlignment
+
+begin script SetupLand5
+
+L5HomeStoragePos =  marker at [1317.52,3493.68]
+L5HomeWorkshopPos =  marker at [1316.95,3354.41]
+NemesisCreaturePos	= marker at [3386.5669, 16.5720, 2449.2466]
+StorageScaffold = 0
+WorkshopScaffold = 0
+
+start
+	LandNumber	= 5
+	enable player 1 virtual influence
+	set player 1 ally with player 2 percentage 0
+
+	run script Volcano
+
+	// Place the Scaffolds for W/Shop and Storage Pit.
+	StorageScaffold =  create SCAFFOLD at [L5HomeStoragePos]
+	set StorageScaffold building properties ABODE_NUMBER_STORAGE_PIT size 3
+	ANGLE of StorageScaffold = 45.65
+	enable StorageScaffold active
+
+	WorkshopScaffold =  create SCAFFOLD at [L5HomeWorkshopPos]
+	set WorkshopScaffold building properties ABODE_NUMBER_WORKSHOP size 3
+	ANGLE of WorkshopScaffold = 83.54
+	enable WorkshopScaffold active
+
+	/***********	SETUP COMPUTER PLAYERS CREATURES FOR LAND 5		***********/
+
+	// Parameters are: (Player number, Position to place creature, Creatures size)
+	run background script SetupNemesisCreature(2, NemesisCreaturePos, 2.00)
+
+	/***********	SETUP COMPUTER PLAYERS CREATURES - FINISHED		***********/
+
+end script SetupLand5
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

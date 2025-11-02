@@ -1,0 +1,39 @@
+
+begin script VortexEntryPerson(Person, DirectionPos, Velocity, Town)
+
+start
+	attach Person to Town
+	set Person velocity heading [DirectionPos] speed Velocity
+	while Person is FLYING
+		HEALTH of Person = 1
+	end while
+end script VortexEntryPerson
+
+//------------------------------------------------------------------------------------------------------------
+begin script VortexEntry(NoOfPeople, VortexPos, Town, FlockPos, FlockDistance, FlockDomainRadius, CreaturePos, MyVortexFlock)
+	Vortex=0
+start
+
+	VortexOpen=1
+	Vortex = create VORTEX VORTEX_TYPE_OUT at [VortexPos]
+
+	set Vortex properties town Town flock position [FlockPos] distance FlockDistance radius FlockDomainRadius flock MyVortexFlock
+	
+	// Jeremy load my creature at position
+
+	load my_creature at [CreaturePos]
+	MyCreature=get player 1 creature
+	//set MyCreature focus to [VortexPos]
+	//move MyCreature position to [CreaturePos]
+
+	//detach reaction MyCreature REACTION_REACT_TO_CREATURE
+
+	wait 15 seconds
+	start Vortex fade out
+	wait 8 seconds
+	VortexOpen=0
+
+end script VortexEntry
+//------------------------------------------------------------------------------------------------------------
+
+

@@ -1,0 +1,21 @@
+begin script rewardnosky(rewardtype, pos, p_town)
+
+
+helptextenum = 0
+reward1 = 0
+
+start
+
+	if p_town not exists
+
+		reward1 = reward constant rewardtype at [pos]
+
+	else
+
+		reward1 = reward constant rewardtype in p_town at [pos]
+
+	end if
+
+	run background script displayrewardhelp(reward1)
+
+end script rewardnosky

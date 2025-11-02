@@ -1,0 +1,12 @@
+challenge RunMagicMushroom
+
+run script RunMagicMushroom
+
+begin script RunMagicMushroom
+	
+start
+	
+	run script SetupLand1
+	run script MagicMushroom
+	
+end script RunMagicMushroom

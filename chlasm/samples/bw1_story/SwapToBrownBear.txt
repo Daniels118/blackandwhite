@@ -1,0 +1,271 @@
+challenge SWAP_TO_BROWN_BEAR
+
+//run script SwapToBrownBear
+begin script HelpSpritesTalk
+start
+	begin dialogue
+		eject good spirit
+		say HELP_TEXT_SWAP_TO_BROWN_BEAR_03
+		wait until read
+		eject evil spirit
+		say HELP_TEXT_SWAP_TO_BROWN_BEAR_04
+		wait until read
+	end dialogue
+end script HelpSpritesTalk
+
+begin script HelpSpritesTalk2
+start
+	begin dialogue
+		eject good spirit
+		// "Urgh. The smell still persists. There must be more around."
+		say single line HELP_TEXT_SWAP_TO_BROWN_BEAR_14
+		wait until read
+	end dialogue
+end script HelpSpritesTalk2
+
+begin script SwapToBrownBear
+		
+		BrownBear = 0 
+		WoodHut = get HOUSE at [2359.320, 8.276, 3390.025] 
+		Woman = 0 
+
+		Poo1 = 0
+		Poo2 = 0
+		Poo3 = 0
+		Poo4 = 0
+		Poo5 = 0
+		Poo6 = 0
+		Poo7 = 0
+		Poo8 = 0
+
+		Poo1Flies = 0
+		Poo2Flies = 0
+		Poo3Flies = 0
+		Poo4Flies = 0
+		Poo5Flies = 0
+		Poo6Flies = 0
+		Poo7Flies = 0
+		Poo8Flies = 0
+
+		PooPos1 = marker at [2254.907, 27.339, 3386.621] 
+		PooPos2 = marker at [2226.376, 27.043, 3404.887]   
+		PooPos3 = marker at [2240.606, 26.808, 3434.660]  
+		PooPos4 = marker at [2272.533, 25.460, 3463.427]   
+		PooPos5 = marker at [2243.217, 25.245, 3454.875]   
+		PooPos6 = marker at [2213.621, 26.790, 3489.385] 
+		PooPos7 = marker at [2198.929, 32.579, 3518.456]  
+		PooPos8 = marker at [2217.400, 28.949, 3533.416]  
+
+		RewardPos = marker at [2239.444, 0.230, 3550.291]
+		Reward = 0
+
+
+		ScriptActive = 0
+		WomanDeleted = 0
+		PooNumber = 0
+		InitialWoodHutHealth = 0
+		WoodHutSpeech = 0
+
+		BeginPos = 0
+		BeginFoc = 0
+		SFX=0
+		Highlight = create highlight HIGHLIGHT_CHALLENGE at [WoodHut]
+		BaseTown = get TOWN at [1293.497, 27.470, 3551.602] radius 100 // HomeTown
+		 
+start
+		run script ChallengeHighlightNotify(Highlight, WoodHut, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_08)
+		MyCreature = get player 1 creature		
+
+		Poo1 = create POO at [PooPos1]
+		Poo1Flies=create special effect SPOT_VISUAL_FLIES on Poo1 time -1
+
+		Woman =	create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [WoodHut] //used to be a woman but voice is male
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_GENERIC_01
+
+			enable Woman high graphics detail
+			move camera position to [2350.461, 14.466, 3376.388] time 3
+			move camera focus to [2354.178, 10.348, 3398.058] time 4
+			wait 2 seconds
+ 			SPEED of Woman = 0.4
+			move Woman position to [2350.339, 11.712, 3383.354] //womanpos
+			wait until [Woman] near	[2350.339, 11.712, 3383.354] radius 1
+			wait until camera ready			
+			set Woman focus to camera position
+
+			Woman play ANM_P_POISONED loop 1
+			move camera position to [2349.745, 15.061, 3377.635] time 12
+			move camera focus to [2351.423, 11.451, 3384.953] time 12
+			wait until Woman played
+
+			wait 0.25 seconds
+			snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_90 StandardReminder(variable HELP_TEXT_REMINDER_52)
+			//wait until Woman played
+			Woman play ANM_P_LOOKING_FOR_SOMETHING loop 1
+
+			
+			say HELP_TEXT_SWAP_TO_BROWN_BEAR_01
+			wait until read
+
+			set Woman focus to [PooPos1]
+			Woman play ANM_P_TALKING_AND_POINTING loop 1
+							
+			move camera position to [2372.980, 27.413, 3377.539] time 3
+			move camera focus to [2305.198, 19.376, 3378.785] time 3
+			say HELP_TEXT_SWAP_TO_BROWN_BEAR_02
+			wait until read
+			wait until camera ready
+			move camera position to [BeginPos] time 3
+			move camera focus to [PooPos1] time 3
+			wait until camera ready
+			move Woman position to [WoodHut]
+
+			disable Woman high graphics detail
+			stop music
+		end cinema
+
+		InitialWoodHutHealth = HEALTH of WoodHut
+		run background script HelpSpritesTalk
+
+// TODO Follow the trail of poo through a forest to reach the brown bear
+// TODO As you pick up one piece of poo, the next appears, leading you to the bear.
+PooNumber = 1
+while ScriptActive == 0
+	if WomanDeleted == 0
+		if [Woman] near [WoodHut] radius 2
+			delete Woman
+			WomanDeleted = 1
+		end if
+	end if
+	
+	
+	if PooNumber == 0
+		if Poo1 viewed and camera position near [Poo1] radius 100
+			begin dialogue
+				eject good spirit
+				make good spirit point at [Poo1]
+				say single line HELP_TEXT_SWAP_TO_BROWN_BEAR_12
+				wait until read
+			end dialogue
+			PooNumber = 1
+		end if
+	elsif PooNumber == 1
+		if Poo1 is HELD
+			delete Poo1
+			run background script HelpSpritesTalk2
+			Poo2 = create POO at [PooPos2]
+			Poo2Flies=create special effect SPOT_VISUAL_FLIES on Poo2 time -1
+			PooNumber = 2
+		end if
+	elsif PooNumber == 2
+		if Poo2 is HELD
+			delete Poo2
+			Poo3 = create POO at [PooPos3]
+			Poo3Flies=create special effect SPOT_VISUAL_FLIES on Poo3 time -1
+			PooNumber = 3
+		end  if
+	elsif PooNumber == 3
+		if Poo3 is HELD
+			delete Poo3
+			Poo4 = create POO at [PooPos4]
+			Poo4Flies=create special effect SPOT_VISUAL_FLIES on Poo4 time -1
+			PooNumber = 4
+		end if
+	elsif PooNumber == 4
+		if Poo4 is HELD
+			delete Poo4
+			Poo5 = create POO at [PooPos5]
+			Poo5Flies=create special effect SPOT_VISUAL_FLIES on Poo5 time -1
+			PooNumber = 5
+		end if
+	elsif PooNumber == 5
+		if Poo5 is HELD
+			delete Poo5
+			Poo6 = create POO at [PooPos6]
+			Poo6Flies=create special effect SPOT_VISUAL_FLIES on Poo6 time -1
+			PooNumber = 6
+		end if
+	elsif PooNumber == 6
+		if Poo6 is HELD
+			delete Poo6
+			Poo7 = create POO at [PooPos7]
+			Poo7Flies=create special effect SPOT_VISUAL_FLIES on Poo7 time -1
+			PooNumber = 7
+		end if
+	elsif PooNumber == 7
+			
+		if Poo7 is HELD
+			begin dialogue
+				eject evil spirit
+				// "The smell has improved drastically. There's one more still out there somewhere though."
+				say single line HELP_TEXT_SWAP_TO_BROWN_BEAR_15
+				wait until read
+			end dialogue
+			delete Poo7
+			Poo8 = create POO at [PooPos8]
+			Poo8Flies=create special effect SPOT_VISUAL_FLIES on Poo8 time -1
+
+			PooNumber = 8
+		end if
+	elsif PooNumber == 8
+		if Poo8 is HELD
+			delete Poo8
+			PooNumber = 9
+			ScriptActive = 1
+		end if
+	end if
+
+	if HEALTH of WoodHut < InitialWoodHutHealth and WoodHutSpeech == 0
+		begin dialogue
+			eject good spirit
+			make good spirit point at [WoodHut]
+			// "I don't think the owner of that house is gonna be too pleased."
+			say single line HELP_TEXT_SWAP_TO_BROWN_BEAR_13
+			wait until read
+			stop good spirit pointing
+			send good spirit home
+		end dialogue
+		WoodHutSpeech = 1
+	end if
+
+end while
+
+
+	SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [RewardPos] time 2
+	BrownBear = create CREATURE CREATURE_TYPE_BEAR at [RewardPos]
+
+	// TODO zoom to bear
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_EPIC_04
+			move camera position to [2241.094, 15.295, 3536.636] time 2
+			move camera focus to [RewardPos] time 2
+			wait until camera ready
+			eject good spirit
+			say HELP_TEXT_SWAP_TO_BROWN_BEAR_06
+			wait until read
+			move BrownBear position to [2239.368, 9.880, 3574.824]
+			wait until camera ready
+ 			move camera focus to [2239.209, 4.500, 3560.907] time 2
+ 			wait until [BrownBear] near [2239.368, 9.880, 3574.824] radius 2
+			move camera position to [2240.923, 6.448, 3539.488] time 2
+			run background script rewardfromsky (variable REWARD_OBJECT_INFO_HEAL_PU1, RewardPos, BaseTown, 0)
+			eject evil spirit
+ 			set BrownBear focus to [RewardPos]
+			say HELP_TEXT_SWAP_TO_BROWN_BEAR_07
+			wait 3 seconds
+			wait until read
+			set BrownBear focus to camera position
+			send good spirit home
+			send evil spirit home
+			close dialogue
+			wait 1 seconds
+			snapshot challenge success 1.0 alignment 0.0 HELP_TEXT_TITLE_90 StandardReminder(variable HELP_TEXT_REMINDER_52)
+			stop music
+		end cinema
+
+		run background script SwapCreatures(BrownBear) 
+
+end script SwapToBrownBear
+

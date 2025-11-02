@@ -1,0 +1,206 @@
+challenge RunHandDemos
+
+run script RunHandDemos
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script InfinateRocks(Stone)	//producing the infinite stones for throwing stones hand demo
+
+	TmpPos = 0
+	StartPos = marker at [Stone]
+	AtRest = 1
+	Finished = 0
+	ThrowingStonesUsed = 0
+
+start
+
+	begin loop
+	until Finished>0
+	when not Stone exists
+		Stone = create with angle 0 and scale 0.9 ROCK_OBJECT ROCK at [StartPos]
+		//SCALE of Stone = 0.5
+		AtRest = 1
+	when Stone is FLYING or Stone is HELD and AtRest>0
+		AtRest=0
+	when Stone is not FLYING and Stone is not HELD and AtRest<1
+		AtRest=1
+//	when land height at [Stone] < 0
+//		set Stone position to [StartPos]
+	when (not [Stone] near [StartPos] radius 40 and AtRest>0) 
+		set Stone position to [StartPos]
+		ThrowingStonesUsed++
+		SCALE of Stone = 0.5
+	end loop
+
+end script InfinateRocks
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script BuildLand2Town
+
+Citadel				= 0
+WorshipSite			= 0
+TownCentre			= 0		
+TownCentrePos		= marker at [3231.11, 3398.02]
+CitadelPos			= marker at [3358.5405, 77.7200, 3240.9072]
+WorshipSitePos		= marker at [3361.2600, 77.7200, 3241.8501]
+
+HutPos				= marker at [3619.5701, 8.7100, 3457.7200]
+
+Influence			= 0
+Town				= 0
+
+Villager0			= 0
+Villager1			= 0
+Villager2			= 0
+Villager3			= 0
+Villager4			= 0
+Villager5			= 0
+Villager6			= 0
+Villager7			= 0
+Villager8			= 0
+Villager9			= 0
+
+start
+	// Create influence at the physical shield hut
+	Influence = create influence at [HutPos] radius 40
+
+	// Load players creature
+	run SCRIPT_DEV_FUNCTION_LOAD_MY_CREATURE developer function	
+
+	// Build Citadel, Worship Site and Town Centre
+	build building at [CitadelPos]		desire 1.0
+	build building at [WorshipSitePos]	desire 1.0
+	build building at [TownCentrePos]	desire 1.0
+
+	Citadel		= get CITADEL	at [CitadelPos]		radius 5
+	WorshipSite	= get WORSHIP	at [WorshipSitePos] radius 30
+	TownCentre	= get HOUSE		at [TownCentrePos]	radius 5
+
+	BUILT of Citadel		= 1		
+	BUILT of WorshipSite	= 1		
+	BUILT of TownCentre		= 1
+
+	// Get the town
+	Town = get TOWN at [TownCentrePos] radius 5
+
+	// Create the villagers
+	Villager0	= create VILLAGER MALE at [WorshipSitePos] + [20, 0, 20]
+	Villager1	= create VILLAGER MALE at [WorshipSitePos] + [21, 0, 21]
+	Villager2	= create VILLAGER MALE at [WorshipSitePos] + [22, 0, 22]
+	Villager3	= create VILLAGER MALE at [WorshipSitePos] + [23, 0, 23]
+	Villager4	= create VILLAGER MALE at [WorshipSitePos] + [24, 0, 24]
+	Villager5	= create VILLAGER MALE at [WorshipSitePos] + [25, 0, 25]
+	Villager6	= create VILLAGER MALE at [WorshipSitePos] + [26, 0, 26]
+	Villager7	= create VILLAGER MALE at [WorshipSitePos] + [27, 0, 27]
+	Villager8	= create VILLAGER MALE at [WorshipSitePos] + [28, 0, 28]
+	Villager9	= create VILLAGER MALE at [WorshipSitePos] + [29, 0, 29]
+
+	// Attach them to the town
+	attach Villager0 to Town
+	attach Villager1 to Town
+	attach Villager2 to Town
+	attach Villager3 to Town
+	attach Villager4 to Town
+	attach Villager5 to Town
+	attach Villager6 to Town
+	attach Villager7 to Town
+	attach Villager8 to Town
+	attach Villager9 to Town
+
+end script BuildLand2Town
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// The learn miracles hand demo.
+//------------------------------------------------------------------------------------------------------------------------
+begin script FirstMiracle
+	WorshipSitePos=marker at [3361.2600, 77.7200, 3241.8501]
+	WorshipSite=0
+	
+start
+	WorshipSite = get WORSHIP WORSHIP_SITE_INFO_NORSE at [WorshipSitePos] radius 50
+		
+	begin known cinema
+		set camera position to [3340.550, 92.189, 3253.466]
+		set camera focus to [3317.568, 77.577, 3248.168] 
+
+		run script MiracleHandDemo(WorshipSite)
+	end known cinema
+
+
+end script FirstMiracle
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+	
+begin script RunHandDemos
+
+TempleZoomStartPos		= marker at [1867.5237, 54.5025, 2539.1250]
+TempleZoomStartFoc		= marker at [1914.2778, 29.8864, 2509.3811]
+
+LBrotherZoomStartPos	= marker at [1720.7271, 29.9020, 2583.9180]
+LBrotherZoomStartFoc	= marker at [1664.5585, 17.3963, 2589.4702] 
+
+PilePos					= marker at [1961.672, 14.965, 2388.286]
+	
+start
+	
+	begin cinema
+		//----------------------------- LAND 1: ROTATING --------------------------------
+		//run script Rotating
+		//----------------------------- LAND 1: PITCHING --------------------------------
+		//move camera position to [TempleZoomStartPos] time 2
+		//move camera focus to [TempleZoomStartFoc] time 2
+		//run script Pitching
+		//----------------------------- LAND 1: GIVEFOOD --------------------------------
+		run script GiveFood
+		//----------------------------- LAND 1: DRAGGING --------------------------------
+		//run script Drag
+		//----------------------------- LAND 1: TEMPLE ZOOMING --------------------------
+		//move camera position to [TempleZoomStartPos] time 2
+		//move camera focus to [TempleZoomStartFoc] time 2
+		//run script Zoom(TempleZoomStartPos, TempleZoomStartFoc)
+		//----------------------------- LAND 1: LOST BROTHER ZOOMING --------------------
+		//set camera zones to "Land1Zone2.exc"
+		//run script ZoomReminder(LBrotherZoomStartPos, LBrotherZoomStartFoc)
+		//----------------------------- LAND 1: THROWING --------------------------------
+		//run background script InfinateRocks(create with angle 0 and scale 0.5 ROCK_OBJECT ROCK at [PilePos]+[0,0,0])
+		//run background script InfinateRocks(create with angle 0 and scale 0.6 ROCK_OBJECT ROCK at [PilePos]+[5,0,5])
+		//run background script InfinateRocks(create with angle 0 and scale 0.7 ROCK_OBJECT ROCK at [PilePos]+[5,0,0])
+		//run background script InfinateRocks(create with angle 0 and scale 0.8 ROCK_OBJECT ROCK at [PilePos]+[2,0,-6])
+		//run background script InfinateRocks(create with angle 0 and scale 0.9 ROCK_OBJECT ROCK at [PilePos]+[-1,0,-4])
+		//run script Throwing
+		//----------------------------- LAND 1: IMPRESS FOOD ----------------------------
+		//run script ImpressFood
+		//----------------------------- LAND 2: FIRBALL ---------------------------------
+		//run script Fireball
+		//----------------------------- LAND 2: PHYSICAL SHIELD -------------------------
+		//run script PShield
+		//----------------------------- LAND 2: WORSHIP SITE ----------------------------
+		//run script GiveScaffold
+		//run script BuildLand2Town
+		//run script Worship
+		//----------------------------- LAND 2: FIRST MIRACLE ---------------------------
+		//run script BuildLand2Town
+		//run script FirstMiracle
+
+		//Cast the miracle itself.
+		//set camera position to [3311.519, 85.222, 3266.543]
+		//set camera focus to [3321.465, 77.258, 3246.431]
+
+		//----------------------------- LAND 2: INFLUENCE 1 ------------------------------
+		//run script Influence1
+		//----------------------------- LAND 2: INFLUENCE 2 ------------------------------
+		//run script Influence2
+
+	end cinema	
+
+end script RunHandDemos
+
+/////////////////////////////////////////////////////////////////////////////////////////////////

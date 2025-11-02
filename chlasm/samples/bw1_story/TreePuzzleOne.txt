@@ -1,0 +1,22 @@
+challenge TREE_PUZZLE_ONE
+
+begin script TreePuzzleOne
+	Highlight=0
+	TreePuzzleOne = 0
+	TreePuzzleOnePos = marker at [2280.3916, 19.7598, 3181.6543]
+	TreePuzzleOneDYKPos = marker at [2282.1489, 23.2118, 3212.4036]
+	RewardDispenser = 0
+	RewardDispenserPos= marker at [2312.5344, 36.7348, 3220.4229]
+
+start
+
+	TreePuzzleOne = create with angle 30 and scale 1 SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TREE_1 at [TreePuzzleOnePos]
+	run background script DidYouKnow(TreePuzzleOneDYKPos,variable HELP_TEXT_DYK_RULES_01, variable DYK_MISC)
+	
+	wait until TreePuzzleOne played
+
+	Highlight = get HIGHLIGHT HIGHLIGHT_TIPS at [TreePuzzleOneDYKPos] radius 2
+	delete Highlight with fade
+run script GiveSpellDispenserReward(RewardDispenserPos, variable MAGIC_TYPE_FLOCK_FLYING, 300, 0, 7*60)
+ 
+end script TreePuzzleOne

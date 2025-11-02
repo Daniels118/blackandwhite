@@ -1,0 +1,22 @@
+challenge TellAboutStoragePit
+
+
+begin script TellAboutStoragePit 
+
+	StoragePit = get SCRIPT_OBJECT_TYPE_ABODE at [1784.67,2683.48]
+
+start
+
+	if camera position near [StoragePit] radius 50
+		eject good spirit
+		say "GA: This is where the people store all their food and wood"
+		wait until read
+		eject evil sprit
+		say "EA: Try picking some up."
+
+		wait until 2 seconds
+		say "GA: Use your right mouse button."
+	end if
+
+end script TellAboutStoragePit
+

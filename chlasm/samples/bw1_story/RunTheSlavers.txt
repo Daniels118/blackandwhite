@@ -1,0 +1,13 @@
+challenge RunTheSlavers
+
+run script RunTheSlavers
+
+begin script RunTheSlavers
+	Town4 = get town with id 2				//Norse Near Khazar Slavers
+	
+start
+	
+	run script TheSlaversMain(Town4)
+	
+
+end script RunTheSlavers

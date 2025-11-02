@@ -1,0 +1,12 @@
+challenge RunTreePuzzleTwo
+
+run script RunTreePuzzleTwo
+
+begin script RunTreePuzzleTwo
+	
+start
+	
+	run script TreePuzzleTwo
+	
+
+end script RunTreePuzzleTwo

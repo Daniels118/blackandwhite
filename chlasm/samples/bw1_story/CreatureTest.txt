@@ -1,0 +1,48 @@
+global CreatureTest
+global CreatureTestFinished
+
+run script CreatureTest
+
+
+begin script CreatureTest
+	
+	LairEntrance = marker at [3831, 10, 3672]
+	Creature = create CREATURE_TYPE_COW SCRIPT_OBJECT_TYPE_CREATURE at [LairEntrance]
+	RockPos = marker at [LairEntrance]+[10,10,10]
+	Rock = create MOBILE_STATIC_INFO_ROCK SCRIPT_OBJECT_TYPE_MOBILE_STATIC at [RockPos]
+	Destination = marker at [LairEntrance]+[-10,10,-10]
+
+start
+
+	SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Creature = 0.3
+	SCRIPT_OBJECT_PROPERTY_TYPE_CREATURE_FATNESS of Creature = 1.0
+	SCRIPT_OBJECT_PROPERTY_TYPE_ALIGNMENT of Creature = -1.0
+
+	create timer 30
+
+	begin cinema
+		set camera position to [Creature] + [10,10,10]
+		set camera focus to [Creature]
+		eject evil spirit
+		make evil spirit point to Creature
+		say "You have to defeat this creature"
+		wait until read
+	end cinema
+
+	while CreatureTestFinished==0
+		move Creature position to [Rock]
+		wait until [Creature] near [Rock] radius 10
+		Creature play C_INDIVIDUAL_HAPPY loop 1
+		wait until Creature played
+		move Creature position to [Destination]
+		wait until [Creature] near [Destination] radius 10
+		Creature play C_STATIC_SIT loop 10
+		wait until Creature played
+		if get timer == 0
+			say "Time Up!"
+			wait until read
+		end if
+	end while	
+
+
+end script CreatureTest

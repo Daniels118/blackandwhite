@@ -1,0 +1,500 @@
+challenge SWAP_CREATURES
+
+global GlobalReset
+global NrOfChoosenCreature
+
+/******************************************************************************
+ * SwapCreatures
+ ******************************************************************************/
+
+begin script SwapCreatures(NewCreature)
+	ActiveTime = number from 60 to 120
+	CreaturesClose = 0
+	TempMyCreature = 0
+	SwapTimer = 0
+	ResetTimer = 0
+	Highlight = 0
+	SwapActive = 1
+	Spirit = 0
+	Count = time-31
+	Reset = 0
+	Waiting = 0
+	OldPositionCreature = 0
+	Waited4Click = 0
+	S1Effect = 0
+	S2Effect = 0
+	S3Effect = 0
+	CreatureHeight = 0
+	CreatureClicked = 0
+	CreaturesInPosition = 0
+	ReminderTimer = create timer for 0 seconds
+	ReminderTimer2 = create timer for 0 seconds
+	ConfirmTimer = create timer for 0 seconds
+	MyTimer = create timer for 0 seconds
+	CreatureControlledLocally = 0
+
+start
+	MyCreature = get player 1 creature
+	if ActiveTime > 0
+		SwapTimer = create timer for ActiveTime seconds
+	end if
+	disable NewCreature pickup
+
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NewCreature
+
+	while SwapActive == 1
+
+		// Remind player and get him to initiate Swap by clicking on the scroll or the new creature
+		Highlight = create highlight HIGHLIGHT_CHALLENGE at [NewCreature] 
+		ALTITUDE of Highlight = CreatureHeight+1.0
+		clear clicked object
+
+		// START: Wait for a click on Highlight or NewCreature or timer to expire
+		CreatureClicked = 0
+		while CreatureClicked == 0
+			set NewCreature focus to camera position
+			force NewCreature CREATURE_LOOK_AT_CAMERA NewCreature
+
+			if camera position near [Highlight] radius 100 and NewCreature viewed
+				if get ReminderTimer2 time remaining <= 0
+					set ReminderTimer2 time to 60 seconds
+					begin dialogue
+						eject evil spirit
+						make evil spirit point at [Highlight] in world
+						say single line HELP_TEXT_CREATURE_BREEDER_09
+						wait until read
+					end dialogue
+				end if
+			end if
+
+			if Highlight clicked or NewCreature clicked
+				CreatureClicked = 1
+			end if 
+		end while
+
+		// CLICKED ONCE: Player wants to swap - make sure your creature is close enough
+		if [NewCreature] near [MyCreature] radius 50
+			Reset = 0
+			Waited4Click = 0
+			delete Highlight
+		else
+			Reset = 1
+			Waited4Click = 0 
+			begin dialogue
+				eject evil spirit
+				//"EA: You'll need to bring Your Creature Closer, Boss"
+				say single line HELP_TEXT_CREATURE_BREEDER_10
+				wait until read
+			end dialogue
+			if CreatureControlledLocally == 1
+				release MyCreature
+				CreatureControlledLocally = 0
+			end if
+		end if								 
+
+		if Reset == 0
+			// Force creatures into position
+			Waiting = 1
+ 			detach MyCreature leash
+			move MyCreature position to [NewCreature] radius 15
+			CreatureControlledLocally = 1
+			 
+			set MyTimer time to 5 seconds
+			CreaturesInPosition = 0
+			while CreaturesInPosition == 0
+				if [MyCreature] near [NewCreature] radius 20
+					CreaturesInPosition = 1
+				end if
+				if get MyTimer time remaining <= 0
+					CreaturesInPosition = 1
+				end if
+			end while
+
+			force MyCreature CREATURE_EXAMINE_BY_LOOKING NewCreature
+			force NewCreature CREATURE_EXAMINE_BY_LOOKING MyCreature
+			CreatureControlledLocally = 1
+
+			set ReminderTimer time to 0 seconds
+			set ConfirmTimer time to 110 seconds
+			// WAIT FOR SECOND CLICK
+			while Waiting == 1 and Reset == 0
+				if get ReminderTimer time remaining <= 0
+					set ReminderTimer time to 30 seconds
+					wait 0.1 seconds
+					clear clicked object
+					begin dialogue
+						eject good spirit
+						say single line HELP_TEXT_CREATURE_SWAP_CONFIRM_01
+						wait until read or MyCreature clicked or NewCreature clicked or GlobalReset == 1
+						send good spirit home
+					end dialogue
+				end if
+
+				if NewCreature clicked
+					Waiting = 0
+				elsif MyCreature clicked
+					Reset = 1
+					if CreatureControlledLocally == 1
+						release MyCreature
+						CreatureControlledLocally = 0
+					end if
+				end if
+				
+				if get ConfirmTimer time remaining <= 0
+					Reset = 1
+					if CreatureControlledLocally == 1
+						release MyCreature
+						CreatureControlledLocally = 0
+					end if
+				end if
+			end while
+		
+			if Reset == 0
+				Waiting = 0
+				if Reset == 0
+					// Do the swap and correct all creature pointers
+					begin cinema
+						CreatureControlledLocally = 1
+						TempMyCreature = MyCreature
+						begin dual camera to NewCreature MyCreature
+							set MyCreature focus to [NewCreature]
+							set NewCreature focus to [MyCreature]
+						  	
+							wait 1 seconds
+							S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]
+							S2Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [MyCreature]
+
+							detach MyCreature leash
+							force MyCreature CREATURE_POINT_AT_OBJECT NewCreature
+							force NewCreature CREATURE_POINT_AT_OBJECT MyCreature
+
+							swap creature from MyCreature to NewCreature
+							start sound LH_SAMPLE_G_CREATURESWAP_01
+							wait until TempMyCreature played and NewCreature played
+							wait 3 seconds
+						end dual camera
+					end cinema
+					release NewCreature
+
+					GlobalCurrentCreature = variable get NewCreature sub type
+
+					enable NewCreature pickup
+					MyCreature=NewCreature
+					NewCreature=TempMyCreature
+					disable NewCreature pickup
+
+					begin dialogue
+						eject evil spirit
+						//"Nice Going Boss. If you want your old creature back come back later"
+						say single line HELP_TEXT_CREATURE_BREEDER_11
+						wait until read
+					end dialogue
+
+					force NewCreature CREATURE_IDLE NewCreature
+				end if
+			end if
+	
+			disable NewCreature pickup
+			enable MyCreature pickup
+			MyCreature = get player 1 creature
+			if CreatureControlledLocally == 1
+				release MyCreature
+				CreatureControlledLocally = 0
+			end if
+		end if
+
+	end while
+
+	if Highlight exists
+		delete Highlight
+	end if
+	S2Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature] time 4
+	S3Effect = create special effect SPOT_VISUAL_SMOKE at [NewCreature] time 4
+	delete NewCreature
+	wait 2 seconds
+
+	if CreatureControlledLocally == 1
+		release MyCreature
+	end if
+
+end script SwapCreatures
+
+/******************************************************************************
+ * SwapCreaturesAtBreeder is responsible for swapping the special creatures at
+ * the BreederPlace of each land.
+ * 
+ * It takes some parameters, the Cam-parameters are used when the two creatures
+ * are going to their final position for swapping.
+ *
+ * If you have questions, go and ask George.
+ *
+ * Please, dont mess around with that script, it works and it was tricky to get 
+ * it to work.
+ ******************************************************************************/
+
+begin script SwapCreaturesAtBreeder(NewCreature, CreatureNr, MyCreatureSwapPosition, NewCreatureSwapPosition, FirstCamPos,FirstCamFocus,SecCamPos,SecCamFocus,ThirdCamPos,ThirdCamFocus)
+	ActiveTime = number from 60 to 120
+	CreaturesClose = 0
+	TempMyCreature = 0
+	SwapTimer = 0
+	ResetTimer = 0
+	Highlight = 0
+	SwapActive = 1
+	Spirit = 0
+	Count = time-31
+	Reset = 0
+	Waiting = 0
+	OldPositionCreature = 0
+	Waited4Click = 0
+	S1Effect = 0
+	S2Effect = 0
+	S3Effect = 0
+	CreatureHeight = 0
+	CreatureClicked = 0
+	CreaturesInPosition = 0
+	ReminderTimer = create timer for 0 seconds
+	ConfirmTimer = create timer for 0 seconds
+	MyTimer = create timer for 0 seconds
+	CreatureControlledLocally = 0
+
+start
+	NrOfChoosenCreature = 0
+	MyCreature = get player 1 creature
+	if ActiveTime > 0
+		SwapTimer = create timer for ActiveTime seconds
+	end if
+	OldPositionCreature = marker at [NewCreature]
+
+	disable NewCreature pickup
+	CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of NewCreature
+
+	while SwapActive == 1 and BreederRunning == 1
+
+		// Remind player and get him to initiate Swap by clicking on the scroll or the new creature
+		Highlight = create highlight HIGHLIGHT_CHALLENGE at [NewCreature] 
+		ALTITUDE of Highlight = CreatureHeight+1.0
+		clear clicked object
+
+		// START: Wait for a click on Highlight or NewCreature or timer to expire
+		CreatureClicked = 0
+		while CreatureClicked == 0
+			set NewCreature focus to camera position
+			force NewCreature CREATURE_LOOK_AT_CAMERA NewCreature
+			if get SwapTimer time remaining <= 0
+				SwapActive = 0
+				CreatureClicked = 1
+				BreederRunning = 0
+				delete Highlight
+			//elsif Highlight clicked or NewCreature clicked or (Reset == 1 and Waited4Click == 1) or BreederRunning == 0
+			elsif Highlight clicked or NewCreature clicked or BreederRunning == 0
+				CreatureClicked = 1
+			end if 
+		end while
+
+		// CLICKED ONCE: Player wants to swap - make sure your creature is close enough
+		if [NewCreature] near [MyCreature] radius 50 and BreederRunning == 1
+			if NrOfChoosenCreature == 0
+				Reset = 0
+				GlobalReset = 0  
+				NrOfChoosenCreature = CreatureNr
+				Waited4Click = 0
+				delete Highlight
+			else
+				GlobalReset =1  
+				Reset = 1
+				Waited4Click = 1
+				NrOfChoosenCreature = 0
+				if CreatureControlledLocally == 1
+					release MyCreature						// MLW OTHER SCRIPT SAFE
+					CreatureControlledLocally = 0
+				end if
+			end if 
+		elsif BreederRunning == 1
+			Reset = 1
+			GlobalReset = 1		
+			Waited4Click = 0 
+			begin dialogue
+				eject evil spirit
+				//"EA: You'll need to bring Your Creature Closer, Boss"
+				say single line HELP_TEXT_CREATURE_BREEDER_10
+				wait until read
+			end dialogue
+			if CreatureControlledLocally == 1
+				release MyCreature
+				CreatureControlledLocally = 0
+			end if
+		end if								 
+
+		if Reset == 0 and BreederRunning == 1 and GlobalReset == 0
+			// Force creatures into position
+			Waiting = 1
+ 			detach MyCreature leash
+			move MyCreature position to [NewCreature] radius 15 
+			CreatureControlledLocally = 1
+
+			set MyTimer time to 5 seconds
+			CreaturesInPosition = 0
+			while CreaturesInPosition == 0
+				if [MyCreature] near [NewCreature] radius 20
+					CreaturesInPosition = 1
+				end if
+				if get MyTimer time remaining <= 0
+					CreaturesInPosition = 1
+				end if
+			end while
+
+			force MyCreature CREATURE_EXAMINE_BY_LOOKING NewCreature
+			force NewCreature CREATURE_EXAMINE_BY_LOOKING MyCreature
+			CreatureControlledLocally = 1
+
+			set ReminderTimer time to 0 seconds
+			set ConfirmTimer time to 110 seconds
+			// WAIT FOR SECOND CLICK
+			while Waiting == 1 and Reset == 0 and GlobalReset == 0
+				if get ReminderTimer time remaining <= 0
+					set ReminderTimer time to 30 seconds
+					wait 0.1 seconds
+					clear clicked object
+					begin dialogue
+						eject good spirit
+						say single line HELP_TEXT_CREATURE_SWAP_CONFIRM_01
+						wait until read or MyCreature clicked or NewCreature clicked or GlobalReset == 1
+						send good spirit home
+					end dialogue
+				end if
+
+				if GlobalReset != 1 
+					if NewCreature clicked
+						Waiting = 0
+					elsif MyCreature clicked
+						Reset = 1
+						GlobalReset = 1
+						if CreatureControlledLocally == 1
+							release MyCreature
+							CreatureControlledLocally = 0
+						end if
+					elsif GlobalReset == 1
+						Reset = 1
+					end if
+				end if
+				
+				if get ConfirmTimer time remaining <= 0
+					Reset = 1
+					GlobalReset = 1
+					if CreatureControlledLocally == 1
+						release MyCreature
+						CreatureControlledLocally = 0
+					end if
+				end if
+			end while
+		
+			if Reset == 0 and GlobalReset != 1 
+				Waiting = 0
+				//wait until NewCreature clicked
+				if Reset == 0 and  NrOfChoosenCreature == CreatureNr
+					// Do the swap and correct all creature pointers
+					begin cinema
+						TempMyCreature = MyCreature
+						begin dual camera to NewCreature MyCreature
+							move MyCreature position to [MyCreatureSwapPosition] 
+							move NewCreature position to [NewCreatureSwapPosition]
+							CreatureControlledLocally = 1
+							  							
+							set MyTimer time to 20 seconds
+							CreaturesInPosition = 0
+							while CreaturesInPosition == 0
+								if [NewCreature] near [NewCreatureSwapPosition]  radius 10 
+									CreaturesInPosition = 1
+								end if
+								if get MyTimer time remaining <= 0
+									CreaturesInPosition = 1
+								end if
+							end while
+						
+							set MyCreature focus to [NewCreature]
+							set NewCreature focus to [MyCreature]
+						  	
+							wait 1 seconds
+							S1Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature]
+							S2Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [MyCreature]
+
+							detach MyCreature leash
+							force MyCreature CREATURE_POINT_AT_OBJECT NewCreature
+							force NewCreature CREATURE_POINT_AT_OBJECT MyCreature
+
+							swap creature from MyCreature to NewCreature
+							start sound LH_SAMPLE_G_CREATURESWAP_01
+							wait until TempMyCreature played and NewCreature played
+							move TempMyCreature position to [OldPositionCreature]
+							wait 3 seconds
+						end dual camera
+					end cinema
+					release NewCreature						// This is your new creature
+
+					GlobalCurrentCreature = variable get NewCreature sub type
+					GlobalOldCreature	  = variable get TempMyCreature sub type
+
+					enable NewCreature pickup
+					MyCreature=NewCreature
+					NewCreature=TempMyCreature
+					disable NewCreature pickup
+
+					begin dialogue
+						eject evil spirit
+						//"Nice Going Boss. If you want your old creature back come back later"
+						say single line HELP_TEXT_CREATURE_BREEDER_11
+						wait until read
+					end dialogue
+
+					set MyTimer time to 20 seconds
+					wait until [NewCreature] near [OldPositionCreature] radius 10 or get MyTimer time remaining <= 0
+					if BreederRunning == 1
+						wait 3 seconds
+						force NewCreature CREATURE_IDLE NewCreature
+						BreederRunning = 0
+					end if
+
+					// now go home 
+					SwapActive = 0
+				end if
+			end if
+	
+			if GlobalReset == 1 or NrOfChoosenCreature != CreatureNr 
+				if [NewCreature] not near [OldPositionCreature] radius 1
+					move NewCreature position to [OldPositionCreature]
+					wait 3 seconds
+					if CreatureControlledLocally == 1
+						release MyCreature
+						CreatureControlledLocally = 0
+					end if
+					set MyTimer time to 20 seconds
+					wait until [NewCreature] near [OldPositionCreature] radius 1 or get MyTimer time remaining <= 0
+				end if
+				NrOfChoosenCreature = 0
+				GlobalReset=0
+				Waiting = 1
+			else
+				MyCreature = get player 1 creature
+				if CreatureControlledLocally == 1
+					release MyCreature
+					CreatureControlledLocally = 0
+				end if
+			end if 
+		end if
+
+	end while
+
+	if Highlight exists
+		delete Highlight
+	end if
+	GlobalReset = 1
+	S2Effect = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [NewCreature] time 4
+	S3Effect = create special effect SPOT_VISUAL_SMOKE at [NewCreature] time 4
+	delete NewCreature
+	wait 2 seconds
+	if CreatureControlledLocally == 1
+		release MyCreature
+	end if
+end script SwapCreaturesAtBreeder
+
+

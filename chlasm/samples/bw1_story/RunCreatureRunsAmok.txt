@@ -1,0 +1,12 @@
+challenge RunCreatureRunsAmok
+
+run script RunCreatureRunsAmok
+
+begin script RunCreatureRunsAmok
+	
+start
+	
+	run script CreatureRunsAmok
+	
+
+end script RunCreatureRunsAmok

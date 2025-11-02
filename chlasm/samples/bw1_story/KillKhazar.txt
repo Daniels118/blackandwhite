@@ -1,0 +1,629 @@
+challenge KILL_KHAZAR
+
+global KillKhazarActorsLeft
+
+//run script KillKhazarMain
+
+begin script KillKhazarImmortality (KCreature, LCreature)
+
+start
+
+	while KillKhazarActorsLeft < 2
+
+		if KillKhazarActorsLeft == 0
+			if KCreature exists
+				disable KCreature on fire 0
+				HEALTH of KCreature = 1
+			end if
+		end if
+		
+		if LCreature exists
+			disable LCreature on fire 0
+			HEALTH of LCreature = 1
+		end if
+		
+		wait 2 seconds
+
+	end while
+
+end script KillKhazarImmortality
+
+//------------------------------------------------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------------------------------------------------
+begin script KillKhazarMain
+
+	//VillagerHutPos = marker at [2715.3101, 30.8200, 2019.9000]
+	//VillagerHut = get HOUSE at [VillagerHutPos]
+	LCreature = get player 3 creature // Lethys' creature
+
+	//LCreatureStartPos = marker at [2420.596, 73.106, 1982.336] 
+	LCreatureStartPos =	marker at [2246.438, 52.930, 1979.879] 
+	// LCreatureStartPos = marker at [2389.589, 24.044, 2144.658]   
+	
+	KCreature = get player 2 creature // Khazar's creature
+
+	//KCreatureStartPos  =  marker at [2643.657, 18.935, 2069.885] 
+	KCreatureStartPos = marker at [2637.988, 27.470, 1980.741]
+	KCreaturePos2  =  marker at [2637.988, 27.470, 1980.741] 
+	KCreatureBellyPos = 0
+	//KCreatureStartPos = marker at [2650.915, 18.090, 2051.935]   
+	//KCreaturePos2 = marker at [2630.226, 27.441, 1990.433] 
+	MyCreatureStartPos = marker at [2749.3982, 41.5400, 2466.3530]
+
+	VortexPos = marker at [2831.3633, 30.8200, 1971.6050] // [2891.9419, 42.4848, 1940.5481]
+	Vortex = 0
+	BlackCloud = 0
+	BlackCloud2 = 0
+	//CreedPart = 0
+	Spell = 0
+	FreezeSpell = 0
+	// Target1Pos = marker at [2717.9902, 30.8200, 1935.8999]+[0,20,0] 
+
+	Target1Pos = marker at [2724.249, 27.470, 1934.969] // Creche + on Altitude to get over the ridge
+	Target1CamPos = marker at [2659.6877, 44.2567, 1985.0745]
+	Target1CamFoc = marker at [2737.1841, 33.7453, 1950.7518]
+	Target2Pos = marker at [2680.230, 27.470, 1936.119]  // Tents
+	Target2CamPos = marker at [2659.6877, 44.2567, 1985.0745]
+	Target2CamFoc = marker at [2705.5911, 31.0460, 1951.1923]
+	Target3Pos = marker at [2667.046, 21.670, 2011.951]	  // Town Centre
+	// Target1Pos = marker at [2655.4800, 35.4326, 2015.6602] 
+	Target3CamPos = marker at [2615.4500, 55.7560, 2024.2314]
+	Target3CamFoc = marker at [2679.1604, 31.1605, 2000.7507]
+	Target4Pos = marker at [2717.679, 20.364, 2016.080]  // Tent
+	Target4CamPos = marker at [2747.4709, 71.5828, 2068.3042]
+	Target4CamFoc = marker at [2721.9114, 31.4197, 2021.2515]
+	BehindKCreatureCamPos = marker at [2603.6897, 72.2911, 2029.1902]
+	BehindKCreatureCamFoc = marker at [2681.0205, 31.2628, 1999.3018] // Dunno if needed
+
+	BeginPos = 0
+	BeginFoc = 0
+
+	CloudTarget1 = marker at [2761.4302, 30.8200, 1980.7200] // Storage Pit
+	CloudTarget2 = marker at [2705.3501, 30.8200, 1976.8500] // Lg Building
+
+	KhazarsCitadelPos = marker at [2505.9141, 105.1900, 1781.3011]
+	KhazarsCitadel = get CITADEL at [KhazarsCitadelPos]
+
+	CrechePos = marker at [2717.9902, 30.8200, 1935.8999]
+	Creche = get HOUSE at [CrechePos]
+
+
+	Spell1 = 0
+	StrengthSpell = 0
+	Citadel = 0
+
+
+	CentralHouse = get HOUSE at [2705.448, 27.470, 1977.029]
+	WorkShop = get HOUSE at [2649.260, 27.470, 1941.430]
+	House2 = get HOUSE at [2672.357, 27.470, 1940.504]
+	Temple = get HOUSE at [2653.307, 20.150, 2012.546] 
+
+	KhazarPosTwo = marker at [2517.263, 123.570, 1823.267] 
+	KhazarOriginalPos  = 0
+
+	DeathRay = 0
+
+	CowPos = marker at [2857.4233, 46.9000, 1958.9025]
+	CowFlock = 0
+
+start
+	stop script "KhazarAI"
+	KhazarGone=1
+
+	CowFlock = flock at [CowPos]
+	set CowFlock properties inner 5 outer 15
+
+	populate CowFlock with 2 ANIMAL BOVINE 
+	
+	KhazarOriginalPos = marker at computer player 2 position
+
+	move computer player 2 to [KhazarPosTwo] speed 400	// Enter Khazar !!!
+
+	MyCreature = get player 1 creature // Player's creature
+	KillKhazarActorsLeft = 0
+
+
+
+	// wait until camera position near [VortexPos] radius 150 and [VortexPos] viewed
+	
+	set LCreature all desires SCRIPT_FALSE
+	set KCreature all desires SCRIPT_FALSE
+
+
+
+	// move all creatures to respective start points
+	set KCreature position to [KCreatureStartPos]
+	force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+
+//  set LCreature position to [LCreatureStartPos]
+	force LCreature CREATURE_IDLE KCreature
+
+	set MyCreature position to [MyCreatureStartPos]
+	force MyCreature CREATURE_IDLE  MyCreature
+
+	run background script KillKhazarImmortality (KCreature, LCreature)
+
+	
+
+	
+	
+	
+	begin cinema
+
+
+		set fade red 0 green 0 blue 0 time 2
+		wait 1.5   seconds
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		
+
+		set game time 16.50 
+	    disable game time
+
+		wait 1.5   seconds
+
+
+//		set KCreature position to 	[2637.988, 27.470, 1980.741] 
+//		set KCreature focus to [VortexPos]
+//		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+
+
+
+		set camera lens  82 time 5
+		set camera position to [2931.655, 107.076, 2125.443]  
+		set camera focus to [VortexPos] + [0,6,0] 
+
+		start music MUSIC_TYPE_SCRIPT_NEMESIS
+
+		set fade in time 3
+		wait 2.5 seconds
+
+
+
+
+
+		shake camera at [VortexPos] radius 700 amplitude 0.5 time 3
+		wait 1.2 seconds
+
+	
+
+
+		set camera lens  70 time 6
+
+
+	//  Show Vortex opening near Khazar.
+		VortexOpen=1
+		Vortex = create VORTEX VORTEX_TYPE_IN at [VortexPos]
+
+		shake camera at [VortexPos] radius 200 amplitude 0.7 time 6
+		wait 0.1 seconds
+
+
+		set KCreature focus to [VortexPos]
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+
+
+
+
+
+		move camera position to [2868.513, 64.805, 2029.008] time 18
+		move camera focus to [2742.600, 43.094, 1912.376] time 16
+
+
+
+		// create enormous black storm cloud
+
+		BlackCloud = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [VortexPos]
+				set BlackCloud properties time 6000 fade 10
+				set BlackCloud properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+				set BlackCloud properties clouds 20 shade 1 height 80
+				set BlackCloud properties sheetmin 5 sheetmax 10 forkmin 2 forkmax 3
+				set BlackCloud properties inner 100 outer 150 
+				SPEED of BlackCloud = 10
+
+		wait 2.7 seconds
+
+		// Nemesis's speech
+		say single line HELP_TEXT_KHAZAR_DIES_01
+		// "Lethys, my ally.You have failed. Combined, our enemies are too strong."
+		wait until read
+		wait 1.5 seconds
+
+		Spell1=cast SPELL_FIREBALL_LEVEL_1 spell at [Target1Pos] from [VortexPos] radius 1.0 time 20 curl 1
+	//	move camera focus follow Spell1
+		set KCreature focus to [Spell1]
+
+		move camera position to [2868.513, 78.645, 2029.008]   time 3
+		move camera focus to [2698.366, 27.794, 1933.706] time 2
+
+		wait 0.1 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target1Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 0.3 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target1Pos] from [VortexPos] radius 1.0 time 20 curl -1
+		wait 0.1 seconds
+		set KCreature focus to [Creche]
+		wait 0.5 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target1Pos] from [VortexPos] radius 1.0 time 20 curl 1
+		wait 0.2 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target1Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 1.2 seconds
+
+		enable Creche on fire 0.6
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+		wait 1.5 seconds
+
+		set camera lens 60	time 3
+
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target2Pos] from [VortexPos] radius 1.0 time 20 curl 1
+		wait 0.1 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target2Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 0.3 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target2Pos] from [VortexPos] radius 1.0 time 20 curl -1
+		wait 0.2 seconds
+		set KCreature focus to [Target2Pos]
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target2Pos] from [VortexPos] radius 1.0 time 20 curl 1
+	//	wait 1.2 seconds
+
+	
+
+
+
+
+
+		say single line HELP_TEXT_KHAZAR_DIES_02
+		// "But I will not let them threaten my destiny."
+		wait until read
+	
+
+
+
+
+	
+
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target4Pos] from [VortexPos] radius 1.0 time 20 curl 1
+		wait 0.1 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target4Pos] from [VortexPos] radius 1.0 time 20 curl -1
+		set KCreature focus to [Target4Pos]
+		wait 0.1 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target4Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 0.2 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target4Pos] from [VortexPos] radius 1.0 time 20 curl -1
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+		set camera lens 70	
+		set camera position to [2756.487, 41.103, 2053.897] 
+		set camera focus to [2706.971, 35.185, 1996.497] 
+
+
+
+		// "I will be the only god."
+		say single line HELP_TEXT_KHAZAR_DIES_13
+	    wait until read
+		close dialogue
+
+	
+
+		set camera position to [2599.656, 53.994, 2047.343] 
+		set camera focus to [2660.602, 35.299, 1989.884] 
+		set camera lens 75 
+
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target3Pos] from [VortexPos] radius 1.0 time 20 curl 1
+		wait 0.2 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target3Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 0.1 seconds
+		set KCreature focus to [Target3Pos]
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target3Pos] from [VortexPos] radius 1.0 time 20 curl -1
+		wait 0.3 seconds
+		Spell=cast SPELL_FIREBALL_LEVEL_1 spell at [Target3Pos] from [VortexPos] radius 1.0 time 20 curl 0
+		wait 1.7 seconds
+
+		
+		enable Temple on fire 0.7
+		set camera lens  65 time 3
+		wait 4.5 seconds
+
+
+
+
+		//  Khazers ctadel gets fucked!!!
+
+		BlackCloud2 = create SCRIPT_OBJECT_TYPE_WEATHER_THING WEATHER_INFO_MONSOON at [KhazarsCitadelPos]
+		set BlackCloud2 properties time 30 fade 8
+		set BlackCloud2 properties degrees 25 rainfall 0.5 snowfall 0 overcast 0.8 fallspeed 0.5
+		set BlackCloud2 properties clouds 20 shade 1 height 80
+		set BlackCloud2 properties sheetmin 5 sheetmax 10 forkmin 0 forkmax 0
+		set BlackCloud2 properties inner 100 outer 150 
+
+		set camera position to [2508.977, 117.396, 1874.949] 		
+		set camera focus to [2368.973, 0.029, -1911.809]   
+		set camera lens  100 
+		wait 0.1 seconds
+		
+
+
+
+		set camera lens  155  time 3
+		wait 1 seconds
+
+
+		// "Khazar. Feel my wrath"
+		say HELP_TEXT_KHAZAR_DIES_04
+		wait until read
+
+		Citadel = get CITADEL at [KhazarsCitadelPos] radius 40
+		delete Citadel with temple explode
+
+		set camera lens  52	 time 3.1
+
+		// "Nemesis...No!"
+		say HELP_TEXT_KHAZAR_DIES_05
+		wait until read
+
+		close dialogue
+		wait 0.1 seconds
+
+		// Snapshot here because it's a big story bit. No reminder though.
+		snapshot quest success 1.0 alignment 0.0 HELP_TEXT_KHAZAR_DIES_05 StandardReminder(variable HELP_TEXT_NONE)
+
+		// Did you think you could hide the creed from me.
+		//say HELP_TEXT_KHAZAR_DIES_14
+		say HELP_TEXT_NEMESIS_EXTRA_LINES_01
+		wait until read
+
+		say HELP_TEXT_NEMESIS_EXTRA_LINES_02
+		wait until read
+
+		say HELP_TEXT_NEMESIS_EXTRA_LINES_03
+		wait until read
+		close dialogue
+
+		disable computer player 2
+		set player 1 ally with player 2 percentage 0
+
+		wait 10 seconds
+//		wait 15 seconds
+				
+		//  KCreature gets zapped here!!
+		
+	   	enable House2 on fire 0.6
+		enable CentralHouse on fire 0.5
+		enable Creche on fire 0.7
+		enable WorkShop on fire 0.4
+		enable Temple on fire 0.7
+
+		set camera position to [2608.558, 50.397, 2031.987]  
+		set camera focus to [2689.898, 24.788, 1965.760]  	
+		set camera lens  75 time 5
+
+
+		move BlackCloud position to [CloudTarget1]
+		SPEED of BlackCloud = 20
+
+		// make creature look shit scared and stand still
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+
+		// Spell=cast Creature_Spell FREEZE on KCreature??no WEAK!!!!!!!
+		// set camera to behind KCreature and set focus to follow BlackCloud
+		// set camera focus to [BehindKCreatureCamFoc]
+		wait 0.5 seconds
+
+		move camera position to [2610.558, 56.397, 2035.987]  time 12
+	//	move camera position to [2728.510, 44.583, 2056.136]  time 10
+	//	move camera focus to [2613.469, 31.393, 1935.075]  time 4
+		move camera focus to [KCreature] + [0,10,0]   time 14
+
+		// "Creature, you have something for me."
+/*		say HELP_TEXT_KHAZAR_DIES_08
+		wait until read
+*/
+		force KCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT KCreature
+		wait 0.5 seconds
+
+	//	FreezeSpell=cast CREATURE_SPELL_FREEZE spell on KCreature from [BlackCloud] radius 0 time -1 curl 0
+		// Spell=cast lightning bolts at targets under cloud as it travels to creature
+
+		set camera lens  80  time 4
+
+		wait until [BlackCloud] near [CloudTarget1] radius 10
+
+		move BlackCloud position to [CloudTarget2]
+		SPEED of BlackCloud = 20
+
+		wait until [BlackCloud] near [CloudTarget2] radius 10
+
+		move BlackCloud position to [KCreature]
+		SPEED of BlackCloud = 20
+
+		wait until [BlackCloud] near [KCreature] radius 10
+		set BlackCloud properties sheetmin 5 sheetmax 10 forkmin 0 forkmax 0
+
+		wait until camera ready
+		set camera lens  70    time 4
+
+		move camera position to [2705.970, 70.812, 2001.052]  time 3
+		set camera focus to [KCreature] + [0,10,0]  
+
+		KillKhazarActorsLeft = 1
+
+		DeathRay = cast SPELL_EXPLOSION_LEVEL_2 spell at [KCreature] from [BlackCloud] radius 50.0 time 7 curl 0
+
+		force KCreature CREATURE_DIE_PERMANENTLY KCreature
+		wait 1.5 seconds	// waiting for KCreature to fall......
+
+
+		// drop CreedPart
+		//KCreatureBellyPos = marker at belly position of KCreature
+		//CreedPart = create OBJECT CREED at [KCreatureBellyPos]
+		set KCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 1.0 time 0.0
+
+
+		move BlackCloud position to [VortexPos]																   
+		SPEED of BlackCloud = 20  
+
+		set LCreature position to  [2420.596, 73.106, 1982.336]
+		set LCreature focus to [KCreaturePos2]
+		wait 0.5 seconds
+
+		set camera lens  70
+		set camera position to [2748.073, 32.131, 1941.745] 
+		set camera focus to [LCreature]
+		set camera focus follow LCreature
+
+
+	//	set camera focus to [KCreature] + [0,10,0]
+	//	set camera focus to [2702.811, 27.607, 1954.587] 
+	//	wait 1.5 seconds
+	
+
+	//  move Lethys's creature to retrieve creed
+
+		StrengthSpell = cast CREATURE_SPELL_STRONG spell on LCreature from [LCreature] radius 0 time -1 curl 0
+
+		SPEED of LCreature = 10
+		move LCreature position to [KCreaturePos2] + [4,0,4] radius 25
+
+
+		enable House2 on fire 0.6
+		enable CentralHouse on fire 0.5
+		enable Creche on fire 0.7
+		enable WorkShop on fire 0.4
+	//	enable Temple on fire 1
+
+		wait 3 seconds
+
+
+		// "Lethys, use your Creature to retrieve the Creed and bring it to me."
+		//say HELP_TEXT_KHAZAR_DIES_15
+		say HELP_TEXT_NEMESIS_EXTRA_LINES_04
+		wait until read
+
+		// I do as I am bid, Nemesis. I'll send my Creature for it now.
+		say HELP_TEXT_KHAZAR_DIES_16
+		wait until read
+		close dialogue
+	
+     	wait until [LCreature] near [KCreaturePos2] radius 32 or 55 seconds
+
+		// make LCreature pick up creed
+
+		//force LCreature CREATURE_HOLD_OBJECT CreedPart
+		set KCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 0.1 time 0.0
+		set LCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 0.1 time 0.0
+		wait 2 seconds
+		set LCreature creed properties hand HAND_GLOW_ABOVE scale 5.0 power 1.0 time 0.0
+		set KCreature creed properties hand HAND_GLOW_ABOVE scale 0.0 power 0.0 time 0.0
+
+		//wait until CreedPart in LCreature hand
+		wait 0.3 seconds
+
+		set LCreature focus to [VortexPos]
+		move LCreature position to [VortexPos] radius 1
+	
+
+
+		// "He's taken the Creed from Khazar's Creature!"
+		say HELP_TEXT_KHAZAR_DIES_17
+		wait until read
+
+		// Does this mean all is lost ? I fear it does !
+		say HELP_TEXT_KHAZAR_DIES_18
+		wait until read
+		close dialogue
+
+		set camera lens  80 time 6
+		move camera position to [2748.073, 64.131, 1941.745]  time 5
+		
+		wait until camera ready
+
+		delete KCreature // Khazar's creature should be out of view now
+
+		wait until [LCreature] near [VortexPos] radius 1 or LCreature not exists or 60 seconds
+
+		KillKhazarActorsLeft = 2
+
+		/// remove LCreature and creedpart?? Is it an automatic thing when he stands on the vortex?
+
+		delete StrengthSpell
+		delete LCreature
+		
+		// vortex fade out
+		start Vortex fade out
+		VortexOpen=0
+		wait 0.4 seconds
+
+		move camera focus to [VortexPos] + [0,16,0] time 9
+		set camera lens  90 time 11
+		move camera position to [2543.850, 99.316, 2009.030]  time 14
+
+		wait 4 seconds
+
+		set fade red 0 green 0 blue 0 time 2
+
+		stop music
+		wait 1.5 seconds
+		//detach music from BlackCloud
+		delete 	BlackCloud
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+		set camera lens  70 
+
+		set fade in time 3
+
+		wait 1 second
+
+		eject evil spirit
+		// "I can't believe it. Khazar wiped out like a bug!"
+		say HELP_TEXT_KHAZAR_DIES_07
+		wait until read
+
+		eject good spirit
+		// That must have been the Creed the Guide was talking about !
+/*		say HELP_TEXT_KHAZAR_DIES_19
+		wait until read
+
+		// And we lost it.
+		say HELP_TEXT_KHAZAR_DIES_20
+		wait until read
+*/
+
+		say HELP_TEXT_CREED_EXPLAINED_01
+		wait until read
+
+		say HELP_TEXT_CREED_EXPLAINED_02
+		wait until read
+
+		say HELP_TEXT_CREED_EXPLAINED_03
+		wait until read
+
+		say HELP_TEXT_CREED_EXPLAINED_04
+		wait until read
+
+		say HELP_TEXT_CREED_EXPLAINED_05
+		wait until read
+
+		say HELP_TEXT_CREED_EXPLAINED_06
+		wait until read
+
+		// Maybe we haven't lost it forever, Demon.
+/*		say HELP_TEXT_KHAZAR_DIES_21
+		wait until read
+
+		// I hope you're right, Beardy.
+		say HELP_TEXT_KHAZAR_DIES_22
+		wait until read
+*/
+		enable game time
+
+	end cinema 
+
+	release MyCreature
+	MyCreature = get player 1 creature
+
+
+end script KillKhazarMain
+
+//	 camera position to [2728.510, 44.583, 2056.136] 
+//	 camera focus to [2613.469, 31.393, 1935.075] 

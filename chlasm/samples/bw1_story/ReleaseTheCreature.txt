@@ -1,0 +1,164 @@
+challenge RELEASE_THE_CREATURE
+
+global released
+global ReleaseCreatureStonesUsed
+
+//run script ReleaseTheCreature
+
+begin script TSAmmo2(Stone)
+	TmpPos = 0
+	StartPos = marker at [Stone]
+	AtRest = 1
+start
+	begin loop
+
+		until released>0
+
+		when not Stone exists
+			Stone = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [StartPos]
+			AtRest = 1
+
+		when Stone is FLYING or Stone is HELD and AtRest>0
+			AtRest=0
+
+		when Stone is not FLYING and Stone is not HELD and AtRest<1
+			AtRest=1
+
+		when ([Stone] not near [StartPos] radius 20 and AtRest>0) 
+			set Stone position to [StartPos]
+			ReleaseCreatureStonesUsed++
+			SCALE of Stone = 1
+
+		end loop
+end script TSAmmo2
+
+
+
+begin script ReleaseTheCreature
+
+	InfluencePos = marker at [2264.8687, 31.8355, 2438.1279]
+	Prison = marker at [2031.8361, 85.7705, 2238.0178]
+	Boulder = create OBJECT ROCK at [2065.2859, 84.7733, 2249.7393]
+	Opponent = create_creature_from_creature MyCreature 1 at [2039.6741, 82.9361, 2282.6226] CREATURE_TYPE_COW // TODO this needs to be replaced with the opponents creature
+	NearbyStone1 = 0
+	NearbyStone2 = 0
+	NearbyStone3 = 0
+	NearbyStone4 = 0
+	NearbyStone5 = 0
+	NearbyStone1Pos = marker at [Opponent]+[2, 0, 0]
+	NearbyStone2Pos = marker at [Opponent]+[1, 0, 2]
+	NearbyStone3Pos = marker at [Opponent]+[-2, 0, 2]
+	NearbyStone4Pos = marker at [Opponent]+[-4, 0, 0]
+	NearbyStone5Pos = marker at [Opponent]+[0, 0, 4]
+	CreatureAnimCount = 0
+	Influence=0
+
+start
+	// Kong will really be my creature from the last landscape
+	// We'll need to create an adverse creature based upon my_creatures alignment
+	MyCreature = get player 1 creature
+	set MyCreature position to [Prison]
+	set Opponent DEVELOPMENT_PHASE_FULLY_MATURE development
+
+	NearbyStone1 = create with angle 0 and scale 0.5 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [NearbyStone1Pos]
+	NearbyStone2 = create with angle 0 and scale 0.5 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [NearbyStone2Pos]
+	NearbyStone3 = create with angle 0 and scale 0.5 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [NearbyStone3Pos]
+	NearbyStone4 = create with angle 0 and scale 0.5 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [NearbyStone4Pos]
+	NearbyStone5 = create with angle 0 and scale 0.5 SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [NearbyStone5Pos]
+	
+	set Opponent only desire ANGER
+	release Opponent
+	set MyCreature DEVELOPMENT_PHASE_FULLY_MATURE development // TODO: must remve this
+	attach MyCreature leash to Boulder
+	//set MyCreature all desires SCRIPT_FALSE
+	//set MyCreature focus to [InfluencePos] 
+	force MyCreature CREATURE_BE_SAD MyCreature
+
+	SCALE of Boulder = 1.5
+	disable Boulder pickup
+	disable Boulder moveable
+
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH MyCreature
+	wait until Opponent played
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH NearbyStone1
+	wait until Opponent played
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH NearbyStone2
+	wait until Opponent played
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH NearbyStone3
+	wait until Opponent played
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH NearbyStone4
+	wait until Opponent played
+	force Opponent CREATURE_LOOK_BUT_DONT_APPROACH NearbyStone5
+	wait until Opponent played
+
+	//force Kong CREATURE_BE_SAD Kong
+
+	run background script TSAmmo2(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [InfluencePos]+[0,0,0])
+	run background script TSAmmo2(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [InfluencePos]+[5,0,5])
+	run background script TSAmmo2(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [InfluencePos]+[5,0,0])
+	run background script TSAmmo2(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [InfluencePos]+[2,0,-6])
+	run background script TSAmmo2(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [InfluencePos]+[-1,0,-4])
+
+	wait until WonderBuilt == 1
+
+	Influence=create influence at [InfluencePos] radius 80
+
+	wait until camera position near [MyCreature] radius 150 and MyCreature viewed
+
+begin cinema
+	
+	eject good spirit
+	eject evil spirit
+
+	snapshot quest success 0 alignment 0 HELP_TEXT_TITLE_22 StandardReminder(variable HELP_TEXT_REMINDER_21)
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_01
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_02
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_03
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_04
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_05
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_06
+	wait until read
+
+	say HELP_TEXT_SAVE_YOUR_CREATURE_EXTRA_07
+	wait until read
+
+end cinema
+
+
+while released == 0
+
+	if Boulder hit
+		enable Boulder moveable
+		enable Boulder pickup
+		detach MyCreature leash
+		released = 1
+	end if
+
+	if MyCreature played
+		if CreatureAnimCount == 0
+			force MyCreature CREATURE_BE_SAD MyCreature
+			CreatureAnimCount = 1
+		elsif CreatureAnimCount == 1
+			force MyCreature CREATURE_LOOK_BUT_DONT_APPROACH Opponent
+			CreatureAnimCount = 2
+		elsif CreatureAnimCount == 3
+			force MyCreature CREATURE_IDLE MyCreature
+			CreatureAnimCount = 0
+		end if
+	end if
+
+end while
+
+end script ReleaseTheCreature
+

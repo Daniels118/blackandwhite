@@ -1,0 +1,12 @@
+challenge RunCreatureGuardian
+
+run script RunCreatureGuardian
+
+begin script RunCreatureGuardian
+	
+start
+	CreatureDevelopment_Fight=1
+	run script CreatureGuardian
+	
+
+end script RunCreatureGuardian

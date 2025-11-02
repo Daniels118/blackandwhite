@@ -1,0 +1,164 @@
+challenge LEARN_INFLUENCE
+
+
+begin script LearnInfluence
+
+	DYK = marker at [2852.0120, 35.4629, 3213.6375]	
+	IndianTown = get town with id 10
+	FirstTown = get town with id 12
+
+start
+	if KhazarGone == 0
+		begin cinema
+			start music MUSIC_TYPE_SCRIPT_KHAZAR
+
+			KhazarInScript=1
+			move computer player 2 to [2834.1638, 32.7829, 3330.7322] speed 300 with fixed height
+
+			if DidLearnGesturesBeforeOwningTown == 1
+				set camera to T00_000
+
+				camera path TRACK00
+				//"Congratulations"
+				say HELP_TEXT_EXTRA_KHAZAR_26
+				wait until read
+
+				//"You are expanding well. Lethys had better beware !"
+				say HELP_TEXT_EXTRA_KHAZAR_27
+				wait until read
+				wait until camera ready	
+			else 
+				set camera to T00_007 
+			end if
+
+			//"Time is not kind, you need to gain influence in the direction of our common enemy."
+			say HELP_TEXT_EXTRA_KHAZAR_18
+			wait until read
+
+			if PLAYER of IndianTown == 1
+
+				move camera position to [2833.4871, 92.3013, 3179.2261] time 8
+				move camera focus to [2778.3403, 51.2221, 3062.0691] time 5
+
+				move computer player 2 to [2702.7856, 14.1852, 2856.6335] speed 75 with fixed height
+			
+				//"Before I leave to defend my realm I must tell you one more thing."
+				say HELP_TEXT_EXTRA_KHAZAR_20
+				wait until read
+				wait until camera ready
+
+				set fade red 0 green 0 blue 0 time 2
+				wait until fade ready
+				clear dialogue
+
+				// fade to new camera position
+				set camera position to [3039.8284, 278.6630, 2966.3352]
+				set camera focus to [3395.2813, 0.5879, 2815.9624]
+
+				set fade in time 2
+				wait until fade ready
+
+				//"You’ll notice you cannot do anything, even cast miracles outside of your influence."
+				say HELP_TEXT_EXTRA_KHAZAR_21
+				wait until read
+
+				//"However, there is a way using the power of belief "
+				say HELP_TEXT_EXTRA_KHAZAR_22
+				move camera position to [3344.8599, 41.1383, 2809.0728] time 6
+				move camera focus to [3396.6990, 0.5854, 2787.1431] time 6
+				wait until read
+				wait until camera ready
+
+				start hand demo "Influence" with pause on trigger
+				//"you can reach outside the edge of your realm for short periods of time"
+				say HELP_TEXT_EXTRA_KHAZAR_23
+				wait until read
+				wait until hand demo trigger
+
+				//"But your influence is soon lost until your hand is returned to your realm."
+				say HELP_TEXT_EXTRA_KHAZAR_24
+				wait until read
+				wait until hand demo played
+
+				set fade red 0 green 0 blue 0 time 2
+				wait until fade ready
+
+				set  camera position to [2833.4871, 92.3013, 3179.2261] 
+				set camera focus to [2778.3403, 51.2221, 3062.0691]
+
+				set fade in time 2
+				wait until fade ready
+				clear dialogue
+				
+
+			else
+
+				move camera position to [2911.2800, 111.7704, 3092.6733] time 8
+				move camera focus to [2812.9431, 51.4410, 3089.3518] time 6
+
+				move computer player 2 to [2812.6694, 50.9200, 3108.5249] speed 75 with fixed height
+
+				wait until 2 seconds
+
+				//"I strongly encourage you gain this town."
+				say HELP_TEXT_EXTRA_KHAZAR_19
+				wait until read
+
+				//"Before I leave to defend my realm I must tell you one more thing."
+				say HELP_TEXT_EXTRA_KHAZAR_20
+				wait until read
+
+				wait until camera ready
+
+				set fade red 0 green 0 blue 0 time 2
+				wait until fade ready
+				clear dialogue
+
+				// fade to new camera position
+				set camera position to [3039.8284, 278.6630, 2966.3352]
+				set camera focus to [3395.2813, 0.5879, 2815.9624]
+
+				set fade in time 2
+				wait until fade ready
+
+				//"You’ll notice you cannot do anything, even cast miracles outside of your influence."
+				say HELP_TEXT_EXTRA_KHAZAR_21
+				wait until read
+
+				//"However, there is a way using the power of belief "
+				say HELP_TEXT_EXTRA_KHAZAR_22
+				move camera position to [3344.8599, 41.1383, 2809.0728] time 6
+				move camera focus to [3396.6990, 0.5854, 2787.1431] time 6
+				wait until read
+				wait until camera ready
+
+				start hand demo "Influence" with pause on trigger
+				//"you can reach outside the edge of your realm for short periods of time"
+				say HELP_TEXT_EXTRA_KHAZAR_23
+				wait until read
+				wait until hand demo trigger
+				//"But your influence is soon lost until your hand is returned to your realm."
+				say HELP_TEXT_EXTRA_KHAZAR_24
+				wait until read
+				wait until hand demo played
+
+				set fade red 0 green 0 blue 0 time 2
+				wait until fade ready
+
+				set camera position to [2911.2800, 111.7704, 3092.6733] 
+				set camera focus to [2812.9431, 51.4410, 3089.3518]
+
+				set fade in time 2
+				wait until fade ready
+				clear dialogue
+
+			end if
+			stop music
+		end cinema
+		release computer player 2
+		KhazarInScript=0
+	end if
+		
+	run background script DidYouKnow(DYK, variable HELP_TEXT_DYK_108, variable DYK_NAVIGATION)
+	
+end script LearnInfluence

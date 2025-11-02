@@ -1,0 +1,12 @@
+challenge RunSwapToLion
+
+run script RunSwapToLion
+
+begin script RunSwapToLion
+	
+start
+	
+	run script SwapToLion
+	
+
+end script RunSwapToLion

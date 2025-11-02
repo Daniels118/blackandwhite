@@ -1,0 +1,12 @@
+challenge RunCreatureRetrieve
+
+run script RunCreatureRetrieve
+
+begin script RunCreatureRetrieve
+	
+start
+	
+	run script CreatureRetrieve
+	
+
+end script RunCreatureRetrieve

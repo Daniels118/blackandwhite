@@ -1,0 +1,13 @@
+challenge RunTheHermit
+
+run script RunTheHermit
+
+begin script RunTheHermit
+	
+start
+	
+    disable player 1 virtual influence 	
+	run script HermitMain
+	
+
+end script RunTheHermit

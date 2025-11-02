@@ -1,0 +1,68 @@
+/*
+ *	This script does a slo-motion set camera follow of whatever the user happens
+ *	to throw.  It's intended to be fun.  This requires a new form of the call
+ *	command (to get a reference to the currently held object).  At the moment,
+ *	it just gives you a man to throw around.
+ *
+ *	At the moment, slo-mo set camera follows look crap!
+ */
+run script ThrowIt
+begin script ThrowIt
+	Object = create VILLAGER MALE at hand position
+	Finished = 0
+	Count = 0
+start
+	begin loop
+		wait until read or Object is not HELD
+		say "Please don't pick me up!"
+		wait until Object is HELD
+		if Object exists
+			say "Please don't throw me!"
+			wait until Object is not HELD
+			if Object is FLYING
+				say "What a mighty throw!"
+				if Object is FLYING
+					begin cinema
+						//set camera focus follow Object
+						//set camera position follow Object
+						set camera follow Object distance 20
+						set game speed to 0.25
+						say "SLOW-MODE"
+						wait until Object is not FLYING
+					end cinema
+					if HEALTH of Object > 0.0
+						say "Didn't hurt a bit!"
+						wait until read
+					end if
+				end if
+			end if
+		end if
+	when HEALTH of Object < 0.1
+		HEALTH of Object = 0.4
+		Count = number from 1 to 11
+		if Count == 1
+			say "Ow!"
+		elsif Count == 2
+			say "My leg!"
+		elsif Count == 3
+			say "My arm!"
+		elsif Count == 4
+			say "Shit!"
+		elsif Count == 5
+			say "Noooooo!"
+		elsif Count == 6
+			say "Ouch!"
+		elsif Count == 7
+			say "That hurt!"
+		elsif Count == 8
+			say "My head !!"
+		elsif Count == 9
+			say "Aah !!"
+		elsif Count == 10
+			say "<CRUNCH>"
+		elsif Count == 11
+			say "<SNAP>"
+
+		end if
+	end loop
+end script ThrowIt

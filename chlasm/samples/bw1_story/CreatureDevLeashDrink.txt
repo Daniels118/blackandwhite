@@ -1,0 +1,81 @@
+challenge CREATURE_DEVELOPMENT
+run script CreatureDevLeashDrink
+
+begin script CreatureDevLeashDrink
+	MyCreaturePos = marker at [1896.4113, 18.0900, 2527.4729]
+	TrainerPos = marker at [1893.6755, 18.0900, 2520.9568]
+	MyCreature = get player 1 creature
+	Trainer = create VILLAGER MALE at [TrainerPos]
+	Highlight=0
+	Rope = marker at [1896.4113, 18.0900, 2527.4729] // TODO: should be pos of Rope Icon.
+	CamPos = marker at [1894.2354, 28.8333, 2508.1797]
+	CamFocus = marker at [1915.0500, 18.0900, 2508.8899]
+	CitadelEntrancePos = marker at [1906.8438, 18.0900, 2514.3760]
+	CurrentDehydration = 1
+start
+	disable Trainer moveable
+	disable Trainer pickup
+	Highlight = create highlight HIGHLIGHT_QUEST at [Trainer]
+	run script CreatureDevelopmentHighlightNotify(Highlight, Trainer, 100, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+	set MyCreature position to [MyCreaturePos]	
+	DEHYDRATION of MyCreature = 1
+	begin cinema
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		Trainer play ANM_P_BECKON loop 1
+		wait until Trainer played
+		set Trainer focus to [MyCreature]
+		begin dual camera to Trainer MyCreature
+			wait until Trainer played
+			Trainer play ANM_P_INTO_POINTING loop 1
+			wait until Trainer played
+			Trainer play ANM_P_TALKING_AND_POINTING loop 1
+			wait until Trainer played
+			Trainer play ANM_P_OUT_OF_POINTING loop 1
+			MyCreature play C_INDIVIDUAL_HOT
+			say "Your creature is thirsty"
+			wait until MyCreature played
+			force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+			wait until Trainer played
+			wait until read
+			say "Use the leash to drag him to the water"
+			wait until read
+			wait until MyCreature played
+			release MyCreature
+			set MyCreature only desire CREATURE_DESIRE_FOR_WATER
+		end dual camera
+	end cinema
+	DEHYDRATION of MyCreature = 1								
+	CurrentDehydration = 1
+	while CurrentDehydration > 0.99
+		CurrentDehydration = get DEHYDRATION of MyCreature
+		set MyCreature only desire CREATURE_DESIRE_FOR_WATER
+		DEHYDRATION of MyCreature = CurrentDehydration // because set only desire will maximise dehydration..
+	end while
+	begin cinema
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		set Trainer focus to [CamPos]
+		wait until Trainer played
+		Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+		wait until Trainer played
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		wait 2 seconds
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+		say "Well done. Your creature feels refreshed"
+		MyCreature play C_INDIVIDUAL_HAPPY
+		wait until MyCreature played
+		move MyCreature position to [MyCreaturePos]
+		move camera to LEASH_INTROT00_000 time 1
+		camera path LEASH_INTROTRACK00
+		Trainer play ANM_P_CROWD_IMPRESSED_1 loop 1
+		wait until Trainer played
+		move Trainer position to [CitadelEntrancePos]
+		wait until read
+	end cinema
+	wait until [Trainer] near [CitadelEntrancePos] radius 3
+	delete Trainer
+	release MyCreature
+end script CreatureDevLeashDrink

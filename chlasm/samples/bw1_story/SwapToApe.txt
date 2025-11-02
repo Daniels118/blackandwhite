@@ -1,0 +1,348 @@
+challenge SWAP_TO_APE
+
+
+//run script SwapToApe
+
+
+// Revert a Villager to a child
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script RevertVillager(Woman, Adult, Hut, SoapBox)
+
+	SFX = 0
+	BeginPos = 0
+	BeginFoc = 0
+
+start
+	
+	begin cinema
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		set camera position to [2085.146, 36.974, 2586.108] 
+		set camera focus to [2080.243, 34.103, 2593.288] 
+
+		move camera position to [2074.302, 36.199, 2587.279] time 10
+		move camera focus to [2082.036, 33.858, 2594.319] time 10
+
+		move Adult position to [Hut]
+		SPEED of Adult = 0.2
+		move Woman position to [Hut]
+		SPEED of Woman = 0.2
+
+		wait until [Adult] near [Hut] radius 1 and [Woman] near [Hut] radius 1
+
+		SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Hut] time 4
+		shake camera at [Hut] radius 20.0 amplitude 0.1 time 1
+		AGE of Adult = 4
+		set Adult disciple VILLAGER_DISCIPLE_NONE 
+
+		wait until 1 second
+
+		move Adult position to [SoapBox]
+
+		wait until camera ready
+
+		set camera position to [BeginPos]
+		set camera focus to [BeginFoc]
+
+		state Woman WANDER_AROUND position [SoapBox]
+				float 6
+				ulong 4, 10
+
+	end cinema
+
+
+
+
+end script RevertVillager
+
+
+// Main Script
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script SwapToApe
+	
+	Hut = get HOUSE ABODE_INFO_CELTIC_HUT at [2080.2051, 33.9502, 2597.1482]
+	Woman = 0
+	Ape = 0
+	Child = 0
+	MyTimer = create timer for 0 seconds
+	Transformed = 0
+	Tired = 0
+	Adult = 0
+	AdultAmount = 0
+	NotStarted = 0
+	BeginPos = 0
+	BeginFoc = 0
+	SoapBox = marker at [2080.2183, 33.6884, 2593.2275]
+	SFX=0
+	Highlight = 0
+	HutBoshedSpeech = 0
+	InitialHutHealth = 0
+	ChimpMade = 0
+	PlayerOwned = 0
+
+start
+
+	while PlayerOwned == 0
+		wait 10 seconds
+		if get PLAYER of EgyptTownL3 == 1
+			PlayerOwned = 1
+		end if
+	end while
+
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [Hut]
+	ALTITUDE of Highlight = 4
+	MyCreature = get player 1 creature
+	run script ChallengeHighlightNotify(Highlight, Hut, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_07)
+	Woman = create VILLAGER FEMALE at [Hut]
+//	snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_REMINDER_24)
+
+	InitialHutHealth = HEALTH of Hut
+
+	BeginPos = marker at camera position
+	BeginFoc = marker at camera focus
+
+	begin cinema
+		start music MUSIC_TYPE_SCRIPT_GENERIC_04
+		
+		move camera position to [2090.635, 47.718, 2563.163] time 3
+		move camera focus to [Woman] time 3
+
+		wait until 2 seconds
+
+		move camera position to [2082.134, 34.675, 2590.000] time 4
+		
+		move Woman position to [SoapBox]
+
+		wait until [Woman] near [SoapBox] radius 0.5
+
+		move camera focus to [Woman] + [0,1,0] time 3
+
+		set Woman focus to [2082.134, 34.675, 2590.000]
+
+		wait until camera ready
+
+		snapshot challenge success 0.0 alignment 0.0 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_REMINDER_24)
+
+		Woman play ANM_P_GOSSIP_WOMAN_2 loop 1
+
+		move camera position to [2080.012, 35.051, 2590.023] time 8
+		move camera focus to [2080.246, 34.234, 2594.236] time 8
+
+		say HELP_TEXT_SWAP_TO_APE_02
+		
+		wait until read
+
+		Woman play ANM_P_GOSSIP_WOMAN_3 loop 1
+
+		say HELP_TEXT_SWAP_TO_APE_03 with interaction
+		wait until read
+
+		wait until camera ready
+
+		move camera position to [BeginPos] time 5
+		move camera focus to [BeginFoc] time 4
+
+		state Woman WANDER_AROUND position [SoapBox]
+				float 6
+				ulong 4, 10
+
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_SWAP_TO_APE_04
+		wait until read
+		say HELP_TEXT_SWAP_TO_APE_05
+		wait until read
+		stop music
+	end cinema
+
+	// wait until the woman has regressed 3 villagers
+while Tired == 0 and HEALTH of Woman > 0
+
+	if HEALTH of Hut < InitialHutHealth and HutBoshedSpeech == 0
+		HutBoshedSpeech = 1
+		if camera position near [Hut] radius 100 and [Hut] viewed
+			begin dialogue
+				// "Gawdarnit! Leave my hut alone!"
+				say single line HELP_TEXT_SWAP_TO_APE_14
+				wait until read
+			end dialogue
+		end if
+	end if
+
+	if Woman is FLYING
+			begin cinema
+				set camera focus to [Woman]
+				set camera focus follow Woman
+				set camera position follow Woman
+				set game speed to 0.5
+				wait until Woman is not FLYING
+			end cinema
+	end if
+
+	if get MyTimer time remaining <= 0
+		Adult  = get VILLAGER at [Hut] radius 20 excluding scripted
+		set MyTimer time to 3 seconds
+	end if
+
+	if Adult exists	
+		if Adult is not HELD and HEALTH of Adult > 0.05 and Woman is not HELD and [Woman] near [Hut] radius 20
+			if AGE of Adult <= 13 
+				begin dialogue
+					say single line HELP_TEXT_SWAP_TO_APE_15
+					wait until read
+				end dialogue
+				wait until [Adult] not near [Hut] radius 20 or 20 seconds
+			else
+				run script RevertVillager(Woman, Adult, Hut, SoapBox)
+				release Adult
+				AdultAmount++
+			end if
+		end if
+	end if
+
+	if AdultAmount == 3
+		Tired = 1
+	end if
+
+end while
+
+if HEALTH of Woman > 0 
+
+	begin cinema
+		say single line HELP_TEXT_SWAP_TO_APE_16
+		wait until read
+		update snapshot success 0.5 alignment 0.0 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_REMINDER_24)
+//		eject evil spirit
+//		say HELP_TEXT_SWAP_TO_APE_17			// This gives it all away !! MLW
+//		wait until read
+	end cinema
+
+end if
+
+// if the player drops a child by the woman the child turns into an Ape
+
+	while HEALTH of Woman > 0 and Transformed == 0
+		if get MyTimer time remaining <= 0
+			set MyTimer time to 3 seconds
+			Child  = get CHILD at [Hut] radius 20	excluding scripted
+			if Child exists
+				if HEALTH of Child > 0 and Woman is not HELD and [Woman] near [Hut] radius 20
+					Transformed = 1
+				end if
+			end if
+		end if
+
+		if HEALTH of Hut < InitialHutHealth and HutBoshedSpeech == 0
+			HutBoshedSpeech = 1
+			if camera position near [Hut] radius 100 and [Hut] viewed
+				begin dialogue
+					// "Gawdarnit! Leave my hut alone!"
+					say single line HELP_TEXT_SWAP_TO_APE_14
+					wait until read
+				end dialogue
+			end if
+		end if
+	end while
+
+	if HEALTH of Woman > 0
+		begin cinema
+
+			enable Woman high gfx detail
+			enable sound effects
+
+			BeginPos = marker at camera position
+			BeginFoc = marker at camera focus
+
+			set camera position to [2085.219, 37.430, 2583.998] 
+			set camera focus to [2076.732, 34.367, 2603.577]
+
+			move Woman position to [Hut]
+			move Child position to [Hut]
+
+			wait until [Child] near [Hut] radius 1
+
+			start music MUSIC_TYPE_SCRIPT_EPIC_04
+			shake camera at [Hut] radius 20.0 amplitude 0.1 time 4.0
+			SFX=create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Child] time 5
+
+			wait until 1 second
+
+			move Woman position to [SoapBox]
+			SPEED of Woman = 0.4
+
+			wait until 2 seconds
+			set Woman focus to [Hut]
+
+			Woman play ANM_P_SCARED_STIFF loop 1
+
+			delete Hut with explosion
+
+			wait until 0.5 seconds
+
+			if MyCreature type CREATURE CREATURE_TYPE_APE
+				Ape = create CREATURE CREATURE_TYPE_CHIMP at [Child]
+				ChimpMade = 1
+			else
+				Ape = create CREATURE CREATURE_TYPE_APE at [Child]
+			end if
+
+			delete Child
+
+			set Woman focus to [Ape]
+
+			Woman play ANM_P_SCARED_STIFF loop 1
+
+			wait 1 seconds
+			snapshot challenge success 1.0 alignment -0.3 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_SWAP_TO_APE_09)
+
+			say HELP_TEXT_SWAP_TO_APE_08
+			wait until read
+			 
+			move Woman position to [EgyptTownL3]
+
+			eject good spirit
+			
+			say HELP_TEXT_SWAP_TO_APE_09
+			wait until read
+
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_APE_10
+			wait until read
+
+			say HELP_TEXT_SWAP_TO_APE_11
+			wait until read
+
+			set camera position to [BeginPos]
+			set camera focus to [BeginFoc]
+
+			disable Woman high gfx detail
+			stop music
+		end cinema
+
+		delete Highlight
+		run background script SwapCreatures(Ape)
+//		snapshot challenge success 1.0 alignment -0.3 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_SWAP_TO_APE_09)
+
+		if Woman exists
+			wait until Woman not viewed
+			delete Woman
+		end if
+	else
+		update snapshot success 1.0 alignment -1.0 HELP_TEXT_TITLE_26 StandardReminder(variable HELP_TEXT_SWAP_TO_APE_09)
+		begin dialogue
+			eject good spirit
+			eject evil spirit
+			say HELP_TEXT_SWAP_TO_APE_12
+			wait until read
+			say HELP_TEXT_SWAP_TO_APE_13
+			wait until read
+		end dialogue
+	end if
+
+end script SwapToApe

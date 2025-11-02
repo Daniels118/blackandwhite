@@ -1,0 +1,15 @@
+challenge RunLand4Nomad
+
+run script RunLand4Nomad
+
+begin script RunLand4Nomad
+	
+start
+
+	MyCreature = get player 1 creature
+	run script SetupLand4
+	StartLand4Nomad = 1
+	run script Land4Nomad
+	
+
+end script RunLand4Nomad

@@ -1,0 +1,294 @@
+challenge PROTECT_GATE_KEYS
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ProtectGateKey1 (FinalPos)
+
+ SoapBox = marker at [1700.3606,16.8992,2592.5974] // If changed here change in LostBro.
+// Plinth = get FEATURE at [1774.50,2793.30]
+// PlinthValue = 0
+ InitialInfluence = create influence at [GateKey1] radius 20
+ SFX = 0
+ EffectApplied = 0
+
+ Plinth = marker at[1774.5000, 32.0789, 2793.3003]
+ ReplaceGateKey1Timer = create timer for 0 seconds
+ PickedUpGateKey1 = 0
+
+start
+
+	while CreatureGatesOpened == 0 and GateKey1Present == 0
+		//PlinthValue = get Plinth info bits
+		if GateKey1 not exists //and PlinthValue != 1 and PlinthValue != 3 and PlinthValue != 7
+			GateKey1 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_APE at [SoapBox]
+			SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1
+			EffectApplied = 1
+		elsif GateKey1 is not HELD and GateKey1 is not FLYING and GateKey1 exists
+			//if [GateKey1] not near [OriginalPos] radius 20 and [GateKey1] not near [FinalPos] radius 20
+			if get player 1 influence at [GateKey1] == 0
+				//set GateKey1 position to [SoapBox]
+				delete GateKey1
+				GateKey1 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_APE at [SoapBox]
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1
+				EffectApplied = 1
+			elsif [GateKey1] not near [SoapBox] radius 100 and EffectApplied == 0
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1 // Highlight !st gate stone
+				EffectApplied = 1
+			end if
+		end if
+
+		if GateKey1 is HELD
+			PickedUpGateKey1 = 1
+		end if
+		// Check to see if the player has dropped the Gatekey away from the original or end positions.
+		// After this has been true for a minute reset to it's original position.
+		if GateKey1 is not HELD and GateKey1 is not FLYING and GateKey1 exists and [GateKey1] not near [SoapBox] radius 50 and [GateKey1] not near [Plinth] radius 20
+			// The Gatestone has been picked up and dropped, so reset the timer
+			if PickedUpGateKey1 == 1
+				set ReplaceGateKey1Timer time to 60 seconds
+				PickedUpGateKey1 = 0
+			end if
+			if get ReplaceGateKey1Timer	time remaining <= 0
+				// Been left for a minute. Delete and recreate the GateKey at it's original position
+				delete GateKey1
+				GateKey1 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_APE at [SoapBox]
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey1 time -1
+				EffectApplied = 1
+			end if
+		end if
+
+	end while
+	delete InitialInfluence
+	if GateKey1 exists
+		delete GateKey1
+	end if
+	if EffectApplied == 1 and SFX exists
+		delete SFX
+	end if
+
+end script ProtectGateKey1
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ProtectGateKey2 (OriginalPos, FinalPos)
+
+// Plinth = get FEATURE at [1774.50,2793.30]
+// PlinthValue = 0
+InitialInfluence = create influence at [GateKey2] radius 20
+SFX = 0
+
+ Plinth = marker at[1774.5000, 32.0789, 2793.3003]
+ ReplaceGateKey2Timer = create timer for 0 seconds
+ PickedUpGateKey2 = 0
+
+start
+
+	while CreatureGatesOpened == 0 and GateKey2Present == 0
+		//PlinthValue = get Plinth info bits
+		if HighlightGateKey2Active == 1
+			SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey2 time -1 // Highlight !st gate stone
+			HighlightGateKey2Active = 2
+		end if
+
+		if GateKey2 not exists //and PlinthValue != 2 and PlinthValue != 3 and PlinthValue != 7
+			GateKey2 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [OriginalPos]
+			ALTITUDE of GateKey2 = 0
+			SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey2 time -1
+		elsif GateKey2 is not HELD and GateKey2 is not FLYING and GateKey2 exists and [GateKey2] not near [OriginalPos] radius 20
+			//if [GateKey2] not near [OriginalPos] radius 20 and [GateKey2] not near [FinalPos] radius 20
+			if get player 1 influence at [GateKey2] == 0
+				//set GateKey2 position to [OriginalPos]
+				delete GateKey2
+				GateKey2 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [OriginalPos]
+				ALTITUDE of GateKey2 = 0
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey2 time -1
+			end if
+		end if
+
+		if GateKey2 is HELD
+			PickedUpGateKey2 = 1
+		end if
+		// Check to see if the player has dropped the Gatekey away from the original or end positions.
+		// After this has been true for a minute reset to it's original position.
+		if GateKey2 is not HELD and GateKey2 is not FLYING and GateKey2 exists and [GateKey2] not near [OriginalPos] radius 50 and [GateKey2] not near [Plinth] radius 20
+			// The Gatestone has been picked up and dropped, so reset the timer
+			if PickedUpGateKey2 == 1
+				set ReplaceGateKey2Timer time to 60 seconds
+				PickedUpGateKey2 = 0
+			end if
+			if get ReplaceGateKey2Timer	time remaining <= 0
+				// Been left for a minute. Delete and recreate the GateKey at it's original position
+				delete GateKey2
+				GateKey2 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [OriginalPos]
+				ALTITUDE of GateKey2 = 0
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey2 time -1
+			end if
+		end if
+
+	end while
+	delete InitialInfluence
+	if GateKey2 exists
+		delete GateKey2
+	end if
+	if SFX exists
+		delete SFX
+	end if
+
+end script ProtectGateKey2
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ProtectGateKey3 (OriginalPos, FinalPos)
+
+// Plinth = get FEATURE at [1774.50,2793.30]
+// PlinthValue = 0
+InitialInfluence = create influence at [GateKey3] radius 20
+SFX = 0
+
+ Plinth = marker at[1774.5000, 32.0789, 2793.3003]
+ ReplaceGateKey3Timer = create timer for 0 seconds
+ PickedUpGateKey3 = 0
+
+start
+	SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey3 time -1
+
+	while CreatureGatesOpened == 0 and GateKey3Present == 0
+		//PlinthValue = get Plinth info bits
+
+		if GateKey3 not exists //and PlinthValue != 7
+			GateKey3 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_COW at [OriginalPos]
+			SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey3 time -1
+		elsif GateKey3 is not HELD and GateKey3 is not FLYING and GateKey3 exists
+			//if [GateKey3] not near [OriginalPos] radius 20 and [GateKey3] not near [FinalPos] radius 20
+			if get player 1 influence at [GateKey3] == 0
+				//set GateKey3 position to [OriginalPos]
+				delete GateKey3
+				GateKey3 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_COW at [OriginalPos]
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey3 time -1
+			end if
+		end if
+
+		if GateKey3 is HELD
+			PickedUpGateKey3 = 1
+		end if
+		// Check to see if the player has dropped the Gatekey away from the original or end positions.
+		// After this has been true for a minute reset to it's original position.
+		if GateKey3 is not HELD and GateKey3 is not FLYING and GateKey3 exists and [GateKey3] not near [OriginalPos] radius 50 and [GateKey3] not near [Plinth] radius 20
+			// The Gatestone has been picked up and dropped, so reset the timer
+			if PickedUpGateKey3 == 1
+				set ReplaceGateKey3Timer time to 60 seconds
+				PickedUpGateKey3 = 0
+			end if
+			if get ReplaceGateKey3Timer	time remaining <= 0
+				// Been left for a minute. Delete and recreate the GateKey at it's original position
+				delete GateKey3
+				GateKey3 = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_COW at [OriginalPos]
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on GateKey3 time -1
+			end if
+		end if
+
+	end while
+	delete InitialInfluence
+	if SFX exists
+		delete SFX
+	end if
+	if GateKey3 exists
+		delete GateKey3
+	end if
+
+end script ProtectGateKey3
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script ProtectQuarryRock (OriginalPos, FinalPos)
+OriginalPosRepositioned = 0
+InitialInfluence = create influence at [QuarryRock] radius 20
+SFX = 0
+
+ Plinth = marker at[1774.5000, 32.0789, 2793.3003]
+ ReplaceQuarryRockTimer = create timer for 0 seconds
+ PickedUpQuarryRock = 0
+
+start
+	while QuarryRockDeleted == 0
+		if HighlightQuarryRockActive == 1
+			SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on QuarryRock time -1 // Highlight !st gate stone
+			HighlightQuarryRockActive = 2
+		end if
+
+		if GateKey3 not exists and QuarryRock not exists and QuarryRockDeleted == 0
+			QuarryRock = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos]
+			if HighlightQuarryRockActive > 0
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on QuarryRock time -1
+			end if
+		end if
+
+		if QuarryRock is not HELD and QuarryRock is not FLYING
+			//if [QuarryRock] not near [OriginalPos] radius 30 and [QuarryRock] not near [FinalPos] radius 30
+			if get player 1 influence at [QuarryRock] == 0
+				//set QuarryRock position to [OriginalPos]
+				if influence at [QuarryPos] == 0
+				else
+					delete QuarryRock
+					QuarryRock = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos]
+					if HighlightQuarryRockActive > 0
+						SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on QuarryRock time -1
+					end if
+				end if
+			end if
+		end if
+		if OriginalPosRepositioned == 0
+			if [QuarryRock] near [FinalPos] radius 30 and QuarryRock is not HELD and QuarryRock is not FLYING
+				OriginalPos = marker at [FinalPos]
+				OriginalPosRepositioned = 1
+			end if
+		end if
+
+		if QuarryRock is HELD
+			PickedUpQuarryRock = 1
+		end if
+		// Check to see if the player has dropped the Gatekey away from the original or end positions.
+		// After this has been true for a minute reset to it's original position.
+		if QuarryRock is not HELD and QuarryRock is not FLYING and QuarryRock exists and [QuarryRock] not near [QuarryPos] radius 50 and [QuarryRock] not near [FinalPos] radius 20
+			// The Gatestone has been picked up and dropped, so reset the timer
+			if PickedUpQuarryRock == 1
+				set ReplaceQuarryRockTimer time to 60 seconds
+				PickedUpQuarryRock = 0
+			end if
+			if get ReplaceQuarryRockTimer time remaining <= 0
+				// Been left for a minute. Delete and recreate the GateKey at it's original position
+				delete QuarryRock
+				QuarryRock = create with angle 0 and scale 1.0 OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos]
+				SFX=create special effect SPOT_VISUAL_HIGHLIGHT_ON_OBJECT on QuarryRock time -1
+			end if
+		end if
+
+	end while
+	delete InitialInfluence
+	if SFX exists
+		delete SFX
+	end if
+
+end script ProtectQuarryRock
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script ProtectGateKeys
+
+start
+
+	wait until ProtectGateKeysFlag == 1
+
+	GateKey1 = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_APE at [LostBrotherHouse] radius 20
+	run background script ProtectGateKey1 (GateKeyPostPos)
+	disable GateKey1 pickup
+	disable GateKey1 moveable
+
+	GateKey2 = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_TIGER at [FollowUsCrowdPosition] radius 30
+	run background script ProtectGateKey2 (FollowUsCrowdPosition, GateKeyPostPos)
+
+	QuarryRock = get OBJECT MOBILE_STATIC_INFO_GATE_TOTEM_BLANK at [QuarryPos] radius 30
+	run background script ProtectQuarryRock (QuarryPos, SculptorPos)
+
+
+end script ProtectGateKeys
+

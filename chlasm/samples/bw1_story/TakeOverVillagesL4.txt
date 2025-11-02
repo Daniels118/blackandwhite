@@ -1,0 +1,23 @@
+begin script TakeOverVillagesL4
+
+// SCRIPT NO LONGER USED
+
+Town1 = get TOWN at [2421.89,0.0,1530.42] radius 50
+
+
+start
+
+	while get PLAYER of Town1 != 1
+
+		wait 5 seconds 
+	
+	end while	
+
+/*	begin cinema
+
+	// TODO
+
+	end cinema
+*/
+
+end script TakeOverVillagesL4

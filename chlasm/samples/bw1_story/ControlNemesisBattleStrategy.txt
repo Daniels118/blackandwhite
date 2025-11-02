@@ -1,0 +1,249 @@
+global ActionAbort
+global FirstAction
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** CURRENT ACTION ****
+//------------------------------------------------------------------------------------------------------------------------
+
+
+begin script CurrentAction (Impress, Town)
+
+ Null = 0.0
+ FirstLoop = 0
+ NemesisCreature = get player 2 creature
+
+start
+	if FirstAction > 0
+		wait until ActionAbort == 2
+	else
+		FirstAction = 1
+	end if
+	ActionAbort = 0
+
+	if Impress == 1  // TAKE OVER
+		set computer player 2 personality "TakeOverTown"	1.0
+		set computer player 2 personality "DestroyTown"	0.1
+		set computer player 2 personality "DefendTown"	0.5
+		set computer player 2 personality "AttackCreatureWithSpells"	0.5
+		
+		begin loop
+			if FirstLoop == 0
+				FirstLoop = 1
+				force computer player 2 action "GetCreaturetoHelp" Town NemesisCreature
+				wait until computer player 2 ready
+			else
+				force computer player 2 action "TakeOverTown" Town Null
+				wait until computer player 2 ready
+			end if
+		until ActionAbort == 1
+		end loop
+
+	elsif Impress == 0 // DESTROY
+
+		set computer player 2 personality "DestroyTown"	1.0
+		set computer player 2 personality "TakeOverTown"	0.5
+		set computer player 2 personality "DefendTown"	0.5
+		set computer player 2 personality "AttackCreatureWithSpells"	0.5
+		
+		begin loop
+			force computer player 2 action "DestroyTown" Town Null
+			wait until computer player 2 ready
+		until ActionAbort == 1
+		end loop
+
+	elsif Impress == 2 // DEFEND 
+		set computer player 2 personality "TakeOverTown"	0.5
+		set computer player 2 personality "DestroyTown"	0.1
+		set computer player 2 personality "DefendTown"	1.0
+		set computer player 2 personality "AttackCreatureWithSpells"	0.5
+		
+		begin loop
+			if FirstLoop == 0
+				FirstLoop = 1
+				force computer player 2 action "GetCreaturetoHelp" Town NemesisCreature
+				wait until computer player 2 ready
+			else
+				force computer player 2 action "DefendTown" Town Null
+				wait until computer player 2 ready
+			end if
+		until ActionAbort == 1
+		end loop
+
+	elsif Impress == 3
+		set computer player 2 personality "TakeOverTown"	0.5
+		set computer player 2 personality "DestroyTown"	0.1
+		set computer player 2 personality "DefendTown"	0.5
+		set computer player 2 personality "AttackCreatureWithSpells"	1.0
+
+		begin loop
+//			force computer player 2 action "AttackCreatureWithSpells" Town SPELL_LIGHTNING_LEVEL_3
+//			wait until computer player 2 ready
+			begin dialogue
+				//sy "NEMESIS ATTACKS MyCREATURE"
+				//wait until read
+				ActionAbort = 1
+			end dialogue
+		until ActionAbort == 1 or HEALTH of MyCreature <= 0
+		end loop
+	end if
+
+	ActionAbort = 2
+
+end script CurrentAction
+
+//------------------------------------------------------------------------------------------------------------------------
+// **** MAIN ****
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ControlNemesisBattleStrategy
+
+NeutralTown = get TOWN at [2257.9912, 23.4500, 3315.3586] radius 100
+Town2 = get TOWN at [2637.4839, 109.8800, 3747.7695] radius 100 // Mirror Fight
+Town3 = get TOWN at [2220.5083, 37.6482, 2633.8025] radius 100 // Fire on High town
+Town4 = get TOWN at [1678.1516, 95.7629, 2322.4634] radius 100 // Throw through shield
+NemesisTown = get TOWN at [3123.7798, 9.3026, 2625.7500] radius 100
+
+AtWar = 0
+NoActivity = 0
+
+NeutralTownBelief = 0
+NemesisNeutralTownBelief = 0
+Town2Belief = 0
+Town3Belief = 0
+Town4Belief = 0
+NemesisTownBelief = 0
+
+LastNeutralTownBelief = 0
+LastTown2Belief = 0
+LastTown3Belief = 0
+LastTown4Belief = 0
+LastNemesisTownBelief = 0
+	
+start
+	FirstAction = 0
+
+	while AtWar == 0
+		wait 30 seconds
+
+		NeutralTownBelief = get NeutralTown belief for player 1
+		NemesisNeutralTownBelief = get NeutralTown belief for player 2
+		Town2Belief = get Town2 belief for player 1
+		Town3Belief = get Town3 belief for player 1
+		Town4Belief = get Town4 belief for player 1
+		NemesisTownBelief = get NemesisTown belief for player 1
+
+		if PLAYER of NeutralTown == 1 and PLAYER of Town2 == 1 and PLAYER of Town3 == 1 and PLAYER of Town4 == 1 and PLAYER of NemesisTown == 1
+			AtWar = 1
+		elsif PLAYER of NeutralTown == 1 and PLAYER of Town2 == 1 and PLAYER of Town3 == 1 and PLAYER of Town4 == 1
+			if [MyCreature] near [NemesisTown] radius 250 or camera position near [NemesisTown] radius 250
+				set computer player 2 personality "DefeatPlayer" 1
+				NoActivity = 0
+				// defend NemesisTown
+				if ActionAbort != 2
+					ActionAbort = 1
+				end if
+				run background script CurrentAction (2, NemesisTown)
+			elsif NoActivity > 2
+				// attack town3
+				if ActionAbort != 2
+					ActionAbort = 1
+				end if
+				run background script CurrentAction (0, Town3)
+				// SEND CREATURE TO TOWN2 TO IMPRESS (UseCreatureAsDiverseionAgainstPlayer)
+			else
+				NoActivity++
+			end if
+		elsif influence at [MyCreature] == 0 /// and MyCreature not Invisible
+		// BODGE!! CHANGE ABOVE TO IF MyCREATURE IN NEMESIS INFLUENCE   {  if get player 2 influence at [MyCreature] > 0  }
+			// Attack MyCreature with spells
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (3, MyCreature)
+		elsif PLAYER of Town4 == 1
+			// attack town4
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (0, Town4)
+		elsif Town4Belief > LastTown4Belief
+			// impress town4
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (1, Town4)
+			if PLAYER of Town3 == 1
+				// SEND CREATURE TO TOWN3
+			else
+				// SEND CREATURE TO TOWN4
+			end if
+		elsif PLAYER of Town3 == 1
+			// attack town3
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (0, Town3)
+		elsif Town3Belief > LastTown3Belief
+			// impress town3
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (1, Town3)
+			if PLAYER of Town2 == 1
+				// SEND CREATURE TO TOWN2
+			else
+				// SEND CREATURE TO TOWN3
+			end if
+		elsif PLAYER of Town2 == 1
+			// attack town2
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (0, Town2)
+		elsif Town2Belief > LastTown2Belief
+			// impress town2
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (1, Town2)
+			if PLAYER of NeutralTown == 1
+				// SEND CREATURE TO NEUTRAL TOWN
+			else
+				// SEND CREATURE TO TOWN2
+			end if
+		elsif PLAYER of NeutralTown == 1
+			// attack neutral town
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (0, NeutralTown)
+			set computer player 2 personality "DefeatPlayer" 1
+		elsif NeutralTownBelief > LastNeutralTownBelief and (NemesisNeutralTownBelief - NeutralTownBelief) < 0.2
+			// impress neutral town
+			if ActionAbort != 2
+				ActionAbort = 1
+			end if
+			run background script CurrentAction (1, NeutralTown)
+			set computer player 2 personality "DefeatPlayer" 1
+		else
+			set computer player 2 personality "DefeatPlayer" 0
+		end if
+
+
+		LastNeutralTownBelief = get NeutralTown belief for player 1
+		LastTown2Belief = get Town2 belief for player 1
+		LastTown3Belief = get Town3 belief for player 1
+		LastTown4Belief = get Town4 belief for player 1
+		LastNemesisTownBelief = get NemesisTown belief for player 1
+
+	end while
+
+/*
+	begin dialogue
+		sy "NEMESIS CONCEDES DEFEAT"
+		wait until read
+	end dialogue
+*/
+
+end script ControlNemesisBattleStrategy
+

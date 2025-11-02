@@ -1,0 +1,12 @@
+challenge RunSwapToCow
+
+run script RunSwapToCow
+
+begin script RunSwapToCow
+	
+start
+	
+	run script SwapToCow
+	
+
+end script RunSwapToCow

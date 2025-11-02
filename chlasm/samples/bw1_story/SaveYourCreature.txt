@@ -1,0 +1,94 @@
+challenge SAVE_YOUR_CREATURE
+
+global released
+global SaveYourCreatureStonesUsed
+
+run script SaveYourCreature
+
+begin script TSAmmo(Stone)
+	TmpPos = 0
+	StartPos = marker at [Stone]
+	AtRest = 1
+start
+	begin loop
+
+		until released>0
+
+		when not Stone exists
+			Stone = create OBJECT ROCK at [StartPos]
+			AtRest = 1
+
+		when Stone is FLYING or Stone is HELD and AtRest>0
+			AtRest=0
+
+		when Stone is not FLYING and Stone is not HELD and AtRest<1
+			AtRest=1
+
+		when ([Stone] not near [StartPos] radius 20 and AtRest>0) 
+			set Stone position to [StartPos]
+			SaveYourCreatureStonesUsed++
+			SCALE of Stone = 1
+
+		end loop
+end script TSAmmo
+
+
+
+begin script SaveYourCreature
+
+	Influence = marker at [2264.8687, 31.8355, 2438.1279]
+	Prison = marker at [2031.8361, 85.7705, 2238.0178]
+	Kong = 0
+	
+start
+	
+	Kong = create CREATURE CREATURE_TYPE_APE at [Prison]
+	SCALE of Kong = 3
+
+	set Kong all desires SCRIPT_FALSE
+
+	set Kong priority 0.00001
+
+//	disable creature help 
+
+	force Kong CREATURE_BE_SAD Kong
+
+	set Kong focus to [2095.2422, 76.5370, 2268.9182] 
+
+	force Kong CREATURE_BE_SAD Kong
+
+	run background script TSAmmo(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [Influence]+[0,0,0])
+	run background script TSAmmo(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [Influence]+[5,0,5])
+	run background script TSAmmo(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [Influence]+[5,0,0])
+	run background script TSAmmo(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [Influence]+[2,0,-6])
+	run background script TSAmmo(create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ROCK at [Influence]+[-1,0,-4])
+
+	create influence on Influence radius 80
+
+	begin cinema
+
+		say HELP_TEXT_SAVE_YOUR_CREATURE_01
+		wait until read
+		say HELP_TEXT_SAVE_YOUR_CREATURE_02
+		wait until read
+		say HELP_TEXT_SAVE_YOUR_CREATURE_03
+		wait until read
+		say HELP_TEXT_SAVE_YOUR_CREATURE_04
+		wait until read
+
+	end cinema
+
+
+//	wait until HEALTH of GuardianCreature <= 0.2
+
+		say HELP_TEXT_SAVE_YOUR_CREATURE_05
+		wait until read
+
+
+while released == 0
+
+
+end while
+
+end script SaveYourCreature
+

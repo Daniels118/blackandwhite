@@ -1,0 +1,105 @@
+challenge CREATURE_DEV_MEET_GUIDE
+
+ run script CreatureDevMeetGuide
+
+
+begin script CreatureDevMeetGuide
+
+CitadelEntrancePos = marker at [1913.1810, 2518.3315]
+MyCreature = get player 1 creature
+MyCreaturePos = marker at [1911.7795, 18.0900, 2533.7822]
+TrainerPos = marker at [1905.8014, 18.0900, 2531.0649]
+Trainer = create VILLAGER MALE at [CitadelEntrancePos]
+CitadelPos = marker at [1915.0500, 2508.8899]
+
+CamPosStart = marker at [1904.7095, 27.5848, 2529.2278]
+CamPos1 = marker at [1892.8262, 28.3515, 2523.9858]
+
+AtEntranceDoorway = marker at [1910.2390, 18.0900, 2522.7053]
+
+LocalTimer = 0
+
+
+BeginPos = 0
+BeginFoc = 0
+
+Guide = 0
+GuidePos = marker at [2126.7410, 40.8700, 2653.0215]
+
+start
+	Guide = create CREATURE CREATURE_TYPE_COW at [GuidePos]
+	SCALE of Guide = 1
+
+	force Guide CREATURE_SIT Guide
+	force Guide CREATURE_BE_SAD Guide
+
+	// Make guide moan occassionaly
+
+	wait until [MyCreature] near [Guide] radius 50
+
+	begin cinema
+		// Clear mist
+		set camera position to [Guide]+[45,30,45]
+		set camera focus to [Guide]
+		Guide play C_INDIVIDUAL_ANGRY
+		wait 1 second
+		MyCreature play C_INDIVIDUAL_FRIGHTENED
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_01
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_02
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_03
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_04
+		make good spirit point at [Guide]
+		wait until read
+		stop good spirit pointing
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_05
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_06
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_07
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_08
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_09
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_10
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_11
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_12
+		wait until read
+
+		move camera position to [Guide]+[25,20,25] time 12
+
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_13
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_14
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_15
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_16
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_17
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_18
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_19
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_20
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_21
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_22
+		wait until read		
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_MEET_GUIDE_23
+		wait until read
+		wait until camera ready
+	end cinema
+
+
+
+end script CreatureDevMeetGuide

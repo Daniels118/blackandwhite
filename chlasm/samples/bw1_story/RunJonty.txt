@@ -1,0 +1,12 @@
+challenge LandControl1
+
+run script LandControl1
+
+begin script LandControl1
+
+start
+	run background script HeadingHomeMain
+	run script FollowUs
+	run script BuildCitadel
+
+end script LandControl1

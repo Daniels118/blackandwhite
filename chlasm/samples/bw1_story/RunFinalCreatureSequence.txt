@@ -1,0 +1,13 @@
+challenge RunFinalCreatureSequence
+
+run script RunFinalCreatureSequence
+
+begin script RunFinalCreatureSequence
+	
+start
+	
+	run script Volcano
+  	run script EndOfGameCreatureSequenceGoToVolcano
+	
+
+end script RunFinalCreatureSequence

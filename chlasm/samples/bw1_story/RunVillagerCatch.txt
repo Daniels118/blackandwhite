@@ -1,0 +1,12 @@
+challenge RunVillagerCatch
+
+run script RunVillagerCatch
+
+begin script RunVillagerCatch
+	
+start
+	
+	run script VillagerCatch
+	
+
+end script RunVillagerCatch

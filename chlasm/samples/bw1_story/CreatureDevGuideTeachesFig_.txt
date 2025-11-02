@@ -1,0 +1,92 @@
+challenge CREATURE_DEV_GUIDE_TEACHES_FIGHT
+
+run script CreatureDevGuideTeachesFight
+
+begin script CreatureDevGuideTeachesFight
+	MyCreature = get player 1 creature
+	FightPos = marker at [1698.5747, 10.9477, 2507.4583]
+	MyCreatureFightPos = marker at [1706.1364, 12.5337, 2530.4807]
+	BeginPos = 0
+	BeginFoc = 0
+	Guide = 0
+start
+	if not Guide exists
+		Guide = create_creature_from_creature MyCreature 1.0 at [FightPos] CREATURE_TYPE_COW
+		SCRIPT_OBJECT_PROPERTY_TYPE_SCALE of Guide = 1.8
+		teach Guide everything
+		set Guide DEVELOPMENT_PHASE_FULLY_MATURE development
+	end if
+	set Guide position to [FightPos]
+	force Guide CREATURE_LOOK_FOREVER MyCreature
+	wait 2 seconds
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+		Guide play C_INDIVIDUAL_SUMMON loop 1
+		force MyCreature CREATURE_LOOK_FOREVER Guide
+		wait until Guide played
+		wait 3 seconds
+
+
+		set camera position to [MyCreature]+[25,20,25]
+		set camera focus to [MyCreature]
+		set set camera focus follow MyCreature
+		move MyCreature position to [MyCreatureFightPos]
+		wait 3 seconds
+/// Fade Out
+		set MyCreature position to [MyCreatureFightPos]
+		force MyCreature CREATURE_LOOK_FOREVER  Guide
+		force Guide CREATURE_LOOK_FOREVER  MyCreature
+		set camera position to [Guide]+[40,30,40]
+		set camera focus to [Guide]
+/// Fade In
+
+		begin dual camera to MyCreature Guide
+			wait 2 seconds
+			Guide play C_INDIVIDUAL_TAUNT
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_01
+			force MyCreature CREATURE_BE_FRIGHTENED_ON_THE_SPOT MyCreature
+			wait until Guide played
+			wait until read
+			say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_02
+			wait until read
+			MyCreature play C_INDIVIDUAL_HAPPY
+			wait until MyCreature played
+		end dual camera
+	end cinema
+
+	force Guide CREATURE_FIGHT MyCreature
+	// NO LONGER NEED TO MAKE BOTH CREATURES FIGHT!!! force MyCreature CREATURE_FIGHT Guide
+
+	wait until MyCreature fighting
+
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_03
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_04
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_05
+		wait until read
+		send good spirit home
+		send evil spirit home
+	end dialogue
+
+	wait until not MyCreature fighting
+	wait until not Guide fighting
+
+	begin dialogue
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_06
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_07
+		wait until read
+		say HELP_TEXT_NEW_DEVELOPMENT_STAGE_GUIDE_TEACHES_FIGHT_08
+		wait until read		
+	end dialogue
+
+	set Guide only desire CREATURE_DESIRE_TIREDNESS			
+
+end script CreatureDevGuideTeachesFight

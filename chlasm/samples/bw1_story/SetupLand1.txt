@@ -1,0 +1,195 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global LostBrotherHousePos
+global LostBrotherHouse
+global GateKeyPostPos
+global FollowUsCrowdPosition
+global ThrowingStonesStart
+global SingingStonesStart
+global GateKey1					// Lost Brother (Ape)
+global GateKey2					// Welcome Dance (Tiger)
+global GateKey3					// Sculpter (Cow)
+global GateKey1Present			// LOST BROTHER GATE KEY (APE)
+global GateKey2Present			// WELCOME DANCE GATE KEY (TIGER)
+global GateKey3Present			// SCULPTER GATE KEY (COW)
+global CreatureGatesOpened
+global QuarryRock
+global QuarryRockDeleted
+global QuarryPos
+global SculptorPos
+global CitadelBuiltL1
+global NorseTown
+global PiperCave
+global ProtectGateKeysFlag
+global RockInfl
+global HighlightGateKey2Active
+global HighlightQuarryRockActive
+global WaterMiracleAvailable
+global MissionariesInitiated
+global MissionariesCompletedNow
+global LostFlockInitiated
+global TheLostFlockFinished
+global LostFlockCompletedNow
+global LostFlockWanted
+global PiedPiperInitiated
+global PiedPiperFinished
+global PiedPiperCompletedNow
+global StopTracking
+global CreatureGuardianInitiated
+global GuideNotImpressing
+global AztecTown
+global GlobalHealSpell
+
+//define script SetupLand1DYKMarkers
+define script PlaceInitialLand1DYKS
+
+// Set Aztec belief to zero until Guide explains.
+define script SetAztecTownBeliefToZero
+
+//*****************************************************************************
+//	General Setup for Land 1
+//*****************************************************************************
+begin script SetupLand1
+
+QuarryInfluence = 0
+
+start
+// UNDO BEFORE CHECKIN!!
+//	GateKey1Present = 0
+//	GateKey2Present = 0
+//	GateKey3Present = 0
+
+//	run script SetupLand1DYKMarkers
+	ProtectGateKeysFlag = 0
+	CreatureDevelopment_Fight = 0
+	ThrowingStonesStart = 0
+	SingingStonesStart = 0
+	OpenVortexL1 = 0
+	CitadelBuiltL1 = 0
+	LandNumber=1
+    disable player 1 virtual influence
+
+	LeaveLandNow = 0
+	if can skip tutorial
+		IsSkippingToCreatureSelect = 1
+	else
+		IsSkippingToCreatureSelect = 0
+	end if
+
+	if can skip creature training
+		IsSkippingCreatureGuide = 1
+	else
+		IsSkippingCreatureGuide = 0
+	end if
+
+	if is keeping old creature and current profile has creature
+		IsKeepingOldCreature = 1
+		//these must be set if the old creature is kept
+		IsSkippingToCreatureSelect = 1
+		IsSkippingCreatureGuide = 1
+	else
+		IsKeepingOldCreature = 0
+	end if
+
+	PiperCave = get FEATURE at [1970.8000, 64.4613, 2812.1201]
+	LostBrotherHousePos = marker at [1713.8300, 18.0900, 2592.5901]
+	LostBrotherHouse = get HOUSE at [LostBrotherHousePos]
+	GateKeyPostPos = marker at [1750.3295, 34.7301, 2770.4932]
+	FollowUsCrowdPosition = marker at [1652.15, 16.7500, 2322.91]
+//	QuarryPos = marker at [1456.71, 65.882, 2352.91]
+	QuarryPos = marker at [1410.944, 61.457, 2349.505] 
+	QuarryInfluence = create influence on QuarryPos radius 30
+//	SculptorPos = marker at [1756.0748, 30.0505, 2717.5735]			  Changed by SPL - must be old pos
+	SculptorPos = marker at [1768.988, 28.810, 2690.706]
+	NorseTown = get TOWN at [1865.61,2641.24] radius 50
+	AztecTown = get TOWN at [2450.00,2580.00] radius 50
+	set NorseTown desire boost TOWN_DESIRE_INFO_FOR_CIVIC_BUILDING -1.0
+	set NorseTown desire boost TOWN_DESIRE_INFO_FOR_ABODES -1.0
+	set NorseTown desire boost TOWN_DESIRE_INFO_FOR_CHILDREN -0.2
+
+	GlobalCurrentCreature = -1
+	GlobalOldCreature	  = -1 
+	RockInfl = create anti influence at position [2042.9100, 14.9250, 2325.1699] radius 20
+
+	run script PlaceInitialLand1DYKS
+	run background script SetAztecTownBeliefToZero
+
+end script SetupLand1
+
+
+
+//*****************************************************************************
+//	Set up all the DYK positions for Land 1
+//*****************************************************************************
+/*
+begin script SetupLand1DYKMarkers
+
+start
+//	dyk11 = marker at [1690.3820, 54.1758, 2214.8293]				// miracles everywhere
+//	dyk14 = marker at [1455.8076, 53.9455, 2368.2305]				// creature gets stronger by picking up rocks
+//	dyk23 = marker at [1883.7010, 29.4380, 2514.3230]				// shortcut to inside temple
+//	dyk43 = marker at [1898.7550, 29.4800, 2514.8840]				// reminders in temple
+//	dyk52 = marker at [1844.2345, 31.4900, 2692.3010]				// cancel disciples
+//	dyk68 = marker at [1889.1139, 28.8100, 2534.8281]				// creature room has stats
+//	dyk69 = marker at [1913.3928, 29.1371, 2535.1377]				// keyboard shortcuts
+	dyk70 = marker at [1646.1113, 37.6482, 2410.5415]				// cursor keys move around
+
+end script SetupLand1DYKMarkers
+*/
+
+//*****************************************************************************
+//	Place all the Initial DYKs on Land1
+//*****************************************************************************
+begin script PlaceInitialLand1DYKS
+
+dyk02 = marker at [1761.4728, 29.8176, 2663.5171]				// encourage people to breed
+dyk03 = marker at [1845.4633, 31.4900, 2676.2563]				// learn disciples
+dyk10 = marker at [1789.6398, 28.1400, 2656.4121]				// tap a house to get people out
+dyk44 = marker at [1816.3108, 27.8914, 2650.3040]				// hold Action button to pick up more stuff
+dyk48 = marker at [1767.1522, 31.0189, 2722.9919]				// trees are scenic in towns
+dyk67 = marker at [1783.1165, 28.6032, 2698.6423]				// name tribespeople
+dyk75 = marker at [1697.9858, 17.9879, 2599.5127]				// fields
+dyk74 = marker at [1403.0894, 62.3388, 2351.7625]				// F1 info
+dyk87 = marker at [2426.49,   52.2600, 2556.7400]				// scroll thru DYKs
+dyk88 = marker at [2087.6174, 32.8300, 2806.8018]				// bookmarks intro
+dyk89 = marker at [2261.8601, 43.2045, 2801.3186]				// bookmarks advanced
+
+start
+	run background script DidYouKnow(dyk02,variable HELP_TEXT_DYK_02, variable DYK_VILLAGE_LIFE)			// encourage people to breed
+	run background script DidYouKnow(dyk03,variable HELP_TEXT_DYK_03, variable DYK_VILLAGE_LIFE)			// learn disciples
+	run background script DidYouKnow(dyk10,variable HELP_TEXT_DYK_10, variable DYK_NAVIGATION)			// tap a house to get people out
+	run background script DidYouKnow(dyk44,variable HELP_TEXT_DYK_44, variable DYK_NAVIGATION)			// hold Action button to pick up more stuff
+	run background script DidYouKnow(dyk48,variable HELP_TEXT_DYK_48, variable DYK_VILLAGE_LIFE)			// trees are scenic in towns
+	run background script DidYouKnow(dyk67,variable HELP_TEXT_DYK_67, variable DYK_NAVIGATION)			// name tribespeople can come out
+	run background script DidYouKnow(dyk75,variable HELP_TEXT_DYK_75, variable DYK_VILLAGE_LIFE)			// fields
+	run background script DidYouKnow(dyk74,variable HELP_TEXT_DYK_74, variable DYK_NAVIGATION)			// F1 info
+	run background script DidYouKnow(dyk87,variable HELP_TEXT_DYK_87, variable DYK_VILLAGE_LIFE)
+	run background script DidYouKnow(dyk88,variable HELP_TEXT_DYK_88, variable DYK_NAVIGATION)			// bookmarks intro
+	run background script DidYouKnow(dyk89,variable HELP_TEXT_DYK_89, variable DYK_NAVIGATION)			// bookmarks advanced
+
+
+end script PlaceInitialLand1DYKS
+
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script SetAztecTownBeliefToZero
+
+start
+
+ 	while GuideNotImpressing == 0
+
+		if get AztecTown belief for player 1 >= 0.1
+
+			set AztecTown player 1 belief 0
+
+		end if
+
+		wait 10 seconds
+
+	end while
+
+end script SetAztecTownBeliefToZero
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+

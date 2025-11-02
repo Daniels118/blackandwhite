@@ -1,0 +1,55 @@
+challenge DID_YOU_KNOW
+
+
+//------------------------------------------------------------------------------------------------------------------------
+// FIRST TIME DYK EXPLANATION
+//------------------------------------------------------------------------------------------------------------------------
+begin script FirstDYKExplained
+start
+	begin dialogue
+		eject good spirit
+		//"You can scroll through some of these Info signs to read all the text."
+		say HELP_TEXT_DYK_EXPLAINED_01
+		wait until read
+		//"Hold the Action Button on the text and move up or down."
+		say HELP_TEXT_DYK_EXPLAINED_02
+		wait until read
+		//"Any information you read on one of these is added to the library room in the citadel."
+		say HELP_TEXT_DYK_EXPLAINED_03
+		wait until read
+	end dialogue
+
+end script FirstDYKExplained
+
+
+
+//------------------------------------------------------------------------------------------------------------------------
+//  DID YOU KNOW SCRIPTS
+//  A specific script for bronze highlights
+//------------------------------------------------------------------------------------------------------------------------
+/*begin help script DidYouKnowNotify(Location, HelpTextEnum, NotifyTextEnum) 
+	Highlight = 0
+start
+	Highlight = create highlight HIGHLIGHT_TIPS at [Location]
+	ALTITUDE of Highlight = 0
+	set Highlight text property constant HelpTextEnum
+
+	//Wait for first time clicked
+	run script DidYouKnowHighlightNotify(Highlight, variable GOOD_ADVISOR, NotifyTextEnum)
+
+	release Highlight
+end script DidYouKnowNotify
+*/
+
+//------------------------------------------------------------------------------------------------------------------------
+//  DID YOU KNOW SCRIPTS
+//  A specific script for bronze highlights
+//------------------------------------------------------------------------------------------------------------------------
+begin help script DidYouKnow(Location, HelpTextEnum, HelpTextCategory) 
+	Highlight = 0
+start
+	Highlight = create highlight HIGHLIGHT_TIPS at [Location]
+	set Highlight text property text constant HelpTextEnum category constant HelpTextCategory
+	ALTITUDE of Highlight = 0
+	release Highlight
+end script DidYouKnow

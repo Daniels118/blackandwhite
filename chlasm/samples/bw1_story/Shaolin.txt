@@ -1,0 +1,614 @@
+challenge SHAOLIN
+
+global MonkWayPointReached
+global MonkHasReachedEnd
+global MonkFinishedWith
+global MonkHelpWithFireFinished
+global SavedWaypoint
+global WaypointSparkle
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script MonkDoAnimThenMove(Monk, NewPosition)
+start
+	Monk play ANM_P_LOOKING_FOR_SOMETHING loop 2
+	wait until Monk played
+	SPEED of Monk = 0.2
+	move Monk position to [NewPosition]
+end script MonkDoAnimThenMove
+
+begin script ShaolinMonkMove(Monk)
+	MonkPos1 = marker at [2444.008, 140.713, 3077.407]// S
+	MonkPos2 = marker at [2462.104, 137.968, 3080.441]// F
+	MonkPos3 = marker at [2491.316, 135.892, 3109.615]// F
+	MonkPos4 = marker at [2488.944, 130.038, 3154.572]// F
+	MonkPos5 = marker at [2471.166, 123.623, 3183.985]// S
+	MonkPos6 = marker at [2451.790, 122.812, 3183.069]// S
+	MonkPos7 = marker at [2412.429, 118.996, 3188.804]// F
+	MonkPos8 = marker at [2379.006, 113.850, 3154.133]// S
+	MonkPos9 = marker at [2367.562, 109.715, 3141.683]// S
+	MonkPos10 = marker at [2355.463, 107.258, 3129.697]// S
+	MonkPos11 = marker at [2370.943, 106.321, 3082.979]// F
+	MonkPos12 = marker at [2388.803, 101.646, 3058.346]// F
+	MonkPos13 = marker at [2391.019, 101.311, 3051.101]// S (MUSH)
+	MonkPos14 = marker at [2399.229, 101.385, 3044.003]// S
+	MonkPos15 = marker at [2449.677, 97.587, 3046.399]// S
+	MonkPos16 = marker at [2465.010, 96.171, 3034.816]// F
+	MonkPos17 = marker at [2495.550, 93.428, 3047.362]// F
+	MonkPos18 = marker at [2506.540, 94.378, 3049.071]// S (MUSH)
+	MonkPos19 = marker at [2515.046, 92.308, 3055.456] //S
+	MonkPos20 = marker at [2545.436, 83.263, 3122.725]// F
+	MonkPos21 = marker at [2533.952, 83.585, 3148.716]// S
+	MonkPos22 = marker at [2524.316, 75.317, 3205.510]// F
+	MonkPos23 = marker at [2474.151, 74.569, 3224.735]// F
+	MonkPos24 = marker at [2456.110, 73.205, 3242.632]
+
+	Waypoint11CameraPos = marker at [2361.2156, 119.4352, 3105.7019]
+
+	Waypoint11Set = 0
+	Waypoint16Set = 0
+
+start
+	if MonkWayPointReached == 0		
+		SPEED of Monk = 0.2
+		move Monk position to [MonkPos1]
+		MonkWayPointReached = 1
+	end if 
+	if MonkWayPointReached == 1
+		if [Monk] at [MonkPos1]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos2]
+			MonkWayPointReached = 2
+		end if
+	end if
+	if MonkWayPointReached == 2
+		if [Monk] at [MonkPos2]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos3]
+			MonkWayPointReached = 3
+		end if
+	end if
+	if MonkWayPointReached == 3
+		if [Monk] at [MonkPos3]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos4]
+			MonkWayPointReached = 4
+		end if
+	end if
+	if MonkWayPointReached == 4
+		if [Monk] at [MonkPos4]
+			Monk play ANM_P_INSPECT_OBJECT_2 loop 1
+			wait until Monk played
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos5]
+			MonkWayPointReached = 5
+		end if
+	end if
+	if MonkWayPointReached == 5
+		if [Monk] at [MonkPos5]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos6]
+			MonkWayPointReached = 6
+		end if
+	end if
+	if MonkWayPointReached == 6
+		if [Monk] at [MonkPos6]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos7]
+			MonkWayPointReached = 7
+		end if
+	end if
+	if MonkWayPointReached == 7
+		if [Monk] at [MonkPos7]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos8]
+			MonkWayPointReached = 8
+		end if
+	end if
+	if MonkWayPointReached == 8
+		if [Monk] at [MonkPos8]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos9]
+			MonkWayPointReached = 9
+		end if
+	end if
+	if MonkWayPointReached == 9
+		if [Monk] at [MonkPos9]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos10]
+			MonkWayPointReached = 10
+		end if
+	end if
+	if MonkWayPointReached == 10
+		if [Monk] at [MonkPos10]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos11]
+			MonkWayPointReached = 11
+		end if
+	end if
+	if MonkWayPointReached == 11
+		if SavedWaypoint == 11 
+			set Monk position to [MonkPos11]
+			begin camera
+				set camera position to [Waypoint11CameraPos]
+				set camera focus to [Monk]
+			end camera
+			set fade in time 1
+			wait until fade ready
+		end if
+		if [Monk] at [MonkPos11]
+			Monk play ANM_P_LOOKING_FOR_SOMETHING loop 2
+			wait until Monk played
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos12]
+			MonkWayPointReached = 12
+			if Waypoint11Set == 0
+				WaypointSparkle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [MonkPos11] time 999999
+				Waypoint11Set = 1
+			end if
+		end if
+	end if
+	if MonkWayPointReached == 12
+		if [Monk] at [MonkPos12]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos13]
+			MonkWayPointReached = 13
+		end if
+	end if
+	if MonkWayPointReached == 13
+		if [Monk] at [MonkPos13]
+			set Monk focus to [2382.951, 100.702, 3050.088]
+			run background script MonkDoAnimThenMove(Monk, MonkPos14)
+			MonkWayPointReached = 14
+		end if
+	end if
+	if MonkWayPointReached == 14
+		if [Monk] at [MonkPos14]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos15]
+			MonkWayPointReached = 15
+		end if
+	end if
+	if MonkWayPointReached == 15
+		if [Monk] at [MonkPos15]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos16]
+			MonkWayPointReached = 16
+		end if
+	end if
+	if MonkWayPointReached == 16
+		if SavedWaypoint == 16
+			set Monk position to [MonkPos16]
+			begin camera
+				set camera position to [MonkPos15]
+				set camera focus to [Monk]
+			end camera
+			set fade in time 1
+			wait until fade ready
+		end if
+		if [Monk] at [MonkPos16]
+			run background script MonkDoAnimThenMove(Monk, MonkPos17)
+			MonkWayPointReached = 17
+  			if Waypoint16Set == 0
+				delete WaypointSparkle
+				WaypointSparkle = create special effect SPOT_VISUAL_COMMAND_SUCCEED at [MonkPos16] time 999999
+				Waypoint16Set = 1
+			end if
+		end if
+	end if
+	if MonkWayPointReached == 17
+		if [Monk] at [MonkPos17]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos18]
+			MonkWayPointReached = 18
+		end if
+	end if
+	if MonkWayPointReached == 18
+		if [Monk] at [MonkPos18]
+			set Monk focus to [2382.7644, 52.9143, 2589.5945]
+			run background script MonkDoAnimThenMove(Monk, MonkPos19)	
+			MonkWayPointReached = 19
+		end if
+	end if
+	if MonkWayPointReached == 19
+		if [Monk] at [MonkPos19]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos20]
+			MonkWayPointReached = 20
+		end if
+	end if
+	if MonkWayPointReached == 20
+		if [Monk] at [MonkPos20]
+			SPEED of Monk = 0.2
+			move Monk position to [MonkPos21]
+			MonkWayPointReached = 21
+		end if
+	end if
+
+	if MonkWayPointReached == 21
+		if [Monk] at [MonkPos21]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos22]
+			MonkWayPointReached = 22
+		end if
+	end if
+	if MonkWayPointReached == 22
+		if [Monk] at [MonkPos22]
+			run background script MonkDoAnimThenMove(Monk, MonkPos23)	
+	 		MonkWayPointReached = 23
+		end if
+	end if
+	if MonkWayPointReached == 23
+		if [Monk] at [MonkPos23]
+			SPEED of Monk = 0.3
+			move Monk position to [MonkPos24]
+			MonkWayPointReached = 24
+		end if
+	end if
+	if MonkWayPointReached == 24
+		if [Monk] at [MonkPos24]
+			MonkWayPointReached = 25
+		end if
+	end if
+	
+	
+	/*if MonkWayPointReached == 21
+		if [Monk] at [MonkPos21]
+			MonkWayPointReached = 22
+		end if 
+	end if*/
+end script ShaolinMonkMove
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script LookAfterMonkRising(Monk)
+start
+	while ALTITUDE of Monk < 0.65
+		ALTITUDE of Monk += 0.05
+	end while
+	while MonkFinishedWith == 0
+		ALTITUDE of Monk = 0.69
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.71
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.72
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.725
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.72
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.71
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.69
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.65
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.61
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.59
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.58
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.575
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.58
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.59
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.61
+		wait 0.1 seconds
+		ALTITUDE of Monk = 0.65
+		wait 0.1 seconds
+	end while
+end script LookAfterMonkRising
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ShaolinMonk
+	MonkStartPos = marker at [2431.581, 146.521, 3095.998] 
+	Temple = get FEATURE at [2431.2200, 151.0143, 3117.0701]
+	Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [Temple]
+	MonkDestinationPos = marker at [2556.757, 36.180, 3240.756] 
+	MonkIsTryingForEnd = 0
+	Highlight = 0 
+	HighlightPos = marker at [2773.265, 30.752, 2933.875] 
+	Butterfly1 = 0
+	Butterfly2 = 0
+	Dust = 0
+	Player1Belief = 0
+
+start
+	disable Monk pickup
+	disable Monk hurt by fire
+	disable Monk set on fire
+	move Monk position to [MonkStartPos]							// To setup his default position
+	while Player1Belief < 0.02
+		Player1Belief = get JapTownL3 belief for player 1
+		wait 5 seconds
+	end while
+	
+	Highlight = create highlight HIGHLIGHT_CHALLENGE at [HighlightPos]
+	run script ChallengeHighlightNotify(Highlight, HighlightPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+	SPEED of Monk = 0.2
+	
+	attach music MUSIC_TYPE_TIBETAN_TOWN_GOOD to Temple
+
+	begin cinema
+		enable Monk high graphics detail
+		move camera position to [2783.199, 146.704, 2842.979] time 6
+		move camera focus to [2431.310, 146.315, 3105.057] time 4
+		wait until camera ready
+		
+		set Monk focus to [2431.528, 147.320, 3091.804]
+		move camera position to [2431.632, 147.355, 3092.143] time 6
+		wait until camera ready
+		
+		Monk play ANM_P_AMBIENT2 loop 3
+
+		snapshot challenge success 0 alignment 0 HELP_TEXT_TITLE_24 StandardReminder(variable HELP_TEXT_REMINDER_106)
+		wait 0.5 seconds
+
+		say HELP_TEXT_L3_MONK_01
+		wait until read
+		say HELP_TEXT_L3_MONK_02
+		wait until read
+		say HELP_TEXT_L3_MONK_03
+		wait until read
+		say HELP_TEXT_L3_MONK_04
+		wait until read
+		say HELP_TEXT_L3_MONK_19
+		wait until read
+
+		set camera focus follow Monk
+		move camera position to [2418.856, 153.081, 3085.054] time 4
+		move Monk position to [2441.110, 143.516, 3088.452] 
+		wait until camera ready
+		disable Monk high graphics detail
+	end cinema	 
+	
+	run script ShaolinMonkMove(Monk)
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_L3_MONK_05
+		wait until read
+		say HELP_TEXT_L3_MONK_06
+		wait until read
+		say HELP_TEXT_L3_MONK_07
+		wait until read
+	end dialogue
+	
+	while not MonkWayPointReached == 25 and Monk exists
+		MonkIsTryingForEnd = 1
+		MonkWayPointReached = SavedWaypoint
+		MonkHasReachedEnd = 0
+
+		while MonkIsTryingForEnd == 1
+			
+			run script ShaolinMonkMove(Monk)
+			
+			if camera position not near [Monk] radius 40
+				SPEED of Monk = 0.7
+			end if 
+
+			// Monk needs to be reset to last waypoint
+			if Monk is FLYING				
+				wait until Monk is not FLYING
+				set Monk focus to camera position
+				Monk play ANM_P_STAND_DESPAIR_1 loop 999
+				begin dialogue
+					//sy "You followed me.  I'm going back home."
+					say HELP_TEXT_L3_MONK_23
+					wait until read
+					eject good spirit
+					make good spirit point to Monk
+					say HELP_TEXT_L3_MONK_13
+					eject evil spirit
+					wait until read
+					say HELP_TEXT_L3_MONK_14
+					wait until read
+					send good spirit home
+					send evil spirit home
+				end dialogue
+//				wait until not Monk viewed and camera position not near [Monk] radius 50
+				MonkIsTryingForEnd = 0
+			elsif Monk is HELD
+				wait until Monk is not HELD
+				set Monk focus to camera position
+				Monk play ANM_P_STAND_DESPAIR_1 loop 999
+				begin dialogue
+//					sy "You followed me.  I'm going back home."
+					say HELP_TEXT_L3_MONK_23
+					wait until read
+					eject evil spirit
+					make evil spirit point to Monk
+					say HELP_TEXT_L3_MONK_12
+					wait until read
+					send evil spirit home
+				end dialogue
+//				wait until not Monk viewed and camera position not near [Monk] radius 50
+				MonkIsTryingForEnd = 0
+			elsif not Monk viewed or camera position not near [Monk] radius 70
+				MonkIsTryingForEnd = 0
+				set Monk position to [Temple]
+				move Monk position to [Temple] // To stop him walking.
+				begin dialogue
+					eject good spirit
+					say HELP_TEXT_L3_MONK_16
+					wait until read
+					//sy "He'll be back at his temple later."
+					say HELP_TEXT_L3_MONK_24
+					wait until read
+				end dialogue  
+			elsif Monk can view camera in 180 degrees
+				wait 1 seconds
+				move Monk position to [Monk]
+				set Monk focus to camera position
+				Monk play ANM_P_STAND_DESPAIR_1 loop 999
+				begin dialogue
+					eject evil spirit 
+					make evil spirit point to Monk
+					//sy "You followed me.  I'm going back home."
+					say HELP_TEXT_L3_MONK_23
+					wait until read
+					//sy "He saw us.  We're going to have to try again Boss."
+					say HELP_TEXT_L3_MONK_20
+					wait until read
+				end dialogue  
+//				wait until not Monk viewed and camera position not near [Monk] radius 50
+				MonkIsTryingForEnd = 0
+			end if
+
+			if MonkWayPointReached == 25
+				MonkIsTryingForEnd = 0
+				MonkHasReachedEnd = 1
+			elsif MonkWayPointReached >= 17
+				SavedWaypoint = 16
+			elsif MonkWayPointReached >= 12
+				SavedWaypoint = 11
+			end if
+
+		end while
+		
+		if MonkHasReachedEnd == 0
+//			wait until not MonkStartPos viewed and camera position not near [MonkStartPos] radius 50
+			Dust = create special effect SPOT_VISUAL_SMOKE at [Monk] time 3
+			Dust = create special effect SPOT_VISUAL_SMOKE at [Monk] time 3
+			Dust = create special effect SPOT_VISUAL_SMOKE at [MonkStartPos] time 3
+			wait 2 seconds
+			set Monk position to [MonkStartPos]
+			Dust = create special effect SPOT_VISUAL_SMOKE at [MonkStartPos] time 3
+			set Monk focus to [2431.528, 147.320, 3091.804]
+			wait until camera position near [Monk] radius 25
+			Monk play ANM_P_STAND_DESPAIR_2 loop 3
+			SPEED of Monk = 0.2
+			begin cinema
+				enable Monk high graphics detail
+				move camera position to [2431.632, 147.355, 3092.143] time 4
+				move camera focus to [2431.310, 146.315, 3105.057] time 4
+				wait until camera ready
+				//sy "You tried to follow me before."
+				say HELP_TEXT_L3_MONK_25
+				wait until read
+				//sy "Please don't do it again."
+				say HELP_TEXT_L3_MONK_26
+				wait until read
+				say HELP_TEXT_L3_MONK_19
+				wait until read
+
+				set camera focus follow Monk
+				move camera position to [2418.856, 153.081, 3085.054] time 4
+				move Monk position to [2441.110, 143.516, 3088.452]
+				wait 3 seconds
+				if SavedWaypoint == 11 or SavedWaypoint == 16
+					set fade red 0 green 0 blue 0 time 1
+					wait until fade ready
+				end if
+				wait until camera ready
+				disable Monk high graphics detail
+			end cinema
+		end if
+
+	end while	 
+	
+	//We have done it!	
+	Butterfly1=create special effect SPOT_VISUAL_BUTTERFLIES at [2449.4900, 76.2184, 3242.8201] time 360
+	Butterfly2=create special effect SPOT_VISUAL_BUTTERFLIES at [2461.1799, 76.5482, 3243.8896] time 360
+
+	delete WaypointSparkle
+
+	begin cinema
+		set Monk position to [2456.110, 73.205, 3242.632]
+		enable Monk high graphics detail
+		set Monk focus to [2459.646, 73.030, 3232.342] 
+		move camera position to [2457.492, 73.875, 3238.536] time 6
+		move camera focus to [2453.483, 75.007, 3249.380] time 6
+		wait until camera ready
+		Monk play ANM_P_SITTING_DOWN1_INTO loop 1
+		wait until Monk played
+		
+		Monk play ANM_P_SITTING_DOWN1_SITTING loop 10000	
+		wait 2 seconds
+		MonkFinishedWith=0
+		run background script LookAfterMonkRising(Monk)
+		wait 3 seconds	
+
+		snapshot challenge success 1.0 alignment 0 HELP_TEXT_TITLE_24 StandardReminder(variable HELP_TEXT_REMINDER_106)
+		delete Highlight
+
+		say HELP_TEXT_L3_MONK_08
+		wait until read
+		say HELP_TEXT_L3_MONK_09
+		wait until read
+		say HELP_TEXT_L3_MONK_10
+		wait until read
+		say HELP_TEXT_L3_MONK_11
+		wait until read
+		say HELP_TEXT_L3_MONK_19
+		wait until read
+
+		move camera position to [2511.670, 97.062, 3229.225] time 6
+		move camera focus to [2445.789, 73.367, 3237.333] time 6
+		wait until camera ready
+		disable Monk high graphics detail
+	end cinema
+
+	wait 5 seconds
+	wait until not Monk viewed and camera position not near [Monk] radius 50
+	MonkFinishedWith=1 
+	wait 5 seconds
+	set Monk position to [Temple]
+	wait until not Monk exists
+	delete Monk
+
+end script ShaolinMonk
+
+//------------------------------------------------------------------------------------------------------------------------
+
+begin script ShaolinGivesWonder
+	Wonder = marker at [2590.07,50.0,2259.28]
+	Monk = 0
+	MyDyk = marker at [2585.956, 25.188, 2282.246]
+
+start
+	if GlobalDebug == 0
+		wait 1200 seconds // wait for 20 minutes.
+	end if
+	set fade red 0 green 0 blue 0 time 1
+	wait until fade ready
+	Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [2486.907, 130.797, 2502.828]
+	disable Monk pickup
+	set Monk focus to [2483.798, 132.556, 2506.820] 
+	begin cinema
+		set camera position to [2483.798, 132.556, 2506.820] 
+		set camera focus to [2489.399, 130.614, 2499.421] 
+		set fade in time 1
+		wait until fade ready
+		
+		say HELP_TEXT_L3_MONKS_WONDER_01
+		wait until read
+		build building at [2590.07,2259.28] desire 1.0
+		Wonder = get HOUSE at [2590.07,2259.28] radius 5
+		BUILT of Wonder = 0.1
+		run background script DidYouKnow(MyDyk, variable HELP_TEXT_DYK_114, variable DYK_VILLAGE_LIFE)
+
+		say HELP_TEXT_L3_MONKS_WONDER_02
+		wait until read
+
+		say HELP_TEXT_L3_MONKS_WONDER_03
+		move camera position to [2475.438, 199.533, 2549.348] time 4 
+		move camera focus to [2518.457, 124.144, 2461.872] time 4
+		wait until read
+		wait until camera ready
+
+		say HELP_TEXT_L3_MONKS_WONDER_04
+		move camera position to [2617.561, 28.949, 2260.664] time 8
+		move camera focus to [2142.596, 43.833, 2246.500] time 8
+		wait until read
+		wait until camera ready
+		say HELP_TEXT_L3_MONK_19
+		wait until read
+
+	end cinema
+	
+end script ShaolinGivesWonder

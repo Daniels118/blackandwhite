@@ -1,0 +1,10 @@
+run script RunSingingStoneCircle
+
+begin script RunSingingStoneCircle
+	
+start
+	
+	SingingStonesStart = 1
+	run script SingingStoneCircle
+	
+end script RunSingingStoneCircle

@@ -1,0 +1,50 @@
+challenge SLAVERS_WARNING
+
+begin script SlaversWarning
+	VillagerHutPos = marker at [2820.6699, 26.1300, 3051.9800]
+	VillagerPos = marker at [2819.7798, 26.1300, 3066.3206]
+	Fisherman = 0
+	BeginPos = 0
+	BeginFoc = 0
+	CamPos1 = marker at [2815.3770, 31.9494, 3074.3274]
+	Highlight = create highlight HIGHLIGHT_TIPS at [VillagerHutPos]
+	
+start
+	/// Challange Notify Enum
+	run script ChallengeHighlightNotify(Highlight, VillagerHutPos, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_06)
+
+	Fisherman = create VILLAGER VILLAGER_INFO_INDIAN_FISHERMAN_MALE at [VillagerHutPos]
+	move Fisherman position to [VillagerPos]
+
+	begin cinema
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		move camera position to [CamPos1] time 4
+		move camera focus to [VillagerPos] time 2
+		wait until [Fisherman] near [VillagerPos] radius 5
+		wait until camera ready
+		set Fisherman focus to camera position
+		// "Not on! Strange foreigners have kidnapped our wives!"
+		say HELP_TEXT_KIDNAPPED_WOMEN_01
+		wait until read
+		// "They came this morning when we were out hunting."
+		say HELP_TEXT_KIDNAPPED_WOMEN_02
+		wait until read
+		// "We searched the area later but the scoundrels are long gone."
+		say HELP_TEXT_KIDNAPPED_WOMEN_03
+		wait until read
+		// "Three women were taken, please keep an eye out for them."
+		say HELP_TEXT_KIDNAPPED_WOMEN_04
+		wait until read
+		move camera position to [BeginPos] time 3
+		move camera position to [BeginFoc] time 3
+		move Fisherman position to [VillagerHutPos]
+		wait until camera ready
+	end cinema
+
+	release Fisherman
+
+	/// It might be nice to check and see if the Indian Slave women are returned after the Slavers has been initiated
+
+end script SlaversWarning
+

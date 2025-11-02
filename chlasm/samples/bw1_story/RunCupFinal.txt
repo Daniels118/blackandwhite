@@ -1,0 +1,12 @@
+challenge RunCupFinal
+
+run script RunCupFinal
+
+begin script RunCupFinal
+	
+start
+	
+	run script CupFinalMain
+	
+
+end script RunCupFinal

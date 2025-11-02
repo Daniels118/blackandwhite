@@ -1,0 +1,274 @@
+
+//------------------------------------------------------------------------------------------------------------------------
+// The computer player intelligence for the start of the level.
+//------------------------------------------------------------------------------------------------------------------------
+begin script SetUpComputerPlayersAtStartOfLand2	
+	// Put creatures at their respective Temples + 20 metres
+	KhazarCreaturePos	= marker at [2540.93,78.97,1916.63]
+	LethysCreaturePos	= marker at [1050.88,147.59,3607.17]
+	KhazarScale	= 1.2
+	LethysScale	= 1.5
+start
+//	set computer player 3 personality "DefeatPlayer" 1.0
+	set computer player 2 personality "ExpandInfluence" 0.20
+	set computer player 3 personality "ExpandInfluence" 0.20
+	
+	set computer player 2 attitude to player 3 to 0.25
+	set computer player 3 attitude to player 2 to 0.25
+	set computer player 1 attitude to player 1 to -1
+	set player 1 ally with player 2 percentage 1
+
+		/***********	SETUP COMPUTER PLAYERS CREATURES FOR LAND 2		***********/
+
+	// Parameters are: (Player number, Position to place creature, Creatures size)
+
+	run background script SetupKhazarCreature(2, KhazarCreaturePos, KhazarScale)
+	run background script SetupLethysCreature(3, LethysCreaturePos, LethysScale)
+
+	/***********	SETUP COMPUTER PLAYERS CREATURES - FINISHED		***********/
+
+end script SetUpComputerPlayersAtStartOfLand2
+
+//------------------------------------------------------------------------------------------------------------------------
+// Send a computer player to the player and say something. 
+//------------------------------------------------------------------------------------------------------------------------
+begin script ComputerPlayerConfrontPlayer(CompNumber, HelpText, DisplayText)
+	StartTimer=create timer for 0 seconds
+	Count=0
+
+start
+	begin loop
+		//position 10 metres from camera
+		move computer player CompNumber to facing camera position distance 10 speed 350
+		wait 0.3 seconds
+	until get StartTimer time since set > 10
+		set computer player CompNumber position to facing camera position distance 10
+	until computer player CompNumber position near camera position radius 10
+	end loop
+
+	if DisplayText == 1
+		begin dialogue
+			say single line constant HelpText
+			wait until read
+		end dialogue
+	else
+		if CompNumber == 3
+			start say extra sound constant HelpText
+		else
+			start say sound constant HelpText
+		end if
+	end if
+
+	release computer player CompNumber
+
+end script ComputerPlayerConfrontPlayer
+
+//------------------------------------------------------------------------------------------------------------------------
+// Send a Khazar to the player and say something if he's free.
+//------------------------------------------------------------------------------------------------------------------------
+begin script KhazarConfrontPlayer(HelpText, DisplayText)
+	StartTimer=create timer for 0 seconds
+	Exit=0
+	Count=0
+start
+	begin loop
+		//position 10 metres from camera
+		move computer player 2 to facing camera position distance 10 speed 350
+		wait 0.3 seconds
+	until KhazarInScript == 1
+		Exit = 1
+	until get StartTimer time since set > 10
+		set computer player 2 position to facing camera position distance 10
+	until computer player 2 position near camera position radius 10
+	end loop
+
+	if Exit == 0
+		if dialogue ready
+			if DisplayText == 1
+				begin dialogue
+					say single line constant HelpText
+					wait until read
+				end dialogue
+			else
+				start say sound constant HelpText
+			end if
+		end if
+	end if
+
+	if KhazarInScript != 1
+		release computer player 2
+	end if
+
+end script KhazarConfrontPlayer
+
+//------------------------------------------------------------------------------------------------------------------------
+// Send a Lethys to the player and say something if he's free.
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysConfrontPlayer(HelpText, DisplayText)
+	StartTimer=create timer for 0 seconds
+	Exit=0
+	Count=0
+start
+	begin loop
+		//position 10 metres from camera
+		move computer player 3 to facing camera position distance 10 speed 350
+		wait 0.3 seconds
+	until LethysInScript == 1
+		Exit = 1
+	until get StartTimer time since set > 10
+		set computer player 3 position to facing camera position distance 10
+	until computer player 3 position near camera position radius 10
+	end loop
+
+	if Exit == 0
+		if dialogue ready
+			if DisplayText == 1
+				begin dialogue
+					say single line constant HelpText
+					wait until read
+				end dialogue
+			else
+				start say extra sound constant HelpText
+			end if
+		end if
+	end if
+
+	if LethysInScript != 1
+		release computer player 3
+	end if
+
+end script LethysConfrontPlayer
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysTauntAI
+	TauntTimer=create timer for 0 seconds
+	InfluenceP1=0
+	InfluenceP3=0
+start
+	while LethysGone == 0
+		//First lets check if you are on his land...
+		if get TauntTimer time remaining <= 0
+			InfluenceP1 = get player 1 influence at camera position
+			InfluenceP3 = get player 3 influence at camera position
+
+			if InfluenceP3 > InfluenceP1
+				set TauntTimer time to 60 seconds
+				run script LethysConfrontPlayer(variable constant from HELP_TEXT_NEW_LAND_2_LETHYS_REACTION_01 to HELP_TEXT_NEW_LAND_2_LETHYS_REACTION_06, 0)
+			end if
+		end if
+	end while
+
+end script LethysTauntAI
+
+//------------------------------------------------------------------------------------------------------------------------
+// Khazar encouraging you and reacting etc.
+//------------------------------------------------------------------------------------------------------------------------
+begin script KhazarAI
+	RemindTimer=create timer for 10*60 seconds
+	OnMyLandTimer=create timer for 0 seconds
+	AttackingMeTimer=create timer for 0 seconds
+	MyText=0
+	InfluenceP1=0
+	InfluenceP2=0
+	KhazarTown1 = get town with id 1
+	KhazarTown2 = get town with id 2
+	Attacked=0
+
+start
+	while KhazarGone == 0
+		if KhazarInScript == 0
+			if get RemindTimer time remaining <= 0
+				set RemindTimer time to 20*60 seconds
+				//Build more
+				if TriggeredGestures == 0
+					MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_40 to HELP_TEXT_L2_GOD_REACTION_45
+				else
+					//Take over land man
+					MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_40 to HELP_TEXT_L2_GOD_REACTION_51
+				end if
+				run script KhazarConfrontPlayer(MyText, 1)
+			else
+				if get AttackingMeTimer time remaining <= 0
+					if PLAYER of KhazarTown1 == 2 and get time since player 1 attacked KhazarTown1 < 3
+						MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_10 to HELP_TEXT_L2_GOD_REACTION_17
+						set AttackingMeTimer time to 20 seconds
+						run script KhazarConfrontPlayer(MyText, 1)
+					elsif PLAYER of KhazarTown2 == 2 and get time since player 1 attacked KhazarTown2 < 3
+						MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_10 to HELP_TEXT_L2_GOD_REACTION_17
+						set AttackingMeTimer time to 20 seconds
+						run script KhazarConfrontPlayer(MyText, 1)
+					else
+						set AttackingMeTimer time to 3 seconds
+					end if
+				end if
+
+				if get OnMyLandTimer time remaining <= 0
+					InfluenceP1 = get player 1 raw influence at camera position
+					InfluenceP2 = get player 2 raw influence at camera position
+
+					if InfluenceP2 > InfluenceP1
+						set OnMyLandTimer time to 60 seconds
+
+						if number from 1 to 10 <= 5
+							MyText=variable constant from HELP_TEXT_NEW_LAND_2_KHAZAR_REACTION_01 to HELP_TEXT_NEW_LAND_2_KHAZAR_REACTION_06
+						else
+							if TriggeredGestures == 1
+								MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_46 to HELP_TEXT_L2_GOD_REACTION_51
+							else
+								MyText=variable constant from HELP_TEXT_L2_GOD_REACTION_40 to HELP_TEXT_L2_GOD_REACTION_45
+							end if
+						end if
+
+						run script KhazarConfrontPlayer(MyText, 1)
+					end if
+				end if
+			end if
+		end if
+	end while
+end script KhazarAI
+
+//------------------------------------------------------------------------------------------------------------------------
+// Computer players react to Town take over.
+//------------------------------------------------------------------------------------------------------------------------
+begin script Land2TownTakeOver(FromPlayer, ToPlayer, Town)
+start
+	//From Lethys?
+	if FromPlayer == 3
+		if ToPlayer == 1
+			if LethysGone == 0
+				if KhazarGone == 0
+					run background script KhazarConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_02 to HELP_TEXT_L2_GOD_REACTION_05, 1)
+				end if
+				wait 6 seconds
+				run background script LethysConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_18 to HELP_TEXT_L2_GOD_REACTION_21, 1)
+			end if
+		end if
+
+	//From Khazar?
+	elsif FromPlayer == 2
+		if KhazarGone == 0
+			if ToPlayer == 1
+				run background script KhazarConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_10 to HELP_TEXT_L2_GOD_REACTION_17, 1)
+			else
+				run background script KhazarConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_32 to HELP_TEXT_L2_GOD_REACTION_35, 1)
+			end if
+		end if
+	//From You
+	elsif FromPlayer == 1
+		if ToPlayer == 3
+			if LethysGone == 0
+				run background script LethysConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_22 to HELP_TEXT_L2_GOD_REACTION_25, 1)
+			end if
+		end if
+	//From player is unknown
+	else
+		if KhazarGone == 0
+			if ToPlayer == 1
+				run background script KhazarConfrontPlayer(variable constant from HELP_TEXT_L2_GOD_REACTION_26 to HELP_TEXT_L2_GOD_REACTION_31, 1)
+			end if
+		end if
+	end if 
+
+	
+end script Land2TownTakeOver
+

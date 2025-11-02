@@ -1,0 +1,545 @@
+challenge BEGIN_LAND2
+
+//------------------------------------------------------------------------------------------------------------------------
+// Player 1 is you, Player 2 is Khazar, Player 3 is Lethys
+//------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------------------------
+global VortexFlock
+global ReadyToExplainCreature
+global Scaffold1
+
+//------------------------------------------------------------------------------------------------------------------------
+define script StartEnterLand2(Town)
+define script OpenVortex(VortexPos, Town, FlockPos, CreaturePos)
+define script Land2VortexEntry(NoOfPeople, VortexPos, Town, FlockPos, FlockDistance, FlockDomainRadius, CreaturePos)
+define script IntroduceKhazar
+define script ShowNewTown						  
+define script GiveScaffold
+define script ShowDisciple(VortexPos, Town)
+define script GiveOtherScaffolds
+define script GiveOneShots
+define script ShowScroll
+
+//------------------------------------------------------------------------------------------------------------------------
+// Three simple fireball attacks
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysFakeFireballAttack
+	Target1Pos=marker at [2359.552, 58.594, 1890.710] 
+	Spell1=0
+
+start
+	wait 2 seconds
+	Spell1=cast SPELL_FIREBALL_LEVEL_2 spell at [Target1Pos] from computer player 3 position radius 1.0 time 20 curl 0
+	wait 5 seconds
+	Spell1=cast SPELL_FIREBALL_LEVEL_2 spell at [Target1Pos] from computer player 3 position radius 1.0 time 20 curl 0
+	wait 2 seconds
+	Spell1=cast SPELL_FIREBALL_LEVEL_2 spell at [Target1Pos] from computer player 3 position radius 1.0 time 20 curl 0
+end script LethysFakeFireballAttack
+
+//------------------------------------------------------------------------------------------------------------------------
+// The starting intelligence of Lethys on the land.
+//------------------------------------------------------------------------------------------------------------------------
+begin script LethysStartAI
+	RandomAttackTimer=create timer for 0 seconds
+	Pos1=marker at [2028.970, 11.694, 3632.573]
+	Pos2=marker at [2422.066, 40.179, 3230.649] 
+	Pos3=marker at [1948.546, 34.175, 2890.596] 
+	Pos4=marker at [996.531, 149.410, 3712.864] 
+	Pos5=marker at [996.531, 149.410, 3712.864] 
+	Pos6=marker at [1320.504, 73.030, 3063.235] 
+	Pos7=marker at [1276.975, 105.860, 3355.932] 
+	Pos8=marker at [1747.212, 54.270, 3033.438] 
+	CurrentPos=0
+	LethySpeed=150
+
+start
+
+	set RandomAttackTimer time to 50 seconds
+
+	begin loop
+		//Ok we need to do a firball attack - but from a safe throwing place to a safe target.
+		if get RandomAttackTimer time remaining <= 0
+			move computer player 3 to [Pos1]  speed LethySpeed with fixed height
+			wait until computer player 3 ready
+			CurrentPos=1
+			set RandomAttackTimer time to number from 40 to 80 seconds
+			run background script LethysFakeFireballAttack
+		end if
+
+		//Move Lethys around
+		if computer player 3 ready
+			if CurrentPos == 0
+				move computer player 3 to [Pos1]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 1
+				move computer player 3 to [Pos2]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 2
+				move computer player 3 to [Pos3]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 3
+				move computer player 3 to [Pos4]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 4
+				move computer player 3 to [Pos5]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 5
+				move computer player 3 to [Pos6]  speed LethySpeed with fixed height
+				CurrentPos++
+			elsif CurrentPos == 6
+				move computer player 3 to [Pos7]  speed LethySpeed with fixed height
+				CurrentPos++
+			else
+				move computer player 3 to [Pos8]  speed LethySpeed with fixed height
+				CurrentPos=0
+			end if
+		end if
+
+	end loop	
+end script LethysStartAI
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script EndEnterLand2
+
+start
+	disband VortexFlock
+	stop script "LethysStartAI"
+	run background script LethysTauntAI
+	run background script KhazarAI
+	run script SetUpComputerPlayersAtStartOfLand2
+	release computer player 3
+	release MyCreature
+	run script GiveOtherScaffolds
+end script EndEnterLand2
+
+//------------------------------------------------------------------------------------------------------------------------
+// Land 2 Intro
+// Enter through vortex into land 2 !!!
+//------------------------------------------------------------------------------------------------------------------------
+begin script EnterLand2
+	Town = get town with id 0
+	VortexPos = marker at [3379.6926, 3239.9321]
+	FlockPos = marker at [3157.7632, 18.6187, 3226.7483]
+	CreaturePos = marker at [3366.689, 77.720, 3260.873] //change this if needed
+	BuildCitadel = 0
+	BuildTownCentre = 0
+
+start
+	//Set the computer player to a starting point
+	set computer player 2 position to [2508.825, 105.190, 1772.476] 
+
+	run script StartEnterLand2(Town)
+	begin cinema
+		run background script LethysStartAI
+		run script OpenVortex(VortexPos, Town, FlockPos, CreaturePos)
+		start music MUSIC_TYPE_SCRIPT_KHAZAR
+		run script IntroduceKhazar
+		run script ShowNewTown
+		run script GiveScaffold
+		// Build Citadel 30%
+		build building at [3361.26,3241.85] desire 1.0
+		BuildCitadel = get CITADEL at [3361.26,3241.85] radius 50
+		BUILT of BuildCitadel = 0.3
+		run script ShowDisciple(VortexPos, Town)
+		release MyCreature
+		run script ShowScroll
+		// Build Town Centre 30%
+		BuildTownCentre = get HOUSE at [3233.325,47.570,3398.706] radius 50
+		BUILT of BuildTownCentre = 0.3
+
+		move camera position to [3330.5098, 86.0597, 3405.7207] time 4
+		move camera focus to [3326.4106, 61.4386, 3320.2063] time 4
+		
+		eject evil spirit
+		eject good spirit
+
+		move computer player 2 to [2656.779,27.169,1944.511] speed 200 with fixed height
+		stop music
+	end cinema with dialogue
+		HEALTH of Town = 1
+		say HELP_TEXT_NEW_LAND_2_ENTRY_28
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_29
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_30
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_31
+		wait until read
+	end dialogue
+
+	run script EndEnterLand2
+end script EnterLand2
+
+//------------------------------------------------------------------------------------------------------------------------
+//-SetupComputerPlayers-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script StartEnterLand2(Town)
+start
+	set fade red 0 green 0 blue 0 time 0
+	disable Town build worship site
+
+	//Give the town the right spells.
+	enable spell SPELL_WOOD in Town
+	enable spell SPELL_FOOD in Town
+	enable spell SPELL_WATER_LEVEL_1 in Town
+
+end script StartEnterLand2
+
+//------------------------------------------------------------------------------------------------------------------------
+//-OpenVortex-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script OpenVortex(VortexPos, Town, FlockPos, CreaturePos)
+
+	Thing = marker at [3379.6926, 0, 3239.9321]
+
+start
+	begin known cinema
+		set game time 12.00
+		enable highlight draw
+
+		VortexFlock = flock at [VortexPos]						// fill in flock
+		set VortexFlock properties inner 2 outer 10
+		run background script Land2VortexEntry(30, VortexPos, Town, FlockPos, 27, 48, CreaturePos)
+
+		set camera position to [3379.722, 72.340, 3239.962] 
+		set camera focus to [3379.752, 63.344, 3239.992]
+
+		shake camera at [VortexPos] radius 300 amplitude 0.3 time 12
+
+		set fade in time 6
+
+		move camera position to [3389.337, 112.614, 3242.782] time 10
+		move camera focus to [3380.299, 78.015, 3240.433] time 10
+		wait 8 seconds
+
+		move camera position to [3424.382, 106.008, 3249.157] time 12				// Move camera above vortex looking over island
+		move camera focus to [3334.816, 77.978, 3225.888] time 12
+		wait 12 seconds
+
+		move camera position to [3401.528, 106.008, 3286.359] time 14
+		move camera focus to [3339.694, 77.944, 3217.363] time 14 
+
+		//Move the computer player towards the player.
+		move computer player 2 to [3324.638, 80, 3166.857] speed 160 // Enter Khazar !!!
+
+		//Spirit banter
+		eject good spirit
+		eject evil spirit
+		say HELP_TEXT_NEW_LAND_2_ENTRY_01 // I feel all inside out. Ugh.
+		wait until read
+		say HELP_TEXT_NEW_LAND_2_ENTRY_02 // Yeah, what a buzz.
+		wait until read
+
+		
+
+	end known cinema
+end script OpenVortex
+
+//------------------------------------------------------------------------------------------------------------
+begin script Land2VortexEntry(NoOfPeople, VortexPos, Town, FlockPos, FlockDistance, FlockDomainRadius, CreaturePos)
+	Vortex=0
+
+start
+	VortexOpen=1
+	Vortex = create VORTEX VORTEX_TYPE_OUT at [VortexPos]
+
+	set Vortex properties town Town flock position [FlockPos] distance FlockDistance radius FlockDomainRadius flock VortexFlock
+	
+	load my_creature at [CreaturePos]
+	MyCreature=get player 1 creature
+	set MyCreature focus to [VortexPos]
+	move MyCreature position to [CreaturePos]
+
+	wait 15 seconds
+	start Vortex fade out
+	wait 8 seconds
+	VortexOpen=0
+end script Land2VortexEntry
+
+//------------------------------------------------------------------------------------------------------------------------
+//-IntroduceKhazar-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script IntroduceKhazar
+
+	BeginPos = 0
+	BeginFoc = 0
+	
+start
+	begin known cinema
+		move camera position to [3378.348, 104.634, 3266.502] time 4
+		move camera focus to [3327.006, 77.771, 3183.654] time 4
+
+		say single line HELP_TEXT_NEW_LAND_2_ENTRY_03 // Look ! Someone's approaching.
+		wait until read
+
+		// Khazar Speech
+		send good spirit home
+		send evil spirit home
+
+		move camera position to [3331.383, 83.045, 3180.898] time 4
+		move camera focus to [3111.493, 0.189, 2815.771] time 4
+		wait 4 seconds
+
+		move camera position to [3329.135, 81.635, 3172.548] time 12
+		move camera focus to [3076.878, 0.207, 2857.756] time 12
+
+		clear dialogue
+		say HELP_TEXT_NEW_LAND_2_ENTRY_04 // I greet you as one god to another. I am Khazar
+		wait 1 second
+		wait until read												 
+		say HELP_TEXT_NEW_LAND_2_ENTRY_05 // It was I who provided the vortex to bring you from your land
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_32
+
+		move camera position to [2791.616, 66.345, 1919.132] time 19
+
+		move computer player 2 to [2722.525, 60, 1968.819]  speed 110 
+
+		move camera focus to [2756.411, 60, 1943.421] time 3
+
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_06 // I need your help. In return, I will help you.
+		wait until read
+		close dialogue
+
+		wait until 3 seconds
+
+		move camera focus to [2619.296, 23.342, 2028.305] time 6
+
+		wait until camera ready
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_07 // My very existence is threatened by Lethys, another god from the snowy realm.
+		wait until read
+
+	end known cinema
+end script IntroduceKhazar
+
+//------------------------------------------------------------------------------------------------------------------------
+//-ShowNewTown-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script ShowNewTown
+start
+	begin known cinema
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_08 // But you and I together can turn the tide of the war.
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_09 // There is much to do though. Firstly you need to build up a village and look after your worshippers
+
+		wait until read
+
+	end known cinema
+end script ShowNewTown
+
+//------------------------------------------------------------------------------------------------------------------------
+//-GiveScaffold-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GiveScaffold
+
+	Scaffold1Pos = marker at [2651.957,27.117,1945.278]
+	Scaffold1PlacePos = marker at [3233.325,47.570,3398.706]
+
+	VortexPos = marker at [3379.6926, 3239.9321]
+
+	ScaffoldCheck = 0
+
+	Khazar = get computer player 2
+
+start
+	begin known cinema
+		Scaffold1 =  create SCAFFOLD at [Scaffold1Pos]
+		set Scaffold1 building properties ABODE_NUMBER_TOWN_CENTRE size 5
+
+		set computer player 2 speed 150.0
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_10 // Let me place down for you scaffolds from my own Village's workshop.
+		
+		move computer player 2 to [Scaffold1] speed 40
+
+		move camera position to [2702.3108, 51.3486, 1934.9015] time 5
+		move camera focus to [2648.9568, 27.5264, 1944.9845] time 5
+
+		wait until camera ready
+
+		force computer player 2	action "FindPlaceToUseScaffoldForBuilding" Scaffold1 Scaffold1PlacePos
+
+		set computer player 2 speed 150.0
+
+		set camera focus follow Scaffold1
+
+		move camera position to [2933.045, 99.641, 2330.835] time 12
+
+		wait 4 seconds
+
+		move camera position to [3264.970, 82.329, 3379.591] time 12
+		
+		say HELP_TEXT_NEW_LAND_2_ENTRY_11 with interaction// These blueprints indicate to your people what to build and where you want it.
+
+		wait 5 seconds
+
+		move camera focus to [3235.622, 48.269, 3398.510] time 3
+		wait until computer player 2 ready
+		wait until read 
+
+		move camera focus to [3274.412, 48.497, 3425.088] time 3
+
+		disable Scaffold1 pickup
+		disable Scaffold1 moveable
+
+	end known cinema
+end script GiveScaffold
+
+//------------------------------------------------------------------------------------------------------------------------
+//-ShowDisciple-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script ShowDisciple(VortexPos, Town)
+
+	Villager = 0
+	DisciplePos = marker at [3250.573, 47.570, 3398.260]
+
+start
+
+	begin known cinema
+		move camera position to [3259.689, 52.531, 3402.550] time 4
+		move camera focus to [3239.098, 47.777, 3393.750] time 4
+
+		wait until camera ready
+
+		clear dialogue
+		say HELP_TEXT_NEW_LAND_2_ENTRY_13 // I will give  you some of my finest builders. These are Disciples and work single-mindedly.
+		Villager = create VILLAGER MALE at [VortexPos]
+		attach Villager to Town
+
+		force computer player 2 action "DIRECTPickupAndDropObject" Villager DisciplePos
+
+		wait until computer player 2 ready
+
+		set Villager disciple VILLAGER_DISCIPLE_BUILDER with sound
+
+		set Villager carrying CARRIED_OBJECT_MALLET_HEAVY
+		move Villager position to [3240.6653, 47.5700, 3399.8315]
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_14 with interaction// You can create your own Disciples by placing people at the locations of the jobs you wish them to do.
+		Villager play ANM_P_HAMMERING loop -1
+		set Villager carrying CARRIED_OBJECT_MALLET_HEAVY
+		wait until read
+
+	end known cinema
+
+end script ShowDisciple
+
+//------------------------------------------------------------------------------------------------------------------------
+//-ShowScroll-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script ShowScroll
+start
+	begin known cinema
+		move computer player 2 to [3367.0625, 48.6902, 3333.7722]  speed 20 with fixed height		// move Khazar to pos of giving spells
+		wait until read
+
+		move camera position to [3336.9802, 59.5568, 3352.0583] time 6
+		move camera focus to [3374.8469, 48.4321, 3329.6487] time 6
+
+		wait until camera ready
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_12 // Please accept my help of food, wood and water for your tribe.
+		run script GiveOneShots
+		wait until read
+
+		say HELP_TEXT_NEW_LAND_2_ENTRY_17 with interaction// Later you will need to learn how to use Miracles. I shall return then.
+		wait until read
+
+	end known cinema
+end script ShowScroll
+
+//------------------------------------------------------------------------------------------------------------------------
+//-GiveOneShots-----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+begin script GiveOneShots
+	FoodSeedTotal = 3
+	WoodSeedTotal = 3
+	WaterSeedTotal = 3
+	HealSeedTotal = 2
+	MySeed = 0
+	OneShotSpellPos = marker at [3367.0625, 48.6902, 3333.7722]
+	NewDYKPos = marker at [3369.8135, 48.0463, 3326.9324]
+ 
+start
+	run background script DidYouKnow(OneShotSpellPos, variable HELP_TEXT_DYK_60, variable DYK_MIRACLES)
+	run background script DidYouKnow(NewDYKPos, variable HELP_TEXT_DYK_113, variable DYK_MIRACLES)
+
+	//Create some one shots, courtesy of Khazar - what a luvly god he is.
+	while FoodSeedTotal > 0
+		MySeed = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_FOOD at [OneShotSpellPos]+[number from - 5 to 5, number from -5 to 5]
+		ALTITUDE of MySeed = 75
+		FoodSeedTotal--
+	end while
+
+	while WoodSeedTotal > 0
+		MySeed = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_WOOD at [OneShotSpellPos]+[number from - 5 to 5, number from -5 to 5]
+		ALTITUDE of MySeed = 75
+		WoodSeedTotal--
+	end while
+
+	while WaterSeedTotal > 0
+		MySeed = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_WATER at [OneShotSpellPos]+[number from - 5 to 5, number from -5 to 5]
+		ALTITUDE of MySeed = 75
+		WaterSeedTotal--
+	end while
+
+	while HealSeedTotal > 0
+		MySeed = create SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL SPELL_SEED_TYPE_HEAL at [OneShotSpellPos]+[number from - 5 to 5, number from -5 to 5]
+		ALTITUDE of MySeed = 75
+		HealSeedTotal--
+	end while
+
+end script GiveOneShots
+
+//------------------------------------------------------------------------------------------------------------------------
+// This script sends the computer player between positions to place down scaffolds then moves to a position to 
+// trigger the Miracle challenges.
+//------------------------------------------------------------------------------------------------------------------------
+begin script GiveOtherScaffolds
+	Scaffold2Pos = marker at [2651.152,27.394,1941.150]
+	Scaffold3Pos = marker at [2656.779,27.169,1944.511]
+
+	Scaffold2PlacePos = marker at [3289.278,47.570,3425.049]
+	Scaffold3PlacePos = marker at [3308.452,47.690,3396.670]
+
+	Scaffold2 = 0
+	Scaffold3 = 0
+
+	ScaffoldCheck = 0
+
+start
+	KhazarInScript=1
+	Scaffold2 = create SCAFFOLD at [Scaffold2Pos]
+	set Scaffold2 building properties ABODE_NUMBER_STORAGE_PIT size 3
+	force computer player 2	action "FindPlaceToUseScaffoldForBuilding" Scaffold2 Scaffold2PlacePos
+	wait until computer player 2 ready
+	disable Scaffold2 pickup
+	disable Scaffold2 moveable
+
+	Scaffold3 =  create SCAFFOLD at [Scaffold3Pos]
+	set Scaffold3 building properties ABODE_NUMBER_E size 2
+	force computer player 2	action "FindPlaceToUseScaffoldForBuilding" Scaffold3 Scaffold3PlacePos
+	wait until computer player 2 ready
+	disable Scaffold3 pickup
+	disable Scaffold3 moveable
+	
+	release computer player 2
+	KhazarInScript=0
+
+end script GiveOtherScaffolds
+
+

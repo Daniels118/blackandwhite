@@ -1,0 +1,40 @@
+challenge FOOD_STORE_TEST
+
+
+// globals
+
+run script FoodStoreTestMain
+
+begin script FoodStoreTestMain
+
+Cattle = 0
+CattleFlock = 0
+CampStorePos = marker at [3186.6846, 20.1000, 3139.2061]
+CampStore = 0
+
+
+
+start
+
+	CattleFlock = flock at [CampStorePos]
+	set CattleFlock properties inner 5 outer 30
+	populate CattleFlock with 5 ANIMAL BOVINE
+
+	wait until size of CattleFlock < 5
+
+		while size of CattleFlock > 0
+			// Kill a cow from CattleFlock and eat. Wait extra time per cow.
+			Cattle = detach from CattleFlock
+			HEALTH of Cattle = 0.0
+
+			// Adding 300 Food to CampStore per Cow killed
+			CampStore = get STORE at [CampStorePos]
+			if CampStore exists and [CampStore] near [CampStorePos] radius 10
+				add resource FOOD 300 to CampStore
+			else
+				CampStore = create STORE FOOD at [CampStorePos]
+				add resource FOOD 300 to CampStore
+			end if
+		end while
+
+end script FoodStoreTestMain

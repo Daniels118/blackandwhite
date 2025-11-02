@@ -1,0 +1,11 @@
+run script GotoLand3
+
+begin script GotoLand3
+	
+start
+	
+	stop all scripts excluding files "GotoLand3.txt"
+	load map "scripts/land3.txt"
+	set fade in time 6
+
+end script GotoLand3

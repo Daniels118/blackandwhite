@@ -1,0 +1,48 @@
+begin script TakeOverVillagesL3
+
+
+TownUnderControl = 0
+
+
+TownVortex = get TOWN at [2829.13,0.0,2822.80] radius 50 // Japanese
+CamTarget = marker at [2829.13,0.0,2822.80]
+
+
+
+
+start
+
+	wait until PLAYER of TownVortex == 1
+
+	// we have the town with the vortex under control
+
+	begin cinema
+
+		// may be zoom to the villager with the spell ? cool no?
+		set camera focus to [CamTarget] 
+		move camera position to [CamTarget] + [50.0,50.0,0.0] time 5
+		wait until camera ready
+
+		eject good spirit
+		eject evil spirit
+
+			say HELP_TEXT_GET_VORTEX3_01
+			wait until read
+
+			say HELP_TEXT_GET_VORTEX3_02
+			wait until read
+
+			say HELP_TEXT_GET_VORTEX3_03
+			wait until read
+
+
+		send good spirit home
+		send evil spirit home
+
+
+	end cinema
+
+
+
+end script TakeOverVillagesL3
+

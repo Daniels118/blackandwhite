@@ -1,0 +1,16 @@
+challenge RunThrowingStones
+
+run script RunThrowingStones
+
+begin script RunThrowingStones
+	
+start
+
+	run script SetupLand1	
+    disable player 1 virtual influence 	
+	ThrowingStonesStart = 1
+	MyCreature = get player 1 creature
+	run script ThrowingStones
+	
+
+end script RunThrowingStones

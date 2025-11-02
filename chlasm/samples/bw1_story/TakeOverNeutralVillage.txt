@@ -1,0 +1,35 @@
+begin script TakeOverNeutralL5
+
+
+
+NeutralTown = get TOWN at [3363.98,0.0,3102.65] radius 50
+
+
+start
+
+	wait until get PLAYER of NeutralTown == 1
+
+	// we now have the town
+	
+	// move camera position to Town1 time 5
+	// wait until camera ready
+
+/*
+	begin cinema
+
+
+	end cinema
+*/
+
+end script TakeOverNeutralL5
+
+
+
+
+
+
+
+
+
+
+

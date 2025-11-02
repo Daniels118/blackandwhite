@@ -1,0 +1,12 @@
+challenge RunCreatureSavingPeople
+
+run script RunCreatureSavingPeople
+
+begin script RunCreatureSavingPeople
+	
+start
+	
+	run script CreatureSavingPeople
+	
+
+end script RunCreatureSavingPeople

@@ -1,0 +1,13 @@
+challenge RunBlindWoman
+
+run script RunBlindWoman
+
+begin script RunBlindWoman
+	
+start
+	
+	run script SetupLand4
+	run script BlindWomanMain
+	
+
+end script RunBlindWoman

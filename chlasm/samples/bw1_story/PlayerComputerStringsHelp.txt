@@ -1,0 +1,120 @@
+Script Name                            Computer Function                    Parent               Child
+
+PlayerInteract                         NULL                                 NULL                 FROM CHILD
+CreatureInteract                       NULL                                 NULL                 FROM CHILD
+TownInteract                           NULL                                 NULL                 FROM CHILD
+DefeatPlayer                           NULL                                 NULL                 FROM CHILD
+ReactToPlayer                          NULL                                 NULL                 FROM CHILD
+WorldInteract                          NULL                                 NULL                 FROM CHILD
+GiveToPlayer                           NULL                                 Player               FROM CHILD
+TalktoPlayer                           NULL                                 Player               FROM CHILD
+BeatPlayer(Notdone)                    NULL                                 Player               FROM CHILD
+Lookaftercreature                      NULL                                 Creature             FROM CHILD
+TeachCreature                          NULL                                 Creature             FROM CHILD
+PlayWithCreature                       NULL                                 Creature             FROM CHILD
+ReactToCreatureEmergency               NULL                                 Creature             FROM CHILD
+AttendTownDesires                      NULL                                 Town                 FROM CHILD
+AttendToWorshippersWorshippers         NULL                                 Town                 FROM CHILD
+DefeatPlayer                           NULL                                 Player               FROM CHILD
+PlayerWithMoreSpells                   NULL                                 Player               FROM CHILD
+PlayerWithBetterCreature               NULL                                 Player               FROM CHILD
+PlayerWithMoreWorshippers              NULL                                 Player               FROM CHILD
+ReactToPlayer                          NULL                                 Player               FROM CHILD
+CheckTownForDamage                     NULL                                 Town                 FROM CHILD
+ExpandTown                             NULL                                 Town                 FROM CHILD
+ThrowThingAtPlayer                     ThrowSomethingAtPlayer               Player               Object
+SendNiceTextToPlayer(Notdone)          NULL                                 Player               FROM CHILD
+SendNastyTextToPlayer(Notdone)         NULL                                 Player               FROM CHILD
+TauntPlayer(Notdone)                   NULL                                 Player               FROM CHILD
+ScarePlayer(Notdone)                   NULL                                 Player               FROM CHILD
+GiveCreatureThingToPlayer(Notdone)     NULL                                 Player               Creature
+GiveToPlayer(Notdone)                  NULL                                 Player               Object
+GiveCreatureFood                       GiveChildObjectToRelevantObject      Creature             Object/NULL
+CastFoodForMyCreature                  NULL                                 Creature             FROM CHILD
+MakeCreatureDrink                      MakeCreatureDrink                    Creature             NULL
+RestoreCreatureHealth                  NULL                                 Creature             FROM CHILD
+MakeCreatureSleep                      MakeCreatureSleep                    Creature             NULL
+SendCreatureHome                       SendCreatureHome                     Creature             NULL
+MoveCreaturetoWarmerArea               MoveCreatureToWarmerArea             Creature             NULL
+MoveCreaturetoCoollerArea              MoveCreatureToCoolerArea             Creature             NULL
+TeachCreatureNormalAction              TeachCreatureNormalAction            Creature             NULL
+TeachCreatureAggressiveMagic           NULL                                 Creature             FROM CHILD
+TeachCreatureCompassionateMagic        NULL                                 Creature             FROM CHILD
+TeachCreatureImpressiveMagic           NULL                                 Creature             FROM CHILD
+ThrowFoodatCreature                    ThrowFoodAtCreature                  Creature             Object/NULL
+SlapCreature                           SlapCreature                         Creature             NULL
+StrokeCreature                         StrokeCreature                       Creature             NULL
+AttachLeashtoMovingObject              AttachLeashFromCreatureToObject      Creature             Object/NULL
+CastSpellOnMyCreatureForALaugh         NULL                                 Creature             FROM CHILD
+ReacttoCreatureStarvingEmergency       GiveObjectToCreature                 Creature             Object/NULL
+ReacttoCreatureDamagedEmergency        NULL                                 Creature             FROM CHILD
+ReacttoCreatureIllEmergency            RestoreMyCreatureFromIllness         Creature             NULL
+TownWithHighestFoodDesire              GiveObjectToStoragePit               Town                 Object/NULL
+TownWithHighestWoodDesire              GiveObjectToStoragePit               Town                 Object/NULL
+GiveBuildingSiteWorkers                GiveObjectToBuildingSite             BuildingSite         Object/NULL
+GiveBuildingSiteWood                   GiveObjectToBuildingSite             BuildingSite         Object/NULL
+TownWithHighestProtectionDesire(Notdone)NULL                                 Town                 FROM CHILD
+GiveWorshippersFood                    GiveObjectToWorshipSite              WorshipSite          Object/NULL
+GiveWorshippersRest                    NULL                                 WorshipSite          Object/NULL
+WorshipSiteThatNeedsVillagers          NULL                                 NULL                 FROM_CHILD
+TakeOverTown                           NULL                                 Town                 NULL
+DestroyTown                            NULL                                 Town                 NULL
+ChargeUpSpell                          ChargeUpSpellIcon                    SpellIcon            NULL
+AttackCreature                         NULL                                 Creature             FROM CHILD
+ReactToAggressiveCreature              NULL                                 Creature             FROM CHILD
+ReactToPlayerCastingSpells             NULL                                 Player               FROM CHILD
+ReactToPlayerThrowingStuff             NULL                                 Player               FROM CHILD
+DefendTown                             NULL                                 Town                 FROM CHILD
+FindBurningAbode                       DropObjectByObject                   Object               Object/NULL
+FindDamagedAbode                       DropObjectByObject                   Object               Object/NULL
+FindUnprotectedAbode                   NULL                                 Object               NULL
+CombineScaffolds                       CombineTwoScaffolds                  Scaffold             Scaffold/NULL
+FindPlaceToUseScaffoldForBuilding      DropObjectAtPos                      Scaffold             LHPoint/NULL
+FillWorkshop                           GiveChildGameThingToGameThing        Object               Object/NULL
+GetCreaturetoHelp                      ForceCreatureToHelpTown              Object               Creature
+GetCreaturetoHelpBuild                 ForceCreatureToHelpTownBuild         BuildingSite         Creature
+ShallCastFoodSpell                     CastSpellInStoragePit                Town                 SpellIcon
+GetFoodFromField                       NULL                                 NULL                 Field
+GetFoodFromFishFarm                    NULL                                 NULL                 FishFarm
+GetFoodFromOtherTownForStoragePit      GetFoodFromOtherTownForStoragePit    Town                 Object
+GetFoodFromOtherTownForObject          GetFoodFromOtherTownForObject        Object               Object
+ShallCastWoodSpell                     CastSpellInStoragePit                Town                 SpellIcon
+GetWoodFromForest                      NULL                                 NULL                 Forest
+GetWoodFromOtherTown                   PickupWoodFromPile                   ResourcePile         Object
+CastFoodSpellOnWorshipSite             CastSpellOnWorshipSite               WorshipSite          SpellIcon
+ShallCastWoodSpell                     CastSpellOnBuildingSite              BuildingSite         SpellIcon
+CastFoodSpellOn                        CastSpellOnObject                    Object               SpellIcon
+CastWoodSpellOn                        CastSpellOnObject                    Object               SpellIcon
+FindFreeVillagerInTown                 NULL                                 NULL                 Villager
+FindFreeVillagerInArea                 NULL                                 NULL                 Villager
+UseCreatureToImpressTown               ForceCreatureToImpressTown           Town                 Creature
+ThrowThingsToImpress                   ThrowObjectToImpressTown             Town                 Object
+CastSpellToImpress                     ImpressTownWithSpells                Town                 SpellIcon
+CastSpellToFulfilTownNeeds             CastSpellInStoragePit                Town                 SpellIcon
+DestroytownWithSpell                   AttackTownWithSpells                 Town                 SpellIcon
+DestroytownWithCreature                ForceCreatureToAttackTown            Town                 Creature
+DestroytownWithObject                  ThrowDestructiveObjectAtTown         Town                 Object
+AttackCreatureWithSpells               AttackCreatureWithSpells             Creature             SpellIcon
+AttackCreatureWithCreature             ForceCreatureToAttackCreature        Creature             Creature
+ThrowrockatCreature                    ThrowRockAtCreature                  Creature             Parent
+DefendTownWithCreature                 ForceCreatureToDefendTown            Town                 Creature
+DefendtownWithSpells                   CastShieldOnTownObject               Town                 SpellIcon
+ObjectToLeashTo                        NULL                                 NULL                 Object
+CastFoodForMyCreature                  CastFoodForMyCreature                Creature             SpellIcon
+RestoreMyCreatureHealth                RestoreMyCreatureHealth              Creature             SpellIcon
+TeachCreatureAggressiveMagic           TeachCreatureAggressiveMagic         Creature             SpellIcon
+TeachCreatureCompassionateMagic        TeachCreatureCompassionateMagic      Creature             SpellIcon
+TeachCreatureImpressiveMagic           TeachCreatureImpressiveMagic         Creature             SpellIcon
+CastSpellOnMyCreatureForALaugh         CastSpellOnMyCreatureForALaugh       Creature             SpellIcon
+RestoreMyCreatureHealth                RestoreMyCreatureHealth              Creature             SpellIcon
+UseCreatureAsDiverseionAgainstPlayer   UseCreatureAsDiversionAgainstPlayer  Creature             Player
+CastShieldToProtect                    CastShieldOnTownObject               Town                 SpellIcon
+CastPhysicalShieldToProtect            CastShieldOnTownObject               Town                 SpellIcon
+FindShieldSpell                        CastShieldToProtect                  Object               SpellIcon
+CastWaterSpell                         CastSpellOnObject                    Object               SpellIcon
+FindScaffoldToCombineWith              NULL                                 NULL                 Scaffold
+FindLocationToUseScaffold              NULL                                 NULL                 LHPoint
+DIRECTPickupAndDropObject              DirectPerformPickupAndDropObject     Object               LHPoint
+RaiseTotemInTown                       RaiseTotemInTown                     WorshipSite          Town
+TakeVillagerFromTownToWorshipSite      PerformTakeVillagerToWorshipSite     WorshipSite          Villager
+TakeVillagerFromWorshipSiteToTown      PerformTakeVillagerToTown            WorshipSite          Villager

@@ -1,0 +1,90 @@
+challenge LEAVE_THROUGH_VORTEX_LAND2
+
+
+begin script LeaveThroughVortexL2
+
+	
+	Vort = 0
+	Highlight = 0
+	LethysCitadel = marker at [1006.3600, 149.4100, 3677.0200]
+	Citadel = get CITADEL at [LethysCitadel] radius 40
+
+	VortexPos = marker at [1061.107, 147.785, 3597.965] 
+	
+
+start
+	begin cinema
+
+		set camera position to [1056.3425, 150.4700, 3618.1040]
+		set camera focus to [1043.0416, 153.7569, 3634.6270]
+
+		move camera position to [1048.8142, 150.6489, 3616.6479] time 12
+		move camera focus to [1031.4838, 157.9276, 3643.8164] time 12
+
+		delete Citadel with temple explode
+
+		wait until camera ready
+
+		set camera position to [988.334, 186.145, 3680.747] 
+		set camera focus to [1061.788, 147.763, 3615.250]
+		
+		move camera position to [988.334, 160, 3680.747] time 10
+
+		wait until camera ready
+
+		VortexOpen=1
+		Vort = create VORTEX VORTEX_TYPE_IN at [VortexPos] 
+		move camera position to [1025.709, 159.141, 3634.624] time 8
+		move camera focus to [1270.187, 106.009, 3379.438] time 8
+
+		wait until camera ready
+
+
+		eject good spirit
+		eject evil spirit
+
+		//"Look the vortex has opened again."
+		say HELP_TEXT_LEAVE_THROUGH_VORTEX2_04
+		wait until read
+		
+		//"Now that Lethys belief in this land is no longer protecting the vortex."
+		say HELP_TEXT_LEAVE_THROUGH_VORTEX2_05
+		wait until read
+
+		say HELP_TEXT_LEAVE_THROUGH_VORTEX2_01
+		wait until read
+
+		say HELP_TEXT_LEAVE_THROUGH_VORTEX2_02
+		wait until read
+
+		say HELP_TEXT_LEAVE_THROUGH_VORTEX2_03 with interaction
+		wait until read
+
+
+
+		send good spirit home
+		send evil spirit home
+		
+	end cinema
+	
+	Highlight = create highlight HIGHLIGHT_QUEST at [VortexPos]
+
+	ALTITUDE of Highlight = 20
+
+	run script ChallengeHighlightNotify(Highlight, VortexPos, variable GOOD_ADVISOR, variable HELP_TEXT_GENERAL_LEAVE_THROUGH_VORTEX_02)
+		
+	begin cinema
+		move camera to T00_000 time 4
+		wait until camera ready
+		camera path TRACK00
+		wait 2 seconds
+		set fade red 0 green 0 blue 0 time 2							// Fade to Black
+		wait until camera ready and 2 seconds
+	end cinema
+	  
+	VortexOpen=0
+	LeavingLandTwo = 1
+
+end script LeaveThroughVortexL2
+
+

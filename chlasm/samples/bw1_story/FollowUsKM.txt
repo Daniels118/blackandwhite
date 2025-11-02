@@ -1,0 +1,215 @@
+challenge FollowUs
+
+//------------------------------------------------------------------------------------------------------------------------
+global FollowUsFinished
+
+//------------------------------------------------------------------------------------------------------------------------
+run script FollowUsKM
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script LostTheMotherKM(Mother) 
+
+start
+	begin dialogue
+		eject good spirit
+		make good spirit point to Mother
+		say "TMP: This Way"
+		wait until Mother viewed and get distance from camera position to [Mother] < 30
+	end dialogue
+end script LostTheMotherKM
+
+//------------------------------------------------------------------------------------------------------------------------
+begin script MovementInfoKM
+start
+	//Movement instuctions
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+
+		say HELP_TEXT_FOLLOW_US_04
+		wait until read
+		say HELP_TEXT_FOLLOW_US_05
+		wait until read
+		say HELP_TEXT_FOLLOW_US_06
+		wait until read
+		say HELP_TEXT_FOLLOW_US_07
+		wait until read
+	end dialogue
+end script MovementInfoKM
+
+// **** FOLLOW US ****
+begin script FollowUsKM
+
+   	Mother = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [1490.9741, 3.0543, 2105.6074]
+    Father = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [1482.9974, 3.9075, 2110.4634]
+	StartMarker = marker at camera T00_000
+	EndMarker = marker at camera T02_004
+	CrowdPosition = marker at [1667.7106, 17.4200, 2371.5835]
+  	Son1 = 0
+	Flock = flock at [Mother]
+	Distance =0
+
+start
+	FollowUsFinished = 0
+	set camera zones to "Land1Begin.exc"
+	set Flock properties inner 1 outer 3
+
+	begin cinema
+		set Mother focus to camera position
+		set Father focus to camera position
+
+		// set camera position to [StartMarker]
+		// set camera focus to [Mother]
+		
+		//Set interface just turning and grabbing
+		// say "Interface will only be grabbing!!!"
+		// wait until read
+		set interaction 0
+
+		
+		camera path TRACK00
+
+//		wait until camera position near [Mother] radius 60
+
+//		Mother play ANM_P_INTO_MOURNING loop 1
+//		Mother play ANM_P_MOURNING loop 3
+
+		//Praying whale nightmare
+		say HELP_TEXT_ARRIVE_IN_WORLD_01
+		wait until read
+		
+		say HELP_TEXT_ARRIVE_IN_WORLD_02
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_03
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_04
+		wait until read
+
+		//In comes the good guy speach
+		say HELP_TEXT_ARRIVE_IN_WORLD_05
+		wait until read
+
+		eject good spirit
+		say HELP_TEXT_ARRIVE_IN_WORLD_06
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_07
+		wait 0.4 seconds
+		eject evil spirit
+		wait until read
+
+		//Evil guy introduces himself
+		say HELP_TEXT_ARRIVE_IN_WORLD_08
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_09
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_10
+		wait until read
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_11
+		wait until read
+
+		//Shhhh!
+		say HELP_TEXT_ARRIVE_IN_WORLD_12
+		wait until read
+
+		send evil spirit home
+		send good spirit home
+
+		//More prayer
+		set Father focus to [Mother]
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_13
+		wait until read
+		
+		say HELP_TEXT_ARRIVE_IN_WORLD_14
+		wait 0.3 second
+		make good spirit cling across 1 down 0.5
+		wait until read
+
+		//Here's your cue...
+		say HELP_TEXT_ARRIVE_IN_WORLD_15
+		wait until read
+
+		//Zoom to the people
+		send good spirit home	
+
+		say "TODO: A whale scared anim at your arrival as you zoomed down.."
+		wait until read	
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_16
+		wait until read	
+
+		move camera position to [1464.8995, 4.5654, 2079.2622] time 2
+		move camera focus to [Mother] time 2
+		
+	
+		//Send son flying!
+		Son1 = create VILLAGER MALE at [1477.7214, 20.0000, 2076.1003]
+		AGE of Son1 = 4
+		set Son1 velocity heading  [Mother]+[0,50,0] speed 25
+
+		say HELP_TEXT_ARRIVE_IN_WORLD_17
+		wait until read
+		   
+		//Wait until the son is not flying...
+		while Son1 is FLYING
+			HEALTH of Son1 = 1
+		end while
+
+		create special effect SPOT_VISUAL_COMMAND_SUCCEED at [Son1] time 2
+		move Mother position to [Son1] + [0.3,0.3]
+		wait until camera ready
+
+		//People say Wow!		
+		say HELP_TEXT_FOLLOW_US_01
+		set Mother focus to [Son1]
+		wait until read
+
+		say HELP_TEXT_FOLLOW_US_02
+		wait until read
+
+		//Follow us!
+		say HELP_TEXT_FOLLOW_US_03
+		wait until read
+
+		//Off they go
+		SPEED of Mother = 0.5
+		attach Mother to Flock as leader
+		set Mother forward walk path TRACK02 from 0.0 to 1.0
+    end cinema
+
+	//Run movement script
+	run background script MovementInfoKM
+
+	attach Father to Flock
+	attach Son1 to Flock
+
+	SPEED of Father = 0.5
+	SPEED of Son1 = 0.5
+
+	begin loop
+		//Calculate mothers speed dependant on the distance you are from her.
+		Distance = get distance from camera position to [Mother]
+
+		if(Distance < 15)
+			SPEED of Mother = 0.5
+		elsif(Distance < 30)
+			SPEED of Mother = 0.1
+		else
+			//TODO: OK so we are miles away. we should make the woman wave at you and face you 
+			//but for the minute She'll stay on her path.
+			SPEED of Mother = 0.0
+			run script LostTheMotherKM(Mother)
+		end if
+
+		until camera position near [EndMarker] radius 30 and get Mother walk path percentage >= 1
+			FollowUsFinished = 1
+			//Need to run meeting the group script!
+	end loop
+
+end script FollowUsKM

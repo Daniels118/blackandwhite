@@ -1,0 +1,13 @@
+challenge RunFollowUs
+
+run script RunFollowUs
+
+begin script RunFollowUs
+	
+start
+	
+	run script SetupLand1
+	run script FollowUs
+	
+
+end script RunFollowUs

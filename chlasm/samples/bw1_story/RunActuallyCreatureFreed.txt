@@ -1,0 +1,16 @@
+challenge RunActuallyCreatureFreed
+
+run script RunActuallyCreatureFreed
+
+begin script RunActuallyCreatureFreed
+	
+start
+	
+	run script SetupLand3
+	run background script FreeTheCreature
+	wait 10 seconds
+	GlobalDebug=1
+	PrisonStatuesDeactivated = 2
+
+
+end script RunActuallyCreatureFreed

@@ -1,0 +1,15 @@
+run script PuzzleTotem2
+
+begin script PuzzleTotem2
+
+Game = 0
+
+
+start
+	begin cinema
+
+
+	Game = create SCRIPT_OBJECT_TYPE_PUZZLE_GAME SCRIPT_PUZZLE_GAME_TYPE_TOTEM_2 at hand position
+
+	end cinema
+end script PuzzleTotem2

@@ -1,0 +1,282 @@
+global LandNumber
+
+//------------------------------------------------------------------------------------------------------------------------
+begin help script HelpJustTalk(WhichTextFirst, WhichTextLast)
+start
+	begin dialogue
+		if WhichTextLast <= WhichTextFirst
+			say single line constant WhichTextFirst
+		else
+			say constant WhichTextFirst
+		end if
+
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+	end dialogue
+end script HelpJustTalk
+
+//------------------------------------------------------------------------------------------------------------------------
+begin help script HelpJustTalkMaybeWithSpirits(WhichTextFirst, WhichTextLast)
+
+GoodNeeded=0
+EvilNeeded=0
+TextCount=0
+
+start
+	begin dialogue
+		//Check which spirits are needed
+		TextCount=WhichTextFirst
+		while (GoodNeeded == 0 or EvilNeeded == 0) and TextCount <= WhichTextLast
+			if good spirit speaks constant TextCount
+				GoodNeeded=1
+			elsif evil spirit speaks constant TextCount
+				EvilNeeded=1
+			end if
+			TextCount++
+		end while
+
+		//Eject the right spirits.
+		if WhichTextLast-WhichTextFirst > 1
+			if WhichTextLast-WhichTextFirst > 2
+				if GoodNeeded == 1
+					eject good spirit
+				end if
+				if EvilNeeded == 1
+					eject evil spirit
+				end if
+			else
+				if GoodNeeded == 1
+					make good spirit cling across 0 down 0.4
+				end if
+				if EvilNeeded == 1
+					make evil spirit cling across 1 down 0.4
+				end if
+			end if
+			say constant WhichTextFirst
+		else
+			say single line constant WhichTextFirst
+		end if
+
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+	end dialogue
+end script HelpJustTalkMaybeWithSpirits
+
+//------------------------------------------------------------------------------------------------------------------------
+begin multiplayer help script HelpTown(WhichTextFirst, WhichTextLast)
+Stat=0
+start
+	begin dialogue
+		say HELP_TEXT_QUESTION_ABODE_INFO_TOWN_CENTRE_01
+		wait until read		
+		say HELP_TEXT_QUESTION_ABODE_INFO_TOWN_CENTRE_02
+		wait until read		
+		say HELP_TEXT_QUESTION_ABODE_INFO_TOWN_CENTRE_03
+		wait until read		
+		say HELP_TEXT_QUESTION_ABODE_INFO_TOWN_CENTRE_07
+		wait until read		
+		say HELP_TEXT_QUESTION_ABODE_INFO_TOWN_CENTRE_09
+		wait until read		
+	end dialogue
+end script HelpTown
+
+//------------------------------------------------------------------------------------------------------------------------
+begin multiplayer help script HelpTownNeeds(StatText, Need, WhichTextFirst, WhichTextLast)
+Stat=0
+start
+	begin dialogue
+		eject good spirit
+		eject evil spirit
+
+		//Say all text about the totem
+		say constant WhichTextFirst
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+
+	say constant StatText with number Need
+	wait until read
+	end dialogue
+end script HelpTownNeeds
+	
+//------------------------------------------------------------------------------------------------------------------------
+begin help script HelpTalkAndPointInWorld(WhichTextFirst, WhichTextLast, Object)
+
+GoodNeeded=0
+EvilNeeded=0
+TextCount=0
+
+start
+	begin dialogue
+		//Check which spirits are needed
+		TextCount=WhichTextFirst
+		while (GoodNeeded == 0 or EvilNeeded == 0) and TextCount <= WhichTextLast
+			if good spirit speaks constant TextCount
+				GoodNeeded=1
+			elsif evil spirit speaks constant TextCount
+				EvilNeeded=1
+			end if
+			TextCount++
+		end while
+
+		//Eject the right spirits.
+		if GoodNeeded == 1
+			eject good spirit
+			make good spirit point to Object in world
+		end if
+		if EvilNeeded == 1
+			eject evil spirit
+			make evil spirit point to Object in world
+		end if
+
+		if WhichTextLast <= WhichTextFirst
+			say single line constant WhichTextFirst
+		else
+			say constant WhichTextFirst
+		end if
+
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+	end dialogue
+end script HelpTalkAndPointInWorld
+
+//------------------------------------------------------------------------------------------------------------------------
+begin help script Banter(WhichTextFirst, WhichTextLast)
+
+GoodNeeded=0
+EvilNeeded=0
+TextCount=0
+
+start
+	begin dialogue
+		//Check which spirits are needed
+		TextCount=WhichTextFirst
+		while (GoodNeeded == 0 or EvilNeeded == 0) and TextCount <= WhichTextLast
+			if good spirit speaks constant TextCount
+				GoodNeeded=1
+			elsif evil spirit speaks constant TextCount
+				EvilNeeded=1
+			end if
+			TextCount++
+		end while
+
+		//Eject the right spirits.
+		if WhichTextLast-WhichTextFirst > 1
+			if WhichTextLast-WhichTextFirst > 2
+				if GoodNeeded == 1
+					eject good spirit
+				end if
+				if EvilNeeded == 1
+					eject evil spirit
+				end if
+			else
+				if GoodNeeded == 1
+					make good spirit cling across 0 down 0.4
+				end if
+				if EvilNeeded == 1
+					make evil spirit cling across 1 down 0.4
+				end if
+			end if
+		end if
+
+		say constant WhichTextFirst
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+	end dialogue
+end script Banter
+
+//------------------------------------------------------------------------------------------------------------------------
+begin multiplayer help script MultiHelpJustTalkWithText(WhichTextFirst, WhichTextLast)
+start
+	if dialogue ready
+		begin dialogue
+			if WhichTextLast <= WhichTextFirst
+				say single line constant WhichTextFirst
+			else
+				say constant WhichTextFirst
+			end if
+
+			wait until read
+			while WhichTextFirst < WhichTextLast
+				WhichTextFirst++
+				say constant WhichTextFirst
+				wait until read
+			end while
+		end dialogue
+	end if
+end script MultiHelpJustTalkWithText
+
+//------------------------------------------------------------------------------------------------------------------------
+begin multiplayer help script MultiHelpJustTalkWithNoText(WhichTextFirst, WhichTextLast)
+start
+	if dialogue ready
+		start say sound constant WhichTextFirst
+	end if
+end script MultiHelpJustTalkWithNoText
+
+//------------------------------------------------------------------------------------------------------------------------
+begin multiplayer help script MultiBanter(WhichTextFirst, WhichTextLast)
+	GoodNeeded=0
+	EvilNeeded=0
+	TextCount=0
+
+start
+	begin dialogue
+		//Check which spirits are needed
+		TextCount=WhichTextFirst
+		while (GoodNeeded == 0 or EvilNeeded == 0) and TextCount <= WhichTextLast
+			if good spirit speaks constant TextCount
+				GoodNeeded=1
+			elsif evil spirit speaks constant TextCount
+				EvilNeeded=1
+			end if
+			TextCount++
+		end while
+
+		//Eject the right spirits.
+		if WhichTextLast-WhichTextFirst > 1
+			if WhichTextLast-WhichTextFirst > 2
+				if GoodNeeded == 1
+					eject good spirit
+				end if
+				if EvilNeeded == 1
+					eject evil spirit
+				end if
+			else
+				if GoodNeeded == 1
+					make good spirit cling across 0 down 0.4
+				end if
+				if EvilNeeded == 1
+					make evil spirit cling across 1 down 0.4
+				end if
+			end if
+		end if
+
+		say constant WhichTextFirst
+		wait until read
+		while WhichTextFirst < WhichTextLast
+			WhichTextFirst++
+			say constant WhichTextFirst
+			wait until read
+		end while
+	end dialogue
+end script MultiBanter

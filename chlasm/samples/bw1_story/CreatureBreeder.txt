@@ -1,0 +1,352 @@
+challenge CREATURE_BREEDER
+
+
+
+
+//*****************************************************************************
+//	Special Animal Available
+//*****************************************************************************
+begin script SpecialStored(Land, Breeder, Kennels, CreaturePos, Stored,CrNr)
+	MyCreatureSwapPosition	= 0
+	NewCreatureSwapPosition = 0
+	FirstCamPos				= 0
+	FirstCamFocus			= 0
+	SecCamPos				= 0
+	SecCamFocus				= 0
+	ThirdCamPos				= 0
+	ThirdCamFocus			= 0
+start
+	MyCreature = get player 1 creature
+	
+	if 	Land == 1
+		MyCreatureSwapPosition	= marker at [1907.506, 41.362, 3503.677]   // land 1 - mycreatureswapposition
+		NewCreatureSwapPosition = marker at	[1902.485, 42.210, 3514.504]   // land 1 - NewCreatureSwapPosition
+		FirstCamPos				= marker at [1893.476, 39.482, 3369.085]   // land 1 - FirstCamPos
+		FirstCamFocus			= marker at [1899.268,  8.148, 3423.447]   // land 1 - FirstCamFocus
+		SecCamPos				= marker at [1832.011, 68.046, 3457.484]   // land 1 - SecCamPos
+		SecCamFocus				= marker at [1892.345, 21.136, 3451.776]   // land 1 - SecCamFocus
+		ThirdCamPos				= marker at [1857.269, 56.976, 3510.819]   // land 1 - ThirdCamPos
+		ThirdCamFocus			= marker at [1898.619, 41.563, 3502.745]   // land 1 - ThirdCamFocus
+	end if 
+ 
+	if Land == 2
+		MyCreatureSwapPosition	= 	marker at [1933.564, 14.819, 3233.069] 			// land 2 - mycreatureswapposition
+		NewCreatureSwapPosition =	marker at [1937.193, 15.478, 3237.737]			// land 2 - NewCreatureSwapPosition 
+		FirstCamPos				=	marker at [1929.660, 18.577, 3187.065] 			// land 2 - FirstCamPos
+		FirstCamFocus			=	marker at [1927.212, 14.756, 3179.009] 			// land 2 - FirstCamFocus
+		SecCamPos				=	marker at [1969.8823, 53.8762, 3201.8447]		// land 2 - SecCamPos
+		SecCamFocus				=	marker at [1932.0574, 16.8236, 3196.7947]		// land 2 - SecCamFocus
+		ThirdCamPos				=	marker at [1940.822, 26.619, 3203.264] 			// land 2 - ThirdCamPos
+		ThirdCamFocus			=	marker at [1936.764, 15.942, 3222.908] 			// land 2 - ThirdCamFocus
+	end if	
+	if Land == 4
+		MyCreatureSwapPosition	=	marker at [3809.045, 52.260, 3426.560]			// land 4 - mycreatureswapposition
+		NewCreatureSwapPosition =	marker at [3791.984, 52.260, 3427.958] 			// land 4 - NewCreatureSwapPosition 
+		FirstCamPos				=	marker at [3809.801, 59.797, 3419.248] 			// land 4 - FirstCamPos
+		FirstCamFocus			=	marker at [3763.656, 52.423, 3431.521] 			// land 4 - FirstCamFocus
+		SecCamPos				=	marker at [3805.321, 58.224, 3423.386] 			// land 4 - SecCamPos
+		SecCamFocus				=	marker at [3790.549, 52.615, 3423.258] 			// land 4 - SecCamFocus
+		ThirdCamPos				=	marker at [3860.307, 74.283, 3442.731]			// land 4 - ThirdCamPos
+		ThirdCamFocus			=	marker at [3829.930, 52.776, 3424.082] 			// land 4 - ThirdCamFocus
+	end if 
+	if Land == 5
+		MyCreatureSwapPosition	=	marker at [1909.230, 35.698, 2804.394]  		// land 5 - mycreatureswapposition
+		NewCreatureSwapPosition =	marker at [1918.594, 35.123, 2799.170] 			// land 5 - NewCreatureSwapPosition 
+		FirstCamPos				=	marker at [1867.247, 56.637, 2790.475] 			// land 5 - FirstCamPos
+		FirstCamFocus			=	marker at [1894.958, 43.984, 2788.886] 			// land 5 - FirstCamFocus
+		SecCamPos				=	marker at [1907.118, 53.884, 2817.346] 			// land 5 - SecCamPos
+		SecCamFocus				=	marker at [1902.677, 43.296, 2791.652] 			// land 5 - SecCamFocus
+		ThirdCamPos				=	marker at [1935.037, 41.989, 2811.374]  		// land 5 - ThirdCamPos
+		ThirdCamFocus			=	marker at [1917.445, 38.056, 2796.417] 			// land 5 - ThirdCamFocus
+
+	end if	
+
+	run background script SwapCreaturesAtBreeder(Stored,CrNr,MyCreatureSwapPosition,NewCreatureSwapPosition,FirstCamPos,FirstCamFocus,SecCamPos,SecCamFocus,ThirdCamPos,ThirdCamFocus)
+	
+end script SpecialStored
+//*****************************************************************************
+//	Breeder offers what is avilable
+//	if GlobalCurrentCreature == -1 then we have not swapped with the breeder
+//	before, if == something else then we have swapped
+//*****************************************************************************
+begin script CreatureBreeder(Land,BreederStartPos,SoapBox,Kennels,CreaturePos,CamPos1,CamFocus1,CamPos2,CamFocus2)
+
+	Breeder = create VILLAGER MALE at [BreederStartPos]
+	BeginPos = 0
+	BeginFoc = 0
+	Highlight = 0
+	SpecialCount = 0
+	SpecialEffect = 0
+	Stored = 0
+	OriginalCreaturePos = CreaturePos
+	OfferLeopard = 0
+	OfferHorse = 0
+	OfferMandrill = 0
+	OfferGorilla = 0
+	OfferRhino = 0
+	FirstCreature = 0
+	LastCreature = 0
+
+start
+
+	enable Breeder indestructible
+	disable Breeder pickup
+
+	begin loop
+
+		wait 10 seconds
+
+		Highlight = create highlight HIGHLIGHT_CHALLENGE at [Kennels]
+		ALTITUDE of Highlight = 5
+		run script ChallengeHighlightNotify(Highlight, Kennels, variable EVIL_ADVISOR, variable HELP_TEXT_GENERAL_CHALLENGE_START_01)
+		delete Highlight
+
+		GlobalCurrentCreature = variable get MyCreature sub type
+
+		BeginPos = marker at camera position
+		BeginFoc = marker at camera focus
+		SpecialCount = 0
+		OfferLeopard = 0
+		OfferHorse = 0
+		OfferMandrill = 0
+		OfferGorilla = 0
+		OfferRhino = 0
+		CreaturePos =	OriginalCreaturePos
+		FirstCreature = 0
+		LastCreature = 0
+		NrOfChoosenCreature = 0
+		
+			if BreederRunning == 0
+			BreederRunning = 1
+			begin cinema
+
+				move Breeder position to [SoapBox]
+				move camera position to [CamPos1] time 2
+				move camera focus to [CamFocus1] time 2
+
+				wait until camera ready
+				//move camera focus to [Breeder] time 1
+				//wait until camera ready
+
+				if creature CREATURE_TYPE_LEOPARD is available	and GlobalCurrentCreature != variable CREATURE_TYPE_LEOPARD
+					OfferLeopard = 1
+					SpecialCount++
+					SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos] time 3
+					Stored = create CREATURE CREATURE_TYPE_LEOPARD at [CreaturePos]
+					CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+					run background script SpecialStored(Land,Breeder, Kennels, CreaturePos, Stored,SpecialCount+1)
+					if FirstCreature == 0
+						FirstCreature = Stored
+					else
+						LastCreature = Stored
+					end if
+				end if
+				if creature CREATURE_TYPE_HORSE is available and GlobalCurrentCreature != variable CREATURE_TYPE_HORSE
+					OfferHorse = 1
+					SpecialCount++
+					SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos]  time 3
+					Stored = create CREATURE CREATURE_TYPE_HORSE at [CreaturePos]
+					CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+					run background script SpecialStored(Land,Breeder, Kennels, CreaturePos, Stored,SpecialCount+1)
+					if FirstCreature == 0
+						FirstCreature = Stored
+					else
+						LastCreature = Stored
+					end if
+				end if
+				if creature CREATURE_TYPE_MANDRILL is available and GlobalCurrentCreature != variable CREATURE_TYPE_MANDRILL
+					OfferMandrill = 1
+					SpecialCount++
+					SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos] time 3
+					Stored = create CREATURE CREATURE_TYPE_MANDRILL at [CreaturePos]
+					CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+					run background script SpecialStored(Land,Breeder, Kennels, CreaturePos, Stored,SpecialCount+1)
+					if FirstCreature == 0
+						FirstCreature = Stored
+					else
+						LastCreature = Stored
+					end if
+				end if
+				if creature CREATURE_TYPE_GORILLA is available   and GlobalCurrentCreature != variable CREATURE_TYPE_GORILLA
+					OfferGorilla = 1
+					SpecialCount++
+					SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos] time 3
+					Stored = create CREATURE CREATURE_TYPE_GORILLA at [CreaturePos]
+					CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+					run background script SpecialStored(Land,Breeder, Kennels, CreaturePos, Stored,SpecialCount+1)
+					if FirstCreature == 0
+						FirstCreature = Stored
+					else
+						LastCreature = Stored
+					end if
+				end if
+				if creature CREATURE_TYPE_RHINO is available   and GlobalCurrentCreature != variable CREATURE_TYPE_RHINO
+					OfferRhino = 1
+					SpecialCount++
+					SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos] time 3
+					Stored = create CREATURE CREATURE_TYPE_RHINO at [CreaturePos]
+					CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+					run background script SpecialStored(Land,Breeder, Kennels, CreaturePos, Stored,SpecialCount+1)
+					if FirstCreature == 0
+						FirstCreature = Stored
+					else
+						LastCreature = Stored
+					end if
+				end if
+
+				// Has the Breeder got my old creature and is my current one different
+				if  GlobalCurrentCreature != GlobalOldCreature and GlobalOldCreature != -1
+					// and my old creature that we are going to offer again is not the same as any of the new ones
+					if GlobalOldCreature != variable  CREATURE_TYPE_LEOPARD or OfferLeopard == 0
+						if GlobalOldCreature != variable CREATURE_TYPE_HORSE or OfferHorse == 0 
+							if GlobalOldCreature !=  variable CREATURE_TYPE_MANDRILL or OfferMandrill == 0	
+								if GlobalOldCreature != variable CREATURE_TYPE_GORILLA or OfferGorilla == 0	 
+									if GlobalOldCreature != variable CREATURE_TYPE_RHINO or OfferRhino == 0	 
+										SpecialCount++
+										SpecialEffect = create special effect SPOT_VISUAL_CREATURE_TARGET at [CreaturePos] time 3
+										Stored = create CREATURE constant GlobalOldCreature at [CreaturePos]
+										CreaturePos= marker at [CreaturePos] + [-4.564,0,3.579]
+										run background script SpecialStored(Land, Breeder, Kennels, CreaturePos, Stored, SpecialCount+1)
+										if FirstCreature == 0
+											FirstCreature = Stored
+										else
+											LastCreature = Stored
+										end if
+									end if
+								end if
+							end if
+						end if
+					end if
+				end if
+
+				//snapshot challenge success 0.0 alignment 0.7 HELP_TEXT_TITLE_15 StandardReminder(variable HELP_TEXT_NEW_REMINDER_05)
+
+				if SpecialCount == 0
+					//"Sorry, I have do not have any special creatures for you."
+					say single line HELP_TEXT_CREATURE_BREEDER_01
+					wait until read
+					move Breeder position to [BreederStartPos]
+					wait until [Breeder] at [BreederStartPos]
+					BreederRunning = 0
+				else
+					if LastCreature == 0
+						LastCreature = Breeder
+					end if
+					begin dual camera to FirstCreature LastCreature
+						if SpecialCount == 1
+							//"I have this special creature for you"
+							say single line HELP_TEXT_CREATURE_BREEDER_02
+							wait until read
+						else
+							//"I have these special creatures you can choose from"
+							say single line HELP_TEXT_CREATURE_BREEDER_03
+							wait until read
+							wait until camera ready
+						end if
+					end dual camera
+				end if
+			end cinema
+			
+			if (GlobalOldCreature == 0 and GlobalCurrentCreature == 0) or GlobalOldCreature == -11 
+			 if SpecialCount > 0
+			   begin cinema
+				move camera position to [CamPos2] time 3
+				move camera focus to [CamFocus2] time 3
+				wait until camera ready
+					eject good spirit
+					eject evil spirit
+					//"Well, boss, looks like you can swap your creature, aeh?"
+					say HELP_TEXT_CREATURE_BREEDER_04
+					wait until read
+					//"Yes, indeed. But do we really want to switch to a new creature?"
+					say HELP_TEXT_CREATURE_BREEDER_05
+					wait until read
+					//"Ohh, come on, dont worry, good side, the creatures mind will be transferred to the new one of course!"
+					say HELP_TEXT_CREATURE_BREEDER_06
+					wait until read
+					//"So, its just a cosmetic thingy then..."
+					say HELP_TEXT_CREATURE_BREEDER_07
+					wait until read
+					//"Yeah, got it. A cosmetic operation without knife and blood."
+					say HELP_TEXT_CREATURE_BREEDER_08
+					wait until read
+					send good spirit home
+					send evil spirit home
+				end cinema
+			  end if
+			end if 
+
+			move Breeder position to [BreederStartPos]
+			wait 1 seconds
+			
+		end if
+
+		//move camera position to [BeginPos] time 3
+		//move camera focus to [BeginFoc] time 3
+		while BreederRunning ==1 
+			wait 1 second						
+		end while 
+	
+	end loop
+
+
+end script CreatureBreeder
+							   
+
+
+begin script RunCreatureBreederLand(Land)
+BreederStartPos = 0
+SoapBox			= 0
+Kennels			= 0
+CreaturePos		= 0
+CamPos1			= 0
+CamFocus1		= 0
+CamPos2			= 0
+CamFocus2		= 0
+start
+
+	if Land == 1
+		BreederStartPos = marker  at [1898.161, 7.496, 3410.803]  
+		SoapBox			= marker at [1896.162, 7.433, 3409.415] 
+		Kennels			= get HOUSE  at [1899.27, 19.2468, 3411.21] 
+		CreaturePos		= marker at [1892.885, 5.742, 3403.713] 
+		CamPos1			= marker at  [1888.349, 9.778, 3404.151] 
+		CamFocus1		= marker at [1906.425, 7.840, 3416.752] 
+		CamPos2			= marker at  [1863.340, 18.950, 3399.907]
+		CamFocus2		= marker at  [1885.262, 7.867, 3411.945]
+	end if
+	if Land == 2
+		BreederStartPos = marker at [1928.816, 14.070, 3167.977] 
+		SoapBox			= marker at [1927.430, 13.772, 3172.938] 
+		Kennels			= marker at [1928.741, 14.070, 3167.823] 
+		CamPos1			= marker at [1925.562, 17.149, 3179.525] 
+		CamFocus1		= marker at [1928.489, 14.173, 3168.812] 
+		CreaturePos		= marker at [1922.456, 14.426, 3154.716] 
+		CamPos2			= marker at [1917.080, 19.188, 3195.440] 
+		CamFocus2		= marker at [1921.810, 13.279, 3175.350] 
+	end if 
+	if Land == 4
+		BreederStartPos = marker at [3760.427, 52.260, 3412.990] 
+		SoapBox			= marker at [3758.800, 52.260, 3418.797] 
+		Kennels			= get HOUSE at [3760.273, 52.260, 3412.651]   
+		CamPos1			= marker at [3756.880, 55.260, 3422.351] 
+		CamFocus1		= marker at [3763.743, 52.758, 3409.650] 
+		CreaturePos		= marker at [3767.373, 52.260, 3417.875]
+		CamPos2			= marker at [3756.880, 55.260, 3422.351] 
+		CamFocus2		= marker at [3763.743, 52.758, 3409.650] 
+	end if 
+	if Land == 5
+		BreederStartPos = marker at [1878.754, 43.246, 2783.540] 
+		SoapBox			= marker at [1884.000, 44.288, 2778.494] 
+		Kennels			= marker at [1878.754, 43.246, 2783.540]  
+		CamPos1			= marker at [1883.657, 47.968, 2773.861] 
+		CamFocus1		= marker at [1883.693, 44.823, 2778.559] 
+		CreaturePos		= marker at [1899.601, 45.942, 2780.894] 
+		CamPos2			= marker at [1855.214, 59.406, 2791.615] 
+		CamFocus2		= marker at [1906.318, 51.319, 2774.477] 
+	end if 
+		   
+	run background script CreatureBreeder(Land,BreederStartPos,SoapBox,Kennels,CreaturePos,CamPos1,CamFocus1,CamPos2,CamFocus2)
+
+end script RunCreatureBreederLand
+

@@ -1,0 +1,24 @@
+begin script TakeOverNemesisVillageL5
+
+	NemesisTown = get TOWN at [3363.98,0.0,3102.65] radius 50
+	SizeOfTown = size of NemesisTown
+
+start
+
+	//TODO we can either take over the town by destroying it, or converting it.
+
+	wait until get PLAYER of NemesisTown == 1 or SizeOfTown <= 6
+
+	
+end script TakeOverNemesisVillageL5
+
+
+
+
+
+
+
+
+
+
+

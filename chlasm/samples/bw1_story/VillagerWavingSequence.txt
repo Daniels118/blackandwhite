@@ -1,0 +1,987 @@
+challenge VillageWavingSequence
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script OpenWindow(OnLeft)
+start
+	if OnLeft == 1
+		set clipping window across 0.1 down 0.2 width 0.4 height 0.6 time 0.5		
+	else
+		set clipping window across 0.5 down 0.2 width 0.4 height 0.6 time 0.5				
+	end if
+	
+	wait 0.5 seconds
+	set fade in time 2
+	wait 3 seconds
+end script OpenWindow
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script CloseWindow
+start
+	fade all draw text time 3 seconds
+	wait 2 seconds
+	set fade red 0 green 0 blue 0 time 2
+	wait 3 seconds
+	clear clipping window time 0.5
+	wait 0.5 seconds
+end script CloseWindow
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+begin script VillageWavingSequence
+PiedPiperPos = marker at [2960.794, 14.018, 3419.506]  
+PiedPiper = 0
+
+MonkPos = marker at [2964.104, 13.795, 3419.417] 
+Monk = 0
+
+IdolBuilderPos = marker at [2963.460, 13.840, 3418.326] 
+IdolBuilder = 0
+
+HermitPos = marker at [2964.812, 13.748, 3418.920] 
+Hermit = 0
+
+HippyPos = marker at [2963.001, 13.871, 3417.654] 
+Hippys = 0
+
+PriestPos = marker at [2964.850, 13.745, 3419.750] 
+Priest = 0
+
+PriestessPos = marker at [2965.630, 13.693, 3419.712] 
+Priestess = 0
+
+MarauderPos = marker at [2966.324, 13.649, 3419.353] 
+Marauder = 0
+
+
+EngineerPos = marker at [2962.250, 13.921, 3417.973] 
+Engineer = 0
+
+ShephardPos = marker at [2961.492, 13.971, 3418.550] 
+Shephard = 0
+
+NomadPos = marker at [2966.430, 13.620, 3420.318] 
+Nomad = 0
+
+AztecLeaderPos = marker at [2965.972, 13.549, 3421.837] 
+AztecLeader = 0
+
+CreatureTrainerPos = marker at [2963.234, 13.855, 3419.766] 
+CreatureTrainer = 0
+
+SailorPos = marker at [2966.967, 13.533, 3421.092] 
+Sailor = 0
+
+BreederPos = marker at [2960.002, 14.130, 3419.132] 
+Breeder = 0
+
+HealerPos = marker at [2960.526, 14.143, 3417.925] 
+Healer = 0
+
+SculptorsPos = marker at [2960.533, 14.018, 3420.279] 
+Sculptor = 0
+
+CrusaderPos = marker at [2968.331, 13.471, 3420.637] 
+Crusader = 0
+
+
+MotherPos = marker at [2965.362, 13.641, 3421.063] 
+Mother = 0
+
+FatherPos = marker at [2964.642, 13.711, 3420.776]  
+Father = 0
+
+BoyPos = marker at [2954.430, 15.844, 3422.376] 
+BoyDestinationPos = marker at [2964.815, 13.667, 3421.245] 
+Boy = 0
+
+
+APos1 = marker at [2966.935, 13.460, 3422.192] 
+APos2 = marker at [2967.805, 13.280, 3424.049] 
+APos3 = marker at [2969.115, 13.321, 3422.097] 
+APos4 = marker at [2970.289, 13.290, 3422.769] 
+APos5 = marker at [2968.141, 13.348, 3422.688] 
+APos6 = marker at [2968.396, 13.193, 3424.743] 
+APos7 = marker at [2958.688, 14.557, 3420.254] 
+APos8 = marker at [2958.716, 14.654, 3419.035] 
+APos9 = marker at [2957.926, 14.942, 3419.667] 
+APos10 = marker at [2959.389, 14.177, 3420.916] 
+
+
+A1 = 0
+A2 = 0
+A3 = 0
+A4 = 0
+A5 = 0
+A6 = 0
+A7 = 0
+A8 = 0
+A9 = 0
+A10 = 0
+
+
+FireWorks = 0
+
+SpareCharacter1 = 0
+SpareCharacter2 = 0
+SpareCharacter3 = 0
+SpareCharacter4 = 0
+
+CreatureHeight = 0
+
+start
+ 	//enable SpareCharacter1 high graphics detail 
+	//enable SpareCharacter2 high graphics detail 
+	//enable SpareCharacter3 high graphics detail 
+	//enable SpareCharacter4 high graphics detail 
+
+
+	
+
+//	SpareCharacter2 = create VILLAGER AZTEC_HOUSEWIFE at [1807.332, 48.277, 3264.076] 
+//	set SpareCharacter1 focus to [2253.751, 24.727, 3464.720] 
+//	set SpareCharacter2 focus to [1803.943, 47.507, 3266.463] 	
+//	SpareCharacter1 play ANM_P_LOOKING_FOR_SOMETHING loop -1
+	
+//	SpareCharacter2 play ANM_P_DANCE_X_PARTNER loop -1
+	//wait 500 seconds
+//	end cinema
+		//clear clipping window time 0.5
+		  //wait 5000 seconds        
+	
+  //
+
+
+/*
+	set draw text colour red 255 green 255 blue 255
+	set fade red 0 green 0 blue 0 time 2
+	wait 3 seconds
+	begin cinema
+		start music MUSIC_TYPE_OUTRO
+		
+		
+		set game time 12.00
+		//Black & White, created by Lionhead Studios. (CRUSADERS - 5)
+		set camera position to [1408.068, 50.007, 2064.123] 
+		set camera focus to [1412.502, 45.892, 2065.353] 
+		move camera position to [1407.266, 50.007, 2067.014] time 20
+		move camera focus to [1411.584, 45.966, 2065.244] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_CRUSADER at [1412.571, 44.688, 2067.938] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_CRUSADER at [1412.439, 44.840, 2065.915] 
+		SpareCharacter3 = create VILLAGER VILLAGER_INFO_CRUSADER at [1413.374, 44.673, 2066.561] 
+
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		enable SpareCharacter3 high graphics detail 
+
+		set SpareCharacter1 focus to [1411.282, 44.961, 2066.481] 
+		set SpareCharacter2 focus to [1411.282, 44.961, 2066.481] 
+		set SpareCharacter3 focus to [1411.282, 44.961, 2066.481] 
+		SpareCharacter1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		SpareCharacter2 play ANM_P_SITTING_DOWN1_SITTING loop -1
+		SpareCharacter3 play ANM_P_CONDUCT_MEETING loop -1
+		
+		run script OpenWindow(1)
+
+		draw text "Black & White" across 0.5 down 0.2 width 0.4 height 0.2 size 0.1 fade in time 2 seconds
+		draw text "Designed and Created by Lionhead Studios" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		
+		run script CloseWindow
+		wait 2 seconds
+		
+		
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		disable SpareCharacter3 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+		delete SpareCharacter3
+		
+		
+		//Game Programming.	(WIRLWHIND GUY - 5) marker at 
+		set game time 16.50
+		set camera position to [1519.324, 68.450, 2258.761] 
+		set camera focus to [1564.959, 67.797, 2291.255] 
+		move camera position to [1521.064, 68.450, 2256.317] time 30
+		move camera focus to [1566.699, 67.797, 2288.812] time 30
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_GREEK_FARMER_MALE at [1524.072, 67.709, 2259.441]  
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [1507.822, 69.800, 2250.621] 
+		SpareCharacter1 play ANM_P_CROWD_IMPRESSED_1 loop -1
+
+		run script OpenWindow(0)
+
+		draw text "Game Programming" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Peter Molyneux" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mark Webley" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jonty Barnes" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Giles Jermy" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jeremy Chatelaine" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Daniel Deptford" across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Oliver Purkiss" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Thomas Barnet-Lamb" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+		
+		//3D and AI (nomad  - 4)
+		set game time 16.50
+		set camera position to [1818.908, 52.350, 3263.729] 
+		set camera focus to [1815.674, 51.128, 3265.087] 
+		move camera position to [1812.281, 50.250, 3264.017] time 20
+		move camera focus to [1808.990, 49.313, 3265.461] time 20
+
+		SpareCharacter1 = create VILLAGER NOMADE at [1806.693, 48.172, 3264.396]   
+		SpareCharacter2 = create VILLAGER AZTEC_HOUSEWIFE at [1807.332, 48.277, 3264.076] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		set SpareCharacter1 focus to [1808.365, 48.457, 3263.498] 
+		set SpareCharacter2 focus to [1803.943, 47.507, 3266.463] 	
+		SpareCharacter1 play ANM_P_DANCE_X loop -1
+		SpareCharacter2 play ANM_P_DANCE_X_PARTNER loop -1
+
+		run script OpenWindow(1)
+
+		draw text "3D Programming" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jean-Claude Cottier" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Alex Evans" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Scawen Roberts" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Artificial Intelligence" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Richard Evans" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+		
+
+		//Art (jap - 4)
+		set game time 23.00
+		set camera position to [2256.089, 27.555, 3469.616] 
+		set camera focus to [2259.030, 24.793, 3464.680] 
+		move camera position to [2255.312, 27.685, 3466.850] time 30
+		move camera focus to [2258.445, 24.609, 3461.594] time 30
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_CRUSADER at [2256.927, 24.562, 3463.518] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [2253.751, 24.727, 3464.720] 
+		SpareCharacter1 play ANM_P_LOOKING_FOR_SOMETHING loop -1
+
+		run script OpenWindow(0)
+
+		draw text "Art" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Paul McLaughlin" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mark Healey" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Bass" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Christian Bravery" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ben Irwin" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Animation etc (BLIND WOMAN- 4)
+		set camera position to [3982.490, 169.893, 2078.604] 
+		set camera focus to [4352.051, 122.152, 2148.304] 
+		move camera position to [4031.620, 163.546, 2087.867] time 80
+		move camera focus to [4401.182, 115.805, 2157.567] time 80
+		
+		SpareCharacter1 =  create VILLAGER VILLAGER_INFO_AZTEC_HOUSEWIFE_FEMALE at [3988.877, 168.345, 2080.754] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [4177.021, 3.138, 1986.837] 
+		SpareCharacter1 play ANM_P_MOURNING loop -1
+
+		run script OpenWindow(1)
+
+		draw text "Animation" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Eric Bailey" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Script & Dialogue" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "James Leach" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Music & Sound Effects" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Russell Shaw" across 0.5 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1		
+
+		//Scanario and Level design (OGRE - 4)
+		set camera position to [2957.449, 29.933, 3478.216] 
+		set camera focus to [2989.977, 14.958, 3397.477] 
+		move camera position to [2930.050, 29.933, 3464.221] time 20
+		move camera focus to [2986.704, 18.939, 3434.659]  time 20
+
+		SpareCharacter1 = create CREATURE CREATURE_TYPE_OGRE at [2963.472, 13.023, 3432.214] 
+		set SpareCharacter1 focus to [2954.962, 10.322, 3445.661] 
+		ALIGNMENT of SpareCharacter1 = -1
+		SCALE of  SpareCharacter1 = 1.5
+		set SpareCharacter1 focus to [2913.472, 0.000, 3505.542] 
+		wait 0.1 seconds
+		SpareCharacter1 play C_STATIC_SIT
+		
+		
+		run script OpenWindow(0)
+
+		draw text "Internet, Library & Tools" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Tim Rance" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Georg Backer" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Scenario & Level Design" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Jamie Durrant" across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ken Malcolm" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Paul Nettleton" across 0.1 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		delete SpareCharacter1
+
+		//Internet programming (MONK - 3)
+		set camera position to [2205.444, 29.397, 3483.468] 
+		set camera focus to [2214.039, 28.237, 3492.858] 
+		move camera position to [2209.699, 28.544, 3492.263] time 20
+		move camera focus to [2218.295, 27.384, 3501.654] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_SHAOLIN at [2212.036, 27.606, 3496.626] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [2210.303, 27.488, 3493.627] 
+		SpareCharacter1 play ANM_P_SITTING_DOWN1_SITTING loop -1
+	
+		run script OpenWindow(1)
+
+		draw text "Gameplay & Testing" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Robson" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Nathan Smethurst" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Lawrie" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Aaron Ludlow" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Joe Borthwick" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//PR & Admin (CREATURE BREEDER - 3)
+		set camera position to [3015.915, 1.090, 3085.426] 
+		set camera focus to [3020.189, 1.086, 3083.787] 
+		move camera position to [3014.913, 1.090, 3082.812] time 40
+		move camera focus to [3019.187, 1.086, 3081.173] time 40
+
+		SpareCharacter1 = create VILLAGER MALE at [3021.333, 0.000, 3080.010] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [3025.547, 0.000, 3081.137] 
+		set SpareCharacter1 carrying CARRIED_OBJECT_FISHING_ROD
+		SpareCharacter1 play ANM_P_FISHERMAN loop -1
+	
+		run script OpenWindow(0)
+
+		draw text "Lionhead Studios" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Janice Nussey" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Claire Hedley" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Pete Hawley" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steve Jackson" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Catherine Tutton" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "PR" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Cathy Campos" across 0.1 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Music(WOLFs - 2)
+		set camera position to [2241.113, 3.775, 3551.668]
+		set camera focus to [2259.808, -0.747, 3581.671] 
+		move camera position to [2238.555, 4.688, 3544.869] time 30
+		move camera focus to [2258.183, 0.167, 3574.270] time 30
+	
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_AFRICAN_FARMER_MALE at [2242.037, 2.492, 3557.281] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_AFRICAN_LEADER_MALE at [2243.398, 2.596, 3556.365] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		set SpareCharacter1 focus to [SpareCharacter2]
+		set SpareCharacter2 focus to [SpareCharacter1]
+		SpareCharacter1 play ANM_P_TALK1_MALE loop -1
+		SpareCharacter2 play ANM_P_TALK2_MALE loop -1
+			
+		run script OpenWindow(1)
+
+		draw text "Lead Instrumentalist" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Steafan Hannigan" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Instrumentalists" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Stuart Hall" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Melissa Holding" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Donald Quan" across 0.5 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Saskia Tomkins" across 0.5 down 0.65 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ray Hickie" across 0.5 down 0.7 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Ron Korb" across 0.5 down 0.75 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+		
+	
+
+		//VOICES (ENGINEER
+		set camera position to [3904.657, 148.553, 2206.098] 
+		set camera focus to [3871.355, 164.873, 2219.053] 
+		move camera position to [3899.627, 151.709, 2203.663] time 30
+		move camera focus to [3888.444, 151.254, 2241.318] time 30
+		
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_ENGINEER at [3899.404, 150.823, 2210.236] 
+		enable SpareCharacter1 high graphics detail 
+		set SpareCharacter1 focus to [3923.678, 117.920, 2140.369] 
+		SpareCharacter1 play ANM_P_INSPECT_OBJECT_1 loop -1
+		
+		run script OpenWindow(0)
+
+		draw text "Voice Characterisation" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Marc Silk" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+		//Testers (PRIEST/ESS - 2)
+		set camera position to [1744.217, 80.982, 2286.372] 
+		set camera focus to [2047.692, -184.072, 4346.194] 
+		move camera position to [1753.121, 80.982, 2285.060]   time 30
+		move camera focus to [2056.596, -184.072, 4344.883]   time 30
+
+	
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_PRIEST at [1745.865, 80.007, 2290.887]  
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_PRIESTESS at [1746.918, 79.937, 2291.281] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+	
+		set SpareCharacter1 focus to [1748.768, 78.636, 2287.646] 
+		set SpareCharacter2 focus to [1748.768, 78.636, 2287.646] 
+
+		SpareCharacter1 play ANM_P_PRAY loop -1
+		SpareCharacter2 play ANM_P_PRAY loop -1
+
+		run script OpenWindow(1)
+
+		draw text "Testers" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+		//Production (SLAVER - 2)
+		set camera position to [1467.194, 44.032, 3832.727]
+		set camera focus to [1455.453, 43.950, 3831.237] 
+		move camera position to [1472.244, 44.069, 3831.186] time 20
+		move camera focus to [1460.409, 43.986, 3831.180] time 20
+
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [1464.007, 43.322, 3833.406] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1467.296, 43.453, 3831.477] 
+		SpareCharacter3 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1463.530, 43.432, 3835.306] 
+		SpareCharacter4 = create VILLAGER VILLAGER_INFO_EGYPTIAN_SHEPHERD_MALE at [1460.970, 43.657, 3833.500] 
+		enable SpareCharacter1 high graphics detail 
+		enable SpareCharacter2 high graphics detail 
+		enable SpareCharacter3 high graphics detail 
+		enable SpareCharacter4 high graphics detail 
+
+		set SpareCharacter1 focus to [1473.140, 43.524, 3830.399] 
+		set SpareCharacter2 focus to [1472.743, 43.534, 3830.255] 
+		set SpareCharacter3 focus to [1470.917, 43.377, 3832.586] 
+		set SpareCharacter4 focus to [1470.612, 43.508, 3830.644] 
+
+		SpareCharacter1 play ANM_P_MOURNING loop -1
+		SpareCharacter2 play ANM_P_AMBIENT1 loop -1
+		SpareCharacter3 play ANM_P_STAND loop -1
+		SpareCharacter4 play ANM_P_STAND loop -1
+		
+
+		
+		run script OpenWindow(0)
+
+		draw text "Production" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Dan Blackstone" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Nutall" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Lisa Stokes" across 0.1 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mike Cooper" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Wayne Frost" across 0.1 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter1 high graphics detail 
+		disable SpareCharacter2 high graphics detail 
+		disable SpareCharacter3 high graphics detail 
+		disable SpareCharacter4 high graphics detail 
+
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+		delete SpareCharacter3
+		delete SpareCharacter4
+
+
+
+
+		//Testing (SABLE - 1)
+		set camera position to [1625.186, 2.723, 3205.230] 
+		set camera focus to [1256.534, -37.785, 3652.711] 
+		move camera position to [1634.293, 2.723, 3212.735] time 60
+		move camera focus to [1265.641, -37.785, 3660.215] time 60 
+		
+		SpareCharacter1 = create with angle 180 and scale 1 FEATURE FEATURE_INFO_PIER at [1604.488, 0.000, 3210.913] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [1621.160, 0.000, 3211.180] 
+		enable SpareCharacter2 high graphics detail 
+	
+		ALTITUDE of SpareCharacter2 = 1.3
+		set SpareCharacter2 focus to [1624.541, 0.000, 3210.981] 
+		SpareCharacter2 play ANM_P_SITTING_SWINGING_LEGS loop -1
+	
+		run script OpenWindow(1)
+
+		draw text "EA Testing" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Andy Bussell" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Olly Byrne" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Rob Charlish" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Tom O'Conner" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Dan Golding" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Joe Grant" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 4 seconds
+
+		draw text "EA Testing" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Phil Noyce" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Pat Russell" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Pete Samuels" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Lee Smith" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Tracey Tweedle" across 0.5 down 0.5 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Stu Williams" across 0.5 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+	
+	
+
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+	
+
+		//Marketing (MISSIONARIES - 1)
+		set camera position to [3385.658, 18.250, 2235.600] 
+		set camera focus to [3387.449, 16.369, 2219.068] 
+		move camera position to [3454.756, 27.308, 2324.056]     time 20
+		move camera focus to [3457.325, 25.427, 2307.627]   time 20
+		SpareCharacter1 = create FEATURE FEATURE_INFO_ARK at [3398.403, 0.000, 2216.053] 
+		
+		run script OpenWindow(0)
+
+		draw text "Marketing" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Joanne Isaacs" across 0.1 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "David Miller" across 0.1 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Legal" across 0.1 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Mel Drummond" across 0.1 down 0.55 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "James O'Riordan" across 0.1 down 0.6 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		delete SpareCharacter1
+
+		//Localisation 	 (SCULPTOR
+		set camera position to [2134.315, 101.149, 2243.988] 
+		set camera focus to [2163.471, 102.237, 2243.016] 
+		move camera position to [2134.369, 101.149, 2245.587]  time 20
+		move camera focus to [2163.524, 102.237, 2244.615]  time 20
+
+		SpareCharacter1 = create OBJECT  MOBILE_STATIC_INFO_SCULPTURE_IN_PROGRESS at [2135.199, 99.830, 2245.455] 
+		SpareCharacter2 = create SCRIPT_OBJECT_TYPE_VILLAGER VILLAGER_INFO_SCULPTOR at [2136.491, 99.830, 2245.244] 
+		enable SpareCharacter2 high graphics detail 
+		SpareCharacter2 play ANM_P_SCULPTOR loop -1
+
+		set SpareCharacter2 focus to [2135.199, 99.830, 2245.455] 
+
+		run script OpenWindow(1)
+
+		draw text "Localisation" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Simon Davison" across 0.5 down 0.3 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "David Lapp" across 0.5 down 0.35 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Masa Nemoto" across 0.5 down 0.4 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		draw text "Sandra Picaper" across 0.5 down 0.45 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+
+
+		//Special Thanks   HIPPY
+		set camera position to [2297.547, 59.347, 3378.439] 
+		set camera focus to [2227.648, 27.755, 3394.810] 
+		move camera position to [2257.442, 31.353, 3398.829] time 20
+		move camera focus to [2249.381, 27.710, 3400.718] time 20	
+
+		SpareCharacter1 = create with angle 0 and scale 10 FEATURE FEATURE_INFO_MAGIC_MUSHROOM at [2250.145, 26.999, 3403.660] 
+		SpareCharacter2 = create VILLAGER VILLAGER_INFO_HIPPY at [2250.181, 27.198, 3402.205] 
+		enable SpareCharacter2 high graphics detail 
+	
+	
+		set SpareCharacter2 focus to [2254.084, 27.470, 3402.496] 
+		set SpareCharacter2 carrying CARRIED_OBJECT_AXE
+		SpareCharacter2 play ANM_P_CHOPPING_TREE loop -1
+
+		run script OpenWindow(0)
+
+		draw text "Special Thanks" across 0.1 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+
+		disable SpareCharacter2 high graphics detail 
+		delete SpareCharacter1
+		delete SpareCharacter2
+
+
+
+	
+		//Thanks  PIED PIPER
+		set camera position to [2128.063, 64.591, 2828.341] 
+		set camera focus to [2128.620, 64.035, 2824.395]
+		move camera position to [2125.956, 64.591, 2827.777] time 20
+		move camera focus to [2127.535, 64.035, 2824.117] time 20
+		
+		SpareCharacter1 = create VILLAGER VILLAGER_INFO_PIED_PIPER at [2130.966, 62.839, 2821.173] 
+		enable SpareCharacter1 high graphics detail 
+		SpareCharacter1 play ANM_PIED_PIPER_DANCE_STAND_SPIN loop -1
+	
+
+		run script OpenWindow(1)
+
+		draw text "Thanks" across 0.5 down 0.2 width 0.4 height 0.1 size 0.05 fade in time 2 seconds
+		
+		wait 10 seconds
+		fade all draw text time 2 seconds
+		wait 2 seconds
+		run script CloseWindow
+		wait 2 seconds
+		
+		disable SpareCharacter1 high graphics detail 
+		delete SpareCharacter1
+
+*/
+	
+	
+	begin cinema		
+		A1 = create VILLAGER VILLAGER_INFO_EGYPTIAN_HOUSEWIFE_FEMALE at [APos1]
+		A2 = create VILLAGER VILLAGER_INFO_FOOTBALLER_2 at [APos2]
+		A3 = create VILLAGER VILLAGER_INFO_INDIAN_FORESTER_MALE at [APos3]
+		A4 = create VILLAGER VILLAGER_INFO_JAPANESE_FARMER_MALE at [APos4]
+		A5 = create VILLAGER VILLAGER_INFO_AFRICAN_FORESTER_MALE at [APos5]
+		A6 = create VILLAGER VILLAGER_INFO_TIBETAN_SHEPHERD_MALE at [APos6]
+		A7 = create VILLAGER VILLAGER_INFO_AFRICAN_LEADER_MALE at [APos7]
+		A8 = create VILLAGER VILLAGER_INFO_INDIAN_LEADER_MALE at [APos8]
+		A9 = create VILLAGER VILLAGER_INFO_CELTIC_LEADER_MALE at [APos9]
+		A10 = create VILLAGER VILLAGER_INFO_GREEK_HOUSEWIFE_FEMALE at [APos10]
+		
+		
+		Monk = create VILLAGER VILLAGER_INFO_SHAOLIN at [MonkPos]
+		IdolBuilder = create VILLAGER VILLAGER_INFO_IDOL_BUILDER at [IdolBuilderPos]	
+		Hermit = create VILLAGER VILLAGER_INFO_HERMIT at [HermitPos]
+		Hippys = create VILLAGER VILLAGER_INFO_HIPPY at [HippyPos]
+		Priest = create VILLAGER VILLAGER_INFO_PRIEST at [PriestPos]
+		Priestess = create VILLAGER VILLAGER_INFO_PRIESTESS at [PriestessPos]
+		Marauder = create VILLAGER VILLAGER_INFO_MARAUDER at [MarauderPos]
+		Engineer = create VILLAGER VILLAGER_INFO_ENGINEER at [EngineerPos]
+		Shephard = create VILLAGER VILLAGER_INFO_FOOTBALLER_1 at [ShephardPos] 
+		Nomad = create VILLAGER VILLAGER_INFO_NOMADE at [NomadPos]
+		AztecLeader = create VILLAGER VILLAGER_INFO_AZTEC_LEADER at [AztecLeaderPos] 
+		CreatureTrainer = create VILLAGER VILLAGER_INFO_CREATURE_TRAINER at [CreatureTrainerPos]
+		Sailor = create VILLAGER VILLAGER_INFO_NORSE_SAILOR at [SailorPos]
+		Breeder = create VILLAGER VILLAGER_INFO_BREEDER at [BreederPos]
+		Healer = create VILLAGER VILLAGER_INFO_HEALER at [HealerPos]
+		Sculptor = create VILLAGER VILLAGER_INFO_SCULPTOR at [SculptorsPos]
+		Crusader = create VILLAGER VILLAGER_INFO_CRUSADER at [CrusaderPos]
+		Mother = create VILLAGER VILLAGER_INFO_NORSE_HOUSEWIFE_FEMALE at [MotherPos]
+		Father = create VILLAGER VILLAGER_INFO_NORSE_SHEPHERD_MALE at [FatherPos]
+		Boy = create VILLAGER MALE at [BoyPos]  
+
+		set fade in time 2
+
+		AGE of Boy = 8
+		SCALE of Boy = 0.75
+		SPEED of Boy = 0.28
+
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [PiedPiperPos]  time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [3009.129, 13.125, 3344.816] time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [2992.059, 12.233, 3306.523] time 300
+		FireWorks = create special effect  SPOT_VISUAL_TOWN_FIREWORKS  at [2955.640, 17.423, 3395.000] time 300
+
+	
+
+		enable Mother high graphics detail
+		enable Boy high graphics detail
+
+
+		set camera position to [2963.259, 14.876, 3421.859] 
+		set camera focus to [2970.235, 12.743, 3405.717] 
+		
+		set PiedPiper focus to [2959.795, 15.936, 3429.878]
+		set Monk focus to [2959.795, 15.936, 3429.878]
+		set IdolBuilder focus to [2959.795, 15.936, 3429.878]
+		set Hermit focus to [2959.795, 15.936, 3429.878]
+		set Hippys focus to [2959.795, 15.936, 3429.878]
+		set Priest focus to [2959.795, 15.936, 3429.878]
+		set Priestess focus to [2959.795, 15.936, 3429.878]
+		set Marauder focus to [2959.795, 15.936, 3429.878]
+		set Engineer focus to [2959.795, 15.936, 3429.878]
+		set Shephard focus to [2959.795, 15.936, 3429.878]
+		set Nomad focus to [2959.795, 15.936, 3429.878]
+		set AztecLeader focus to [2959.795, 15.936, 3429.878]
+		set CreatureTrainer focus to [2959.795, 15.936, 3429.878]
+		set Sailor focus to [2959.795, 15.936, 3429.878]
+		set Breeder focus to [2959.795, 15.936, 3429.878]
+		set Healer focus to [2959.795, 15.936, 3429.878]
+		set Sculptor focus to [2959.795, 15.936, 3429.878]
+		set Crusader focus to [2959.795, 15.936, 3429.878]
+		set Mother focus to [2959.795, 15.936, 3429.878]
+		set Father focus to [2959.795, 15.936, 3429.878]
+
+		set A1 focus to [2959.795, 15.936, 3429.878]
+		set A2 focus to [2959.795, 15.936, 3429.878]
+		set A3 focus to [2959.795, 15.936, 3429.878]
+		set A4 focus to [2959.795, 15.936, 3429.878]
+		set A5 focus to [2959.795, 15.936, 3429.878]
+		set A6 focus to [2959.795, 15.936, 3429.878]
+		set A7 focus to [2959.795, 15.936, 3429.878]
+		set A8 focus to [2959.795, 15.936, 3429.878]
+		set A9 focus to [2959.795, 15.936, 3429.878]
+		set A10 focus to [2959.795, 15.936, 3429.878]
+
+		
+		enable PiedPiper high graphics detail 
+		enable Monk high graphics detail 
+		enable IdolBuilder high graphics detail 
+		enable Hermit high graphics detail 
+		enable Priest high graphics detail 
+		enable Priestess high graphics detail 
+		enable Marauder high graphics detail 
+		enable Engineer high graphics detail 
+		enable Shephard high graphics detail 
+		enable Nomad high graphics detail 
+		enable AztecLeader high graphics detail 
+		enable CreatureTrainer high graphics detail 
+		enable Sailor high graphics detail 
+		enable Breeder high graphics detail 
+		enable Healer high graphics detail 
+		enable Sculptor high graphics detail 
+		enable Crusader high graphics detail 
+		enable Mother high graphics detail 
+		enable Father high graphics detail 
+
+		enable A1  high graphics detail 
+		enable A2 high graphics detail 
+		enable A3 high graphics detail 
+		enable A4 high graphics detail 
+		enable A5 high graphics detail 
+		enable A6 high graphics detail 
+		enable A7 high graphics detail 
+		enable A8 high graphics detail 
+		enable A9 high graphics detail 
+		enable A10 high graphics detail 
+
+		
+		
+		PiedPiper play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Monk play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		IdolBuilder play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Hermit play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		Hippys play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Priest play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Priestess play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Marauder play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		Engineer play ANM_P_CLAP_1 loop -1	
+		wait 0.1 seconds
+		Shephard play ANM_P_CLAP_2 loop -1	
+		wait 0.1 seconds
+		Nomad play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		AztecLeader play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		CreatureTrainer play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Sailor play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Breeder play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		Healer play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		Sculptor play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		Crusader play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		Mother play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		Father play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+
+		A1 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A2 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		A3 play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		A4 play ANM_P_CROWD_IMPRESSED_1 loop -1
+		wait 0.1 seconds
+		A5 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A6 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+		A7 play ANM_P_CLAP_3 loop -1
+		wait 0.1 seconds
+		A8 play ANM_P_CROWD_IMPRESSED_2 loop -1
+		wait 0.1 seconds
+		A9 play ANM_P_CLAP_1 loop -1
+		wait 0.1 seconds
+		A10 play ANM_P_CLAP_2 loop -1
+		wait 0.1 seconds
+
+
+		move camera position to [2959.795, 15.936, 3429.878] time 30
+		move camera focus to [2966.771, 13.803, 3413.736] time 30
+		
+		wait 15 seconds
+
+		move Boy position to [BoyDestinationPos]
+		set Boy anim ANM_P_SKIP02
+
+		wait until [Boy] near [BoyDestinationPos] radius 1
+
+		CreatureHeight = SCRIPT_OBJECT_PROPERTY_TYPE_HEIGHT of MyCreature
+		if CreatureHeight > 10
+			set MyCreature position to [2984.050, 21.906, 3235.555] 		 
+			move MyCreature position to [2996.360, 11.442, 3343.476] 
+		else
+			set MyCreature position to [2973.395, 10.906, 3442.461] 
+			move MyCreature position to [2962.264, 13.691, 3423.450]
+			
+		end if
+		
+		set Boy focus to [Mother]
+		set Mother focus to [Boy]
+
+		wait 0.3 seconds
+		
+		Boy play ANM_P_HUG loop 1
+		Mother play ANM_P_HUG loop 1
+		
+		wait Mother played
+		wait Boy played
+		
+		set Mother focus to [2959.795, 15.936, 3429.878]
+		set Boy focus to [2959.795, 15.936, 3429.878]
+		wait 1 seconds
+		Mother play ANM_P_CROWD_IMPRESSED_1 loop -1
+		Boy play ANM_P_CLAP_2 loop -1
+
+		wait until MyCreature played
+		force MyCreature CREATURE_LOOK_AT_CAMERA MyCreature
+		wait until MyCreature played
+		MyCreature play C_INDIVIDUAL_FRIENDLY_WAVE
+		wait until MyCreature played
+		
+		wait 2000 seconds
+		stop music	
+	end cinema
+end script VillageWavingSequence	
+
