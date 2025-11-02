@@ -101,4 +101,16 @@
 	  		</fileset>
 	  	</zip>
 	</target>
+	
+	<target name="bw1_story">
+		<condition property="chlasm.missing">
+			<not>
+		    	<available file="build/chlasm.jar"/>
+			</not>
+		</condition>
+		<fail if="chlasm.missing" message="File build/chlasm.jar not found"/>
+		
+        <java fork="true" dir="samples/bw1_story" classpath="build/chlasm.jar" classname="it.ld.bw.chl.Main"
+        	args="-compile -p _project.txt -o _challenge.chl -noshr"/>
+    </target>
 </project>
