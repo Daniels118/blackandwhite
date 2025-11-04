@@ -44,6 +44,7 @@ source SetupComputerCreatures.txt
 source CreatureBreeder.txt
 source LandControlT.txt
 source GameOver.txt
+#Land1Challenges
 source setupland1.txt
 source CreatureGuide.txt
 source CitadelGuide.txt
@@ -64,6 +65,7 @@ source TheMissionaries.txt
 source throwingstones.txt
 source MagicMushroom.txt
 source LandControl1.txt
+#Land2Challenges
 source setupland2.txt
 source SlaversWarning.txt
 source sacrifice.txt
@@ -90,6 +92,7 @@ source LearnGestures.txt
 source LearnInfluence.txt
 source FinalGoldScroll.txt
 source landcontrol2.txt
+#Land3Challenges
 source SetupLand3.txt
 source Shaolin.txt
 source LeaveThroughVortexL3.txt
@@ -99,6 +102,7 @@ source SwapToApe.txt
 source TreePuzzleTwo.txt
 source throwbloke.txt
 source LandControl3.txt
+#Land4Challenges
 source setupland4.txt
 source land4meteorites.txt
 source land4ogre.txt
@@ -110,6 +114,7 @@ source swaptocow.txt
 source takeovervillagesl4.txt
 source ThesiusPuzzleLand4.txt
 source landcontrol4.txt
+#Land5Challenges
 source beginland5.txt
 source creaturemirrorfight.txt
 source fireonhigh.txt
