@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,11 +39,18 @@ public class Project {
 	public List<File> cHeaders = new LinkedList<>();
 	public List<File> infoFiles = new LinkedList<>();
 	
+	public Path objPath;
+	public boolean clean = false;
+	public boolean debug = false;
+	
+	public File output;
+	
 	public static Project load(File projectFile) throws ParseException, FileNotFoundException, IOException {
 		Project project = new Project();
 		int lineno = 0;
 		Path prjPath = projectFile.toPath().toAbsolutePath().getParent();
 		project.sourcePath = prjPath;
+		project.objPath = prjPath.resolve("bin");
 		Path headersPath = prjPath;
 		Path infoPath = prjPath;
 		try (BufferedReader str = new BufferedReader(new FileReader(projectFile, ASCII));) {
@@ -85,6 +92,14 @@ public class Project {
 						headersPath = prjPath.resolve(sVal);
 					} else if ("info_path".equals(type)) {
 						infoPath = prjPath.resolve(sVal);
+					} else if ("obj_path".equals(type)) {
+						project.objPath = prjPath.resolve(sVal);
+					} else if ("clean".equals(type)) {
+						project.clean = "true".equals(sVal);
+					} else if ("debug".equals(type)) {
+						project.debug = "true".equals(sVal);
+					} else if ("output".equals(type)) {
+						project.output = project.sourcePath.resolve(sVal).toFile();
 					} else {
 						throw new ParseException("Invalid type: "+type, projectFile, lineno);
 					}

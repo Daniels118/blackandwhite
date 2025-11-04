@@ -29,11 +29,6 @@ _______________________
 
 FAQ
 
-- Where can I get the original source files to edit the original story?
-
-  Files are not included here due to licensing problems. You may search the web to learn
-  how to obtain those files.
-
 - I have all the original source files, how can I compile them as CHL?
 
   You can find the instructions in samples/bw1_story/_project.txt
