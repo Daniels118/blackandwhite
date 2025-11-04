@@ -102,7 +102,7 @@
 	  	</zip>
 	</target>
 	
-	<target name="bw1_story">
+	<target name="bw1_story" description="Compile original story">
 		<condition property="chlasm.missing">
 			<not>
 		    	<available file="build/chlasm.jar"/>
@@ -110,7 +110,18 @@
 		</condition>
 		<fail if="chlasm.missing" message="File build/chlasm.jar not found"/>
 		
+		<delete file="samples/bw1_story/_challenge.chl"/>
+		
         <java fork="true" dir="samples/bw1_story" classpath="build/chlasm.jar" classname="it.ld.bw.chl.Main"
-        	args="-compile -p _project.txt -o _challenge.chl -noshr"/>
+        	args="-compile -p _project.txt -o _challenge.chl -noshr -jst"/>
     </target>
+	
+	<target name="validate" description="Build JAR, compile BW1 story and compare output with original chl" depends="jar">
+		<delete dir="samples/bw1_story/bin"/>
+		
+		<antcall target="bw1_story"/>
+		
+		<java fork="true" dir="samples/bw1_story" classpath="build/chlasm.jar" classname="it.ld.bw.chl.Main"
+		        	args="-cmp -f1 _original.chl -f2 _challenge.chl -strict"/>
+	</target>
 </project>
