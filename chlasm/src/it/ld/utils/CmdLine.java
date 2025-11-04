@@ -1,4 +1,4 @@
-/* Copyright (c) 2022-2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2022-2025 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,12 +44,18 @@ public class CmdLine {
 	}
 	
 	public File getArgFile(String name) {
-		return getArgFile(name, null);
+		return getArgFile(name, (File)null);
 	}
 	
 	public File getArgFile(String name, String def) {
 		String v = getArgVal(name, null);
 		if (v == null) return def == null ? null : new File(def);
+		return new File(v);
+	}
+	
+	public File getArgFile(String name, File def) {
+		String v = getArgVal(name, null);
+		if (v == null) return def == null ? null : def;
 		return new File(v);
 	}
 	
