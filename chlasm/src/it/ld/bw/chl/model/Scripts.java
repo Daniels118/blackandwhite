@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,11 @@
  */
 package it.ld.bw.chl.model;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import it.ld.bw.chl.exceptions.InvalidScriptIdException;
 import it.ld.bw.chl.exceptions.ScriptNotFoundException;
@@ -26,32 +28,34 @@ public class Scripts extends StructArray<Script> {
 	private final CHLFile chl;
 	
 	private boolean scriptsFinalized = false;
-	private Map<Integer, Script> entrypointScripts;
+	private Map<Integer, Set<Script>> entrypointsScripts;
 	
 	public Scripts(CHLFile chl) {
 		this.chl = chl;
 	}
 	
+	/**Compute additional information about scripts. No modification should be made to the scripts after that this
+	 * method has been called.
+	 */
 	public void finalizeScripts() {
 		if (!scriptsFinalized) {
-			int[] entrypoints = new int[items.size()];
-			int i = 0;
+			ArrayList<Instruction> srcInstructions = chl.getCode().getItems();
 			for (Script script : items) {
-				entrypoints[i++] = script.getInstructionAddress();
+				for (int i = script.getInstructionAddress(); i <= srcInstructions.size(); i++) {
+					Instruction instr = srcInstructions.get(i);
+					if (instr.opcode == OPCode.END) {
+						script.setLastInstructionAddress(i);
+						break;
+					}
+				}
 			}
-			Arrays.sort(entrypoints);
-			//
-			for (i = 0; i < entrypoints.length - 1; i++) {
-				int entrypoint = entrypoints[i];
-				int nextEntrypoint = entrypoints[i + 1];
-				Script script = getScriptFromEntrypoint(entrypoint);
-				script.setLastInstructionAddress(nextEntrypoint - 1);
-			}
-			Script script = getScriptFromEntrypoint(entrypoints[entrypoints.length - 1]);
-			script.setLastInstructionAddress(chl.getCode().getItems().size() - 1);
 		}
 	}
 	
+	/**Returns the first script which includes the given instruction address, or null if no script contains the address.
+	 * @param instruction
+	 * @return
+	 */
 	public Script getScriptFromInstruction(int instruction) {
 		finalizeScripts();
 		for (Script script : items) {
@@ -62,14 +66,23 @@ public class Scripts extends StructArray<Script> {
 		return null;
 	}
 	
-	public Script getScriptFromEntrypoint(int ip) {
-		if (entrypointScripts == null) {
-			entrypointScripts = new HashMap<>();
+	/**Returns all the scripts which have the given entry point address.
+	 * @param ip
+	 * @return
+	 */
+	public Set<Script> getScriptsFromEntrypoint(int ip) {
+		if (entrypointsScripts == null) {
+			entrypointsScripts = new HashMap<>();
 			for (Script script : items) {
-				entrypointScripts.put(script.getInstructionAddress(), script);
+				Set<Script> entrypointScripts = entrypointsScripts.get(script.getInstructionAddress());
+				if (entrypointScripts == null) {
+					entrypointScripts = new HashSet<>();
+					entrypointsScripts.put(script.getInstructionAddress(), entrypointScripts);
+				}
+				entrypointScripts.add(script);
 			}
 		}
-		return entrypointScripts.get(ip);
+		return entrypointsScripts.get(ip);
 	}
 	
 	@Override
@@ -82,6 +95,11 @@ public class Scripts extends StructArray<Script> {
 		return new Script(chl);
 	}
 	
+	/**Returns the first script with the given ID.
+	 * @param scriptID
+	 * @return
+	 * @throws InvalidScriptIdException
+	 */
 	public Script getScript(int scriptID) throws InvalidScriptIdException {
 		for (Script script : items) {
 			if (script.getScriptID() == scriptID) return script;
@@ -89,6 +107,11 @@ public class Scripts extends StructArray<Script> {
 		throw new InvalidScriptIdException(scriptID);
 	}
 	
+	/**Returns the first script with the given name.
+	 * @param scriptName
+	 * @return
+	 * @throws ScriptNotFoundException
+	 */
 	public Script getScript(String scriptName) throws ScriptNotFoundException {
 		for (Script script : items) {
 			if (scriptName.equals(script.getName())) return script;

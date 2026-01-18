@@ -58,11 +58,11 @@ public abstract class StructArray<E extends Struct> extends Struct {
 		return getTypeName() + "[" + items.size() + "]";
 	}
 	
-	private ArrayList<E> readStructArray(EndianDataInputStream str) throws Exception {
+	private MonitoredArrayList<E> readStructArray(EndianDataInputStream str) throws Exception {
 		int count = str.readInt();
 		if (count < 0) throw new Exception("Invalid "+getTypeName()+" count: " + count);
 		if (count > MAX_ITEMS) throw new Exception("Too many "+getTypeName()+"s: " + count);
-		ArrayList<E> res = new ArrayList<E>(count);
+		MonitoredArrayList<E> res = new MonitoredArrayList<E>(count);
 		for (int i = 0; i < count; i++) {
 			try {
 				E e = readItem(str, i);

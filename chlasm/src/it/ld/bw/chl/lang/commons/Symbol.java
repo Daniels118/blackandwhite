@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.commons;
 
-class Symbol {
+public class Symbol {
 	public enum TerminalType {
 		EOF, EOL, KEYWORD, IDENTIFIER, NUMBER, STRING, CHAR, DIRECTIVE
 	}

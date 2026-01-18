@@ -1,10 +1,25 @@
 Compile CHL source files into CHL binary file
 
 Syntax
-  chlasm -compile -p filename -o filename [-oasm filename] [-noshr]
+  chlasm -compile -p filename -o filename [options]
 
 Arguments
   -p     project file
   -o     output CHL file
+
+Alt syntax
+  chlasm -compile -path PathName -scriptpath ScriptPathName -inputfile FileNameToLookForParsingName OutPutFile [options]
+
+Arguments
+  -path       Sets the working path e.g. C:\Games\BlackAndWhite\CreatureIsle for the headers
+  -scriptpath Sets the working script path for script files e.g. Scripts\CreatureIsles
+  -inputfile  Parses a script list held within a file. You can have more than one FileNameToLookForParsingName
+
+Shared options
+  -clean clean all object files before compiling
   -oasm  output ASM file (merged)
   -noshr disable shared strings
+  -nosac disable Static Array index Check
+  -ext   enable additional flow control structures
+  -ret   enable return value from scripts (experimental)
+  -dbg   add debug informations

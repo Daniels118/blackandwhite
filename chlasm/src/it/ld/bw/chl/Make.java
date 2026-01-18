@@ -13,10 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import it.ld.bw.chl.lang.CHLCompiler;
-import it.ld.bw.chl.lang.Project;
+import it.ld.bw.chl.lang.chl.CHLCompiler;
+import it.ld.bw.chl.lang.commons.CompilerOptions;
+import it.ld.bw.chl.lang.commons.Project;
+import it.ld.bw.chl.lang.java.JavaCompiler;
 import it.ld.bw.chl.model.CHLFile;
-import it.ld.bw.chl.model.ObjectCode;
 import it.ld.bw.chl.model.Struct;
 import it.ld.utils.EndianDataInputStream;
 import it.ld.utils.EndianDataOutputStream;
@@ -24,14 +25,14 @@ import it.ld.utils.EndianDataOutputStream;
 public class Make {
 	private PrintStream out;
 	
-	private CHLCompiler.Options compilerOptions = new CHLCompiler.Options();
+	private CompilerOptions compilerOptions = new CompilerOptions();
 	private CHLLinker.Options linkerOptions = new CHLLinker.Options();
 	
-	public CHLCompiler.Options getCompilerOptions() {
+	public CompilerOptions getCompilerOptions() {
 		return compilerOptions;
 	}
 	
-	public void setCompilerOptions(CHLCompiler.Options options) {
+	public void setCompilerOptions(CompilerOptions options) {
 		this.compilerOptions = options;
 	}
 	
@@ -58,30 +59,34 @@ public class Make {
 		if (!project.objPath.toFile().isDirectory()) {
 			project.objPath.toFile().mkdir();
 		}
-		final CHLCompiler compiler = new CHLCompiler(out);
-		compiler.setOptions(compilerOptions);
+		final CHLCompiler chlCompiler = new CHLCompiler(out);
+		chlCompiler.setOptions(compilerOptions);
+		final JavaCompiler javaCompiler = new JavaCompiler(out);
+		javaCompiler.setOptions(compilerOptions);
+		javaCompiler.setDefinedConstants(chlCompiler.getDefinedConstants());
+		javaCompiler.setDefinedGlobalVars(chlCompiler.getDefinedGlobalVars());
 		//Load compiled constants
 		File constantsFile = project.objPath.resolve("_constants.bin").toFile();
 		if (constantsFile.exists()) {
 			Constants constants = new Constants();
 			constants.read(constantsFile);
-			compiler.addConstants(constants.items);
+			chlCompiler.addConstants(constants.items);
 		}
 		//Load defined global vars
 		File globalVarsFile = project.objPath.resolve("_globalvars.bin").toFile();
 		if (globalVarsFile.exists()) {
 			GlobalVars globalVars = new GlobalVars();
 			globalVars.read(globalVarsFile);
-			compiler.addGlobalVars(globalVars.items);
+			chlCompiler.addGlobalVars(globalVars.items);
 		}
 		//Load header files and project constants
 		for (File file : project.cHeaders) {
-			compiler.loadHeader(file);
+			chlCompiler.loadHeader(file);
 		}
 		for (File file : project.infoFiles) {
-			compiler.loadInfo(file);
+			chlCompiler.loadInfo(file);
 		}
-		compiler.addConstants(project.constants);
+		chlCompiler.addConstants(project.constants);
 		//Compile files
 		List<File> objfiles = new ArrayList<>(project.sources.size());
 		try {
@@ -105,19 +110,22 @@ public class Make {
 				}
 				if (!objfile.exists() || objfile.lastModified() < file.lastModified()) {
 					out.println("compiling " + file.getName());
-					ObjectCode objcode = compiler.compile(file);
-					objcode.write(objfile);
+					if (file.getName().endsWith(".java")) {
+						javaCompiler.compile(file).write(objfile);
+					} else {
+						chlCompiler.compile(file).write(objfile);
+					}
 				}
 				objfiles.add(objfile);
 			}
 		} finally {
 			//Write compiled constants
 			Constants constants = new Constants();
-			constants.items = compiler.getDefinedConstants();
+			constants.items = chlCompiler.getDefinedConstants();
 			constants.write(constantsFile);
 			//Write defined global vars
 			GlobalVars globalVars = new GlobalVars();
-			globalVars.items = compiler.getDefinedGlobalVars();
+			globalVars.items = chlCompiler.getDefinedGlobalVars();
 			globalVars.write(globalVarsFile);
 		}
 		//Link

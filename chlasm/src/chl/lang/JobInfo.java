@@ -1,0 +1,25 @@
+package chl.lang;
+
+public enum JobInfo implements LHEnum {
+	POOR_FISHERMAN,
+	NORMAL_FISHERMAN,
+	GOOD_FISHERMAN,
+	POOR_FORESTER,
+	NORMAL_FORESTER,
+	GOOD_FORESTER,
+	POOR_FARMER,
+	NORMAL_FARMER,
+	GOOD_FARMER,
+	POOR_SHEPHERD,
+	NORMAL_SHEPHERD,
+	GOOD_SHEPHERD,
+	NORMAL_LEADER,
+	NORMAL_HOUSEWIFE,
+	NORMAL_TRADER,
+	NORMAL_NO_JOB;
+	
+	@Override
+	public int value() {
+		return this.ordinal();
+	}
+}

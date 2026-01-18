@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.chl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -36,6 +36,16 @@ import java.util.Map.Entry;
 import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
 import it.ld.bw.chl.exceptions.ScriptNotFoundException;
+import it.ld.bw.chl.lang.commons.CHeaderParser;
+import it.ld.bw.chl.lang.commons.InfoParser2;
+import it.ld.bw.chl.lang.commons.CompilerOptions;
+import it.ld.bw.chl.lang.commons.ScriptInfo;
+import it.ld.bw.chl.lang.commons.ScriptToResolve;
+import it.ld.bw.chl.lang.commons.SymbolInstance;
+import it.ld.bw.chl.lang.commons.Syntax;
+import it.ld.bw.chl.lang.commons.Token;
+import it.ld.bw.chl.lang.commons.TokenType;
+import it.ld.bw.chl.lang.commons.Var;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataType;
 import it.ld.bw.chl.model.Header;
@@ -66,7 +76,7 @@ public class CHLCompiler {
 	private int line;
 	private int col;
 	
-	private Options options = new Options();
+	private CompilerOptions options = new CompilerOptions();
 	
 	private PrintStream out;
 	
@@ -101,11 +111,14 @@ public class CHLCompiler {
 	private Map<String, String> properties = new HashMap<>();
 	private Set<String> sourceDirs = new HashSet<>();
 	
+	private final Syntax syntax;
+	
 	public CHLCompiler() {
 		this(System.out);
 	}
 	
 	public CHLCompiler(PrintStream outStream) {
+		this.syntax = Syntax.get("chl");
 		this.out = outStream;
 		chl.getHeader().setVersion(Header.BW1);
 		instructions = chl.getCode().getItems();
@@ -114,11 +127,11 @@ public class CHLCompiler {
 		//storeStringData("Compiled with CHL Compiler developed by Daniele Lombardi");
 	}
 	
-	public Options getOptions() {
+	public CompilerOptions getOptions() {
 		return options;
 	}
 	
-	public void setOptions(Options options) {
+	public void setOptions(CompilerOptions options) {
 		this.options = options;
 	}
 	
@@ -138,12 +151,20 @@ public class CHLCompiler {
 		}
 	}
 	
+	public void setDefinedConstants(Map<String, Integer> constants) {
+		this.constants = constants;
+	}
+	
 	public Map<String, Integer> getDefinedConstants() {
 		return constants;
 	}
 	
 	public void addConstants(Map<String, Integer> constants) {
 		this.constants.putAll(constants);
+	}
+	
+	public void setDefinedGlobalVars(Set<String> vars) {
+		this.externalVars = vars;
 	}
 	
 	public Set<String> getDefinedGlobalVars() {
@@ -166,7 +187,7 @@ public class CHLCompiler {
 			}
 		}
 		if (prevType != TokenType.EOL) {
-			symbols.add(new SymbolInstance(Syntax.getSymbol("EOL"), new Token(0, 0, TokenType.EOL)));
+			symbols.add(new SymbolInstance(Syntax.EOL, new Token(0, 0, TokenType.EOL)));
 		}
 		symbols.add(SymbolInstance.EOF);
 	}
@@ -6040,7 +6061,7 @@ public class CHLCompiler {
 	}
 	
 	private SymbolInstance replace(final int index, String symbol) {
-		SymbolInstance newInst = new SymbolInstance(Syntax.getSymbol(symbol));
+		SymbolInstance newInst = new SymbolInstance(syntax.getSymbol(symbol));
 		while (it.nextIndex() > index) {
 			SymbolInstance sInst = prev();
 			it.remove();
@@ -6084,7 +6105,7 @@ public class CHLCompiler {
 				sInst = new SymbolInstance(Syntax.CHAR, token);
 				break;
 			case KEYWORD:
-				sInst = new SymbolInstance(Syntax.getSymbol(token.value), token);
+				sInst = new SymbolInstance(syntax.getSymbol(token.value), token);
 				break;
 			case ANNOTATION:
 				sInst = new SymbolInstance(Syntax.ANNOTATION, token);
@@ -6567,32 +6588,5 @@ public class CHLCompiler {
 			r += sep + String.valueOf(items[i]);
 		}
 		return r;
-	}
-	
-	
-	private static class ScriptToResolve {
-		public final File file;
-		public final int line;
-		public final Instruction instr;
-		public final String name;
-		public final int argc;
-		
-		public ScriptToResolve(File file, int line, Instruction instr, String name, int argc) {
-			this.file = file;
-			this.line = line;
-			this.instr = instr;
-			this.name = name;
-			this.argc = argc;
-		}
-	}
-	
-	
-	public static class Options {
-		public boolean sharedStrings = true;
-		public boolean staticArrayCheck = true;
-		public boolean extendedSyntax = false;
-		public boolean returnEnabled = false;
-		public boolean debug = false;
-		public boolean verbose = false;
 	}
 }

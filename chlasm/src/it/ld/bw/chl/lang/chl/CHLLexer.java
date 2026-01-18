@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.chl;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,6 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import it.ld.bw.chl.exceptions.ParseException;
+import it.ld.bw.chl.lang.commons.Syntax;
+import it.ld.bw.chl.lang.commons.Token;
+import it.ld.bw.chl.lang.commons.TokenType;
 
 /**This class can be used to split a CHL source file into individual tokens.
  */
@@ -36,6 +39,12 @@ public class CHLLexer {
 	}
 	
 	private int tabSize = 4;
+	
+	private final Syntax syntax;
+	
+	public CHLLexer() {
+		this.syntax = Syntax.get("chl");
+	}
 	
 	public int getTabSize() {
 		return tabSize;
@@ -279,7 +288,7 @@ public class CHLLexer {
 							str.unread(c);
 							col--;
 							add(tokens, token.setValue(buffer.toString()));
-							if (Syntax.isKeyword(token.value)) {
+							if (syntax.isKeyword(token.value)) {
 								token.type = TokenType.KEYWORD;
 							} else {
 								String lower = token.value.toLowerCase();

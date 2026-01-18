@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,12 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.asm;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
@@ -40,6 +41,9 @@ import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection.StringData;
 import it.ld.bw.chl.model.DataType;
 
+/**
+ * This class can convert a binary CHL file into LHVM ASM code.
+ */
 public class ASMWriter {
 	private static final char[] ILLEGAL_CHARACTERS = {'/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':'};
 	private static final Charset SRC_CHARSET = Charset.forName("ISO-8859-1");
@@ -169,7 +173,7 @@ public class ASMWriter {
 		List<StringData> constants = chl.getDataSection().getStrings();
 		Map<Integer, StringData> constMap = mapConstants(constants);
 		Map<Integer, Label> labels = getLabels(chl);
-		try (Writer str = new BufferedWriter(new FileWriter(file));) {
+		try (Writer str = "-".equals(file.getName()) ? new OutputStreamWriter(System.out) : new BufferedWriter(new FileWriter(file));) {
 			writeHeader(chl, str);
 			writeData(chl, str, constants);
 			writeScripts(chl, str, labels, constMap);
@@ -291,7 +295,7 @@ public class ASMWriter {
 				break;
 			}
 			writeScript(chl, str, script, labels, constMap);
-			str.write("\r\n");
+			str.write("\r\n\r\n");
 		}
 	}
 	

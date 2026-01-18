@@ -64,7 +64,7 @@ ___________________________________________
 
 Amount = 250/(BaywatchSwimmingCounter)		//#baywatch.txt:13
 
-	PUSHF [Amount]		//*These instructions seem useless, I would remove them
+	PUSHF [Amount]		//*These instructions are useless, could be removed
 	POPI				//*
 	PUSHF 250.0
 	PUSHF [BaywatchSwimmingCounter]
@@ -3063,7 +3063,6 @@ ___________________________________________
 3.18.23 move camera to CONSTANT time EXPRESSION
 
 Moves the camera to a camera position and focus defined in the camera editor in a define time.
-WARNING: this implementation looks bugged, the "time" should be pushed 2 times.
 
 move camera to T00_000 time 3											// Cam look at dying brother		//#lostbrother.txt:782
 
@@ -3072,7 +3071,7 @@ move camera to T00_000 time 3											// Cam look at dying brother		//#lostbro
 	PUSHI 432
 	SYS CONVERT_CAMERA_POSITION	//[1, 3] (int) returns (Coord)
 	PUSHF 3.0
-	SWAPF 4						//* again, why not just push the time in the proper place?
+	COPYTO 4					//copy the time value before next function arguments, it will be used as parameter for the subsequent function
 	SYS MOVE_CAMERA_POSITION	//[4, 0] (Coord position, float time)
 	SYS MOVE_CAMERA_FOCUS		//[4, 0] (Coord position, float time)
 ___________________________________________
@@ -3205,7 +3204,7 @@ AGE of Boy = 11		//#baywatch.txt:31
 
 	PUSHI 16
 	PUSHF [Boy]
-	PUSHI 16			//* These instructions seem useless, I would remove them 
+	PUSHI 16			//* These instructions are useless, could be removed
 	PUSHF [Boy]			//*
 	SYS2 GET_PROPERTY	//* Always use SYS2 here, regardless of the type of property
 	POPI				//*

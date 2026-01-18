@@ -1,0 +1,230 @@
+# Copyright (c) 2025 Daniele Lombardi / Daniels118
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+FILE:
+	[package PACKAGE;]
+	{IMPORT}
+	CLASSDEF
+	EOF
+
+PACKAGE: IDENTIFIER {. IDENTIFIER}
+
+IMPORT: {
+	import PACKAGE.IDENTIFIER;
+	import PACKAGE.*;
+	import static PACKAGE.IDENTIFIER.IDENTIFIER;
+	import static PACKAGE.IDENTIFIER.*;
+}
+
+SCOPE: {
+	public
+	private
+}
+
+CLASSDEF:
+	[@Challenge(STRING) EOL]
+	[public] abstract class IDENTIFIER \{
+		{MEMBER}
+	\}
+
+MEMBER: {
+	[SCOPE] static DATATYPE IDENTIFIER;
+	[SCOPE] static final DATATYPE IDENTIFIER = CONSTANT;
+	METHOD
+}
+
+SCRIPT_TYPE: {
+	@HelpScript
+	@ChallengeHelpScript
+	@TempleHelpScript
+	@TempleSpecialScript
+	@MultiplayerHelpScript
+}
+
+METHOD:
+	[@Autorun EOL]
+	[@Extern(STRING) EOL]
+	[SCRIPT_TYPE EOL]
+	[SCOPE] static void IDENTIFIER([ARGS]) \{
+		STATEMENTS
+	\}
+
+ARGS: ARG {, ARG}
+
+ARG: DATATYPE IDENTIFIER
+
+PARAMETERS: PARAMETER {, PARAMETER}
+
+PARAMETER: {
+	EXPRESSION
+	CONDITION
+	CONST_EXPR
+}
+
+
+STATEMENTS: {STATEMENT}
+
+STATEMENT: {
+	VAR_DECL
+	CONST_DECL
+	
+	VARIABLE = EXPRESSION;
+	VARIABLE += EXPRESSION;
+	VARIABLE -= EXPRESSION;
+	VARIABLE *= EXPRESSION;
+	VARIABLE /= EXPRESSION;
+	VARIABLE %= EXPRESSION;
+	VARIABLE++;
+	VARIABLE--;
+	
+	IDENTIFIER.IDENTIFIER([PARAMETERS]);
+	IDENTIFIER([PARAMETERS]);
+	
+	IF
+	SWITCH
+	FOR
+	FOREACH
+	WHILE
+	DO_WHILE
+	
+	break;
+	continue;
+	return;
+	
+	TRY_WITH_RESOURCES
+}
+
+VAR_DECL: {
+	DATATYPE IDENTIFIER = EXPRESSION;
+	DATATYPE IDENTIFIER = CONST_EXPR;
+	DATATYPE IDENTIFIER = OBJECT;
+	boolean IDENTIFIER = CONDITION;
+}
+
+CONST_DECL: {
+	final DATATYPE IDENTIFIER = EXPRESSION;
+	final DATATYPE IDENTIFIER = CONST_EXPR;
+	final boolean IDENTIFIER = CONDITION;
+}
+
+SWITCH:
+	switch (VARIABLE) \{
+		{case CONST_EXPR:
+			STATEMENTS}
+		[default:
+			STATEMENTS]
+	\}
+
+FOR:
+	for (VAR_DECL; CONDITION; [STATEMENT]) \{
+		STATEMENTS
+	\}
+
+FOREACH:
+	for (DATATYPE IDENTIFIER : IDENTIFIER) \{
+		STATEMENTS
+	\}
+
+WHILE:
+	while (CONDITION) \{
+		STATEMENTS
+	\}
+
+DO_WHILE:
+	do \{
+		STATEMENTS
+	\} while (CONDITION);
+
+IF:
+	if (CONDITION) \{
+		STATEMENTS
+	{else if (CONDITION) \{
+		STATEMENTS
+	\} }
+	[else \{
+		STATEMENTS \}]
+	}
+
+TRY_WITH_RESOURCES:
+	try (IDENTIFIER IDENTIFIER = EXPRESSION[;]) \{
+		STATEMENTS
+	\}
+
+CONDITION: {
+	! CONDITION
+	CONDITION && CONDITION
+	CONDITION || CONDITION
+	EXPRESSION == EXPRESSION
+	EXPRESSION != EXPRESSION
+	EXPRESSION >= EXPRESSION
+	EXPRESSION <= EXPRESSION
+	EXPRESSION > EXPRESSION
+	EXPRESSION < EXPRESSION
+	CONST_EXPR == CONST_EXPR
+	CONST_EXPR != CONST_EXPR
+	CONST_EXPR >= CONST_EXPR
+	CONST_EXPR <= CONST_EXPR
+	CONST_EXPR > CONST_EXPR
+	CONST_EXPR < CONST_EXPR
+	(CONDITION)
+	true
+	false
+}
+
+CONST_EXPR: {
+	CONST_EXPR *|/|% CONST_EXPR
+	CONST_EXPR +|- CONST_EXPR
+	-CONST_EXPR
+	(CONST_EXPR)
+	CONSTANT
+}
+
+EXPRESSION: {
+	VARIABLE
+	NUMBER
+	
+	EXPRESSION *|/|% EXPRESSION
+	EXPRESSION +|- EXPRESSION
+	-EXPRESSION
+	
+	IDENTIFIER.IDENTIFIER([PARAMETERS])
+	
+	CONDITION ? EXPRESSION : EXPRESSION
+}
+
+OBJECT: {
+	VARIABLE
+	IDENTIFIER.IDENTIFIER([PARAMETERS])
+	new IDENTIFIER([PARAMETERS])
+	null
+}
+
+CONSTANT: {
+	IDENTIFIER
+	NUMBER
+}
+
+VARIABLE: {
+	IDENTIFIER {.IDENTIFIER}
+}
+
+DATATYPE: {
+	void
+	int
+	float
+	boolean
+	IDENTIFIER
+}

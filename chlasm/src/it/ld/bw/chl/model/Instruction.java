@@ -76,6 +76,8 @@ public class Instruction extends Struct {
 	public boolean boolVal;
 	public int lineNumber;
 	
+	public String strVal;
+	
 	@Override
 	public void read(EndianDataInputStream str) throws Exception {
 		//# Profiler.start(ProfilerSections.PF_INSTR_OPCODE);

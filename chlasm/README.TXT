@@ -14,6 +14,7 @@ to get the list of the available commands and their syntax. Currently these func
 are implemented:
 
 - compile CHL source files to CHL binary file;
+- compile Java source files to CHL binary file (experimental);
 - convert a CHL binary file to ASM, either in a single file or multiple files (project);
 - convert an ASM file (or project) to CHL binary file;
 - functionally compare two CHL files;
@@ -29,7 +30,7 @@ _______________________
 
 FAQ
 
-- I have all the original source files, how can I compile them as CHL?
+- How can I compile the original story?
 
   You can find the instructions in samples/bw1_story/_project.txt
 
@@ -49,6 +50,10 @@ Remarkable sources of information used in this project are:
 _______________________
 
 CHANGELOG
+
+# Version 0.12 a
+- Compile each source file to distinct object code (only if source is newer than obj), link them all at the end
+- Implemented partial support for Java as scripting language
 
 # Version 0.11 b
 - Fixed declaration of typed global vars
@@ -91,6 +96,6 @@ CHANGELOG
 - Implemented full support for "say" instructions
 _______________________
 
-CHLASM, Copyright (c) 2023-2024 Daniele Lombardi / Daniels118. 
+CHLASM, Copyright (c) 2023-2026 Daniele Lombardi / Daniels118. 
 This software is distributed under GNU GENERAL PUBLIC LICENSE Version 3.
 Read LICENSE.TXT file for more details about licenses applicable to this software.

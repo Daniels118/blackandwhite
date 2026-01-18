@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,10 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.commons;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -24,9 +26,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import java.util.Set;
 
-import it.ld.bw.chl.lang.Symbol.TerminalType;
+import it.ld.bw.chl.lang.commons.Symbol.TerminalType;
 
 /**Syntax file rules:
  * 
@@ -50,8 +53,6 @@ import it.ld.bw.chl.lang.Symbol.TerminalType;
  * 
  */
 public class Syntax {
-	private static final String SYNTAX_FILE = "syntax.txt";
-	
 	//Special symbols defined by the parser
 	public static final Symbol EOF;
 	public static final Symbol EOL;
@@ -61,27 +62,52 @@ public class Syntax {
 	public static final Symbol CHAR;
 	public static final Symbol ANNOTATION;
 	
-	/**Map of all symbols indexed by name. The name of implicit symbols is equivalent to their expression.*/
-	private static final Map<String, Symbol> symbols = new LinkedHashMap<>();
+	private static final Map<String, Syntax> languages = new HashMap<>();
 	
-	private static final Set<String> keywords = new HashSet<>();
+	/**Map of all symbols indexed by name. The name of implicit symbols is equivalent to their expression.*/
+	private final Map<String, Symbol> symbols = new LinkedHashMap<>();
+	
+	private final Set<String> keywords = new HashSet<>();
 	
 	static {
-		EOF = addSymbol("EOF", TerminalType.EOF, true, true);
-		EOL = addSymbol("EOL", TerminalType.EOL, true, true);
-		IDENTIFIER = addSymbol("IDENTIFIER", TerminalType.IDENTIFIER, true, true);
-		NUMBER = addSymbol("NUMBER", TerminalType.NUMBER, true, true);
-		STRING = addSymbol("STRING", TerminalType.STRING, true, true);
-		CHAR = addSymbol("CHAR", TerminalType.CHAR, true, true);
-		ANNOTATION = addSymbol("ANNOTATION", TerminalType.DIRECTIVE, true, true);
-		load();
+		EOF = new Symbol("EOF", TerminalType.EOF, true, true);
+		EOL = new Symbol("EOL", TerminalType.EOL, true, true);
+		IDENTIFIER = new Symbol("IDENTIFIER", TerminalType.IDENTIFIER, true, true);
+		NUMBER = new Symbol("NUMBER", TerminalType.NUMBER, true, true);
+		STRING = new Symbol("STRING", TerminalType.STRING, true, true);
+		CHAR = new Symbol("CHAR", TerminalType.CHAR, true, true);
+		ANNOTATION = new Symbol("ANNOTATION", TerminalType.DIRECTIVE, true, true);
 	}
 	
-	public static Symbol getSymbol(String keyword) {
+	public static void register(String lang, InputStream source) {
+		Syntax syntax = new Syntax(source);
+		languages.put(lang, syntax);
+	}
+	
+	public static Syntax get(String lang) {
+		Syntax syntax = languages.get(lang);
+		if (syntax == null) {
+			throw new RuntimeException("Language \"" + lang + "\" is not defined");
+		}
+		return syntax;
+	}
+	
+	private Syntax(InputStream source) {
+		addSymbol(EOF);
+		addSymbol(EOL);
+		addSymbol(IDENTIFIER);
+		addSymbol(NUMBER);
+		addSymbol(STRING);
+		addSymbol(CHAR);
+		addSymbol(ANNOTATION);
+		load(source);
+	}
+	
+	public Symbol getSymbol(String keyword) {
 		return symbols.get(keyword);
 	}
 	
-	public static void printSymbols() {
+	public void printSymbols() {
 		for (Symbol symbol : symbols.values()) {
 			if (symbol.root) {
 				System.out.println(symbol);
@@ -90,13 +116,13 @@ public class Syntax {
 		}
 	}
 	
-	public static void printKeywords() {
+	public void printKeywords() {
 		for (String s : keywords) {
 			System.out.println(s);
 		}
 	}
 	
-	public static void printTree() {
+	public void printTree() {
 		Map<Symbol, Node> tree = new LinkedHashMap<>();
 		for (Symbol sym : symbols.values()) {
 			if (sym.alternatives != null) {
@@ -137,29 +163,34 @@ public class Syntax {
 		}
 	}
 	
-	public static boolean isKeyword(String s) {
+	public boolean isKeyword(String s) {
 		return keywords.contains(s);
 	}
 	
-	private static Symbol addSymbol(String keyword, TerminalType terminalType, boolean implicit, boolean root) {
+	private Symbol addSymbol(String keyword, TerminalType terminalType, boolean implicit, boolean root) {
 		Symbol symbol = new Symbol(keyword, terminalType, implicit, root);
 		symbols.put(keyword, symbol);
 		return symbol;
 	}
 	
-	private static Symbol getOrCreateSymbol(String keyword) {
+	private Symbol addSymbol(Symbol symbol) {
+		symbols.put(symbol.keyword, symbol);
+		return symbol;
+	}
+	
+	private Symbol getOrCreateSymbol(String keyword) {
 		Symbol symbol = symbols.get(keyword);
 		if (symbol != null) return symbol;
-		if (keyword.equals(keyword.toLowerCase())) {
+		if (!allCaps(keyword)) {
 			return addSymbol(keyword, TerminalType.KEYWORD, true, false);
 		} else {
 			return addSymbol(keyword, null, true, false);
 		}
 	}
 	
-	private static void load() {
+	private void load(InputStream source) {
 		int lineno = 0;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(Syntax.class.getResourceAsStream(SYNTAX_FILE)));) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(source));) {
 			boolean inBlock = false;
 			Symbol symbol = null;
 			List<Symbol> alternatives = new LinkedList<>();
@@ -218,8 +249,7 @@ public class Syntax {
 			}
 			//Build keyword list and pattern tree
 			for (Symbol sym : symbols.values()) {
-				if (!sym.optional && sym.alternatives == null && sym.expression == null
-						&& sym.keyword.equals(sym.keyword.toLowerCase())) {
+				if (!sym.optional && sym.alternatives == null && sym.expression == null && !allCaps(sym.keyword)) {
 					sym.terminal = true;
 					sym.terminalType = TerminalType.KEYWORD;
 				}
@@ -236,12 +266,12 @@ public class Syntax {
 		}
 	}
 	
-	private static Symbol parseExpression(String keyword, String expr) {
+	private Symbol parseExpression(String keyword, String expr) {
 		String[] tokens = splitExpression(expr);
 		return parseExpression(keyword, tokens, 0, tokens.length);
 	}
 	
-	private static Symbol parseExpression(String keyword, String[] tokens, int start, int end) {
+	private Symbol parseExpression(String keyword, String[] tokens, int start, int end) {
 		boolean implicit = keyword == null;
 		if (implicit) keyword = join(" ", tokens, start, end);
 		Symbol symbol = symbols.get(keyword);
@@ -326,7 +356,7 @@ public class Syntax {
 		char type = ' ';
 		for (int i = 0; i < expr.length(); i++) {
 			char c = expr.charAt(i);
-			if ('a'<=c && c<='z' || 'A'<=c && c<='Z' || '0'<=c && c<='9' || c=='_') {
+			if ('a'<=c && c<='z' || 'A'<=c && c<='Z' || '0'<=c && c<='9' || c=='_' || c=='@') {
 				if (type != 'w') {
 					if (!token.isEmpty()) {
 						tokens.add(token);
@@ -370,6 +400,13 @@ public class Syntax {
 			r += delimiter + tokens[i];
 		}
 		return r;
+	}
+	
+	private static boolean allCaps(String s) {
+		if (s.matches("[a-zA-Z]")) {
+			return s.equals(s.toUpperCase());
+		}
+		return false;
 	}
 	
 	

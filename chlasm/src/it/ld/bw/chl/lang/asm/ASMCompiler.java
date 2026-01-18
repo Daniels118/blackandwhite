@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package it.ld.bw.chl.lang;
+package it.ld.bw.chl.lang.asm;
 
 import static it.ld.bw.chl.model.OPCodeMode.*;
 
@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 import it.ld.bw.chl.exceptions.ParseException;
+import it.ld.bw.chl.lang.commons.CHeaderParser;
+import it.ld.bw.chl.lang.commons.InfoParser2;
+import it.ld.bw.chl.lang.commons.Project;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.DataSection;
 import it.ld.bw.chl.model.DataType;
@@ -44,8 +47,11 @@ import it.ld.bw.chl.model.OPCodeMode;
 import it.ld.bw.chl.model.Script;
 import it.ld.bw.chl.model.ScriptType;
 
-public class ASMCompiler implements Compiler {
-	private static final Charset ASCII = Charset.forName("US-ASCII");
+/**
+ * This class can compile LHVM ASM code to CHL binary script.
+ */
+public class ASMCompiler {
+	private static final Charset ASCII = Charset.forName("windows-1252");
 	private static final int INITIAL_BUFFER_SIZE = 16 * 1024;
 	private static final int MAX_BUFFER_SIZE = 2 * 1024 * 1024;
 	
@@ -95,6 +101,7 @@ public class ASMCompiler implements Compiler {
 		this.verboseEnabled = verboseEnabled;
 	}
 	
+	@SuppressWarnings("unused")
 	private void warning(String s) {
 		out.println(s);
 	}
@@ -625,7 +632,8 @@ public class ASMCompiler implements Compiler {
 	    if ("false".equals(s)) return false;
 	    if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
 	    for (int i = 1; i < s.length(); i++) {
-	        if (!Character.isJavaIdentifierPart(s.charAt(i))) return false;
+	        char c = s.charAt(i);
+	    	if (!Character.isJavaIdentifierPart(c) && c != '.') return false;
 	    }
 	    return true;
 	}

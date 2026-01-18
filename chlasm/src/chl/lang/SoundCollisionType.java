@@ -1,0 +1,42 @@
+package chl.lang;
+
+public enum SoundCollisionType implements LHEnum {
+	DEFAULT,
+	FLESH,
+	BUSH,
+	FIR_TREE,
+	ENGLISH_TREE,
+	BURNT_TREE,
+	PALM_TREE,
+	FABRIC_BUILDING,
+	MUD_BUILDING,
+	WOODEN_BUILDING,
+	BRICK_BUILDING,
+	GRAIN,
+	SOLID_WOOD,
+	SOLID_METAL,
+	SOLID_STONE,
+	BRITTLE_STONE,
+	FLINT_STONE,
+	CHALK_STONE,
+	HOLLOW_WOOD,
+	HOLLOW_METAL,
+	FUNGUS,
+	CART,
+	MUCK,
+	POTTERY,
+	FOOTBALL,
+	FURNITURE,
+	TOOLS,
+	GROUND,
+	PHYSICAL_SHIELD,
+	WATER,
+	SPELL_BUBBLE,
+	FRAGMENT,
+	SCAFFOLD;
+	
+	@Override
+	public int value() {
+		return this.ordinal();
+	}
+}

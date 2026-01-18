@@ -1,3 +1,18 @@
+/* Copyright (c) 2025-2026 Daniele Lombardi / Daniels118
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package it.ld.bw.chl;
 
 import java.io.ByteArrayOutputStream;
@@ -6,11 +21,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -99,7 +116,8 @@ public class CHLLinker {
 			HashSet<Integer> srcStrInstr = new HashSet<>(objcode.getStringInstructions());
 			//Add data
 			final int dataOffset = data.size();
-			for (StringData sData : srcChl.data.getStrings()) {
+			List<StringData> srcStrings = srcChl.data.getStrings();
+			for (StringData sData : srcStrings) {
 				String str = sData.getString();
 				if (str.startsWith("crc32[")) {
 					properties.add(str);
@@ -166,49 +184,63 @@ public class CHLLinker {
 			}
 			//Add and relocate code (this invalidates source instructions)
 			final int baseAddress = instructions.size();
+			final Map<Integer, Script> relocations = new HashMap<>();
 			ArrayList<Instruction> srcInstructions = srcChl.code.getItems();
 			for (Script script : scriptsSection.getItems()) {
-				final int newScriptAddress = instructions.size();
-				final int localsDelta = globalsCount - script.getGlobalCount();
-				for (int i = script.getInstructionAddress(); i <= srcInstructions.size(); i++) {
-					Instruction instr = srcInstructions.get(i);
-					OPCode opcode = instr.opcode;
-					boolean popNull = opcode == OPCode.POP && instr.intVal == 0;
-					if (opcode.hasArg || instr.isZero() && !popNull) {
-						if (instr.opcode.isIP) {
-							instr.intVal += baseAddress;
-						} else if (instr.opcode.isScript) {
-							if (instr.intVal >= 0) {
-								instr.intVal = internalScriptsMap[instr.intVal - 1];
-							} else {
-								instr.intVal = externalScriptsMap[-instr.intVal - 1];
-							}
-						} else if (instr.isReference()) {
-							if (instr.intVal > script.getGlobalCount()) {	//Local vars
-								instr.intVal += localsDelta;
-							} else if (instr.intVal >= 0) {					//Internal global vars
-								instr.intVal += globalOffset;
-							} else {										//External global vars
-								instr.intVal = externalVarsMap[-instr.intVal - 1];
-							}
-						} else if (instr.opcode == OPCode.PUSH && instr.dataType == DataType.INT) {
-							if (srcStrInstr.contains(i)) {
-								if (options.sharedStrings) {
-									String str = srcChl.data.getString(instr.intVal);
-									instr.intVal = stringMap.get(str);
+				Script relocated = relocations.get(script.getInstructionAddress());
+				if (relocated == null) {
+					relocations.put(script.getInstructionAddress(), script);
+					final int newScriptAddress = instructions.size();
+					final int localsDelta = globalsCount - script.getGlobalCount();
+					for (int i = script.getInstructionAddress(); i <= srcInstructions.size(); i++) {
+						Instruction instr = srcInstructions.get(i);
+						OPCode opcode = instr.opcode;
+						boolean popNull = opcode == OPCode.POP && instr.intVal == 0;
+						if (opcode.hasArg || instr.isZero() && !popNull) {
+							if (instr.opcode.isIP) {
+								instr.intVal += baseAddress;
+							} else if (instr.opcode.isScript) {
+								if (instr.intVal >= 0) {
+									instr.intVal = internalScriptsMap[instr.intVal - 1];
 								} else {
-									instr.intVal += dataOffset;
+									instr.intVal = externalScriptsMap[-instr.intVal - 1];
 								}
-								stringInstructions.add(instructions.size());
+							} else if (instr.isReference()) {
+								if (instr.intVal > script.getGlobalCount()) {	//Local vars
+									instr.intVal += localsDelta;
+								} else if (instr.intVal >= 0) {					//Internal global vars
+									instr.intVal += globalOffset;
+								} else {										//External global vars
+									instr.intVal = externalVarsMap[-instr.intVal - 1];
+								}
+							} else if (instr.opcode == OPCode.PUSH && instr.dataType == DataType.INT) {
+								if (srcStrInstr.contains(i)) {
+									if (options.sharedStrings) {
+										String str = srcChl.data.getString(instr.intVal);
+										Integer strptr = stringMap.get(str);
+										if (strptr == null) {
+											throw new LinkError("String not found: \"" + str + "\". Possible code relocation.", objcode.file);
+										}
+										instr.intVal = strptr;
+									} else {
+										instr.intVal += dataOffset;
+									}
+									stringInstructions.add(instructions.size());
+								}
 							}
 						}
+						instructions.add(instr);
+						if (instr.opcode == OPCode.END) break;
 					}
-					instructions.add(instr);
-					if (instr.opcode == OPCode.END) break;
+					script.setChl(chl);
+					script.setInstructionAddress(newScriptAddress);
+					script.setGlobalCount(script.getGlobalCount() + localsDelta);
+				} else {
+					info("Script " + script.getName() + " is an alias of " + relocated.getName());
+					script.setChl(chl);
+					script.setInstructionAddress(relocated.getInstructionAddress());
+					script.setGlobalCount(relocated.getGlobalCount());
 				}
-				script.setChl(chl);
-				script.setInstructionAddress(newScriptAddress);
-				script.setGlobalCount(script.getGlobalCount() + localsDelta);
 			}
 			//Add autostart scripts
 			for (Integer srcId : srcChl.autoStartScripts.getScripts()) {

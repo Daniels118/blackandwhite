@@ -1,7 +1,7 @@
 Prints information about CHL language and runtime
 
 Syntax
-  chlasm -info arg
+  chlasm -info arg [-lang lang]
 
 Arguments
   keywords         list language keywords

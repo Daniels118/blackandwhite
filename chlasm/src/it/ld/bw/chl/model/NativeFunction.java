@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -719,6 +719,22 @@ public enum NativeFunction {
 				s += " " + name;
 			}
 			return s;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (varargs || !(obj instanceof Argument)) return false;
+			Argument other = (Argument)obj;
+			if (this.type != other.type) return false;
+			if (this.objectClass != null && !this.objectClass.equals(other.objectClass)) return false;
+			return true;
+		}
+		
+		@Override
+		public int hashCode() {
+			int r = type.ordinal();
+			if (objectClass != null) r += objectClass.hashCode();
+			return r;
 		}
 	}
 	

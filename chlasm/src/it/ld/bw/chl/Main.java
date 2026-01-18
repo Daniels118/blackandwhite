@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2025 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ import java.util.Set;
 
 import it.ld.bw.chl.exceptions.ParseError;
 import it.ld.bw.chl.exceptions.ParseException;
-import it.ld.bw.chl.lang.ASMCompiler;
-import it.ld.bw.chl.lang.ASMWriter;
-import it.ld.bw.chl.lang.CHLCompiler;
-import it.ld.bw.chl.lang.Project;
-import it.ld.bw.chl.lang.Syntax;
+import it.ld.bw.chl.lang.asm.ASMCompiler;
+import it.ld.bw.chl.lang.asm.ASMWriter;
+import it.ld.bw.chl.lang.chl.CHLCompiler;
+import it.ld.bw.chl.lang.commons.CompilerOptions;
+import it.ld.bw.chl.lang.commons.Project;
+import it.ld.bw.chl.lang.commons.Syntax;
+import it.ld.bw.chl.lang.java.JavaCompiler;
 import it.ld.bw.chl.model.CHLFile;
 import it.ld.bw.chl.model.Code;
 import it.ld.bw.chl.model.NativeFunction;
@@ -37,6 +39,11 @@ import it.ld.utils.CmdLine;
 
 public class Main {
 	private static boolean verbose = false;
+	
+	static {
+		Syntax.register("chl", CHLCompiler.class.getResourceAsStream("syntax.txt"));
+		Syntax.register("java", JavaCompiler.class.getResourceAsStream("syntax.txt"));
+	}
 	
 	public static void main(String[] args) {
 		boolean printJavaStackTrace = true;
@@ -150,7 +157,7 @@ public class Main {
 	
 	private static void compile(CmdLine cmd) throws Exception {
 		Make make = new Make();
-		CHLCompiler.Options compilerOptions = make.getCompilerOptions();
+		CompilerOptions compilerOptions = make.getCompilerOptions();
 		CHLLinker.Options linkerOptions = make.getLinkerOptions();
 		compilerOptions.verbose = verbose;
 		linkerOptions.verbose = verbose;
@@ -255,13 +262,15 @@ public class Main {
 	}
 	
 	private static void printInfo(CmdLine cmd) {
+		String lang = cmd.getArgVal("-lang", "chl");
+		Syntax syntax = Syntax.get(lang);
 		String arg = mandatory(cmd.getArgVal("-info"), "-info");
 		if ("keywords".equals(arg)) {
-			Syntax.printKeywords();
+			syntax.printKeywords();
 		} else if ("syntax".equals(arg)) {
-			Syntax.printSymbols();
+			syntax.printSymbols();
 		} else if ("syntax_tree".equals(arg)) {
-			Syntax.printTree();
+			syntax.printTree();
 		} else if ("native_functions".equals(arg)) {
 			for (NativeFunction f : NativeFunction.values()) {
 				System.out.println(f.getCStyleSignature());

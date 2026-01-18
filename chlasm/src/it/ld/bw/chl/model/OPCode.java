@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Daniele Lombardi / Daniels118
+/* Copyright (c) 2023-2026 Daniele Lombardi / Daniels118
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,9 @@ import static it.ld.bw.chl.model.OPCodeAttr.*;
  * 
  * 
  * About SYS2
+ * SYS and SYS2 have exactly the same behavior, that is, the implementation simply ignores the data type
+ * coded in the instruction. We still support both in order to generate the same binary output.
+ * 
  * SYS2 is used to call the following functions:
  *   GET_PROPERTY				*called with SYS too
  *   SET_PROPERTY
@@ -56,8 +59,8 @@ import static it.ld.bw.chl.model.OPCodeAttr.*;
  * 
  * About CALL/START
  * Arguments must be pushed in the same order they appear in the script signature, and must be popped
- * in the same order. This is conceptually wrong, so I guess the LHVM automatically inverts the order
- * of the last N values on the stack (where N is the number of parameters of the script). Please note
+ * in the same order. This is conceptually wrong, but the LHVM automatically inverts the order
+ * of the items when copying them on the stack of the receiving task. Please note
  * that parameters of user scripts cannot be of coordinate type, so there is no risk of coordinate
  * inversion (i.e. [x,y,z] to [z,y,x]).
  * 
@@ -107,23 +110,23 @@ public enum OPCode {
 /*00*/	{{"END"}},
 /*01*/	{{null, "JZ"}, {null, "JZ"}},
 /*02*/	{{null, "PUSHI", "PUSHF", "PUSHC", "PUSHO", null, "PUSHB"}, {null, "PUSHI", "PUSHF", "PUSHC", "PUSHO", null, "PUSHB"}},
-/*03*/	{{null, "POPI", "POPF", "POPC", "POPO", null, "POPB"}, {null, "POPI", "POPF"}},
+/*03*/	{{null, "POPI", "POPF", "POPC", "POPO", null, "POPB"}, {null, "POPI", "POPF", null, "POPO", null, "POPB"}},
 /*04*/	{{null, "ADDI", "ADDF", "ADDC"}},
 /*05*/	{{"SYS", null, "SYS2"}},
 /*06*/	{{null, "SUBI", "SUBF", "SUBC"}},
-/*07*/	{{null, "NEGI", "NEGF"}},
-/*08*/	{{null, "MULI", "MULF"}},
-/*09*/	{{null, "DIVI", "DIVF"}},
+/*07*/	{{null, "NEGI", "NEGF", "NEGC"}},
+/*08*/	{{null, "MULI", "MULF", "MULC"}},
+/*09*/	{{null, "DIVI", "DIVF", "DIVC"}},
 /*0A*/	{{null, "MODI", "MODF"}},
 /*0B*/	{{null, "NOT"}},
 /*0C*/	{{null, "AND"}},
 /*0D*/	{{null, "OR"}},
-/*0E*/	{{null, null, "EQ"}},
-/*0F*/	{{null, null, "NEQ"}},
-/*10*/	{{null, null, "GEQ"}},
-/*11*/	{{null, null, "LEQ"}},
-/*12*/	{{null, null, "GT"}},
-/*13*/	{{null, null, "LT"}},
+/*0E*/	{{null, "EQI" , "EQ" , "EQC" , "EQO" }},
+/*0F*/	{{null, "NEQI", "NEQ", "NEQC", "NEQO"}},
+/*10*/	{{null, "GEQI", "GEQ"}},
+/*11*/	{{null, "LEQI", "LEQ"}},
+/*12*/	{{null, "GTI" , "GT"}},
+/*13*/	{{null, "LTI" , "LT"}},
 /*14*/	{{null, "JMP"}, {null, "JMP"}},
 /*15*/	{{null, null, "SLEEP"}},
 /*16*/	{{null, "EXCEPT"}},
@@ -133,7 +136,7 @@ public enum OPCode {
 /*1A*/	null,	//RETEXCEPT
 /*1B*/	{{null, "ITEREXCEPT"}},
 /*1C*/	{{null, "BRKEXCEPT"}},
-/*1D*/	{{null, "SWAP", "COPYTO"}, {null, null, "COPYFROM"}},
+/*1D*/	{{null, "SWAP", "COPYTO"}, {null, null, "MOVEFROM"}},
 /*1E*/	null	//LINE
 	};
 	
@@ -190,7 +193,9 @@ public enum OPCode {
 		String[][] t = keywords[opcode];
 		if (t == null || flags < 0 || flags >= t.length) throw new IllegalArgumentException("Invalid flags");
 		String[] t2 = t[flags];
-		if (t2 == null || dataType < 0 || dataType >= t2.length || t2[dataType] == null) throw new IllegalArgumentException("Invalid datatype");
+		if (t2 == null || dataType < 0 || dataType >= t2.length || t2[dataType] == null) {
+			throw new IllegalArgumentException("Invalid datatype");
+		}
 		return t2[dataType];
 	}
 }

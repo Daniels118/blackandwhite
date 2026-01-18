@@ -1,0 +1,27 @@
+void Camera.setFocus(Coord position): SET_CAMERA_FOCUS(position)
+void Camera.setFocus(float x, float y, float z): SET_CAMERA_FOCUS(x, y, z)
+void Camera.setPosition(Coord position): SET_CAMERA_POSITION(position)
+void Camera.setPosition(float x, float y, float z): SET_CAMERA_POSITION(x, y, z)
+
+Coord Coord.add(float x, float y, float z): @add_coord(this, x, y, z)
+Coord Coord.add(float x, float z): @add_coord(this, x, 0f, z)
+Coord Coord.sub(float x, float y, float z): @sub_coord(this, x, y, z)
+Coord Coord.sub(float x, float z): @sub_coord(this, x, 0f, z)
+Coord Coord.mul(float scale): @mul_coord(this, scale)
+Coord Coord.div(float scale): @div_coord(this, scale)
+Coord Coord.neg(): @neg_coord(this)
+
+void Effects.fadein(float duration): SET_FADE_IN(duration)
+
+Coord Hand.getPosition(): GET_HAND_POSITION()
+
+boolean Keyboard.isPressed(int key): KEY_DOWN(key)
+
+void Map.load(String path): LOAD_MAP(path)
+
+Coord Marker.getPosition(): GET_POSITION(this)
+
+void Dialogue.sayWithNumber(String format, float number, boolean withInteraction, boolean singleLine): RUN_TEXT_WITH_NUMBER(singleLine, format, number, withInteraction)
+void Dialogue.sayWithNumber(String format, float number, boolean withInteraction): RUN_TEXT_WITH_NUMBER(false, format, number, withInteraction)
+void Dialogue.sayWithNumber(String format, float number): RUN_TEXT_WITH_NUMBER(false, format, number, false)
+boolean Dialogue.hasBeenRead(): TEXT_READ()
